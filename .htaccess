@@ -1,0 +1,17 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteRule (^|/)\.(?!well-known/) - [F,L]
+
+    # Let the React SPA own its virtual routes before protecting Laravel folders.
+    RewriteRule ^(?:app|dashboard|forms|tables|charts|pages|features|auth|auth-card|reservations|administration|tapis-romus|locations-materiel)(?:/.*)?$ public/index.php [L]
+
+    RewriteRule ^(?:app|bootstrap|config|database|node_modules|resources|routes|storage|tests|vendor)(?:/|$) - [F,L]
+    RewriteRule ^(?:artisan|composer\.(?:json|lock)|package(?:-lock)?\.json|phpunit\.xml|vite\.config\.js)$ - [F,L]
+
+    RewriteRule ^$ public/ [L]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
