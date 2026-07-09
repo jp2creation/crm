@@ -299,6 +299,116 @@ var styles=`
   border-radius: .3rem;
   box-shadow: 0 6px 14px rgba(15, 23, 42, .12);
 }
+.equipment-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+.equipment-resource-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-surface-200);
+  border-radius: .75rem;
+  background: #fff;
+  text-align: left;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, .055);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast), background var(--duration-fast);
+}
+.equipment-resource-card:hover,
+.equipment-resource-card.is-active {
+  border-color: rgb(var(--theme-primary) / .55);
+  background: rgb(var(--theme-primary) / .035);
+  box-shadow: 0 18px 42px rgb(var(--theme-primary) / .12);
+  transform: translateY(-1px);
+}
+.equipment-resource-card:focus-visible {
+  outline: 3px solid rgb(var(--theme-primary) / .2);
+  outline-offset: 2px;
+}
+.equipment-resource-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--color-surface-100);
+}
+.equipment-resource-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .3s ease;
+}
+.equipment-resource-card:hover .equipment-resource-image {
+  transform: scale(1.04);
+}
+.equipment-resource-empty {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background: rgb(var(--theme-primary) / .08);
+  color: rgb(var(--theme-primary));
+}
+.equipment-resource-body {
+  display: flex;
+  min-height: 6.1rem;
+  flex: 1;
+  flex-direction: column;
+  gap: .45rem;
+  padding: .75rem;
+}
+.equipment-resource-title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-secondary-900);
+  font-size: .9rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.equipment-resource-meta {
+  overflow: hidden;
+  color: var(--color-secondary-500);
+  font-size: .72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.equipment-resource-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  color: var(--color-secondary-500);
+  font-size: .7rem;
+  font-weight: 700;
+}
+.equipment-resource-state {
+  display: inline-flex;
+  align-items: center;
+  gap: .32rem;
+  min-width: 0;
+}
+.equipment-resource-state::before {
+  content: "";
+  width: .5rem;
+  height: .5rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--resource-status, #16a34a);
+}
+.equipment-resource-price {
+  flex: 0 0 auto;
+  color: rgb(var(--theme-primary));
+}
 .equipment-mobile-count {
   display: none;
 }
@@ -325,6 +435,17 @@ var styles=`
 }
 .equipment-modal-panel-wide {
   width: min(980px, 100%);
+}
+@media (min-width: 640px) {
+  .equipment-resource-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+@media (min-width: 1180px) {
+  .equipment-resource-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 @media (max-width: 840px) {
   .equipment-calendar-shell {
@@ -846,9 +967,9 @@ function EquipmentRentalsPage(){
 
     function productImageHtml(url,label){
       if(url){
-        return`<img src="${esc(url)}" alt="${esc(label)}" class="w-full object-cover group-hover:scale-105 transition-transform duration-300" style="height:7.25rem;width:100%">`;
+        return`<img src="${esc(url)}" alt="${esc(label)}" class="equipment-resource-image">`;
       }
-      return`<div class="flex w-full items-center justify-center bg-surface-100 text-theme-primary" style="height:7.25rem;width:100%">
+      return`<div class="equipment-resource-empty">
         <span class="text-lg font-bold">${esc(initials(label))}</span>
       </div>`;
     }
@@ -1079,25 +1200,31 @@ function EquipmentRentalsPage(){
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 class="heading-5 text-secondary-900">Materiel du site</h2>
-              <p class="text-body-sm text-secondary-500">${selected?`Planning filtre sur ${esc(selected.name)}`:"Cliquez sur un materiel pour filtrer le planning"}</p>
+              <p class="text-body-sm text-secondary-500">${selected?`Planning filtre sur ${esc(selected.name)}`:"Selectionnez un materiel pour afficher son planning"}</p>
             </div>
             <div class="flex items-center gap-3">
               <span class="badge badge-primary">${items.length}</span>
-              ${selected?'<button type="button" class="text-body-sm font-semibold text-theme-primary" data-item-filter="">Tous</button>':""}
+              ${selected?'<button type="button" class="text-body-sm font-semibold text-theme-primary" data-item-filter="">Changer</button>':""}
             </div>
           </div>
-          <div class="flex gap-2 overflow-x-auto pb-1">
+          <div class="equipment-resource-grid">
             ${items.map(function(item){
               var active=selected?.id===item.id;
               var available=itemAvailableNow(item);
-              return`<button type="button" class="card group overflow-hidden rounded-xl bg-white text-left transition-colors hover:bg-surface-50" style="width:146px;min-width:146px;${active?"background:rgb(var(--theme-primary) / .04);":""}" data-item-filter="${item.id}">
-                <div class="relative overflow-hidden bg-surface-100">
+              var category=categoryById(item.categoryId);
+              return`<button type="button" class="equipment-resource-card${active?" is-active":""}" data-item-filter="${item.id}" aria-pressed="${active?"true":"false"}">
+                <span class="equipment-resource-media">
                   ${productImageHtml(item.photoUrl,item.name)}
                   ${availabilityBadgeHtml(available)}
-                </div>
-                <div class="p-2">
-                  <h3 class="font-semibold text-secondary-900 line-clamp-2 transition-colors group-hover:text-theme-primary" style="min-height:2rem;font-size:.8125rem;line-height:1.25rem">${esc(item.name)}</h3>
-                </div>
+                </span>
+                <span class="equipment-resource-body">
+                  <span class="equipment-resource-title">${esc(item.name)}</span>
+                  <span class="equipment-resource-meta">${esc(category?.name||item.inventoryCode||"Materiel")}</span>
+                  <span class="equipment-resource-foot">
+                    <span class="equipment-resource-state" style="--resource-status:${available?"#16a34a":"#dc2626"}">${available?"Disponible":"Indisponible"}</span>
+                    <span class="equipment-resource-price">${Number(item.dayPrice||0).toFixed(0)} EUR/j</span>
+                  </span>
+                </span>
               </button>`;
             }).join("")||'<p class="w-full rounded-xl border border-dashed border-surface-200 p-4 text-center text-body-sm text-secondary-400">Aucun materiel sur ce site.</p>'}
           </div>
@@ -1107,13 +1234,14 @@ function EquipmentRentalsPage(){
 
     function calendarHeader(){
       var step=state.view==="month"?30:state.view==="week"?7:1;
+      var selected=selectedItem();
       return`
         <div class="equipment-agenda-toolbar flex flex-col gap-3 border-b border-surface-200 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="equipment-agenda-nav flex items-center gap-2">
             <button type="button" class="btn btn-secondary btn-sm btn-icon" data-move="${-step}" aria-label="Periode precedente">&lt;</button>
             <div>
               <p class="heading-5 text-secondary-900">${esc(state.view==="month"?monthFormatter.format(state.focusDate):dayFormatter.format(state.focusDate))}</p>
-              <p class="text-caption text-secondary-500">Planning location materiel</p>
+              <p class="text-caption text-secondary-500">${selected?`Planning ${esc(selected.name)}`:"Planning location materiel"}</p>
             </div>
             <button type="button" class="btn btn-secondary btn-sm btn-icon" data-move="${step}" aria-label="Periode suivante">&gt;</button>
           </div>
@@ -1190,11 +1318,34 @@ function EquipmentRentalsPage(){
 	    }
 
 	    function calendarSection(){
-	      return`<section class="card equipment-calendar-shell overflow-hidden rounded-xl">
+	      return`<section class="card equipment-calendar-shell overflow-hidden rounded-xl" data-equipment-calendar>
         ${calendarHeader()}
         ${state.view==="month"?renderMonth():state.view==="week"?renderWeek():renderDay()}
         ${periodLegendHtml()}
       </section>`;
+    }
+
+    function scrollCalendarIntoView(){
+      var calendar=root.querySelector("[data-equipment-calendar]");
+      if(!calendar)return;
+      var header=document.querySelector(".layout-header");
+      var offset=(header?.getBoundingClientRect().height||0)+16;
+      var scroller=calendar.parentElement;
+      var top;
+      while(scroller&&scroller!==document.body){
+        var style=window.getComputedStyle(scroller);
+        var canScroll=/auto|scroll|overlay/.test(style.overflowY);
+        if(canScroll&&scroller.scrollHeight>scroller.clientHeight+1)break;
+        scroller=scroller.parentElement;
+      }
+      if(!scroller||scroller===document.body)scroller=document.scrollingElement||document.documentElement;
+      if(scroller===document.scrollingElement||scroller===document.documentElement||scroller===document.body){
+        top=calendar.getBoundingClientRect().top+window.pageYOffset-offset;
+        window.scrollTo({top:Math.max(0,top),behavior:"smooth"});
+        return;
+      }
+      top=scroller.scrollTop+calendar.getBoundingClientRect().top-scroller.getBoundingClientRect().top-offset;
+      scroller.scrollTo({top:Math.max(0,top),behavior:"smooth"});
     }
 
     function adminSection(){
@@ -1548,7 +1699,7 @@ function EquipmentRentalsPage(){
           ${role.blocked?`<section class="card rounded-xl border border-dashed border-danger-200 bg-danger-50 p-6 text-center">
             <h2 class="heading-4 text-secondary-900">Module location materiel masque</h2>
             <p class="mx-auto mt-2 max-w-xl text-body-sm text-secondary-600">Ce profil ne possede pas le droit equipment_rentals.view ou le module locations-materiel.</p>
-          </section>`:`${adminSection()}${statCards()}${resourcesSection()}${calendarSection()}`}
+          </section>`:`${adminSection()}${statCards()}${resourcesSection()}${selectedItem()?calendarSection():""}`}
           ${modalHtml()}
           ${itemModalHtml()}
           ${viewAllHtml()}
@@ -1573,8 +1724,14 @@ function EquipmentRentalsPage(){
       });
       root.querySelectorAll("[data-item-filter]").forEach(function(button){
         button.addEventListener("click",function(){
-          state.selectedItemId=button.dataset.itemFilter?Number(button.dataset.itemFilter):null;
+          var nextItemId=button.dataset.itemFilter?Number(button.dataset.itemFilter):null;
+          state.selectedItemId=nextItemId;
           render();
+          if(nextItemId){
+            window.requestAnimationFrame(function(){
+              scrollCalendarIntoView();
+            });
+          }
         });
       });
       root.querySelector("[data-close-view]")?.addEventListener("click",function(){state.viewAll=false;render()});
