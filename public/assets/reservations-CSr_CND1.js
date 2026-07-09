@@ -1160,7 +1160,6 @@ function he({
         padding: `none`,
         className: `overflow-hidden rounded-xl`,
         children: [
-            (0, S.jsx)(ReservationTimelineStyles, {}),
             (0, S.jsx)(z, {
                 view: e,
                 focusDate: t,
@@ -2102,6 +2101,7 @@ function W() {
                     ],
                 }),
             }),
+            (0, S.jsx)(ReservationTimelineStyles, {}),
             !z && (0, S.jsx)(_e, { notice: A }),
             Ee
                 ? (0, S.jsxs)(S.Fragment, {
