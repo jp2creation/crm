@@ -47,6 +47,10 @@ return new class extends Migration
 
     private function convertTableToInnoDb(string $table): void
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         $engine = DB::table('information_schema.TABLES')
             ->whereRaw('TABLE_SCHEMA = DATABASE()')
             ->where('TABLE_NAME', $table)
@@ -59,6 +63,10 @@ return new class extends Migration
 
     private function foreignKeyExists(string $table, string $constraint): bool
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return false;
+        }
+
         return DB::table('information_schema.TABLE_CONSTRAINTS')
             ->whereRaw('CONSTRAINT_SCHEMA = DATABASE()')
             ->where('TABLE_NAME', $table)

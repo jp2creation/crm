@@ -185,7 +185,7 @@
         }
 
         function actorHeaders() {
-          return state.selectedUserId ? { 'X-CRM-User-Id': String(state.selectedUserId) } : {}
+          return {}
         }
 
         async function api(action, body) {
@@ -205,9 +205,7 @@
           render()
           try {
             const params = new URLSearchParams({ action: 'bootstrap' })
-            if (preferredUserId) params.set('user_id', String(preferredUserId))
-            const headers = preferredUserId ? { 'X-CRM-User-Id': String(preferredUserId) } : {}
-            const response = await fetch(`${API}?${params.toString()}`, { headers, credentials: 'same-origin' })
+            const response = await fetch(`${API}?${params.toString()}`, { credentials: 'same-origin' })
             const payload = await response.json()
             if (!response.ok || payload.ok === false) throw new Error(payload.error || 'API indisponible')
 
@@ -774,7 +772,6 @@
           if (!state.modal) return
           const formData = new FormData(event.target)
           const payload = Object.fromEntries(formData.entries())
-          payload.actorUserId = state.selectedUserId
           if (state.modal.id) payload.id = state.modal.id
 
           state.saving = true
@@ -802,7 +799,7 @@
 
         async function deleteRental(id) {
           try {
-            await api('delete_rental', { id, actorUserId: state.selectedUserId })
+            await api('delete_rental', { id })
             state.data.equipmentRentals = state.data.equipmentRentals.filter((item) => item.id !== id)
             state.notice = { type: 'success', message: 'Location supprimee.' }
           } catch (error) {

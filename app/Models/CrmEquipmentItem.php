@@ -19,6 +19,7 @@ class CrmEquipmentItem extends Model
         'inventory_code',
         'description',
         'color',
+        'photo_url',
         'half_day_price',
         'day_price',
         'deposit_amount',

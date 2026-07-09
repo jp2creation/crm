@@ -17,6 +17,7 @@ class CrmVehicle extends Model
         'name',
         'description',
         'color',
+        'photo_url',
         'active',
     ];
 
