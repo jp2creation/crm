@@ -235,6 +235,7 @@ class EquipmentRentalService
             $photoDataUrl = (string) ($data['photoDataUrl'] ?? $data['photo_data_url'] ?? '');
             $halfDayPrice = $this->decimal($data['halfDayPrice'] ?? $data['half_day_price'] ?? 0);
             $dayPrice = $this->decimal($data['dayPrice'] ?? $data['day_price'] ?? 0);
+            $showDayPrice = $this->boolean($data['showDayPrice'] ?? $data['show_day_price'] ?? true);
             $depositAmount = $this->decimal($data['depositAmount'] ?? $data['deposit_amount'] ?? 0);
             $sortOrder = (int) ($data['sortOrder'] ?? $data['sort_order'] ?? 100);
 
@@ -339,6 +340,7 @@ class EquipmentRentalService
                 'photo_url' => $photoUrl,
                 'half_day_price' => $halfDayPrice,
                 'day_price' => $dayPrice,
+                'show_day_price' => $showDayPrice,
                 'deposit_amount' => $depositAmount,
                 'active' => true,
                 'sort_order' => $sortOrder,
@@ -656,6 +658,7 @@ class EquipmentRentalService
             'photoUrl' => $item->getAttribute('photo_url') ?? '',
             'halfDayPrice' => (float) $item->half_day_price,
             'dayPrice' => (float) $item->day_price,
+            'showDayPrice' => (bool) ($item->show_day_price ?? true),
             'depositAmount' => (float) $item->deposit_amount,
             'active' => (bool) $item->active,
             'sortOrder' => (int) $item->sort_order,
@@ -750,6 +753,11 @@ class EquipmentRentalService
     private function decimal(mixed $value): float
     {
         return (float) str_replace(',', '.', (string) $value);
+    }
+
+    private function boolean(mixed $value): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     }
 
     private function color(string $value): string

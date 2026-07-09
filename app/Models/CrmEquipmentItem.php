@@ -22,6 +22,7 @@ class CrmEquipmentItem extends Model
         'photo_url',
         'half_day_price',
         'day_price',
+        'show_day_price',
         'deposit_amount',
         'active',
         'sort_order',
@@ -32,6 +33,7 @@ class CrmEquipmentItem extends Model
         return [
             'half_day_price' => 'decimal:2',
             'day_price' => 'decimal:2',
+            'show_day_price' => 'boolean',
             'deposit_amount' => 'decimal:2',
             'active' => 'boolean',
             'sort_order' => 'integer',

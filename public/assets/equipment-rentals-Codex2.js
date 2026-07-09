@@ -306,7 +306,7 @@ var styles=`
 }
 .equipment-resource-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(170px, 220px) auto;
+  grid-template-columns: minmax(170px, 240px) auto;
   gap: .75rem;
   align-items: center;
 }
@@ -667,9 +667,9 @@ function fallbackEquipmentData(){
     {id:3,name:"Remi G",role:"user",active:true,siteIds:[1],moduleIds:[7],permissions:permissions}
   ];
   var equipmentItems=[
-    {id:1,siteId:1,categoryId:1,name:"Ponceuse parquet",inventoryCode:"PON-PARQUET",description:"Ponceuse principale pour parquet",color:"#95002e",photoUrl:"",halfDayPrice:45,dayPrice:80,depositAmount:300,active:true,sortOrder:10},
-    {id:2,siteId:1,categoryId:1,name:"Bordureuse",inventoryCode:"BOR-001",description:"Bordureuse pour finitions et plinthes",color:"#f59e0b",photoUrl:"",halfDayPrice:35,dayPrice:60,depositAmount:200,active:true,sortOrder:20},
-    {id:3,siteId:1,categoryId:1,name:"Aspirateur chantier",inventoryCode:"ASP-001",description:"Aspirateur poussiere pour poncage",color:"#1d354f",photoUrl:"",halfDayPrice:25,dayPrice:40,depositAmount:150,active:true,sortOrder:30}
+    {id:1,siteId:1,categoryId:1,name:"Ponceuse parquet",inventoryCode:"PON-PARQUET",description:"Ponceuse principale pour parquet",color:"#95002e",photoUrl:"",halfDayPrice:45,dayPrice:80,showDayPrice:true,depositAmount:300,active:true,sortOrder:10},
+    {id:2,siteId:1,categoryId:1,name:"Bordureuse",inventoryCode:"BOR-001",description:"Bordureuse pour finitions et plinthes",color:"#f59e0b",photoUrl:"",halfDayPrice:35,dayPrice:60,showDayPrice:true,depositAmount:200,active:true,sortOrder:20},
+    {id:3,siteId:1,categoryId:1,name:"Aspirateur chantier",inventoryCode:"ASP-001",description:"Aspirateur poussiere pour poncage",color:"#1d354f",photoUrl:"",halfDayPrice:25,dayPrice:40,showDayPrice:true,depositAmount:150,active:true,sortOrder:30}
   ];
   return{
     ok:true,
@@ -718,7 +718,6 @@ function EquipmentRentalsPage(){
       itemModal:null,
       adminOpen:false,
       viewAll:false,
-      itemSearch:"",
       itemCategoryId:""
     };
 
@@ -848,7 +847,6 @@ function EquipmentRentalsPage(){
       if(!next||!allowedSites.includes(next)||state.selectedSiteId===next)return;
       state.selectedSiteId=next;
       state.selectedItemId=null;
-      state.itemSearch="";
       state.itemCategoryId="";
       state.viewAll=false;
       render();
@@ -996,14 +994,6 @@ function EquipmentRentalsPage(){
         .sort(function(a,b){return(a.sortOrder-b.sortOrder)||a.name.localeCompare(b.name)});
     }
 
-    function normalizedSearch(value){
-      return String(value||"")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g,"")
-        .toLowerCase()
-        .trim();
-    }
-
     function categoriesForSite(){
       if(!state.data)return[];
       var ids=new Set(allItemsForSite().map(function(item){return Number(item.categoryId||0)}).filter(Boolean));
@@ -1013,19 +1003,10 @@ function EquipmentRentalsPage(){
     }
 
     function filteredItemsForSite(){
-      var query=normalizedSearch(state.itemSearch);
       var categoryId=Number(state.itemCategoryId||0);
       return allItemsForSite().filter(function(item){
         if(categoryId&&Number(item.categoryId)!==categoryId)return false;
-        if(!query)return true;
-        var category=categoryById(item.categoryId);
-        var haystack=normalizedSearch([
-          item.name,
-          item.inventoryCode,
-          item.description,
-          category?.name
-        ].join(" "));
-        return haystack.includes(query);
+        return true;
       });
     }
 
@@ -1260,7 +1241,7 @@ function EquipmentRentalsPage(){
       var items=filteredItemsForSite();
       var categories=categoriesForSite();
       var selected=selectedItem();
-      var filtersActive=!!(state.itemSearch||state.itemCategoryId);
+      var filtersActive=!!state.itemCategoryId;
       return`
         <section class="space-y-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1274,7 +1255,6 @@ function EquipmentRentalsPage(){
             </div>
           </div>
           <div class="equipment-resource-controls">
-            <input class="input" type="search" value="${esc(state.itemSearch)}" placeholder="Rechercher un materiel" data-item-search>
             <select class="select-native input" data-item-category-filter aria-label="Categorie">
               <option value="">Toutes categories</option>
               ${categories.map(function(category){return`<option value="${category.id}" ${String(category.id)===String(state.itemCategoryId)?"selected":""}>${esc(category.name)}</option>`}).join("")}
@@ -1296,7 +1276,7 @@ function EquipmentRentalsPage(){
                   <span class="equipment-resource-meta">${esc(category?.name||item.inventoryCode||"Materiel")}</span>
                   <span class="equipment-resource-foot">
                     <span class="equipment-resource-state" style="--resource-status:${available?"#16a34a":"#dc2626"}">${available?"Disponible":"Indisponible"}</span>
-                    <span class="equipment-resource-price">${Number(item.dayPrice||0).toFixed(0)} EUR/j</span>
+                    ${item.showDayPrice===false?"":`<span class="equipment-resource-price">${Number(item.dayPrice||0).toFixed(0)} EUR/j</span>`}
                   </span>
                 </span>
               </button>`;
@@ -1528,6 +1508,7 @@ function EquipmentRentalsPage(){
         color:"#95002e",
         halfDayPrice:"0",
         dayPrice:"0",
+        showDayPrice:true,
         depositAmount:"0",
         photoUrl:"",
         sortOrder:String((items.length+1)*10)
@@ -1554,6 +1535,7 @@ function EquipmentRentalsPage(){
         color:item.color||"#95002e",
         halfDayPrice:String(item.halfDayPrice??0),
         dayPrice:String(item.dayPrice??0),
+        showDayPrice:item.showDayPrice!==false,
         depositAmount:String(item.depositAmount??0),
         photoUrl:item.photoUrl||"",
         sortOrder:String(item.sortOrder??100)
@@ -1690,6 +1672,13 @@ function EquipmentRentalsPage(){
                 <span class="label">Journee</span>
                 <input class="input" type="number" step="0.01" min="0" name="dayPrice" value="${esc(form.dayPrice)}">
               </label>
+              <div class="form-field">
+                <span class="label">Prix carte</span>
+                <label class="flex min-h-11 items-center gap-2 rounded-lg border border-surface-200 px-3 text-body-sm font-semibold text-secondary-700">
+                  <input class="checkbox" type="checkbox" name="showDayPrice" value="1" ${form.showDayPrice!==false?"checked":""}>
+                  <span>Afficher</span>
+                </label>
+              </div>
               <label class="form-field">
                 <span class="label">Caution</span>
                 <input class="input" type="number" step="0.01" min="0" name="depositAmount" value="${esc(form.depositAmount)}">
@@ -1796,27 +1785,12 @@ function EquipmentRentalsPage(){
       root.querySelectorAll("[data-view-all]").forEach(function(button){
         button.addEventListener("click",function(){state.viewAll=true;render()});
       });
-      root.querySelector("[data-item-search]")?.addEventListener("input",function(event){
-        var field=event.currentTarget;
-        var cursor=field.selectionStart||field.value.length;
-        state.itemSearch=field.value;
-        clearSelectedItemIfHidden();
-        render();
-        window.requestAnimationFrame(function(){
-          var next=root.querySelector("[data-item-search]");
-          if(!next)return;
-          next.focus();
-          var pos=Math.min(cursor,next.value.length);
-          next.setSelectionRange(pos,pos);
-        });
-      });
       root.querySelector("[data-item-category-filter]")?.addEventListener("change",function(event){
         state.itemCategoryId=event.currentTarget.value;
         clearSelectedItemIfHidden();
         render();
       });
       root.querySelector("[data-item-filter-clear]")?.addEventListener("click",function(){
-        state.itemSearch="";
         state.itemCategoryId="";
         render();
       });
@@ -1963,6 +1937,7 @@ function EquipmentRentalsPage(){
       var payload=Object.fromEntries(formData.entries());
       var photoFile=form.querySelector('input[name="photoFile"]')?.files?.[0]||null;
       delete payload.photoFile;
+      payload.showDayPrice=form.querySelector('input[name="showDayPrice"]')?.checked?"1":"0";
       if(photoFile)payload.photoDataUrl=await fileToDataUrl(photoFile);
       payload.actorUserId=state.selectedUserId;
       if(state.itemModal.id)payload.id=state.itemModal.id;
