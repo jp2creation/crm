@@ -304,6 +304,39 @@ function P(e, t, n, r) {
 function F(e, t) {
     return e.find((e) => e.id === t);
 }
+function vehicleInitials(e) {
+    return (
+        String(e || `?`)
+            .trim()
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((e) => e.charAt(0))
+            .join(``)
+            .toUpperCase() || `?`
+    );
+}
+function vehicleImage(e) {
+    return e.photoUrl
+        ? (0, S.jsx)(`img`, {
+              src: e.photoUrl,
+              alt: e.name,
+              className: `reservation-resource-image`,
+              loading: `lazy`,
+          })
+        : (0, S.jsx)(`div`, {
+              className: `reservation-resource-empty`,
+              children: (0, S.jsx)(`span`, {
+                  className: `text-lg font-bold`,
+                  children: vehicleInitials(e.name),
+              }),
+          });
+}
+function vehicleAvailableNow(e, t) {
+    let n = new Date(),
+        r = new Date(n);
+    r.setHours(r.getHours() + 4);
+    return !t.some((t) => t.vehicleId === e.id && P(D(n), D(r), t.startAt, t.endAt));
+}
 function pe(e, t) {
     if (!e) return h[0];
     let n = t.find((e) => e.slug === `reservations`),
@@ -347,6 +380,115 @@ function I({ label: e, value: t, hint: n, icon: r }) {
                 }),
             ],
         }),
+    });
+}
+function VehicleResourceSection({
+    vehicles: e,
+    reservations: t,
+    selectedVehicle: n,
+    onSelect: r,
+    onClear: i,
+}) {
+    return (0, S.jsxs)(`section`, {
+        className: `space-y-4`,
+        children: [
+            (0, S.jsxs)(`div`, {
+                className: `flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between`,
+                children: [
+                    (0, S.jsxs)(`div`, {
+                        children: [
+                            (0, S.jsx)(`h2`, {
+                                className: `heading-5 text-secondary-900 dark:text-white`,
+                                children: `Vehicules du site`,
+                            }),
+                            (0, S.jsx)(`p`, {
+                                className: `text-body-sm text-secondary-500 dark:text-secondary-400`,
+                                children: n
+                                    ? `Planning filtre sur ${n.name}`
+                                    : `Selectionnez un vehicule pour afficher son planning`,
+                            }),
+                        ],
+                    }),
+                    (0, S.jsxs)(`div`, {
+                        className: `flex items-center gap-3`,
+                        children: [
+                            (0, S.jsx)(s, {
+                                variant: `primary`,
+                                children: e.length,
+                            }),
+                            n &&
+                                (0, S.jsx)(`button`, {
+                                    type: `button`,
+                                    className: `text-body-sm font-semibold text-theme-primary hover:text-theme-primary/80`,
+                                    onClick: i,
+                                    children: `Changer`,
+                                }),
+                        ],
+                    }),
+                ],
+            }),
+            (0, S.jsx)(`div`, {
+                className: `reservation-resource-grid`,
+                children: e.length
+                    ? e.map((e) => {
+                          let i = n?.id === e.id,
+                              a = vehicleAvailableNow(e, t);
+                          return (0, S.jsxs)(
+                              `button`,
+                              {
+                                  type: `button`,
+                                  className: `reservation-resource-card${i ? ` is-active` : ``}`,
+                                  "data-vehicle-filter": e.id,
+                                  "aria-pressed": i ? `true` : `false`,
+                                  onClick: () => r(e.id),
+                                  children: [
+                                      (0, S.jsxs)(`span`, {
+                                          className: `reservation-resource-media`,
+                                          children: [
+                                              vehicleImage(e),
+                                              (0, S.jsx)(`span`, {
+                                                  className: `reservation-resource-status-dot`,
+                                                  style: {
+                                                      backgroundColor: a ? `#16a34a` : `#dc2626`,
+                                                  },
+                                                  title: a ? `Disponible` : `Indisponible`,
+                                              }),
+                                          ],
+                                      }),
+                                      (0, S.jsxs)(`span`, {
+                                          className: `reservation-resource-body`,
+                                          children: [
+                                              (0, S.jsx)(`span`, {
+                                                  className: `reservation-resource-title`,
+                                                  children: e.name,
+                                              }),
+                                              (0, S.jsx)(`span`, {
+                                                  className: `reservation-resource-meta`,
+                                                  children: e.description || `Vehicule`,
+                                              }),
+                                              (0, S.jsx)(`span`, {
+                                                  className: `reservation-resource-foot`,
+                                                  children: (0, S.jsx)(`span`, {
+                                                      className: `reservation-resource-state`,
+                                                      style: {
+                                                          "--resource-status": a ? `#16a34a` : `#dc2626`,
+                                                      },
+                                                      children: a ? `Disponible` : `Indisponible`,
+                                                  }),
+                                              }),
+                                          ],
+                                      }),
+                                  ],
+                              },
+                              e.id,
+                          );
+                      })
+                    : (0, S.jsx)(`p`, {
+                          className: `rounded-xl border border-dashed border-surface-200 p-4 text-center text-body-sm text-secondary-400 dark:border-surface-700`,
+                          children: `Aucun vehicule sur ce site.`,
+                      }),
+            }),
+        ],
     });
 }
 function L({ vehicle: e }) {
@@ -509,6 +651,22 @@ function ReservationPeriodLegend() {
 function ReservationTimelineStyles() {
     return (0, S.jsx)(`style`, {
         children: `
+.reservation-resource-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.reservation-resource-card{position:relative;display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid #e4e9f1;border-radius:1rem;background:#fff;text-align:left;box-shadow:0 12px 28px rgba(15,23,42,.055);transition:border-color var(--duration-fast),box-shadow var(--duration-fast),transform var(--duration-fast)}
+.reservation-resource-card:hover{border-color:rgb(var(--theme-primary)/.38);box-shadow:0 18px 38px rgba(15,23,42,.09);transform:translateY(-1px)}
+.reservation-resource-card.is-active{border-color:rgb(var(--theme-primary));box-shadow:0 0 0 2px rgb(var(--theme-primary)/.16),0 18px 38px rgba(15,23,42,.1)}
+.reservation-resource-media{position:relative;display:block;aspect-ratio:4/3;background:#f7f9fc}
+.reservation-resource-image{height:100%;width:100%;object-fit:cover}
+.reservation-resource-empty{display:flex;height:100%;width:100%;align-items:center;justify-content:center;background:linear-gradient(135deg,rgb(var(--theme-primary)/.12),rgb(var(--theme-primary)/.04));color:rgb(var(--theme-primary))}
+.reservation-resource-status-dot{position:absolute;right:8px;top:8px;z-index:2;height:.75rem;width:.75rem;border-radius:999px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.reservation-resource-body{display:flex;min-width:0;flex:1;flex-direction:column;gap:.35rem;padding:.75rem}
+.reservation-resource-title{display:-webkit-box;min-height:2.35em;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:#223957;font-size:.88rem;font-weight:800;line-height:1.18}
+.reservation-resource-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#64748b;font-size:.72rem;font-weight:700}
+.reservation-resource-foot{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.reservation-resource-state{display:inline-flex;align-items:center;gap:.35rem;color:#526174;font-size:.72rem;font-weight:800}
+.reservation-resource-state:before{content:"";height:.45rem;width:.45rem;border-radius:999px;background:var(--resource-status,#16a34a)}
+@media (min-width:640px){.reservation-resource-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}}
+@media (min-width:1180px){.reservation-resource-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .reservation-agenda-toolbar{background:linear-gradient(180deg,#fff 0%,#fbfcff 100%)}
 .reservation-agenda-nav,.reservation-agenda-actions{min-width:0}
 .reservation-view-switch{display:inline-flex;align-items:center;gap:.25rem;border:1px solid #e4e9f1;border-radius:.8rem;background:#f7f9fc;padding:.22rem}
@@ -1598,7 +1756,8 @@ function W() {
         [z, B] = (0, _.useState)(!1),
         [me, V] = (0, _.useState)(!1),
         [H, U] = (0, _.useState)(null),
-        [W, xe] = (0, _.useState)(null);
+        [W, xe] = (0, _.useState)(null),
+        [Pe, Fe] = (0, _.useState)(null);
     ((0, _.useEffect)(() => {
         let e = !0;
         return (
@@ -1615,6 +1774,7 @@ function W() {
                     a = n.vehicles.find((e) => e.siteId === i?.id && e.active);
                 (i && t(i.id),
                     a && k((e) => ({ ...e, vehicleId: String(a.id) })),
+                    Fe(null),
                     n.source === `fallback` &&
                         n.error &&
                         j({
@@ -1661,12 +1821,20 @@ function W() {
             [q.id, l],
         ),
         Y = (0, _.useMemo)(() => w.filter((e) => e.siteId === q.id), [q.id, w]),
+        selectedVehicle = (0, _.useMemo)(
+            () => J.find((e) => e.id === Pe) ?? null,
+            [J, Pe],
+        ),
+        filteredReservations = (0, _.useMemo)(
+            () => (selectedVehicle ? Y.filter((e) => e.vehicleId === selectedVehicle.id) : []),
+            [Y, selectedVehicle],
+        ),
         Se = (0, _.useMemo)(
             () =>
-                Y.filter(
+                filteredReservations.filter(
                     (e) => T(e.endAt) >= new Date(`2026-07-04T00:00`),
                 ).sort((e, t) => e.startAt.localeCompare(t.startAt)),
-            [Y],
+            [filteredReservations],
         ),
         X = new Date(`2026-07-04T12:00`),
         Ce = new Date(X);
@@ -1679,10 +1847,10 @@ function W() {
                         : !1,
                 ),
         ),
-        Z = Y.filter((e) => T(e.startAt) >= X).sort((e, t) =>
+        Z = filteredReservations.filter((e) => T(e.startAt) >= X).sort((e, t) =>
             e.startAt.localeCompare(t.startAt),
         )[0],
-        Te = Y.filter((e) => e.startAt.startsWith(`2026-07`)),
+        Te = filteredReservations.filter((e) => e.startAt.startsWith(`2026-07`)),
         Ee = N(K, `reservations.view`),
         De = H ? (Y.find((e) => e.id === H) ?? null) : null,
         Q = (0, _.useCallback)((e) => fe(K, G, e), [G, K]),
@@ -1699,9 +1867,17 @@ function W() {
         (j(null),
             U(null),
             k((n) => {
-                let r =
+                let i = selectedVehicle,
+                    r =
                     e && t
-                        ? J.find(
+                        ? i &&
+                          !Y.some((n) =>
+                              n.vehicleId === i.id
+                                  ? P(e, t, n.startAt, n.endAt)
+                                  : !1,
+                          )
+                            ? i
+                            : J.find(
                               (n) =>
                                   !Y.some((r) =>
                                       r.vehicleId === n.id
@@ -1709,7 +1885,7 @@ function W() {
                                           : !1,
                                   ),
                           )
-                        : void 0;
+                        : i;
                 return {
                     ...n,
                     ...(e && t
@@ -1721,7 +1897,7 @@ function W() {
                               notes: ``,
                           }
                         : {}),
-                    vehicleId: String(r?.id ?? J[0]?.id ?? n.vehicleId),
+                    vehicleId: String(r?.id ?? i?.id ?? J[0]?.id ?? n.vehicleId),
                 };
             }),
             B(!0));
@@ -1744,7 +1920,12 @@ function W() {
     function je(e) {
         let n = Number(e),
             r = l.find((e) => e.siteId === n && e.active);
-        (t(n), k((e) => ({ ...e, vehicleId: String(r?.id ?? ``) })));
+        (t(n), Fe(null), k((e) => ({ ...e, vehicleId: String(r?.id ?? ``) })));
+    }
+    function selectVehicle(e) {
+        let n = Number(e) || null,
+            r = J.find((e) => e.id === n);
+        (Fe(n), r && k((e) => ({ ...e, vehicleId: String(r.id) })));
     }
     async function Me(e) {
         (e.preventDefault(), j(null));
@@ -1921,40 +2102,6 @@ function W() {
                     ],
                 }),
             }),
-            (0, S.jsxs)(`div`, {
-                className: `grid grid-cols-2 gap-4 md:grid-cols-2 xl:grid-cols-4`,
-                children: [
-                    (0, S.jsx)(I, {
-                        label: `Site actif`,
-                        value: q.name,
-                        hint: siteHoursLabel(q),
-                        icon: d.building,
-                    }),
-                    (0, S.jsx)(I, {
-                        label: `Disponibles maintenant`,
-                        value: `${we.length}/${J.length}`,
-                        hint: `Vehicules du site`,
-                        icon: d.truck,
-                    }),
-                    (0, S.jsx)(I, {
-                        label: `Reservations juillet`,
-                        value: String(Te.length),
-                        hint:
-                            y === `api`
-                                ? `Base MySQL CRM`
-                                : y === `loading`
-                                  ? `Chargement API`
-                                  : `Fallback local`,
-                        icon: d.calendar,
-                    }),
-                    (0, S.jsx)(I, {
-                        label: `Prochaine reservation`,
-                        value: Z ? M(Z.startAt) : `Aucune`,
-                        hint: Z ? de(Z.startAt) : `Planning libre`,
-                        icon: d.clock,
-                    }),
-                ],
-            }),
             !z && (0, S.jsx)(_e, { notice: A }),
             Ee
                 ? (0, S.jsxs)(S.Fragment, {
@@ -1962,29 +2109,26 @@ function W() {
                           (0, S.jsxs)(`div`, {
                               className: `space-y-6`,
                               children: [
-                                  (0, S.jsx)(ve, {
-                                      reservations: Se,
+                                  (0, S.jsx)(VehicleResourceSection, {
                                       vehicles: J,
-                                      role: K,
-                                      activeUser: G,
-                                      deletingReservationId: W,
-                                      canEditReservation: Q,
-                                      onViewAll: () => V(!0),
-                                      onEdit: $,
-                                      onDelete: Ne,
-                                  }),
-                                  (0, S.jsx)(he, {
-                                      view: x,
-                                      focusDate: le,
                                       reservations: Y,
-                                      vehicles: J,
-                                      site: q,
-                                      onViewChange: ce,
-                                      onFocusDateChange: C,
-                                      onSelectSlot: Ae,
-                                      canEditReservation: Q,
-                                      onEditReservation: $,
+                                      selectedVehicle: selectedVehicle,
+                                      onSelect: selectVehicle,
+                                      onClear: () => Fe(null),
                                   }),
+                                  selectedVehicle &&
+                                      (0, S.jsx)(he, {
+                                          view: x,
+                                          focusDate: le,
+                                          reservations: filteredReservations,
+                                          vehicles: [selectedVehicle],
+                                          site: q,
+                                          onViewChange: ce,
+                                          onFocusDateChange: C,
+                                          onSelectSlot: Ae,
+                                          canEditReservation: Q,
+                                          onEditReservation: $,
+                                      }),
                               ],
                           }),
                           (0, S.jsx)(ye, {
