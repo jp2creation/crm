@@ -304,6 +304,12 @@ var styles=`
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: .75rem;
 }
+.equipment-resource-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 220px) auto;
+  gap: .75rem;
+  align-items: center;
+}
 .equipment-resource-card {
   position: relative;
   display: flex;
@@ -448,6 +454,9 @@ var styles=`
   }
 }
 @media (max-width: 840px) {
+  .equipment-resource-controls {
+    grid-template-columns: 1fr;
+  }
   .equipment-calendar-shell {
     margin-inline: -.25rem;
     border-radius: 1rem;
@@ -708,7 +717,9 @@ function EquipmentRentalsPage(){
       modal:null,
       itemModal:null,
       adminOpen:false,
-      viewAll:false
+      viewAll:false,
+      itemSearch:"",
+      itemCategoryId:""
     };
 
     function esc(value){
@@ -803,6 +814,8 @@ function EquipmentRentalsPage(){
         if(state.selectedItemId&&!payload.equipmentItems.some(function(item){return item.id===state.selectedItemId&&item.siteId===state.selectedSiteId&&item.active})){
           state.selectedItemId=null;
         }
+        clearUnavailableResourceFilters();
+        clearSelectedItemIfHidden();
       }catch(error){
         if(disposed)return;
         if(keepCurrent&&state.data){
@@ -835,6 +848,8 @@ function EquipmentRentalsPage(){
       if(!next||!allowedSites.includes(next)||state.selectedSiteId===next)return;
       state.selectedSiteId=next;
       state.selectedItemId=null;
+      state.itemSearch="";
+      state.itemCategoryId="";
       state.viewAll=false;
       render();
     }
@@ -979,6 +994,54 @@ function EquipmentRentalsPage(){
       return state.data.equipmentItems
         .filter(function(item){return item.siteId===state.selectedSiteId&&item.active})
         .sort(function(a,b){return(a.sortOrder-b.sortOrder)||a.name.localeCompare(b.name)});
+    }
+
+    function normalizedSearch(value){
+      return String(value||"")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g,"")
+        .toLowerCase()
+        .trim();
+    }
+
+    function categoriesForSite(){
+      if(!state.data)return[];
+      var ids=new Set(allItemsForSite().map(function(item){return Number(item.categoryId||0)}).filter(Boolean));
+      return state.data.equipmentCategories
+        .filter(function(category){return ids.has(Number(category.id))})
+        .sort(function(a,b){return(a.sortOrder-b.sortOrder)||a.name.localeCompare(b.name)});
+    }
+
+    function filteredItemsForSite(){
+      var query=normalizedSearch(state.itemSearch);
+      var categoryId=Number(state.itemCategoryId||0);
+      return allItemsForSite().filter(function(item){
+        if(categoryId&&Number(item.categoryId)!==categoryId)return false;
+        if(!query)return true;
+        var category=categoryById(item.categoryId);
+        var haystack=normalizedSearch([
+          item.name,
+          item.inventoryCode,
+          item.description,
+          category?.name
+        ].join(" "));
+        return haystack.includes(query);
+      });
+    }
+
+    function clearUnavailableResourceFilters(){
+      if(!state.itemCategoryId)return;
+      var categoryId=Number(state.itemCategoryId||0);
+      if(!categoriesForSite().some(function(category){return Number(category.id)===categoryId})){
+        state.itemCategoryId="";
+      }
+    }
+
+    function clearSelectedItemIfHidden(){
+      if(!state.selectedItemId)return;
+      if(!filteredItemsForSite().some(function(item){return item.id===state.selectedItemId})){
+        state.selectedItemId=null;
+      }
     }
 
     function selectedItem(){
@@ -1193,8 +1256,11 @@ function EquipmentRentalsPage(){
     }
 
     function resourcesSection(){
-      var items=allItemsForSite();
+      var allItems=allItemsForSite();
+      var items=filteredItemsForSite();
+      var categories=categoriesForSite();
       var selected=selectedItem();
+      var filtersActive=!!(state.itemSearch||state.itemCategoryId);
       return`
         <section class="space-y-4">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1203,9 +1269,17 @@ function EquipmentRentalsPage(){
               <p class="text-body-sm text-secondary-500">${selected?`Planning filtre sur ${esc(selected.name)}`:"Selectionnez un materiel pour afficher son planning"}</p>
             </div>
             <div class="flex items-center gap-3">
-              <span class="badge badge-primary">${items.length}</span>
+              <span class="badge badge-primary">${items.length}/${allItems.length}</span>
               ${selected?'<button type="button" class="text-body-sm font-semibold text-theme-primary" data-item-filter="">Changer</button>':""}
             </div>
+          </div>
+          <div class="equipment-resource-controls">
+            <input class="input" type="search" value="${esc(state.itemSearch)}" placeholder="Rechercher un materiel" data-item-search>
+            <select class="select-native input" data-item-category-filter aria-label="Categorie">
+              <option value="">Toutes categories</option>
+              ${categories.map(function(category){return`<option value="${category.id}" ${String(category.id)===String(state.itemCategoryId)?"selected":""}>${esc(category.name)}</option>`}).join("")}
+            </select>
+            ${filtersActive?'<button type="button" class="btn btn-secondary btn-sm" data-item-filter-clear>Effacer</button>':""}
           </div>
           <div class="equipment-resource-grid">
             ${items.map(function(item){
@@ -1226,7 +1300,7 @@ function EquipmentRentalsPage(){
                   </span>
                 </span>
               </button>`;
-            }).join("")||'<p class="w-full rounded-xl border border-dashed border-surface-200 p-4 text-center text-body-sm text-secondary-400">Aucun materiel sur ce site.</p>'}
+            }).join("")||`<p class="w-full rounded-xl border border-dashed border-surface-200 p-4 text-center text-body-sm text-secondary-400">${allItems.length?"Aucun materiel ne correspond aux filtres.":"Aucun materiel sur ce site."}</p>`}
           </div>
         </section>
       `;
@@ -1699,7 +1773,7 @@ function EquipmentRentalsPage(){
           ${role.blocked?`<section class="card rounded-xl border border-dashed border-danger-200 bg-danger-50 p-6 text-center">
             <h2 class="heading-4 text-secondary-900">Module location materiel masque</h2>
             <p class="mx-auto mt-2 max-w-xl text-body-sm text-secondary-600">Ce profil ne possede pas le droit equipment_rentals.view ou le module locations-materiel.</p>
-          </section>`:`${adminSection()}${statCards()}${resourcesSection()}${selectedItem()?calendarSection():""}`}
+          </section>`:`${adminSection()}${resourcesSection()}${selectedItem()?calendarSection():""}`}
           ${modalHtml()}
           ${itemModalHtml()}
           ${viewAllHtml()}
@@ -1721,6 +1795,30 @@ function EquipmentRentalsPage(){
       });
       root.querySelectorAll("[data-view-all]").forEach(function(button){
         button.addEventListener("click",function(){state.viewAll=true;render()});
+      });
+      root.querySelector("[data-item-search]")?.addEventListener("input",function(event){
+        var field=event.currentTarget;
+        var cursor=field.selectionStart||field.value.length;
+        state.itemSearch=field.value;
+        clearSelectedItemIfHidden();
+        render();
+        window.requestAnimationFrame(function(){
+          var next=root.querySelector("[data-item-search]");
+          if(!next)return;
+          next.focus();
+          var pos=Math.min(cursor,next.value.length);
+          next.setSelectionRange(pos,pos);
+        });
+      });
+      root.querySelector("[data-item-category-filter]")?.addEventListener("change",function(event){
+        state.itemCategoryId=event.currentTarget.value;
+        clearSelectedItemIfHidden();
+        render();
+      });
+      root.querySelector("[data-item-filter-clear]")?.addEventListener("click",function(){
+        state.itemSearch="";
+        state.itemCategoryId="";
+        render();
       });
       root.querySelectorAll("[data-item-filter]").forEach(function(button){
         button.addEventListener("click",function(){
