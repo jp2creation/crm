@@ -1751,7 +1751,6 @@ function EquipmentRentalsPage(){
           <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 class="heading-2 text-secondary-900">Location materiel</h1>
-              <p class="mt-1 text-body-sm text-secondary-500">Locations demi-journee et journee par site.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               ${!role.blocked&&hasPermission("equipment_rentals.manage_items")?`<button type="button" class="btn btn-secondary btn-sm" data-admin-toggle>${state.adminOpen?"Fermer administration":"Administration"}</button>`:""}

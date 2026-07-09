@@ -654,7 +654,6 @@
               <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h1 class="heading-2 text-secondary-900">Location materiel</h1>
-                  <p class="mt-1 text-body-sm text-secondary-500">Locations demi-journee et journee par site.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                   <select class="select-native input input-sm w-auto" data-user-select>
