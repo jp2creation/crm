@@ -275,6 +275,126 @@ var styles=`
   background: rgb(var(--theme-primary) / .05);
   color: rgb(var(--theme-primary));
 }
+.equipment-day-planner {
+  padding: 1rem;
+  background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+}
+.equipment-day-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .9rem;
+  border: 1px solid var(--calendar-line);
+  border-radius: 1rem;
+  background: #fff;
+  padding: .9rem 1rem;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, .055);
+}
+.equipment-day-kicker {
+  color: rgb(var(--theme-primary));
+  font-size: .72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.equipment-day-date {
+  color: var(--calendar-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+.equipment-day-meta {
+  color: var(--color-secondary-500);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.equipment-day-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+.equipment-day-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 1px solid var(--pill-border, #d9e7f7);
+  border-radius: 999px;
+  background: var(--pill-bg, #f8fbff);
+  color: #31435a;
+  padding: .45rem .7rem;
+  font-size: .74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.equipment-day-pill i {
+  height: .55rem;
+  width: .55rem;
+  border-radius: 999px;
+  background: var(--pill-color);
+  box-shadow: 0 0 0 3px var(--pill-ring, rgba(16,170,164,.16));
+}
+.equipment-day-pill-morning {
+  --pill-color: #10aaa4;
+  --pill-ring: rgba(16,170,164,.16);
+  --pill-bg: #effbf9;
+  --pill-border: #c6efea;
+}
+.equipment-day-pill-afternoon {
+  --pill-color: #ff5e52;
+  --pill-ring: rgba(255,94,82,.16);
+  --pill-bg: #fff4f2;
+  --pill-border: #ffd4ce;
+}
+.equipment-day-planner .equipment-time-grid {
+  --planner-height: 560px;
+  grid-template-columns: 72px minmax(0, 1fr);
+  border: 1px solid var(--calendar-line);
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, .06);
+}
+.equipment-day-planner .equipment-time-spacer {
+  background: #fbfcff;
+}
+.equipment-day-planner .equipment-time-header {
+  border-left: 0;
+  background: linear-gradient(180deg, #fff 0%, #f5f8fd 100%);
+}
+.equipment-day-planner .equipment-time-header button {
+  color: var(--calendar-text);
+  font-size: .82rem;
+}
+.equipment-day-planner .equipment-time-column {
+  border-left: 0;
+  background:
+    linear-gradient(180deg, rgba(85, 203, 197, .1) 0%, rgba(85, 203, 197, .035) 49%, rgba(255, 139, 125, .095) 49%, rgba(255, 139, 125, .035) 100%),
+    #fff;
+}
+.equipment-day-planner .equipment-time-line {
+  background: rgba(148, 163, 184, .35);
+}
+.equipment-day-planner .equipment-timeline-card {
+  left: 1rem;
+  right: 1rem;
+  min-height: 64px;
+  border-radius: 1rem;
+  padding: .78rem 1rem .78rem 1.15rem;
+  box-shadow: 0 18px 36px rgba(15, 23, 42, .1);
+}
+.equipment-day-planner .equipment-available-slot {
+  left: 1rem;
+  right: 1rem;
+  min-height: 58px;
+  border-color: rgb(var(--theme-primary) / .38);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, .86);
+  color: rgb(var(--theme-primary));
+  box-shadow: inset 0 0 0 1px rgb(var(--theme-primary) / .08);
+}
+.equipment-day-planner .equipment-available-slot:hover {
+  background: rgb(var(--theme-primary) / .08);
+  box-shadow: 0 12px 24px rgb(var(--theme-primary) / .12);
+}
 .equipment-period-legend {
   display: flex;
   flex-wrap: wrap;
@@ -475,7 +595,7 @@ var styles=`
   .equipment-agenda-actions {
     display: grid;
     width: 100%;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: .35rem;
   }
   .equipment-view-switch {
@@ -627,6 +747,34 @@ var styles=`
 	    font-size: .62rem;
 	    text-align: center;
 	  }
+    .equipment-day-planner {
+      padding: .7rem;
+    }
+    .equipment-day-hero {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: .75rem;
+    }
+    .equipment-day-pills {
+      display: grid;
+      width: 100%;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      justify-content: stretch;
+    }
+    .equipment-day-pill {
+      justify-content: center;
+      padding-inline: .45rem;
+      font-size: .66rem;
+    }
+    .equipment-day-planner .equipment-time-grid {
+      --planner-height: 680px;
+      grid-template-columns: 48px minmax(240px, 1fr);
+    }
+    .equipment-day-planner .equipment-timeline-card,
+    .equipment-day-planner .equipment-available-slot {
+      left: .55rem;
+      right: .55rem;
+    }
 	}
 `;
 
@@ -1287,20 +1435,21 @@ function EquipmentRentalsPage(){
     }
 
     function calendarHeader(){
-      var step=state.view==="month"?30:state.view==="week"?7:1;
+      var activeView=state.view==="month"?"month":"day";
+      var step=activeView==="month"?30:1;
       var selected=selectedItem();
       return`
         <div class="equipment-agenda-toolbar flex flex-col gap-3 border-b border-surface-200 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div class="equipment-agenda-nav flex items-center gap-2">
             <button type="button" class="btn btn-secondary btn-sm btn-icon" data-move="${-step}" aria-label="Periode precedente">&lt;</button>
             <div>
-              <p class="heading-5 text-secondary-900">${esc(state.view==="month"?monthFormatter.format(state.focusDate):dayFormatter.format(state.focusDate))}</p>
+              <p class="heading-5 text-secondary-900">${esc(activeView==="month"?monthFormatter.format(state.focusDate):dayFormatter.format(state.focusDate))}</p>
               <p class="text-caption text-secondary-500">${selected?`Planning ${esc(selected.name)}`:"Planning location materiel"}</p>
             </div>
             <button type="button" class="btn btn-secondary btn-sm btn-icon" data-move="${step}" aria-label="Periode suivante">&gt;</button>
           </div>
           <div class="equipment-agenda-actions flex flex-wrap items-center gap-2">
-            <span class="equipment-view-switch">${["month","week","day"].map(function(view){return`<button type="button" class="btn btn-${state.view===view?"primary":"secondary"} btn-sm" data-view="${view}">${view==="month"?"Mois":view==="week"?"Semaine":"Jour"}</button>`}).join("")}</span>
+            <span class="equipment-view-switch">${["month","day"].map(function(view){return`<button type="button" class="btn btn-${activeView===view?"primary":"secondary"} btn-sm" data-view="${view}">${view==="month"?"Mois":"Jour"}</button>`}).join("")}</span>
             <button type="button" class="btn btn-ghost btn-sm" data-today>Aujourd'hui</button>
           </div>
         </div>
@@ -1356,8 +1505,19 @@ function EquipmentRentalsPage(){
 	      var rentals=rentalsForDay(state.focusDate);
 	      var morning=slotRange(state.focusDate,"morning");
 	      var afternoon=slotRange(state.focusDate,"afternoon");
-	      return`<div class="equipment-time-planner rounded-b-xl">
-	        <div class="equipment-time-grid" style="--planner-columns:1">
+	      return`<div class="equipment-time-planner equipment-day-planner rounded-b-xl">
+          <div class="equipment-day-hero">
+            <div>
+              <p class="equipment-day-kicker">Journee</p>
+              <p class="equipment-day-date">${esc(dayFormatter.format(state.focusDate))}</p>
+              <p class="equipment-day-meta">${rentals.length} ${rentals.length>1?"locations":"location"}</p>
+            </div>
+            <div class="equipment-day-pills">
+              <span class="equipment-day-pill equipment-day-pill-morning"><i></i>Matin ${esc(hours.morningStart)}-${esc(hours.morningEnd)}</span>
+              <span class="equipment-day-pill equipment-day-pill-afternoon"><i></i>Apres-midi ${esc(hours.afternoonStart)}-${esc(hours.afternoonEnd)}</span>
+            </div>
+          </div>
+	        <div class="equipment-time-grid equipment-time-grid-day" style="--planner-columns:1">
 	          <div class="equipment-time-spacer"></div>
 	          <div class="equipment-time-header"><button type="button" data-day="${dateKey(state.focusDate)}">${esc(dayFormatter.format(state.focusDate))}<small>${esc(hours.morningStart)}-${esc(hours.afternoonEnd)}</small></button></div>
 	          ${timeAxisHtml(bounds)}
@@ -1372,9 +1532,10 @@ function EquipmentRentalsPage(){
 	    }
 
 	    function calendarSection(){
+        if(state.view==="week")state.view="day";
 	      return`<section class="card equipment-calendar-shell overflow-hidden rounded-xl" data-equipment-calendar>
         ${calendarHeader()}
-        ${state.view==="month"?renderMonth():state.view==="week"?renderWeek():renderDay()}
+        ${state.view==="month"?renderMonth():renderDay()}
         ${periodLegendHtml()}
       </section>`;
     }

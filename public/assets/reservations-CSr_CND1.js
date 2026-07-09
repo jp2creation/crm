@@ -691,6 +691,25 @@ function ReservationTimelineStyles() {
 .reservation-timeline-card p:nth-of-type(n+2){display:none}
 .reservation-available-slot{position:absolute;left:.45rem;right:.45rem;z-index:1;display:flex;min-height:46px;align-items:center;justify-content:center;border:1px dashed var(--color-surface-300);border-radius:var(--radius);background:rgba(255,255,255,.72);color:var(--color-secondary-500);font-size:.75rem;font-weight:700;transition:border-color var(--duration-fast),color var(--duration-fast),background var(--duration-fast)}
 .reservation-available-slot:hover{border-color:rgb(var(--theme-primary));background:rgb(var(--theme-primary)/.05);color:rgb(var(--theme-primary))}
+.reservation-day-planner{padding:1rem;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%)}
+.reservation-day-hero{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.9rem;border:1px solid #e4e9f1;border-radius:1rem;background:#fff;padding:.9rem 1rem;box-shadow:0 14px 32px rgba(15,23,42,.055)}
+.reservation-day-kicker{color:rgb(var(--theme-primary));font-size:.72rem;font-weight:800;text-transform:uppercase}
+.reservation-day-date{color:#223957;font-size:1.05rem;font-weight:800}
+.reservation-day-meta{color:#64748b;font-size:.78rem;font-weight:700}
+.reservation-day-pills{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.5rem}
+.reservation-day-pill{display:inline-flex;align-items:center;gap:.45rem;border:1px solid var(--pill-border,#d9e7f7);border-radius:999px;background:var(--pill-bg,#f8fbff);color:#31435a;padding:.45rem .7rem;font-size:.74rem;font-weight:800;white-space:nowrap}
+.reservation-day-pill i{height:.55rem;width:.55rem;border-radius:999px;background:var(--pill-color,#10aaa4);box-shadow:0 0 0 3px var(--pill-ring,rgba(16,170,164,.16))}
+.reservation-day-pill-morning{--pill-color:#10aaa4;--pill-ring:rgba(16,170,164,.16);--pill-bg:#effbf9;--pill-border:#c6efea}
+.reservation-day-pill-afternoon{--pill-color:#ff5e52;--pill-ring:rgba(255,94,82,.16);--pill-bg:#fff4f2;--pill-border:#ffd4ce}
+.reservation-day-planner .reservation-time-grid{--planner-height:560px;grid-template-columns:72px minmax(0,1fr);border:1px solid #e4e9f1;border-radius:1rem;overflow:hidden;box-shadow:0 18px 44px rgba(15,23,42,.06)}
+.reservation-day-planner .reservation-time-spacer{background:#fbfcff}
+.reservation-day-planner .reservation-time-header{border-left:0;background:linear-gradient(180deg,#fff 0%,#f5f8fd 100%)}
+.reservation-day-planner .reservation-time-header button{color:#223957;font-size:.82rem}
+.reservation-day-planner .reservation-time-column{border-left:0;background:linear-gradient(180deg,rgba(85,203,197,.1) 0%,rgba(85,203,197,.035) 49%,rgba(255,139,125,.095) 49%,rgba(255,139,125,.035) 100%),#fff}
+.reservation-day-planner .reservation-time-line{background:rgba(148,163,184,.35)}
+.reservation-day-planner .reservation-timeline-card{left:1rem;right:1rem;min-height:64px;border-radius:1rem!important;padding:.78rem 1rem .78rem 1.15rem;box-shadow:0 18px 36px rgba(15,23,42,.1)!important}
+.reservation-day-planner .reservation-available-slot{left:1rem;right:1rem;min-height:58px;border-color:rgb(var(--theme-primary)/.38);border-radius:1rem;background:rgba(255,255,255,.86);color:rgb(var(--theme-primary));box-shadow:inset 0 0 0 1px rgb(var(--theme-primary)/.08)}
+.reservation-day-planner .reservation-available-slot:hover{background:rgb(var(--theme-primary)/.08);box-shadow:0 12px 24px rgb(var(--theme-primary)/.12)}
 .reservation-month-grid{background:#e4e9f1!important;border:1px solid #e4e9f1;overflow:hidden}
 .reservation-month-heading{background:#fff!important;color:#243957!important;letter-spacing:0}
 .reservation-month-cell{position:relative;display:flex;flex-direction:column;overflow:hidden;background:#fff!important}
@@ -704,7 +723,7 @@ function ReservationTimelineStyles() {
   .reservation-agenda-toolbar{padding:.85rem}
   .reservation-agenda-nav{width:100%;justify-content:space-between}
   .reservation-agenda-nav>div{min-width:0;text-align:center}
-  .reservation-agenda-actions{display:grid;width:100%;grid-template-columns:repeat(4,minmax(0,1fr));gap:.35rem}
+  .reservation-agenda-actions{display:grid;width:100%;grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem}
   .reservation-view-switch{display:contents}
   .reservation-agenda-actions .btn{min-width:0;justify-content:center;padding-inline:.35rem;font-size:.72rem}
   .reservation-time-grid{--planner-height:720px;grid-template-columns:48px repeat(var(--planner-columns,7),minmax(118px,1fr));grid-template-rows:48px var(--planner-height)}
@@ -722,6 +741,12 @@ function ReservationTimelineStyles() {
   .reservation-timeline-card p{font-size:.72rem!important;line-height:1.16}
   .reservation-timeline-card svg{display:none}
   .reservation-available-slot{left:.36rem;right:.36rem;font-size:.62rem;text-align:center}
+  .reservation-day-planner{padding:.7rem}
+  .reservation-day-hero{align-items:flex-start;flex-direction:column;padding:.75rem}
+  .reservation-day-pills{display:grid;width:100%;grid-template-columns:repeat(2,minmax(0,1fr));justify-content:stretch}
+  .reservation-day-pill{justify-content:center;padding-inline:.45rem;font-size:.66rem}
+  .reservation-day-planner .reservation-time-grid{--planner-height:680px;grid-template-columns:48px minmax(240px,1fr)}
+  .reservation-day-planner .reservation-timeline-card,.reservation-day-planner .reservation-available-slot{left:.55rem;right:.55rem}
   .reservation-month-grid{overflow:hidden}
   .reservation-month-cell{min-height:3.85rem!important;align-items:center;justify-content:flex-start;gap:.2rem;overflow:hidden;padding:.38rem .18rem!important;text-align:center}
   .reservation-month-cell>span:first-child{margin-bottom:0!important;color:#223957}
@@ -904,7 +929,7 @@ function z({
                 children: [
                     (0, S.jsx)(`span`, {
                         className: `reservation-view-switch`,
-                        children: [`month`, `week`, `day`].map((t) =>
+                        children: [`month`, `day`].map((t) =>
                             (0, S.jsx)(
                                 a,
                                 {
@@ -914,9 +939,7 @@ function z({
                                     children:
                                         t === `month`
                                             ? `Mois`
-                                            : t === `week`
-                                              ? `Semaine`
-                                              : `Jour`,
+                                            : `Jour`,
                                 },
                                 t,
                             ),
@@ -1091,56 +1114,102 @@ function V({
 }) {
     let s = j(t, e),
         l = reservationPlannerBounds(r),
-        u = siteDaySlots(e, r).filter((e) => e.key !== `full_day`);
-    return (0, S.jsx)(`div`, {
-        className: `reservation-time-planner rounded-b-xl`,
-        children: (0, S.jsxs)(`div`, {
-            className: `reservation-time-grid`,
-            style: { "--planner-columns": 1 },
-            children: [
-                (0, S.jsx)(`div`, { className: `reservation-time-spacer` }),
-                (0, S.jsx)(ReservationTimeHeader, {
-                    day: e,
-                    site: r,
-                    onSelectDay: () => {},
-                    showHours: !0,
-                }),
-                (0, S.jsx)(ReservationTimeAxis, { bounds: l }),
-                (0, S.jsxs)(`div`, {
-                    className: `reservation-time-column`,
-                    children: [
-                        (0, S.jsx)(ReservationTimeLines, { bounds: l }),
-                        s.map((e) =>
-                            (0, S.jsx)(
-                                ReservationTimelineCard,
-                                {
-                                    reservation: e,
-                                    vehicle: F(n, e.vehicleId),
-                                    site: r,
-                                    day: T(e.startAt),
-                                    canEditReservation: a,
-                                    onEditReservation: o,
-                                },
-                                e.id,
+        u = siteDaySlots(e, r).filter((e) => e.key !== `full_day`),
+        f = siteHours(r);
+    return (0, S.jsxs)(`div`, {
+        className: `reservation-time-planner reservation-day-planner rounded-b-xl`,
+        children: [
+            (0, S.jsxs)(`div`, {
+                className: `reservation-day-hero`,
+                children: [
+                    (0, S.jsxs)(`div`, {
+                        children: [
+                            (0, S.jsx)(`p`, {
+                                className: `reservation-day-kicker`,
+                                children: `Journee`,
+                            }),
+                            (0, S.jsx)(`p`, {
+                                className: `reservation-day-date`,
+                                children: C.format(e),
+                            }),
+                            (0, S.jsxs)(`p`, {
+                                className: `reservation-day-meta`,
+                                children: [
+                                    s.length,
+                                    s.length > 1 ? ` reservations` : ` reservation`,
+                                ],
+                            }),
+                        ],
+                    }),
+                    (0, S.jsxs)(`div`, {
+                        className: `reservation-day-pills`,
+                        children: [
+                            (0, S.jsxs)(`span`, {
+                                className: `reservation-day-pill reservation-day-pill-morning`,
+                                children: [
+                                    (0, S.jsx)(`i`, {}),
+                                    `Matin ${f.morningStart}-${f.morningEnd}`,
+                                ],
+                            }),
+                            (0, S.jsxs)(`span`, {
+                                className: `reservation-day-pill reservation-day-pill-afternoon`,
+                                children: [
+                                    (0, S.jsx)(`i`, {}),
+                                    `Apres-midi ${f.afternoonStart}-${f.afternoonEnd}`,
+                                ],
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+            (0, S.jsxs)(`div`, {
+                className: `reservation-time-grid reservation-time-grid-day`,
+                style: { "--planner-columns": 1 },
+                children: [
+                    (0, S.jsx)(`div`, { className: `reservation-time-spacer` }),
+                    (0, S.jsx)(ReservationTimeHeader, {
+                        day: e,
+                        site: r,
+                        onSelectDay: () => {},
+                        showHours: !0,
+                    }),
+                    (0, S.jsx)(ReservationTimeAxis, { bounds: l }),
+                    (0, S.jsxs)(`div`, {
+                        className: `reservation-time-column`,
+                        children: [
+                            (0, S.jsx)(ReservationTimeLines, { bounds: l }),
+                            s.map((e) =>
+                                (0, S.jsx)(
+                                    ReservationTimelineCard,
+                                    {
+                                        reservation: e,
+                                        vehicle: F(n, e.vehicleId),
+                                        site: r,
+                                        day: T(e.startAt),
+                                        canEditReservation: a,
+                                        onEditReservation: o,
+                                    },
+                                    e.id,
+                                ),
                             ),
-                        ),
-                        u.map((e) =>
-                            (0, S.jsx)(
-                                ReservationAvailableSlot,
-                                {
-                                    slot: e,
-                                    reservations: s,
-                                    vehicles: n,
-                                    site: r,
-                                    onSelectSlot: i,
-                                },
-                                e.key,
+                            u.map((e) =>
+                                (0, S.jsx)(
+                                    ReservationAvailableSlot,
+                                    {
+                                        slot: e,
+                                        reservations: s,
+                                        vehicles: n,
+                                        site: r,
+                                        onSelectSlot: i,
+                                    },
+                                    e.key,
+                                ),
                             ),
-                        ),
-                    ],
-                }),
-            ],
-        }),
+                        ],
+                    }),
+                ],
+            }),
+        ],
     });
 }
 function he({
@@ -1155,20 +1224,21 @@ function he({
     canEditReservation: s,
     onEditReservation: c,
 }) {
-    let u = e === `month` ? 30 : e === `week` ? 7 : 1;
+    let u = e === `month` ? 30 : 1,
+        f = e === `week` ? `day` : e;
     return (0, S.jsxs)(l, {
         padding: `none`,
         className: `overflow-hidden rounded-xl`,
         children: [
             (0, S.jsx)(z, {
-                view: e,
+                view: f,
                 focusDate: t,
                 onViewChange: i,
                 onPrevious: () => a(O(t, -u)),
                 onNext: () => a(O(t, u)),
                 onToday: () => a(new Date()),
             }),
-            e === `month` &&
+            f === `month` &&
                 (0, S.jsx)(B, {
                     focusDate: t,
                     reservations: n,
@@ -1178,19 +1248,7 @@ function he({
                         (a(e), i(`day`));
                     },
                 }),
-            e === `week` &&
-                (0, S.jsx)(me, {
-                    focusDate: t,
-                    reservations: n,
-                    vehicles: r,
-                    site: p,
-                    onSelectDay: (e) => {
-                        (a(e), i(`day`));
-                    },
-                    canEditReservation: s,
-                    onEditReservation: c,
-                }),
-            e === `day` &&
+            f === `day` &&
                 (0, S.jsx)(V, {
                     focusDate: t,
                     reservations: n,
