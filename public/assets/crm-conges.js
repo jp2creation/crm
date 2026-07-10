@@ -248,24 +248,27 @@
 
   async function load() {
     root.innerHTML = '<div class="leave-card leave-loading">Chargement...</div>';
+    styles();
     try {
       state.data = await request("bootstrap");
       syncEmployeeFilter();
       render();
     } catch (error) {
       root.innerHTML = `<div class="leave-card leave-card-pad"><div class="leaves-notice">${esc(error instanceof Error ? error.message : "Chargement impossible")}</div></div>`;
+      styles();
     }
   }
 
   function styles() {
-    let style = document.getElementById("crm-conges-style");
+    const target = root instanceof ShadowRoot ? root : document.head;
+    let style = target.querySelector("#crm-conges-style");
     if (!style) {
       style = document.createElement("style");
       style.id = "crm-conges-style";
-      document.head.appendChild(style);
+      target.appendChild(style);
     }
 
-    style.textContent = `
+    const css = `
       #crm-leaves-module { color:var(--color-secondary-900,#0f172a); }
       #crm-leaves-module .leaves-page { display:grid; gap:1.5rem; }
       #crm-leaves-module .leaves-header { display:flex; flex-direction:column; gap:1rem; }
@@ -648,6 +651,9 @@
         #crm-leaves-module .leave-summary-card small { white-space:normal; }
       }
     `;
+    style.textContent = root instanceof ShadowRoot
+      ? css.replace(/\.dark #crm-leaves-module/g, ":host-context(.dark)").replace(/#crm-leaves-module/g, ":host")
+      : css;
   }
 
   function renderLegend() {
@@ -851,7 +857,6 @@
   }
 
   function render() {
-    styles();
     syncEmployeeFilter();
     root.innerHTML = `
       <div class="leaves-page">
@@ -868,6 +873,7 @@
         ${renderModal()}
       </div>
     `;
+    styles();
     bind();
   }
 
@@ -942,7 +948,7 @@
 
   function boot(rootNode) {
     if (!rootNode || mountedRoots.has(rootNode)) return;
-    root = rootNode;
+    root = rootNode.shadowRoot || rootNode.attachShadow({ mode: "open" });
     mountedRoots.add(rootNode);
     load();
   }
