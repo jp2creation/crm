@@ -5,6 +5,7 @@ namespace App\Services\Crm;
 use App\Models\CrmLeaveEmployee;
 use App\Models\CrmLeaveEntry;
 use App\Models\CrmModule;
+use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -23,7 +24,7 @@ class LeaveService
     public function actorForUser(User $user): CrmUser
     {
         $actor = CrmUser::query()
-            ->with(['modules:id,slug,active', 'permissions:id,name,label'])
+            ->with(['modules:id,slug,active', 'permissions:id,name,label', 'sites:id'])
             ->where('user_id', $user->id)
             ->where('active', true)
             ->first();
@@ -35,21 +36,21 @@ class LeaveService
         return $actor;
     }
 
-    public function bootstrap(CrmUser $actor): array
+    public function bootstrap(CrmUser $actor, ?int $siteId = null): array
     {
         $this->requireModule($actor);
         $this->requirePermission($actor, 'conges.view');
 
-        $employees = CrmLeaveEmployee::query()
-            ->orderByDesc('active')
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
+        $selectedSiteId = $this->resolveSiteId($actor, $siteId);
+        $sites = $this->availableSites($actor);
+        $employees = $this->syncEmployeesForSite($selectedSiteId);
+        $employeeIds = $employees->pluck('id')->map(fn ($id): int => (int) $id)->all();
 
         $leaves = CrmLeaveEntry::query()
             ->with('employee')
             ->join('crm_leave_employees as employees', 'employees.id', '=', 'crm_leave_entries.employee_id')
             ->select('crm_leave_entries.*')
+            ->whereIn('crm_leave_entries.employee_id', $employeeIds)
             ->orderBy('crm_leave_entries.start_date')
             ->orderBy('crm_leave_entries.end_date')
             ->orderBy('employees.sort_order')
@@ -64,7 +65,11 @@ class LeaveService
                 'role' => $actor->role,
                 'permissions' => $actor->permissions->pluck('name')->values()->all(),
                 'canManage' => $this->hasPermission($actor, 'conges.manage'),
+                'siteIds' => $this->siteIds($actor),
+                'selectedSiteId' => $selectedSiteId,
             ],
+            'sites' => $sites->map(fn (CrmSite $site): array => $this->siteRow($site))->values()->all(),
+            'selectedSiteId' => $selectedSiteId,
             'employees' => $employees->map(fn (CrmLeaveEmployee $employee): array => $this->employeeRow($employee))->values()->all(),
             'leaves' => $leaves->map(fn (CrmLeaveEntry $entry): array => $this->entryRow($entry))->values()->all(),
             'types' => [
@@ -82,71 +87,6 @@ class LeaveService
         ];
     }
 
-    public function saveEmployee(CrmUser $actor, array $data): array
-    {
-        $this->requireModule($actor);
-        $this->requirePermission($actor, 'conges.manage');
-
-        return DB::transaction(function () use ($data): array {
-            $id = max(0, (int) ($data['id'] ?? 0));
-            $name = trim((string) ($data['name'] ?? ''));
-
-            if ($name === '') {
-                $this->fail('Nom salarie requis', 400);
-            }
-
-            $employee = $id > 0
-                ? CrmLeaveEmployee::query()->lockForUpdate()->find($id)
-                : new CrmLeaveEmployee;
-
-            if ($id > 0 && ! $employee) {
-                $this->fail('Salarie introuvable', 404);
-            }
-
-            $employee->fill([
-                'crm_user_id' => $this->optionalPositiveInt($data['crmUserId'] ?? $data['crm_user_id'] ?? null),
-                'name' => $name,
-                'slug' => $this->uniqueEmployeeSlug((string) ($data['slug'] ?? $name), $id ?: null),
-                'color' => $this->color((string) ($data['color'] ?? '#f59e0b')),
-                'active' => $this->boolean($data['active'] ?? null, true),
-                'sort_order' => max(0, min(999, (int) ($data['sortOrder'] ?? $data['sort_order'] ?? 100))),
-            ]);
-            $employee->save();
-
-            return ['ok' => true, 'employee' => $this->employeeRow($employee->refresh())];
-        });
-    }
-
-    public function deleteEmployee(CrmUser $actor, array $data): array
-    {
-        $this->requireModule($actor);
-        $this->requirePermission($actor, 'conges.manage');
-
-        return DB::transaction(function () use ($data): array {
-            $id = (int) ($data['id'] ?? 0);
-
-            if ($id <= 0) {
-                $this->fail('Salarie requis', 400);
-            }
-
-            $employee = CrmLeaveEmployee::query()->lockForUpdate()->find($id);
-
-            if (! $employee) {
-                $this->fail('Salarie introuvable', 404);
-            }
-
-            if ($employee->entries()->exists()) {
-                $employee->forceFill(['active' => false])->save();
-
-                return ['ok' => true, 'archived' => true];
-            }
-
-            $employee->delete();
-
-            return ['ok' => true, 'deleted' => true];
-        });
-    }
-
     public function saveLeave(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
@@ -155,9 +95,10 @@ class LeaveService
         return DB::transaction(function () use ($actor, $data): array {
             $id = max(0, (int) ($data['id'] ?? 0));
             $employeeId = (int) ($data['employeeId'] ?? $data['employee_id'] ?? 0);
+            $siteId = $this->optionalPositiveInt($data['siteId'] ?? $data['site_id'] ?? null);
 
             if ($employeeId <= 0) {
-                $this->fail('Salarie requis', 400);
+                $this->fail('Utilisateur CRM requis', 400);
             }
 
             $startDate = $this->date((string) ($data['startDate'] ?? $data['start_date'] ?? ''), 'debut');
@@ -177,8 +118,10 @@ class LeaveService
                 ->find($employeeId);
 
             if (! $employee) {
-                $this->fail('Salarie introuvable', 404);
+                $this->fail('Utilisateur CRM introuvable', 404);
             }
+
+            $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
 
             $entry = $id > 0
                 ? CrmLeaveEntry::query()->lockForUpdate()->find($id)
@@ -186,6 +129,18 @@ class LeaveService
 
             if ($id > 0 && ! $entry) {
                 $this->fail('Conge introuvable', 404);
+            }
+
+            if ($entry->exists) {
+                $currentEmployee = CrmLeaveEmployee::query()
+                    ->lockForUpdate()
+                    ->find((int) $entry->employee_id);
+
+                if (! $currentEmployee) {
+                    $this->fail('Utilisateur CRM introuvable', 404);
+                }
+
+                $this->requireEmployeeSiteAccess($actor, $currentEmployee, $siteId);
             }
 
             $conflictExists = CrmLeaveEntry::query()
@@ -223,8 +178,9 @@ class LeaveService
         $this->requireModule($actor);
         $this->requirePermission($actor, 'conges.manage');
 
-        return DB::transaction(function () use ($data): array {
+        return DB::transaction(function () use ($actor, $data): array {
             $id = (int) ($data['id'] ?? 0);
+            $siteId = $this->optionalPositiveInt($data['siteId'] ?? $data['site_id'] ?? null);
 
             if ($id <= 0) {
                 $this->fail('Conge requis', 400);
@@ -236,10 +192,177 @@ class LeaveService
                 $this->fail('Conge introuvable', 404);
             }
 
+            $employee = CrmLeaveEmployee::query()->lockForUpdate()->find((int) $entry->employee_id);
+            if (! $employee) {
+                $this->fail('Utilisateur CRM introuvable', 404);
+            }
+
+            $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
+
             $entry->delete();
 
             return ['ok' => true, 'deleted' => true];
         });
+    }
+
+    private function syncEmployeesForSite(int $siteId)
+    {
+        $users = CrmUser::query()
+            ->where('active', true)
+            ->whereHas('sites', fn ($query) => $query->where('crm_sites.id', $siteId))
+            ->orderBy('name')
+            ->get();
+
+        return DB::transaction(function () use ($users) {
+            return $users->values()->map(function (CrmUser $user, int $index): CrmLeaveEmployee {
+                return $this->syncEmployeeForUser($user, ($index + 1) * 10);
+            });
+        });
+    }
+
+    private function syncEmployeeForUser(CrmUser $user, int $sortOrder): CrmLeaveEmployee
+    {
+        $employee = CrmLeaveEmployee::query()
+            ->where('crm_user_id', $user->id)
+            ->lockForUpdate()
+            ->first();
+
+        if (! $employee) {
+            $employee = $this->legacyEmployeeForUser($user) ?? new CrmLeaveEmployee;
+        }
+
+        $displayName = $this->displayNameForUser($user);
+
+        $employee->fill([
+            'crm_user_id' => $user->id,
+            'name' => $displayName,
+            'slug' => $employee->exists
+                ? $employee->slug
+                : $this->uniqueEmployeeSlug($this->slugCandidateForUser($user, $displayName)),
+            'color' => $employee->color ?: $this->colorForUser($user),
+            'active' => true,
+            'sort_order' => $employee->exists ? (int) $employee->sort_order : $sortOrder,
+        ]);
+        $employee->save();
+
+        return $employee->refresh();
+    }
+
+    private function legacyEmployeeForUser(CrmUser $user): ?CrmLeaveEmployee
+    {
+        $slugs = collect([
+            $user->name,
+            $user->first_name,
+            trim((string) $user->first_name.' '.(string) $user->last_name),
+        ])
+            ->filter(fn ($value): bool => trim((string) $value) !== '')
+            ->flatMap(function ($value): array {
+                $slug = Str::slug((string) $value);
+                $firstPart = Str::slug(strtok((string) $value, ' ') ?: (string) $value);
+
+                return [$slug, $firstPart];
+            })
+            ->flatMap(function (string $slug): array {
+                $aliases = [
+                    'christophe-l' => 'christophe',
+                    'j-philippe' => 'jean-philippe',
+                    'jean-philippe' => 'jean-philippe',
+                    'jeremy-l' => 'jeremy',
+                    'philippe-p' => 'philippe',
+                    'remi-g' => 'remi',
+                    'samy' => 'sami',
+                    'samy-i' => 'sami',
+                ];
+
+                return [$slug, $aliases[$slug] ?? $slug];
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($slugs->isEmpty()) {
+            return null;
+        }
+
+        return CrmLeaveEmployee::query()
+            ->whereIn('slug', $slugs->all())
+            ->where(function ($query) use ($user): void {
+                $query->whereNull('crm_user_id')
+                    ->orWhere('crm_user_id', $user->id);
+            })
+            ->orderByRaw('crm_user_id IS NULL')
+            ->lockForUpdate()
+            ->first();
+    }
+
+    private function requireEmployeeSiteAccess(CrmUser $actor, CrmLeaveEmployee $employee, ?int $siteId): void
+    {
+        $selectedSiteId = $this->resolveSiteId($actor, $siteId);
+        $crmUserId = (int) $employee->crm_user_id;
+
+        if ($crmUserId <= 0) {
+            $this->fail('Utilisateur non lie a un compte CRM', 403);
+        }
+
+        $exists = CrmUser::query()
+            ->whereKey($crmUserId)
+            ->where('active', true)
+            ->whereHas('sites', fn ($query) => $query->where('crm_sites.id', $selectedSiteId))
+            ->exists();
+
+        if (! $exists) {
+            $this->fail('Utilisateur non autorise sur ce site', 403);
+        }
+    }
+
+    private function resolveSiteId(CrmUser $actor, ?int $siteId): int
+    {
+        $siteIds = $this->siteIds($actor);
+
+        if ($siteIds === []) {
+            $this->fail('Aucun site autorise', 403);
+        }
+
+        $selectedSiteId = $siteId && $siteId > 0 ? $siteId : $siteIds[0];
+
+        if (! in_array($selectedSiteId, $siteIds, true)) {
+            $this->fail('Site non autorise', 403);
+        }
+
+        $siteExists = CrmSite::query()
+            ->active()
+            ->whereKey($selectedSiteId)
+            ->exists();
+
+        if (! $siteExists) {
+            $this->fail('Site introuvable', 404);
+        }
+
+        return $selectedSiteId;
+    }
+
+    private function availableSites(CrmUser $actor)
+    {
+        return CrmSite::query()
+            ->active()
+            ->whereIn('id', $this->siteIds($actor))
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    private function siteIds(CrmUser $user): array
+    {
+        return $user->sites()
+            ->whereNull('crm_sites.deleted_at')
+            ->orderByDesc('crm_user_sites.is_default')
+            ->orderBy('crm_sites.id')
+            ->pluck('crm_sites.id')
+            ->map(fn ($id): int => (int) $id)
+            ->values()
+            ->all();
     }
 
     private function requireModule(CrmUser $actor): void
@@ -272,7 +395,7 @@ class LeaveService
 
     private function uniqueEmployeeSlug(string $value, ?int $ignoreId = null): string
     {
-        $base = Str::slug($value) ?: 'salarie';
+        $base = Str::slug($value) ?: 'utilisateur';
         $slug = $base;
         $suffix = 2;
 
@@ -285,6 +408,56 @@ class LeaveService
         }
 
         return $slug;
+    }
+
+    private function displayNameForUser(CrmUser $user): string
+    {
+        $name = trim((string) $user->name);
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        $name = trim((string) $user->first_name.' '.(string) $user->last_name);
+
+        return $name !== '' ? $name : 'Utilisateur #'.$user->id;
+    }
+
+    private function slugCandidateForUser(CrmUser $user, string $displayName): string
+    {
+        $name = trim((string) $user->name);
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        return $displayName;
+    }
+
+    private function colorForUser(CrmUser $user): string
+    {
+        $palette = [
+            '#2563eb',
+            '#16a34a',
+            '#64748b',
+            '#dc2626',
+            '#9333ea',
+            '#f59e0b',
+            '#0891b2',
+            '#be123c',
+        ];
+
+        return $palette[max(0, ((int) $user->id - 1) % count($palette))];
+    }
+
+    private function siteRow(CrmSite $site): array
+    {
+        return [
+            'id' => $site->id,
+            'name' => $site->name,
+            'slug' => $site->slug,
+            'active' => (bool) $site->active,
+        ];
     }
 
     private function employeeRow(CrmLeaveEmployee $employee): array
@@ -324,19 +497,6 @@ class LeaveService
         $value = (int) $value;
 
         return $value > 0 ? $value : null;
-    }
-
-    private function boolean(mixed $value, bool $default): bool
-    {
-        if ($value === null) {
-            return $default;
-        }
-
-        if (is_bool($value)) {
-            return $value;
-        }
-
-        return in_array(strtolower((string) $value), ['1', 'true', 'yes', 'on'], true);
     }
 
     private function date(string $value, string $field): string

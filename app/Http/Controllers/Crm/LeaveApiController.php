@@ -28,11 +28,14 @@ class LeaveApiController extends Controller
             $actor = $leaves->actorForUser($user);
             $action = (string) $request->query('action', 'bootstrap');
             $body = $this->body($request);
+            $siteId = $this->siteId($request, $body);
+
+            if ($siteId && ! array_key_exists('siteId', $body) && ! array_key_exists('site_id', $body)) {
+                $body['siteId'] = $siteId;
+            }
 
             return match ($action) {
-                'bootstrap' => $this->json($leaves->bootstrap($actor)),
-                'save_employee' => $this->json($leaves->saveEmployee($actor, $body)),
-                'delete_employee' => $this->json($leaves->deleteEmployee($actor, $body)),
+                'bootstrap' => $this->json($leaves->bootstrap($actor, $siteId)),
                 'save_leave' => $this->json($leaves->saveLeave($actor, $body)),
                 'delete_leave' => $this->json($leaves->deleteLeave($actor, $body)),
                 default => $this->json(['ok' => false, 'error' => 'Action inconnue'], 404),
@@ -58,6 +61,19 @@ class LeaveApiController extends Controller
         }
 
         return $request->request->all();
+    }
+
+    private function siteId(Request $request, array $body): ?int
+    {
+        $value = $request->query('siteId')
+            ?? $request->query('site_id')
+            ?? $body['siteId']
+            ?? $body['site_id']
+            ?? null;
+
+        $siteId = (int) $value;
+
+        return $siteId > 0 ? $siteId : null;
     }
 
     private function json(array $data, int $status = 200): JsonResponse

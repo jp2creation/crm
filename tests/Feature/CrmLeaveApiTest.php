@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\CrmLeaveEmployee;
 use App\Models\CrmModule;
 use App\Models\CrmPermission;
+use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,28 +25,60 @@ class CrmLeaveApiTest extends TestCase
 
     public function test_authorized_user_can_read_leave_bootstrap(): void
     {
-        [$account] = $this->createCrmUser(canManage: true);
-
-        CrmLeaveEmployee::query()->create([
-            'name' => 'TEST CONGES',
-            'slug' => 'test-conges',
-            'color' => '#2563eb',
-            'active' => true,
-            'sort_order' => 1,
-        ]);
+        [$account, $crmUser, $site] = $this->createCrmUser(canManage: true);
 
         $this->actingAs($account)
-            ->getJson('/api/conges?action=bootstrap')
+            ->getJson('/api/conges?action=bootstrap&siteId='.$site->id)
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('user.canManage', true)
-            ->assertJsonFragment(['slug' => 'test-conges']);
+            ->assertJsonPath('user.siteIds.0', $site->id)
+            ->assertJsonPath('selectedSiteId', $site->id)
+            ->assertJsonPath('employees.0.crmUserId', $crmUser->id)
+            ->assertJsonPath('employees.0.name', $crmUser->name);
+    }
+
+    public function test_leave_bootstrap_uses_users_linked_to_selected_site(): void
+    {
+        [$account, $crmUser, $site] = $this->createCrmUser(canManage: true);
+        $otherSite = $this->createSite('Autre Site');
+        $otherUser = CrmUser::query()->create([
+            'name' => 'Autre utilisateur',
+            'role' => 'user',
+            'active' => true,
+        ]);
+        $blockedUser = CrmUser::query()->create([
+            'name' => 'Utilisateur sans acces',
+            'role' => 'blocked',
+            'active' => true,
+        ]);
+        $otherUser->sites()->syncWithoutDetaching([$otherSite->id => ['is_default' => true]]);
+        $blockedUser->sites()->syncWithoutDetaching([$site->id => ['is_default' => false]]);
+
+        $this->actingAs($account)
+            ->getJson('/api/conges?action=bootstrap&siteId='.$site->id)
+            ->assertOk()
+            ->assertJsonFragment(['crmUserId' => $crmUser->id])
+            ->assertJsonFragment(['crmUserId' => $blockedUser->id])
+            ->assertJsonMissing(['crmUserId' => $otherUser->id]);
+    }
+
+    public function test_leave_employee_actions_are_not_available_from_module(): void
+    {
+        [$account] = $this->createCrmUser(canManage: true);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_employee', [
+                'name' => 'Employe interdit',
+            ])
+            ->assertStatus(404)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Action inconnue');
     }
 
     public function test_manage_permission_is_required_to_create_leave(): void
     {
-        [$account] = $this->createCrmUser(canManage: false);
-        $employee = CrmLeaveEmployee::query()->firstOrFail();
+        [$account, , , $employee] = $this->createCrmUser(canManage: false);
 
         $this->actingAs($account)
             ->postJson('/api/conges?action=save_leave', [
@@ -60,14 +93,7 @@ class CrmLeaveApiTest extends TestCase
 
     public function test_overlapping_leave_is_rejected(): void
     {
-        [$account] = $this->createCrmUser(canManage: true);
-        $employee = CrmLeaveEmployee::query()->create([
-            'name' => 'TEST OVERLAP',
-            'slug' => 'test-overlap',
-            'color' => '#16a34a',
-            'active' => true,
-            'sort_order' => 1,
-        ]);
+        [$account, , , $employee] = $this->createCrmUser(canManage: true);
 
         $payload = [
             'employeeId' => $employee->id,
@@ -95,16 +121,25 @@ class CrmLeaveApiTest extends TestCase
     }
 
     /**
-     * @return array{0: User, 1: CrmUser}
+     * @return array{0: User, 1: CrmUser, 2: CrmSite, 3: CrmLeaveEmployee}
      */
     private function createCrmUser(bool $canManage): array
     {
         $account = User::factory()->create();
+        $site = $this->createSite('Palissy Test');
         $crmUser = CrmUser::query()->create([
             'user_id' => $account->id,
             'name' => 'CRM Test User '.$account->id,
             'role' => $canManage ? 'admin' : 'user',
             'active' => true,
+        ]);
+        $employee = CrmLeaveEmployee::query()->create([
+            'crm_user_id' => $crmUser->id,
+            'name' => $crmUser->name,
+            'slug' => 'crm-test-user-'.$account->id,
+            'color' => '#2563eb',
+            'active' => true,
+            'sort_order' => 10,
         ]);
 
         $module = CrmModule::query()->updateOrCreate(
@@ -128,11 +163,25 @@ class CrmLeaveApiTest extends TestCase
             ['label' => 'Gerer les conges', 'group_label' => 'Conges', 'sort_order' => 186],
         );
 
+        $crmUser->sites()->syncWithoutDetaching([$site->id => ['is_default' => true]]);
         $crmUser->modules()->syncWithoutDetaching([$module->id]);
         $crmUser->permissions()->syncWithoutDetaching(
             $canManage ? [$view->id, $manage->id] : [$view->id],
         );
 
-        return [$account, $crmUser];
+        return [$account, $crmUser, $site, $employee];
+    }
+
+    private function createSite(string $name): CrmSite
+    {
+        return CrmSite::query()->create([
+            'name' => $name,
+            'slug' => str($name)->slug()->toString(),
+            'active' => true,
+            'morning_start' => '07:30:00',
+            'morning_end' => '12:00:00',
+            'afternoon_start' => '13:30:00',
+            'afternoon_end' => '17:30:00',
+        ]);
     }
 }

@@ -13,8 +13,6 @@
       query: "",
     },
     modal: null,
-    employeePanel: false,
-    employeeForm: null,
   };
 
   const esc = (value) => String(value ?? "")
@@ -67,6 +65,33 @@
 
   function employees() {
     return (state.data?.employees || []).filter((employee) => employee.active);
+  }
+
+  function activeSiteId() {
+    const fromApi = Number(window.CRM_ACTIVE_SITE?.getSiteId?.() || 0);
+    if (Number.isFinite(fromApi) && fromApi > 0) return fromApi;
+
+    try {
+      const fromStorage = Number(window.localStorage.getItem("crm:active-site-id") || 0);
+      if (Number.isFinite(fromStorage) && fromStorage > 0) return fromStorage;
+    } catch (error) {
+      // The server will fall back to the first authorized site.
+    }
+
+    const selected = Number(state.data?.selectedSiteId || state.data?.user?.selectedSiteId || 0);
+    return Number.isFinite(selected) && selected > 0 ? selected : "";
+  }
+
+  function activeSiteName() {
+    const siteId = Number(state.data?.selectedSiteId || state.data?.user?.selectedSiteId || activeSiteId());
+    const site = (state.data?.sites || []).find((item) => Number(item.id) === siteId);
+    return site?.name || "site actif";
+  }
+
+  function syncEmployeeFilter() {
+    if (state.filters.employeeId === "all") return;
+    const exists = employees().some((employee) => Number(employee.id) === Number(state.filters.employeeId));
+    if (!exists) state.filters.employeeId = "all";
   }
 
   function statusLabel(status) {
@@ -180,13 +205,20 @@
   }
 
   async function request(action, payload = null) {
+    const params = new URLSearchParams({ action });
+    const siteId = activeSiteId();
+    if (siteId) params.set("siteId", String(siteId));
+
     const options = { credentials: "same-origin" };
     if (payload) {
+      if (siteId && payload.siteId === undefined && payload.site_id === undefined) {
+        payload = { ...payload, siteId: Number(siteId) };
+      }
       options.method = "POST";
       options.headers = { "Content-Type": "application/json" };
       options.body = JSON.stringify(payload);
     }
-    const response = await fetch(`${api}?action=${action}`, options);
+    const response = await fetch(`${api}?${params.toString()}`, options);
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok === false) {
       throw new Error(data.error || "API conges indisponible");
@@ -198,6 +230,7 @@
     root.innerHTML = '<div class="leaves-panel">Chargement des conges...</div>';
     try {
       state.data = await request("bootstrap");
+      syncEmployeeFilter();
       render();
     } catch (error) {
       root.innerHTML = `<div class="leaves-notice">${esc(error instanceof Error ? error.message : "Chargement impossible")}</div>`;
@@ -240,6 +273,7 @@
       #crm-leaves-module .leaves-cell { width:100%; height:100%; border:0; background:transparent; color:rgb(51 65 85); font-size:.7rem; font-weight:850; line-height:1.15; }
       #crm-leaves-module .leaves-cell:hover { background:rgb(var(--theme-primary) / .08); }
       #crm-leaves-module .leaves-lower { display:grid; grid-template-columns:minmax(0,1fr) minmax(18rem,24rem); gap:1rem; margin-top:1rem; }
+      #crm-leaves-module .leaves-lower-single { grid-template-columns:minmax(0,1fr); }
       #crm-leaves-module .leaves-list { display:grid; gap:.5rem; margin-top:.7rem; }
       #crm-leaves-module .leaves-list-item { display:flex; align-items:center; justify-content:space-between; gap:.75rem; border:1px solid rgb(241 245 249); border-radius:.45rem; padding:.65rem; }
       #crm-leaves-module .leaves-list-title { font-size:.86rem; font-weight:850; }
@@ -277,7 +311,7 @@
     const nextLeave = (state.data?.leaves || []).filter((leave) => leave.status !== "refused" && leave.endDate >= today).sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
     return `
       <div class="leaves-stats">
-        <div class="leaves-stat"><div class="leaves-stat-label">Salaries affiches</div><div class="leaves-stat-value">${visibleEmployees().length}</div></div>
+        <div class="leaves-stat"><div class="leaves-stat-label">Utilisateurs affiches</div><div class="leaves-stat-value">${visibleEmployees().length}</div></div>
         <div class="leaves-stat"><div class="leaves-stat-label">Periodes ce mois</div><div class="leaves-stat-value">${leaves.length}</div></div>
         <div class="leaves-stat"><div class="leaves-stat-label">Jours poses</div><div class="leaves-stat-value">${formatDaysCount(totalDays)}</div></div>
         <div class="leaves-stat"><div class="leaves-stat-label">Absents aujourd'hui</div><div class="leaves-stat-value">${todayLeaves.length}</div><div class="leaves-list-meta">${nextLeave ? `Prochain: ${esc(nextLeave.employeeName)} le ${esc(dateLabel(nextLeave.startDate))}` : "Aucun a venir"}</div></div>
@@ -291,7 +325,7 @@
       <div class="leaves-panel leaves-toolbar">
         <div class="leaves-filter-grid">
           <div class="leaves-field"><label>Recherche</label><input data-filter="query" value="${esc(filters.query)}" placeholder="Nom, note, date..."></div>
-          <div class="leaves-field"><label>Salarie</label><select data-filter="employeeId"><option value="all">Tous les salaries</option>${employees().map((employee) => `<option value="${employee.id}" ${String(filters.employeeId) === String(employee.id) ? "selected" : ""}>${esc(employee.name)}</option>`).join("")}</select></div>
+          <div class="leaves-field"><label>Utilisateur</label><select data-filter="employeeId"><option value="all">Tous les utilisateurs</option>${employees().map((employee) => `<option value="${employee.id}" ${String(filters.employeeId) === String(employee.id) ? "selected" : ""}>${esc(employee.name)}</option>`).join("")}</select></div>
           <div class="leaves-field"><label>Type</label><select data-filter="type"><option value="all">Tous les types</option>${(state.data?.types || []).map((type) => `<option value="${esc(type.value)}" ${filters.type === type.value ? "selected" : ""}>${esc(type.label)}</option>`).join("")}</select></div>
           <div class="leaves-field"><label>Statut</label><select data-filter="status"><option value="active" ${filters.status === "active" ? "selected" : ""}>Actifs sauf refuses</option><option value="all" ${filters.status === "all" ? "selected" : ""}>Tous les statuts</option><option value="approved" ${filters.status === "approved" ? "selected" : ""}>Valides</option><option value="planned" ${filters.status === "planned" ? "selected" : ""}>Planifies</option><option value="pending" ${filters.status === "pending" ? "selected" : ""}>A valider</option><option value="refused" ${filters.status === "refused" ? "selected" : ""}>Refuses</option></select></div>
         </div>
@@ -313,7 +347,7 @@
         <table>
           <thead>
             <tr>
-              <th class="leaves-employee">Salarie</th>
+              <th class="leaves-employee">Utilisateur</th>
               ${days.map((day) => `<th class="leaves-day ${(day.getDay() === 0 || day.getDay() === 6) ? "leaves-weekend" : ""}">${day.getDate()}<small>${esc(day.toLocaleDateString("fr-FR", { weekday: "short" }).slice(0, 3))}</small></th>`).join("")}
             </tr>
           </thead>
@@ -323,7 +357,7 @@
                 <td class="leaves-employee"><span class="leaves-dot" style="background:${esc(normalizeColor(employee.color, "#64748b"))}"></span>${esc(employee.name)}</td>
                 ${days.map((day) => renderCell(employee, day)).join("")}
               </tr>
-            `).join("") : `<tr><td colspan="${days.length + 1}"><div class="leaves-empty">Aucun salarie ne correspond aux filtres.</div></td></tr>`}
+            `).join("") : `<tr><td colspan="${days.length + 1}"><div class="leaves-empty">Aucun utilisateur ne correspond aux filtres.</div></td></tr>`}
           </tbody>
         </table>
       </div>
@@ -352,7 +386,7 @@
     return `
       <div class="leaves-table-panel">
         <table class="leaves-list-table">
-          <thead><tr><th>Salarie</th><th>Periode</th><th>Type</th><th>Journee</th><th>Statut</th><th>Notes</th><th></th></tr></thead>
+          <thead><tr><th>Utilisateur</th><th>Periode</th><th>Type</th><th>Journee</th><th>Statut</th><th>Notes</th><th></th></tr></thead>
           <tbody>
             ${items.map((leave) => {
               const meta = typeMeta(leave.type);
@@ -391,7 +425,7 @@
     return `
       <div class="leaves-table-panel">
         <table class="leaves-list-table leaves-year-table">
-          <thead><tr><th>Salarie</th>${monthNames.map((name) => `<th>${esc(name)}</th>`).join("")}<th>Total</th></tr></thead>
+          <thead><tr><th>Utilisateur</th>${monthNames.map((name) => `<th>${esc(name)}</th>`).join("")}<th>Total</th></tr></thead>
           <tbody>
             ${rows.length ? rows.map((row) => `<tr>
               <td><span class="leaves-dot" style="background:${esc(normalizeColor(row.employee.color, "#64748b"))}"></span>${esc(row.employee.name)}</td>
@@ -458,7 +492,7 @@
       return;
     }
 
-    const header = ["Salarie", "Debut", "Fin", "Jours", "Type", "Journee", "Statut", "Notes", "Source"];
+    const header = ["Utilisateur", "Debut", "Fin", "Jours", "Type", "Journee", "Statut", "Notes", "Source"];
     const lines = [header.map(csvValue).join(";")].concat(rows.map((leave) => [
       leave.employeeName,
       leave.startDate,
@@ -481,30 +515,6 @@
     link.remove();
   }
 
-  function renderEmployees() {
-    if (!state.employeePanel) return "<div></div>";
-    const form = state.employeeForm || { id: "", name: "", color: "#f59e0b", active: true, sortOrder: 100 };
-    return `
-      <div class="leaves-panel">
-        <div class="leaves-modal-head"><strong>Salaries</strong><button type="button" class="leaves-button" data-close-employees>Fermer</button></div>
-        <div class="leaves-list">
-          ${(state.data?.employees || []).map((employee) => `<div class="leaves-list-item">
-            <div><div class="leaves-list-title"><span class="leaves-dot" style="background:${esc(normalizeColor(employee.color, "#64748b"))}"></span>${esc(employee.name)}</div><div class="leaves-list-meta">${employee.active ? "Actif" : "Archive"} - ordre ${employee.sortOrder}</div></div>
-            <button type="button" class="leaves-button" data-edit-employee="${employee.id}">Modifier</button>
-          </div>`).join("")}
-        </div>
-        <form class="leaves-form-grid" data-employee-form style="margin-top:1rem">
-          <input type="hidden" name="id" value="${esc(form.id || "")}">
-          <div class="leaves-field"><label>Nom</label><input name="name" value="${esc(form.name || "")}" required></div>
-          <div class="leaves-field"><label>Couleur</label><input name="color" type="color" value="${esc(form.color || "#f59e0b")}"></div>
-          <div class="leaves-field"><label>Ordre</label><input name="sortOrder" type="number" min="0" max="999" value="${esc(form.sortOrder ?? 100)}"></div>
-          <div class="leaves-field"><label>Etat</label><select name="active"><option value="1" ${form.active !== false ? "selected" : ""}>Actif</option><option value="0" ${form.active === false ? "selected" : ""}>Archive</option></select></div>
-          <div class="leaves-actions leaves-field-full"><button type="submit" class="leaves-button leaves-button-primary">Enregistrer</button><button type="button" class="leaves-button" data-new-employee>Nouveau</button></div>
-        </form>
-      </div>
-    `;
-  }
-
   function renderModal() {
     if (!state.modal) return "";
     const form = state.modal;
@@ -514,7 +524,7 @@
           <div class="leaves-modal-head"><strong>${form.id ? "Modifier le conge" : "Ajouter un conge"}</strong><button type="button" class="leaves-button" data-close-modal>Fermer</button></div>
           <form class="leaves-form-grid" data-leave-form>
             <input type="hidden" name="id" value="${esc(form.id || "")}">
-            <div class="leaves-field leaves-field-full"><label>Salarie</label><select name="employeeId" required>${employees().map((employee) => `<option value="${employee.id}" ${Number(form.employeeId) === Number(employee.id) ? "selected" : ""}>${esc(employee.name)}</option>`).join("")}</select></div>
+            <div class="leaves-field leaves-field-full"><label>Utilisateur</label><select name="employeeId" required>${employees().map((employee) => `<option value="${employee.id}" ${Number(form.employeeId) === Number(employee.id) ? "selected" : ""}>${esc(employee.name)}</option>`).join("")}</select></div>
             <div class="leaves-field"><label>Debut</label><input type="date" name="startDate" value="${esc(form.startDate)}" required></div>
             <div class="leaves-field"><label>Fin</label><input type="date" name="endDate" value="${esc(form.endDate)}" required></div>
             <div class="leaves-field"><label>Type</label><select name="type">${(state.data?.types || []).map((type) => `<option value="${esc(type.value)}" ${form.type === type.value ? "selected" : ""}>${esc(type.label)}</option>`).join("")}</select></div>
@@ -531,24 +541,25 @@
   function render() {
     styles();
     const canManage = Boolean(state.data?.user?.canManage);
+    syncEmployeeFilter();
     root.innerHTML = `
       <div class="leaves-topbar">
         <div>
           <div class="leaves-kicker">Planning interne</div>
           <h1 class="leaves-title">Conges Palissy</h1>
-          <div class="leaves-subtitle">${esc(viewSubtitle())}</div>
+          <div class="leaves-subtitle">${esc(viewSubtitle())} - ${esc(activeSiteName())}</div>
         </div>
         <div class="leaves-actions">
           <button type="button" class="leaves-button" data-prev>Precedent</button>
           <button type="button" class="leaves-button" data-today>Aujourd'hui</button>
           <button type="button" class="leaves-button" data-next>Suivant</button>
-          ${canManage ? '<button type="button" class="leaves-button leaves-button-primary" data-new>Ajouter</button><button type="button" class="leaves-button" data-employees>Salaries</button>' : ""}
+          ${canManage ? '<button type="button" class="leaves-button leaves-button-primary" data-new>Ajouter</button>' : ""}
         </div>
       </div>
       ${renderFilters()}
       ${renderStats()}
       ${renderMainView()}
-      <div class="leaves-lower">${renderEmployees()}${renderUpcoming()}</div>
+      <div class="leaves-lower leaves-lower-single">${renderUpcoming()}</div>
       ${renderModal()}
     `;
     bind();
@@ -570,8 +581,6 @@
     });
     root.querySelector("[data-export]")?.addEventListener("click", exportCsv);
     root.querySelector("[data-new]")?.addEventListener("click", () => openModal(null));
-    root.querySelector("[data-employees]")?.addEventListener("click", () => { state.employeePanel = !state.employeePanel; state.employeeForm = null; render(); });
-    root.querySelector("[data-close-employees]")?.addEventListener("click", () => { state.employeePanel = false; render(); });
     root.querySelectorAll("[data-cell]").forEach((button) => button.addEventListener("click", () => {
       if (!state.data?.user?.canManage) return;
       const leave = button.dataset.leaveId ? state.data.leaves.find((item) => Number(item.id) === Number(button.dataset.leaveId)) : null;
@@ -589,6 +598,7 @@
         await request("save_leave", payload);
         state.modal = null;
         state.data = await request("bootstrap");
+        syncEmployeeFilter();
         render();
       } catch (error) {
         alert(error instanceof Error ? error.message : "Enregistrement impossible");
@@ -600,29 +610,10 @@
         await request("delete_leave", { id: Number(event.currentTarget.dataset.delete) });
         state.modal = null;
         state.data = await request("bootstrap");
+        syncEmployeeFilter();
         render();
       } catch (error) {
         alert(error instanceof Error ? error.message : "Suppression impossible");
-      }
-    });
-    root.querySelectorAll("[data-edit-employee]").forEach((button) => button.addEventListener("click", () => {
-      state.employeeForm = { ...state.data.employees.find((employee) => Number(employee.id) === Number(button.dataset.editEmployee)) };
-      render();
-    }));
-    root.querySelector("[data-new-employee]")?.addEventListener("click", () => { state.employeeForm = { id: "", name: "", color: "#f59e0b", active: true, sortOrder: 100 }; render(); });
-    root.querySelector("[data-employee-form]")?.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const payload = Object.fromEntries(new FormData(event.currentTarget).entries());
-      payload.id = payload.id ? Number(payload.id) : undefined;
-      payload.sortOrder = Number(payload.sortOrder || 100);
-      payload.active = payload.active === "1";
-      try {
-        await request("save_employee", payload);
-        state.employeeForm = null;
-        state.data = await request("bootstrap");
-        render();
-      } catch (error) {
-        alert(error instanceof Error ? error.message : "Enregistrement impossible");
       }
     });
   }
@@ -659,6 +650,12 @@
 
   window.addEventListener("popstate", tryBoot);
   window.addEventListener("crm:route-changed", () => window.setTimeout(tryBoot, 0));
+  window.addEventListener("crm:active-site-changed", () => {
+    if (!isLeavesRoute() || !root) return;
+    state.modal = null;
+    state.filters.employeeId = "all";
+    load();
+  });
   document.addEventListener("DOMContentLoaded", tryBoot);
 
   const observer = new MutationObserver(() => tryBoot());
