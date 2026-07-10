@@ -11,6 +11,7 @@
       status: "active",
       query: "",
     },
+    selectedDate: formatDate(new Date()),
     modal: null,
   };
 
@@ -69,14 +70,6 @@
 
   function normalizeColor(value, fallback = "#facc15") {
     return /^#[0-9a-f]{6}$/i.test(String(value || "")) ? value : fallback;
-  }
-
-  function hexToRgba(hex, alpha) {
-    const color = normalizeColor(hex).replace("#", "");
-    const red = parseInt(color.slice(0, 2), 16);
-    const green = parseInt(color.slice(2, 4), 16);
-    const blue = parseInt(color.slice(4, 6), 16);
-    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
   }
 
   function typeMeta(type) {
@@ -172,8 +165,12 @@
       .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.employeeName.localeCompare(b.employeeName));
   }
 
-  function primaryLeaveForDate(date) {
-    return activeLeaves().find((leave) => leave.startDate <= date && leave.endDate >= date) || null;
+  function leavesForDate(date) {
+    return activeLeaves().filter((leave) => leave.startDate <= date && leave.endDate >= date);
+  }
+
+  function selectedDateLeaves() {
+    return leavesForDate(state.selectedDate);
   }
 
   function monthLeaves() {
@@ -277,20 +274,19 @@
       #crm-leaves-module .leave-nav-button { display:grid; place-items:center; width:3rem; height:3rem; border:0; border-radius:999px; background:transparent; color:#777b82; font-size:2.45rem; line-height:1; font-weight:700; }
       #crm-leaves-module .leave-nav-button:hover { background:#f3f4f6; color:#20242a; }
       #crm-leaves-module .leave-weekdays { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); margin-bottom:.7rem; color:#7f848c; font-size:clamp(.8rem, 2.4vw, 1.05rem); font-weight:750; text-align:center; text-transform:uppercase; }
-      #crm-leaves-module .leave-calendar-grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); row-gap:.45rem; margin-bottom:.9rem; }
-      #crm-leaves-module .leave-date { position:relative; display:grid; place-items:center; height:clamp(3.5rem, 8.5vw, 5.2rem); border:0; background:transparent; color:#1e2228; font-size:clamp(1.05rem, 3.2vw, 1.55rem); font-weight:500; line-height:1; isolation:isolate; }
-      #crm-leaves-module .leave-date::before { content:""; position:absolute; z-index:0; top:50%; left:0; right:0; height:clamp(3rem, 7.2vw, 4.35rem); transform:translateY(-50%); background:var(--leave-soft); opacity:0; }
-      #crm-leaves-module .leave-date.is-range::before { opacity:1; }
-      #crm-leaves-module .leave-date.is-start::before { left:50%; }
-      #crm-leaves-module .leave-date.is-end::before { right:50%; }
-      #crm-leaves-module .leave-date.is-single::before { opacity:0; }
-      #crm-leaves-module .leave-date .leave-number { position:relative; z-index:1; display:grid; place-items:center; width:clamp(3rem, 7.2vw, 4.35rem); height:clamp(3rem, 7.2vw, 4.35rem); border-radius:999px; }
-      #crm-leaves-module .leave-date.has-circle .leave-number { background:var(--leave-color); color:#fff; box-shadow:0 .45rem 1.1rem rgba(15,23,42,.10); }
-      #crm-leaves-module .leave-date.is-range:not(.has-circle) .leave-number { color:#17202a; }
+      #crm-leaves-module .leave-calendar-grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:.35rem; margin-bottom:.9rem; }
+      #crm-leaves-module .leave-date { position:relative; display:grid; grid-template-rows:1fr auto; align-items:center; justify-items:center; min-width:0; height:clamp(3.6rem, 8.5vw, 4.7rem); border:1px solid transparent; border-radius:.9rem; background:transparent; color:#1e2228; padding:.35rem .12rem .42rem; font-size:clamp(.98rem, 3vw, 1.38rem); font-weight:650; line-height:1; }
+      #crm-leaves-module .leave-date.has-absences { background:#fffaf0; }
+      #crm-leaves-module .leave-date.is-selected { border-color:#1f8fbd; background:#eef9ff; box-shadow:0 .45rem 1rem rgba(31,143,189,.14); }
+      #crm-leaves-module .leave-date.is-today .leave-number { outline:2px solid rgba(31,143,189,.28); }
+      #crm-leaves-module .leave-number { display:grid; place-items:center; width:2.2rem; height:2.2rem; border-radius:999px; }
+      #crm-leaves-module .leave-markers { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:.16rem; min-height:.62rem; max-width:100%; }
+      #crm-leaves-module .leave-marker { width:.48rem; height:.48rem; border-radius:999px; background:var(--marker-color); box-shadow:0 0 0 2px #fff; }
+      #crm-leaves-module .leave-more { min-width:1.15rem; border-radius:999px; background:#e9edf3; color:#5c6470; padding:.05rem .24rem; font-size:.56rem; font-weight:900; line-height:1.2; }
       #crm-leaves-module .leave-date.is-other { color:#a7abb2; }
       #crm-leaves-module .leave-date.is-sunday { color:#be2f3c; }
       #crm-leaves-module .leave-date.is-other.is-sunday { color:#c98a91; }
-      #crm-leaves-module .leave-date:hover .leave-number { outline:3px solid rgba(20,115,170,.12); }
+      #crm-leaves-module .leave-date:hover { background:#f4f7fb; }
       #crm-leaves-module .leave-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin:1.1rem 0 1.1rem; }
       #crm-leaves-module .leave-summary-card { min-height:5.5rem; border-radius:1.05rem; padding:.72rem .55rem; color:#fff; text-align:center; box-shadow:0 .7rem 1.3rem rgba(15,23,42,.10); }
       #crm-leaves-module .leave-summary-card span { display:block; font-size:clamp(.78rem, 2.2vw, 1rem); font-weight:800; opacity:.82; }
@@ -299,9 +295,26 @@
       #crm-leaves-module .leave-summary-card.is-blue { background:linear-gradient(135deg,#49bde9,#2074b4); }
       #crm-leaves-module .leave-summary-card.is-green { background:linear-gradient(135deg,#6dd0b5,#42b98e); }
       #crm-leaves-module .leave-summary-card.is-gray { background:linear-gradient(135deg,#bfc0c4,#8f9096); }
-      #crm-leaves-module .leave-users-card { border:1px solid #e3e3e5; border-radius:1.35rem; background:#fff; padding:1.05rem 1.15rem 1.1rem; box-shadow:0 .25rem .7rem rgba(15,23,42,.14); }
-      #crm-leaves-module .leave-users-head { display:grid; grid-template-columns:1.6rem 1fr; column-gap:.65rem; align-items:start; margin-bottom:.9rem; }
-      #crm-leaves-module .leave-users-icon { color:#25282f; font-size:1.35rem; line-height:1.45; font-weight:900; }
+      #crm-leaves-module .leave-day-card, #crm-leaves-module .leave-users-card { border:1px solid #e3e3e5; border-radius:1.35rem; background:#fff; padding:1.05rem 1.15rem 1.1rem; box-shadow:0 .25rem .7rem rgba(15,23,42,.14); }
+      #crm-leaves-module .leave-day-card { margin-bottom:1rem; }
+      #crm-leaves-module .leave-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:.85rem; }
+      #crm-leaves-module .leave-card-title { margin:0; color:#191b20; font-size:clamp(1.15rem, 3.2vw, 1.55rem); font-weight:850; line-height:1.1; letter-spacing:0; }
+      #crm-leaves-module .leave-card-subtitle { margin:.28rem 0 0; color:#7d8189; font-size:.9rem; font-weight:650; }
+      #crm-leaves-module .leave-add-day { flex:0 0 auto; border:0; border-radius:999px; background:#33b889; color:#fff; padding:.58rem .9rem; font-size:.82rem; font-weight:900; box-shadow:0 .45rem 1rem rgba(20,124,91,.22); }
+      #crm-leaves-module .leave-day-list { display:grid; gap:.52rem; }
+      #crm-leaves-module .leave-day-row { display:grid; grid-template-columns:1rem minmax(0,1fr) auto; align-items:center; gap:.55rem; min-height:2.35rem; border:0; border-radius:.7rem; background:#f8fafc; padding:.45rem .55rem; color:#22262d; text-align:left; }
+      #crm-leaves-module .leave-day-row:hover { background:#eef6ff; }
+      #crm-leaves-module .leave-day-dot { width:.72rem; height:.72rem; border-radius:999px; background:var(--day-color); }
+      #crm-leaves-module .leave-day-name { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.94rem; font-weight:850; }
+      #crm-leaves-module .leave-day-meta { display:block; margin-top:.12rem; color:#7b818c; font-size:.74rem; font-weight:750; }
+      #crm-leaves-module .leave-day-edit { color:#1f7bad; font-size:.76rem; font-weight:900; }
+      #crm-leaves-module .leave-day-empty { border:1px dashed #cbd5e1; border-radius:.9rem; padding:.9rem; color:#7b818c; font-size:.9rem; font-weight:700; text-align:center; }
+      #crm-leaves-module .leave-users-head { display:grid; grid-template-columns:1.2rem 1fr; column-gap:.65rem; align-items:start; margin-bottom:.9rem; }
+      #crm-leaves-module .leave-users-icon { display:flex; align-items:flex-end; gap:.16rem; width:1.2rem; height:1.75rem; padding-top:.32rem; }
+      #crm-leaves-module .leave-users-icon span { display:block; width:.24rem; border-radius:.18rem; background:#25282f; }
+      #crm-leaves-module .leave-users-icon span:nth-child(1) { height:.95rem; }
+      #crm-leaves-module .leave-users-icon span:nth-child(2) { height:1.35rem; }
+      #crm-leaves-module .leave-users-icon span:nth-child(3) { height:.72rem; }
       #crm-leaves-module .leave-users-title { margin:0; color:#191b20; font-size:clamp(1.45rem, 4vw, 2rem); font-weight:500; line-height:1.1; letter-spacing:0; }
       #crm-leaves-module .leave-users-site { grid-column:2; margin:.35rem 0 0; color:#7d8189; font-size:clamp(.86rem, 2.5vw, 1.05rem); font-weight:500; }
       #crm-leaves-module .leave-users-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.15rem 1.35rem; }
@@ -311,7 +324,6 @@
       #crm-leaves-module .leave-user-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:clamp(.86rem, 2.7vw, 1.05rem); font-weight:600; }
       #crm-leaves-module .leave-user-count { color:#8b8f97; font-size:clamp(.82rem, 2.4vw, 1rem); font-weight:700; }
       #crm-leaves-module .leave-all-users { margin-top:.4rem; color:#8d929a; }
-      #crm-leaves-module .leave-fab { position:fixed; right:clamp(1rem, 5vw, 2.2rem); bottom:clamp(1rem, 5vw, 2.2rem); z-index:40; display:grid; place-items:center; width:3.8rem; height:3.8rem; border:0; border-radius:999px; background:#33b889; color:#fff; font-size:2rem; font-weight:500; box-shadow:0 .7rem 1.4rem rgba(20,124,91,.30); }
       #crm-leaves-module .leaves-modal-backdrop { position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,.48); padding:1rem; }
       #crm-leaves-module .leaves-modal { width:min(42rem,100%); max-height:calc(100vh - 2rem); overflow:auto; border-radius:1rem; background:#fff; padding:1rem; box-shadow:0 24px 80px rgba(15,23,42,.24); }
       #crm-leaves-module .leaves-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:.85rem; }
@@ -330,7 +342,7 @@
       @media (max-width:640px) {
         #crm-leaves-module .leave-phone { width:100%; border-radius:1.1rem; padding:.95rem .75rem 1.05rem; box-shadow:none; }
         #crm-leaves-module .leave-summary { gap:.55rem; }
-        #crm-leaves-module .leave-users-card { padding:.9rem .8rem 1rem; }
+        #crm-leaves-module .leave-day-card, #crm-leaves-module .leave-users-card { padding:.9rem .8rem 1rem; }
         #crm-leaves-module .leave-users-grid { gap:.1rem .65rem; }
         #crm-leaves-module .leaves-form-grid { grid-template-columns:1fr; }
       }
@@ -340,11 +352,11 @@
   function renderCalendar() {
     const days = calendarDays(state.month);
     return `
-      <section class="leave-calendar" aria-label="Calendrier congés">
+      <section class="leave-calendar" aria-label="Calendrier conges">
         <div class="leave-month-nav">
-          <button type="button" class="leave-nav-button" data-prev aria-label="Mois precedent">‹</button>
+          <button type="button" class="leave-nav-button" data-prev aria-label="Mois precedent">&#8249;</button>
           <h1 class="leave-month-title">${esc(monthLabel(state.month))}</h1>
-          <button type="button" class="leave-nav-button" data-next aria-label="Mois suivant">›</button>
+          <button type="button" class="leave-nav-button" data-next aria-label="Mois suivant">&#8250;</button>
         </div>
         <div class="leave-weekdays">
           ${["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"].map((day) => `<span>${day}</span>`).join("")}
@@ -358,31 +370,29 @@
 
   function renderDay(day) {
     const date = formatDate(day);
-    const leave = primaryLeaveForDate(date);
+    const leaves = leavesForDate(date);
     const otherMonth = day.getMonth() !== state.month.getMonth();
     const sunday = day.getDay() === 0;
-    const meta = leave ? typeMeta(leave.type) : null;
-    const color = normalizeColor(meta?.color || leave?.employeeColor || "#38bdf8");
-    const isStart = Boolean(leave && leave.startDate === date);
-    const isEnd = Boolean(leave && leave.endDate === date);
-    const isSingle = Boolean(leave && leave.startDate === leave.endDate);
-    const isRange = Boolean(leave && !isSingle);
-    const hasCircle = Boolean(leave && (isSingle || isStart || isEnd));
+    const today = date === formatDate(new Date());
+    const selected = date === state.selectedDate;
     const classes = [
       "leave-date",
       otherMonth ? "is-other" : "",
       sunday ? "is-sunday" : "",
-      isRange ? "is-range" : "",
-      isStart ? "is-start" : "",
-      isEnd ? "is-end" : "",
-      isSingle ? "is-single" : "",
-      hasCircle ? "has-circle" : "",
+      today ? "is-today" : "",
+      selected ? "is-selected" : "",
+      leaves.length ? "has-absences" : "",
     ].filter(Boolean).join(" ");
-    const style = leave ? `--leave-color:${esc(color)};--leave-soft:${esc(hexToRgba(color, .20))}` : "";
+    const markers = leaves.slice(0, 4).map((leave) => {
+      const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
+      return `<span class="leave-marker" style="--marker-color:${esc(color)}"></span>`;
+    }).join("");
+    const more = leaves.length > 4 ? `<span class="leave-more">+${leaves.length - 4}</span>` : "";
 
     return `
-      <button type="button" class="${classes}" style="${style}" data-day data-date="${date}" ${leave ? `data-leave-id="${leave.id}"` : ""} aria-label="${esc(dateLabel(date))}">
+      <button type="button" class="${classes}" data-day data-date="${date}" aria-label="${esc(dateLabel(date))}">
         <span class="leave-number">${day.getDate()}</span>
+        <span class="leave-markers">${markers}${more}</span>
       </button>
     `;
   }
@@ -414,12 +424,46 @@
       .reduce((sum, leave) => sum + overlapDays(leave, first, last), 0);
   }
 
+  function renderSelectedDay() {
+    const items = selectedDateLeaves();
+    const canManage = Boolean(state.data?.user?.canManage);
+    return `
+      <section class="leave-day-card">
+        <div class="leave-card-head">
+          <div>
+            <h2 class="leave-card-title">Absents le ${esc(dateLabel(state.selectedDate))}</h2>
+            <p class="leave-card-subtitle">${items.length ? `${items.length} utilisateur(s) absent(s)` : "Aucune absence sur cette date"}</p>
+          </div>
+          ${canManage ? '<button type="button" class="leave-add-day" data-add-day>+ Ajouter</button>' : ""}
+        </div>
+        <div class="leave-day-list">
+          ${items.length ? items.map((leave) => {
+            const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
+            const range = leave.startDate === leave.endDate
+              ? dateLabel(leave.startDate)
+              : `${dateLabel(leave.startDate)} au ${dateLabel(leave.endDate)}`;
+            return `
+              <button type="button" class="leave-day-row" data-edit-leave="${leave.id}" style="--day-color:${esc(color)}">
+                <span class="leave-day-dot"></span>
+                <span>
+                  <span class="leave-day-name">${esc(leave.employeeName)}</span>
+                  <span class="leave-day-meta">${esc(typeMeta(leave.type).label)} - ${esc(periodLabel(leave.period))} - ${esc(range)}</span>
+                </span>
+                ${canManage ? '<span class="leave-day-edit">Modifier</span>' : '<span></span>'}
+              </button>
+            `;
+          }).join("") : '<div class="leave-day-empty">Selectionne une autre date ou ajoute un conge sur ce jour.</div>'}
+        </div>
+      </section>
+    `;
+  }
+
   function renderUsers() {
     const selectedId = selectedEmployee()?.id || "all";
     return `
       <section class="leave-users-card">
         <div class="leave-users-head">
-          <span class="leave-users-icon">▮▮▮</span>
+          <span class="leave-users-icon"><span></span><span></span><span></span></span>
           <h2 class="leave-users-title">Utilisateurs</h2>
           <p class="leave-users-site">Comptes CRM du site ${esc(activeSiteName())}</p>
         </div>
@@ -474,8 +518,8 @@
       <div class="leave-phone">
         ${renderCalendar()}
         ${renderSummary()}
+        ${renderSelectedDay()}
         ${renderUsers()}
-        ${state.data?.user?.canManage ? '<button type="button" class="leave-fab" data-new aria-label="Ajouter un conge">+</button>' : ""}
         ${renderModal()}
       </div>
     `;
@@ -485,21 +529,31 @@
   function bind() {
     root.querySelector("[data-prev]")?.addEventListener("click", () => {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1);
+      state.selectedDate = formatDate(state.month);
       render();
     });
     root.querySelector("[data-next]")?.addEventListener("click", () => {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1);
+      state.selectedDate = formatDate(state.month);
       render();
     });
     root.querySelectorAll("[data-user-id]").forEach((button) => button.addEventListener("click", () => {
       state.filters.employeeId = button.dataset.userId || "all";
       render();
     }));
-    root.querySelector("[data-new]")?.addEventListener("click", () => openModal(null));
+    root.querySelector("[data-add-day]")?.addEventListener("click", () => openModal({
+      employeeId: selectedEmployee()?.id || employees()[0]?.id,
+      startDate: state.selectedDate,
+      endDate: state.selectedDate,
+    }));
     root.querySelectorAll("[data-day]").forEach((button) => button.addEventListener("click", () => {
+      state.selectedDate = button.dataset.date || state.selectedDate;
+      render();
+    }));
+    root.querySelectorAll("[data-edit-leave]").forEach((button) => button.addEventListener("click", () => {
       if (!state.data?.user?.canManage) return;
-      const leave = button.dataset.leaveId ? state.data.leaves.find((item) => Number(item.id) === Number(button.dataset.leaveId)) : null;
-      openModal(leave || { employeeId: selectedEmployee()?.id || employees()[0]?.id, startDate: button.dataset.date, endDate: button.dataset.date });
+      const leave = state.data.leaves.find((item) => Number(item.id) === Number(button.dataset.editLeave));
+      if (leave) openModal(leave);
     }));
     root.querySelector("[data-close-modal]")?.addEventListener("click", () => { state.modal = null; render(); });
     root.querySelector("[data-modal-backdrop]")?.addEventListener("click", (event) => { if (event.target === event.currentTarget) { state.modal = null; render(); } });
