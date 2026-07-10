@@ -247,13 +247,13 @@
   }
 
   async function load() {
-    root.innerHTML = '<div class="leave-phone leave-loading">Chargement...</div>';
+    root.innerHTML = '<div class="leave-card leave-loading">Chargement...</div>';
     try {
       state.data = await request("bootstrap");
       syncEmployeeFilter();
       render();
     } catch (error) {
-      root.innerHTML = `<div class="leave-phone"><div class="leaves-notice">${esc(error instanceof Error ? error.message : "Chargement impossible")}</div></div>`;
+      root.innerHTML = `<div class="leave-card leave-card-pad"><div class="leaves-notice">${esc(error instanceof Error ? error.message : "Chargement impossible")}</div></div>`;
     }
   }
 
@@ -266,66 +266,74 @@
     }
 
     style.textContent = `
-      #crm-leaves-module { color:#15171c; }
-      #crm-leaves-module .leave-phone { position:relative; width:min(100%, 52rem); margin:0 auto; border-radius:1.65rem; background:#fff; padding:1.15rem 1.15rem 1.4rem; box-shadow:0 18px 60px rgba(15,23,42,.08); }
-      #crm-leaves-module .leave-loading { min-height:16rem; display:grid; place-items:center; color:#7b8089; font-weight:800; }
-      #crm-leaves-module .leave-month-nav { display:grid; grid-template-columns:3rem 1fr 3rem; align-items:center; gap:.6rem; margin:.2rem 0 1.6rem; }
-      #crm-leaves-module .leave-month-title { margin:0; text-align:center; font-size:clamp(1.55rem, 4vw, 2.25rem); font-weight:900; line-height:1.05; letter-spacing:0; color:#07080a; }
-      #crm-leaves-module .leave-nav-button { display:grid; place-items:center; width:3rem; height:3rem; border:0; border-radius:999px; background:transparent; color:#777b82; font-size:2.45rem; line-height:1; font-weight:700; }
-      #crm-leaves-module .leave-nav-button:hover { background:#f3f4f6; color:#20242a; }
-      #crm-leaves-module .leave-weekdays { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); margin-bottom:.7rem; color:#7f848c; font-size:clamp(.8rem, 2.4vw, 1.05rem); font-weight:750; text-align:center; text-transform:uppercase; }
-      #crm-leaves-module .leave-calendar-grid { display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:.35rem; margin-bottom:.9rem; }
-      #crm-leaves-module .leave-date { position:relative; display:grid; grid-template-rows:1fr auto; align-items:center; justify-items:center; min-width:0; height:clamp(3.6rem, 8.5vw, 4.7rem); border:1px solid transparent; border-radius:.9rem; background:transparent; color:#1e2228; padding:.35rem .12rem .42rem; font-size:clamp(.98rem, 3vw, 1.38rem); font-weight:650; line-height:1; }
-      #crm-leaves-module .leave-date.has-absences { background:#fffaf0; }
-      #crm-leaves-module .leave-date.is-selected { border-color:#1f8fbd; background:#eef9ff; box-shadow:0 .45rem 1rem rgba(31,143,189,.14); }
-      #crm-leaves-module .leave-date.is-today .leave-number { outline:2px solid rgba(31,143,189,.28); }
-      #crm-leaves-module .leave-number { display:grid; place-items:center; width:2.2rem; height:2.2rem; border-radius:999px; }
-      #crm-leaves-module .leave-markers { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:.16rem; min-height:.62rem; max-width:100%; }
-      #crm-leaves-module .leave-marker { width:.48rem; height:.48rem; border-radius:999px; background:var(--marker-color); box-shadow:0 0 0 2px #fff; }
-      #crm-leaves-module .leave-more { min-width:1.15rem; border-radius:999px; background:#e9edf3; color:#5c6470; padding:.05rem .24rem; font-size:.56rem; font-weight:900; line-height:1.2; }
-      #crm-leaves-module .leave-date.is-other { color:#a7abb2; }
-      #crm-leaves-module .leave-date.is-sunday { color:#be2f3c; }
-      #crm-leaves-module .leave-date.is-other.is-sunday { color:#c98a91; }
-      #crm-leaves-module .leave-date:hover { background:#f4f7fb; }
-      #crm-leaves-module .leave-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin:1.1rem 0 1.1rem; }
-      #crm-leaves-module .leave-summary-card { min-height:5.5rem; border-radius:1.05rem; padding:.72rem .55rem; color:#fff; text-align:center; box-shadow:0 .7rem 1.3rem rgba(15,23,42,.10); }
-      #crm-leaves-module .leave-summary-card span { display:block; font-size:clamp(.78rem, 2.2vw, 1rem); font-weight:800; opacity:.82; }
-      #crm-leaves-module .leave-summary-card strong { display:block; margin:.15rem 0; font-size:clamp(1.4rem, 4vw, 2rem); font-weight:950; line-height:1; letter-spacing:0; }
-      #crm-leaves-module .leave-summary-card small { display:block; font-size:clamp(.64rem, 1.8vw, .82rem); font-weight:800; opacity:.78; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-      #crm-leaves-module .leave-summary-card.is-blue { background:linear-gradient(135deg,#49bde9,#2074b4); }
-      #crm-leaves-module .leave-summary-card.is-green { background:linear-gradient(135deg,#6dd0b5,#42b98e); }
-      #crm-leaves-module .leave-summary-card.is-gray { background:linear-gradient(135deg,#bfc0c4,#8f9096); }
-      #crm-leaves-module .leave-day-card, #crm-leaves-module .leave-users-card { border:1px solid #e3e3e5; border-radius:1.35rem; background:#fff; padding:1.05rem 1.15rem 1.1rem; box-shadow:0 .25rem .7rem rgba(15,23,42,.14); }
-      #crm-leaves-module .leave-day-card { margin-bottom:1rem; }
-      #crm-leaves-module .leave-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:.85rem; }
-      #crm-leaves-module .leave-card-title { margin:0; color:#191b20; font-size:clamp(1.15rem, 3.2vw, 1.55rem); font-weight:850; line-height:1.1; letter-spacing:0; }
-      #crm-leaves-module .leave-card-subtitle { margin:.28rem 0 0; color:#7d8189; font-size:.9rem; font-weight:650; }
-      #crm-leaves-module .leave-add-day { flex:0 0 auto; border:0; border-radius:999px; background:#33b889; color:#fff; padding:.58rem .9rem; font-size:.82rem; font-weight:900; box-shadow:0 .45rem 1rem rgba(20,124,91,.22); }
-      #crm-leaves-module .leave-day-list { display:grid; gap:.52rem; }
-      #crm-leaves-module .leave-day-row { display:grid; grid-template-columns:1rem minmax(0,1fr) auto; align-items:center; gap:.55rem; min-height:2.35rem; border:0; border-radius:.7rem; background:#f8fafc; padding:.45rem .55rem; color:#22262d; text-align:left; }
-      #crm-leaves-module .leave-day-row:hover { background:#eef6ff; }
+      #crm-leaves-module { color:var(--color-secondary-900,#0f172a); }
+      #crm-leaves-module .leaves-page { display:grid; gap:1.5rem; }
+      #crm-leaves-module .leaves-header { display:flex; flex-direction:column; gap:1rem; }
+      #crm-leaves-module .leaves-kicker { color:rgb(var(--theme-primary)); font-size:.72rem; font-weight:800; text-transform:uppercase; }
+      #crm-leaves-module .leaves-title { margin:.25rem 0 0; color:var(--color-secondary-900,#0f172a); font-size:1.6rem; font-weight:850; line-height:1.15; letter-spacing:0; }
+      #crm-leaves-module .leaves-subtitle { margin:.35rem 0 0; color:var(--color-secondary-500,#64748b); font-size:.92rem; }
+      #crm-leaves-module .leaves-header-actions { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+      #crm-leaves-module .leaves-button { display:inline-flex; min-height:2.35rem; align-items:center; justify-content:center; border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.55rem; background:#fff; color:var(--color-secondary-700,#334155); padding:.55rem .75rem; font-size:.84rem; font-weight:800; line-height:1; text-decoration:none; }
+      #crm-leaves-module .leaves-button:hover { color:rgb(var(--theme-primary)); border-color:rgb(var(--theme-primary) / .45); background:rgb(var(--theme-primary) / .04); }
+      #crm-leaves-module .leaves-button-primary { border-color:rgb(var(--theme-primary)); background:rgb(var(--theme-primary)); color:#fff; }
+      #crm-leaves-module .leaves-button-primary:hover { color:#fff; filter:brightness(.97); }
+      #crm-leaves-module .leaves-button.is-active { border-color:rgb(var(--theme-primary) / .45); background:rgb(var(--theme-primary) / .08); color:rgb(var(--theme-primary)); }
+      #crm-leaves-module .leave-loading { min-height:16rem; display:grid; place-items:center; color:var(--color-secondary-500,#64748b); font-weight:800; }
+      #crm-leaves-module .leave-summary { display:grid; grid-template-columns:repeat(1,minmax(0,1fr)); gap:1rem; }
+      #crm-leaves-module .leave-summary-card { border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.75rem; background:#fff; padding:1rem; }
+      #crm-leaves-module .leave-summary-card span { display:block; color:var(--color-secondary-500,#64748b); font-size:.75rem; font-weight:800; }
+      #crm-leaves-module .leave-summary-card strong { display:block; margin:.25rem 0; color:var(--color-secondary-900,#0f172a); font-size:1.5rem; font-weight:850; line-height:1.1; letter-spacing:0; }
+      #crm-leaves-module .leave-summary-card small { display:block; color:var(--color-secondary-400,#94a3b8); font-size:.72rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      #crm-leaves-module .leave-workspace { display:grid; gap:1.5rem; }
+      #crm-leaves-module .leave-card { border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.75rem; background:#fff; overflow:hidden; }
+      #crm-leaves-module .leave-card-pad { padding:1rem; }
+      #crm-leaves-module .leave-month-nav { display:flex; flex-direction:column; gap:.9rem; border-bottom:1px solid var(--color-surface-200,#e2e8f0); padding:1rem; }
+      #crm-leaves-module .leave-month-left { display:flex; align-items:center; gap:.6rem; }
+      #crm-leaves-module .leave-month-title { margin:0; color:var(--color-secondary-900,#0f172a); font-size:1.15rem; font-weight:850; line-height:1.15; letter-spacing:0; }
+      #crm-leaves-module .leave-month-subtitle { margin:.15rem 0 0; color:var(--color-secondary-500,#64748b); font-size:.76rem; font-weight:700; }
+      #crm-leaves-module .leave-nav-button { display:grid; place-items:center; width:2.2rem; height:2.2rem; border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.55rem; background:#fff; color:var(--color-secondary-600,#475569); font-size:1.2rem; line-height:1; font-weight:850; }
+      #crm-leaves-module .leave-nav-button:hover { border-color:rgb(var(--theme-primary) / .45); color:rgb(var(--theme-primary)); background:rgb(var(--theme-primary) / .04); }
+      #crm-leaves-module .leave-weekdays { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); background:var(--color-surface-50,#f8fafc); border-bottom:1px solid var(--color-surface-200,#e2e8f0); }
+      #crm-leaves-module .leave-weekdays span { padding:.7rem .45rem; color:var(--color-secondary-500,#64748b); font-size:.72rem; font-weight:850; text-align:center; text-transform:uppercase; }
+      #crm-leaves-module .leave-calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:1px; background:var(--color-surface-200,#e2e8f0); }
+      #crm-leaves-module .leave-date { min-width:0; min-height:7.2rem; border:0; background:#fff; color:var(--color-secondary-900,#0f172a); padding:.55rem; text-align:left; transition:background-color .15s ease; }
+      #crm-leaves-module .leave-date:hover { background:rgb(var(--theme-primary) / .04); }
+      #crm-leaves-module .leave-date.is-selected { background:rgb(var(--theme-primary) / .07); box-shadow:inset 0 0 0 2px rgb(var(--theme-primary) / .35); }
+      #crm-leaves-module .leave-date.is-other { background:var(--color-surface-50,#f8fafc); color:var(--color-secondary-400,#94a3b8); }
+      #crm-leaves-module .leave-date.is-today .leave-number { background:rgb(var(--theme-primary)); color:#fff; }
+      #crm-leaves-module .leave-date.is-sunday:not(.is-other) .leave-number { color:#be123c; }
+      #crm-leaves-module .leave-date.is-today.is-sunday .leave-number { color:#fff; }
+      #crm-leaves-module .leave-number { display:inline-flex; width:1.8rem; height:1.8rem; align-items:center; justify-content:center; border-radius:999px; font-size:.86rem; font-weight:850; }
+      #crm-leaves-module .leave-day-items { display:grid; gap:.28rem; margin-top:.45rem; }
+      #crm-leaves-module .leave-mini { display:flex; min-width:0; align-items:center; gap:.35rem; border:1px solid var(--mini-border); border-radius:.42rem; background:var(--mini-bg); padding:.24rem .35rem; }
+      #crm-leaves-module .leave-mini-dot { width:.5rem; height:.5rem; flex:0 0 auto; border-radius:999px; background:var(--mini-color); }
+      #crm-leaves-module .leave-mini-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--color-secondary-700,#334155); font-size:.66rem; font-weight:850; }
+      #crm-leaves-module .leave-more { color:rgb(var(--theme-primary)); font-size:.66rem; font-weight:850; padding:.1rem .1rem 0; }
+      #crm-leaves-module .leave-day-card, #crm-leaves-module .leave-users-card { border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.75rem; background:#fff; }
+      #crm-leaves-module .leave-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; border-bottom:1px solid var(--color-surface-200,#e2e8f0); padding:1rem; }
+      #crm-leaves-module .leave-card-title { margin:0; color:var(--color-secondary-900,#0f172a); font-size:1rem; font-weight:850; line-height:1.2; letter-spacing:0; }
+      #crm-leaves-module .leave-card-subtitle { margin:.25rem 0 0; color:var(--color-secondary-500,#64748b); font-size:.8rem; font-weight:650; }
+      #crm-leaves-module .leave-add-day { flex:0 0 auto; border:1px solid rgb(var(--theme-primary)); border-radius:.55rem; background:rgb(var(--theme-primary)); color:#fff; padding:.55rem .75rem; font-size:.78rem; font-weight:900; }
+      #crm-leaves-module .leave-day-list { display:grid; gap:.55rem; padding:1rem; }
+      #crm-leaves-module .leave-day-row { display:grid; grid-template-columns:1rem minmax(0,1fr) auto; align-items:center; gap:.55rem; min-height:2.5rem; border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.55rem; background:#fff; padding:.55rem .65rem; color:var(--color-secondary-900,#0f172a); text-align:left; }
+      #crm-leaves-module .leave-day-row:hover { border-color:rgb(var(--theme-primary) / .45); background:rgb(var(--theme-primary) / .04); }
       #crm-leaves-module .leave-day-dot { width:.72rem; height:.72rem; border-radius:999px; background:var(--day-color); }
-      #crm-leaves-module .leave-day-name { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.94rem; font-weight:850; }
-      #crm-leaves-module .leave-day-meta { display:block; margin-top:.12rem; color:#7b818c; font-size:.74rem; font-weight:750; }
-      #crm-leaves-module .leave-day-edit { color:#1f7bad; font-size:.76rem; font-weight:900; }
-      #crm-leaves-module .leave-day-empty { border:1px dashed #cbd5e1; border-radius:.9rem; padding:.9rem; color:#7b818c; font-size:.9rem; font-weight:700; text-align:center; }
-      #crm-leaves-module .leave-users-head { display:grid; grid-template-columns:1.2rem 1fr; column-gap:.65rem; align-items:start; margin-bottom:.9rem; }
-      #crm-leaves-module .leave-users-icon { display:flex; align-items:flex-end; gap:.16rem; width:1.2rem; height:1.75rem; padding-top:.32rem; }
-      #crm-leaves-module .leave-users-icon span { display:block; width:.24rem; border-radius:.18rem; background:#25282f; }
-      #crm-leaves-module .leave-users-icon span:nth-child(1) { height:.95rem; }
-      #crm-leaves-module .leave-users-icon span:nth-child(2) { height:1.35rem; }
-      #crm-leaves-module .leave-users-icon span:nth-child(3) { height:.72rem; }
-      #crm-leaves-module .leave-users-title { margin:0; color:#191b20; font-size:clamp(1.45rem, 4vw, 2rem); font-weight:500; line-height:1.1; letter-spacing:0; }
-      #crm-leaves-module .leave-users-site { grid-column:2; margin:.35rem 0 0; color:#7d8189; font-size:clamp(.86rem, 2.5vw, 1.05rem); font-weight:500; }
-      #crm-leaves-module .leave-users-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.15rem 1.35rem; }
-      #crm-leaves-module .leave-user-row { display:grid; grid-template-columns:1rem minmax(0,1fr) auto; align-items:center; gap:.45rem; min-height:2.15rem; border:0; border-radius:.55rem; background:transparent; padding:.15rem .25rem; color:#22262d; text-align:left; }
-      #crm-leaves-module .leave-user-row:hover, #crm-leaves-module .leave-user-row.is-active { background:#f5f7fa; }
-      #crm-leaves-module .leave-user-dot { width:.78rem; height:.78rem; border-radius:999px; background:var(--user-color); }
-      #crm-leaves-module .leave-user-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:clamp(.86rem, 2.7vw, 1.05rem); font-weight:600; }
-      #crm-leaves-module .leave-user-count { color:#8b8f97; font-size:clamp(.82rem, 2.4vw, 1rem); font-weight:700; }
-      #crm-leaves-module .leave-all-users { margin-top:.4rem; color:#8d929a; }
+      #crm-leaves-module .leave-day-name { display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.86rem; font-weight:850; }
+      #crm-leaves-module .leave-day-meta { display:block; margin-top:.12rem; color:var(--color-secondary-500,#64748b); font-size:.72rem; font-weight:700; }
+      #crm-leaves-module .leave-day-edit { color:rgb(var(--theme-primary)); font-size:.72rem; font-weight:900; }
+      #crm-leaves-module .leave-day-empty { border:1px dashed var(--color-surface-300,#cbd5e1); border-radius:.55rem; padding:1rem; color:var(--color-secondary-500,#64748b); font-size:.85rem; font-weight:700; text-align:center; }
+      #crm-leaves-module .leave-users-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; border-bottom:1px solid var(--color-surface-200,#e2e8f0); padding:1rem; }
+      #crm-leaves-module .leave-users-title { margin:0; color:var(--color-secondary-900,#0f172a); font-size:1rem; font-weight:850; line-height:1.2; letter-spacing:0; }
+      #crm-leaves-module .leave-users-site { margin:.25rem 0 0; color:var(--color-secondary-500,#64748b); font-size:.8rem; font-weight:650; }
+      #crm-leaves-module .leave-users-count { display:inline-flex; align-items:center; border-radius:999px; background:rgb(var(--theme-primary) / .08); color:rgb(var(--theme-primary)); padding:.25rem .55rem; font-size:.72rem; font-weight:900; }
+      #crm-leaves-module .leave-users-grid { display:grid; grid-template-columns:1fr; gap:.55rem; padding:1rem; }
+      #crm-leaves-module .leave-user-row { display:grid; grid-template-columns:1rem minmax(0,1fr) auto; align-items:center; gap:.5rem; min-height:2.35rem; border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.55rem; background:#fff; padding:.48rem .6rem; color:var(--color-secondary-900,#0f172a); text-align:left; }
+      #crm-leaves-module .leave-user-row:hover, #crm-leaves-module .leave-user-row.is-active { border-color:rgb(var(--theme-primary) / .45); background:rgb(var(--theme-primary) / .05); }
+      #crm-leaves-module .leave-user-dot { width:.72rem; height:.72rem; border-radius:999px; background:var(--user-color); }
+      #crm-leaves-module .leave-user-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.84rem; font-weight:850; }
+      #crm-leaves-module .leave-user-count { color:var(--color-secondary-500,#64748b); font-size:.8rem; font-weight:850; }
       #crm-leaves-module .leaves-modal-backdrop { position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,.48); padding:1rem; }
-      #crm-leaves-module .leaves-modal { width:min(42rem,100%); max-height:calc(100vh - 2rem); overflow:auto; border-radius:1rem; background:#fff; padding:1rem; box-shadow:0 24px 80px rgba(15,23,42,.24); }
+      #crm-leaves-module .leaves-modal { width:min(42rem,100%); max-height:calc(100vh - 2rem); overflow:auto; border-radius:.75rem; background:#fff; padding:1rem; box-shadow:0 24px 80px rgba(15,23,42,.24); }
       #crm-leaves-module .leaves-modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:.85rem; }
       #crm-leaves-module .leaves-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; }
       #crm-leaves-module .leaves-field { display:grid; gap:.32rem; }
@@ -339,11 +347,33 @@
       #crm-leaves-module .leaves-button-primary { border-color:rgb(var(--theme-primary)); background:rgb(var(--theme-primary)); color:#fff; }
       #crm-leaves-module .leaves-button-primary:hover { color:#fff; filter:brightness(.97); }
       #crm-leaves-module .leaves-notice { border:1px solid #fecaca; border-radius:.75rem; background:#fef2f2; color:#991b1b; padding:.75rem; font-size:.85rem; }
-      @media (max-width:640px) {
-        #crm-leaves-module .leave-phone { width:100%; border-radius:1.1rem; padding:.95rem .75rem 1.05rem; box-shadow:none; }
-        #crm-leaves-module .leave-summary { gap:.55rem; }
-        #crm-leaves-module .leave-day-card, #crm-leaves-module .leave-users-card { padding:.9rem .8rem 1rem; }
-        #crm-leaves-module .leave-users-grid { gap:.1rem .65rem; }
+      .dark #crm-leaves-module .leave-summary-card,
+      .dark #crm-leaves-module .leave-card,
+      .dark #crm-leaves-module .leave-day-card,
+      .dark #crm-leaves-module .leave-users-card,
+      .dark #crm-leaves-module .leave-date,
+      .dark #crm-leaves-module .leave-day-row,
+      .dark #crm-leaves-module .leave-user-row,
+      .dark #crm-leaves-module .leaves-modal { background:var(--color-surface-900,#0f172a); border-color:var(--color-surface-700,#334155); }
+      .dark #crm-leaves-module .leave-weekdays,
+      .dark #crm-leaves-module .leave-date.is-other { background:var(--color-surface-800,#1e293b); }
+      @media (min-width:640px) {
+        #crm-leaves-module .leaves-header { flex-direction:row; align-items:flex-start; justify-content:space-between; }
+        #crm-leaves-module .leave-summary { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        #crm-leaves-module .leave-month-nav { flex-direction:row; align-items:center; justify-content:space-between; }
+        #crm-leaves-module .leave-users-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      }
+      @media (min-width:1180px) {
+        #crm-leaves-module .leave-workspace { grid-template-columns:minmax(0,1fr) minmax(22rem,28rem); align-items:start; }
+        #crm-leaves-module .leave-side { display:grid; gap:1rem; }
+      }
+      @media (max-width:760px) {
+        #crm-leaves-module .leave-date { min-height:5.35rem; padding:.42rem .32rem; }
+        #crm-leaves-module .leave-mini { padding:.18rem .24rem; }
+        #crm-leaves-module .leave-mini-name { display:none; }
+        #crm-leaves-module .leave-day-items { display:flex; flex-wrap:wrap; gap:.18rem; }
+        #crm-leaves-module .leave-mini { border:0; background:transparent; }
+        #crm-leaves-module .leave-more { font-size:.6rem; }
         #crm-leaves-module .leaves-form-grid { grid-template-columns:1fr; }
       }
     `;
@@ -352,11 +382,20 @@
   function renderCalendar() {
     const days = calendarDays(state.month);
     return `
-      <section class="leave-calendar" aria-label="Calendrier conges">
+      <section class="leave-card leave-calendar" aria-label="Calendrier conges">
         <div class="leave-month-nav">
-          <button type="button" class="leave-nav-button" data-prev aria-label="Mois precedent">&#8249;</button>
-          <h1 class="leave-month-title">${esc(monthLabel(state.month))}</h1>
-          <button type="button" class="leave-nav-button" data-next aria-label="Mois suivant">&#8250;</button>
+          <div class="leave-month-left">
+            <button type="button" class="leave-nav-button" data-prev aria-label="Mois precedent">&lt;</button>
+            <div>
+              <h2 class="leave-month-title">${esc(monthLabel(state.month))}</h2>
+              <p class="leave-month-subtitle">Planning conges</p>
+            </div>
+            <button type="button" class="leave-nav-button" data-next aria-label="Mois suivant">&gt;</button>
+          </div>
+          <div class="leaves-header-actions">
+            <button type="button" class="leaves-button ${state.filters.employeeId === "all" ? "is-active" : ""}" data-user-id="all">Tous</button>
+            ${selectedEmployee() ? `<button type="button" class="leaves-button is-active" data-user-id="${selectedEmployee().id}">${esc(selectedEmployee().name)}</button>` : ""}
+          </div>
         </div>
         <div class="leave-weekdays">
           ${["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"].map((day) => `<span>${day}</span>`).join("")}
@@ -383,16 +422,21 @@
       selected ? "is-selected" : "",
       leaves.length ? "has-absences" : "",
     ].filter(Boolean).join(" ");
-    const markers = leaves.slice(0, 4).map((leave) => {
+    const miniRows = leaves.slice(0, 3).map((leave) => {
       const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
-      return `<span class="leave-marker" style="--marker-color:${esc(color)}"></span>`;
+      return `
+        <span class="leave-mini" style="--mini-color:${esc(color)};--mini-bg:${esc(color)}14;--mini-border:${esc(color)}55">
+          <span class="leave-mini-dot"></span>
+          <span class="leave-mini-name">${esc(leave.employeeName)}</span>
+        </span>
+      `;
     }).join("");
-    const more = leaves.length > 4 ? `<span class="leave-more">+${leaves.length - 4}</span>` : "";
+    const more = leaves.length > 3 ? `<span class="leave-more">+${leaves.length - 3} autre(s)</span>` : "";
 
     return `
       <button type="button" class="${classes}" data-day data-date="${date}" aria-label="${esc(dateLabel(date))}">
         <span class="leave-number">${day.getDate()}</span>
-        <span class="leave-markers">${markers}${more}</span>
+        <span class="leave-day-items">${miniRows}${more}</span>
       </button>
     `;
   }
@@ -408,9 +452,9 @@
 
     return `
       <div class="leave-summary">
-        <div class="leave-summary-card is-blue"><span>Utilisateurs</span><strong>${usersCount}</strong><small>${esc(activeSiteName())}</small></div>
-        <div class="leave-summary-card is-green"><span>Planifies</span><strong>${formatDaysCount(plannedDays)} j</strong><small>${monthLabel(state.month)}</small></div>
-        <div class="leave-summary-card is-gray"><span>Poses</span><strong>${formatDaysCount(usedDays)} j</strong><small>Annee ${state.month.getFullYear()}</small></div>
+        <div class="leave-summary-card"><span>Utilisateurs</span><strong>${usersCount}</strong><small>${esc(activeSiteName())}</small></div>
+        <div class="leave-summary-card"><span>Planifies</span><strong>${formatDaysCount(plannedDays)} j</strong><small>${monthLabel(state.month)}</small></div>
+        <div class="leave-summary-card"><span>Poses</span><strong>${formatDaysCount(usedDays)} j</strong><small>Annee ${state.month.getFullYear()}</small></div>
       </div>
     `;
   }
@@ -463,9 +507,11 @@
     return `
       <section class="leave-users-card">
         <div class="leave-users-head">
-          <span class="leave-users-icon"><span></span><span></span><span></span></span>
-          <h2 class="leave-users-title">Utilisateurs</h2>
-          <p class="leave-users-site">Comptes CRM du site ${esc(activeSiteName())}</p>
+          <div>
+            <h2 class="leave-users-title">Utilisateurs</h2>
+            <p class="leave-users-site">Comptes CRM du site ${esc(activeSiteName())}</p>
+          </div>
+          <span class="leave-users-count">${employees().length}</span>
         </div>
         <div class="leave-users-grid">
           ${employees().map((employee) => {
@@ -515,11 +561,25 @@
     styles();
     syncEmployeeFilter();
     root.innerHTML = `
-      <div class="leave-phone">
-        ${renderCalendar()}
+      <div class="leaves-page">
+        <header class="leaves-header">
+          <div>
+            <div class="leaves-kicker">Planning interne</div>
+            <h1 class="leaves-title">Conges</h1>
+            <p class="leaves-subtitle">${esc(activeSiteName())} - ${esc(monthLabel(state.month))}</p>
+          </div>
+          <div class="leaves-header-actions">
+            ${state.data?.user?.canManage ? '<button type="button" class="leaves-button leaves-button-primary" data-add-day>Ajouter un conge</button>' : ""}
+          </div>
+        </header>
         ${renderSummary()}
-        ${renderSelectedDay()}
-        ${renderUsers()}
+        <div class="leave-workspace">
+          ${renderCalendar()}
+          <aside class="leave-side">
+            ${renderSelectedDay()}
+            ${renderUsers()}
+          </aside>
+        </div>
         ${renderModal()}
       </div>
     `;
@@ -541,11 +601,11 @@
       state.filters.employeeId = button.dataset.userId || "all";
       render();
     }));
-    root.querySelector("[data-add-day]")?.addEventListener("click", () => openModal({
+    root.querySelectorAll("[data-add-day]").forEach((button) => button.addEventListener("click", () => openModal({
       employeeId: selectedEmployee()?.id || employees()[0]?.id,
       startDate: state.selectedDate,
       endDate: state.selectedDate,
-    }));
+    })));
     root.querySelectorAll("[data-day]").forEach((button) => button.addEventListener("click", () => {
       state.selectedDate = button.dataset.date || state.selectedDate;
       render();
