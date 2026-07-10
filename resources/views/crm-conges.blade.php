@@ -43,7 +43,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="{{ asset('assets/crm-conges.js') }}?v=2026070806"></script>
+    <script type="module" crossorigin src="{{ asset('assets/crm-conges.js') }}?v=2026071010"></script>
     <link rel="stylesheet" crossorigin href="{{ asset('assets/index-CVBlw941.css') }}">
     <style>
       :root {
