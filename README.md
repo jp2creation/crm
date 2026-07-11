@@ -1,59 +1,99 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Martin Sols CRM
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+CRM interne pour centraliser les outils operationnels Martin Sols : portail web, administration, reservations, locations de materiel, conges, pages de contenu et API mobile.
 
-## About Laravel
+## Objectif
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Ce depot contient l'application Laravel qui remplace les anciens endpoints PHP disperses par une base applicative versionnee, testable et extensible. L'interface principale sert aux equipes internes, tandis que l'administration Filament permet de maintenir les donnees de reference, les droits et les contenus.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Fonctionnalites principales
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Authentification web Laravel et portail CRM protege.
+- Tableau de bord et navigation multi-sites.
+- Gestion des reservations et des vehicules.
+- Gestion des locations de materiel, categories, disponibilites et conflits.
+- Planning des conges avec employees, statuts, demi-journees et droits de gestion.
+- Pages CRM administrables et accessibles via slugs.
+- Administration Filament pour utilisateurs, roles, modules, menus, sites, vehicules, materiel et contenus.
+- API legacy compatible avec les anciens chemins `.php`.
+- API mobile Laravel Sanctum pour l'application Capacitor du dossier `mobile/`.
 
-## Learning Laravel
+## Stack technique
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- PHP 8.2+
+- Laravel 12
+- Filament 5
+- Laravel Sanctum
+- Spatie Laravel Permission
+- MySQL ou MariaDB
+- Node.js, npm, Vite et Tailwind CSS
+- PHPUnit pour les tests backend
+- Capacitor pour le client mobile
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Acces applicatifs
 
-## Laravel Sponsors
+- Portail CRM : `/`
+- Connexion : `/login`
+- Administration : `/admin`
+- Conges : `/conges`
+- Pages CRM : `/pages-crm`
+- API reservations : `/api/reservations`
+- API locations de materiel : `/api/equipment-rentals`
+- API conges : `/api/conges`
+- API pages : `/api/pages`
+- API mobile : `/api/mobile/token`, `/api/mobile/me`, `/api/mobile/logout`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Les routes legacy en `.php` restent exposees pour compatibilite, par exemple `/api/conges.php`.
 
-### Premium Partners
+## Structure du depot
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- `app/Http/Controllers/Crm/` : endpoints CRM web, legacy et mobile.
+- `app/Services/Crm/` : logique metier des modules CRM.
+- `app/Filament/Resources/` : back-office Filament.
+- `database/migrations/` : schema Laravel et tables CRM.
+- `resources/views/` : vues CRM, login et pages.
+- `public/assets/` : assets compiles servis en production.
+- `tests/Feature/` : tests fonctionnels des API CRM.
+- `mobile/` : application mobile Capacitor connectee a l'API Sanctum.
+- `docs/` : notes de deploiement et de durcissement.
 
-## Contributing
+## Installation
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Les instructions completes sont dans [INSTALLATION.md](INSTALLATION.md).
 
-## Code of Conduct
+Resume local :
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer install
+npm install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+npm run build
+php artisan serve
+```
 
-## Security Vulnerabilities
+Avant d'executer les seeds, renseigner au minimum `CRM_ADMIN_PASSWORD` dans `.env`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Verification
 
-## License
+```bash
+php artisan test
+vendor/bin/pint --test app routes database tests
+npm run build
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Des tests cibles existent notamment pour les reservations, les locations de materiel, les conges, les pages CRM et l'authentification mobile.
+
+## Deploiement
+
+La procedure de reference est dans [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+Regle importante : les fichiers de `public/assets` sont des sorties compilees. Une correction durable doit etre faite dans les sources applicatives puis reconstruite.
+
+## Securite
+
+- Ne jamais commiter `.env`, tokens, exports de base de donnees ou logs.
+- Utiliser des mots de passe forts pour les comptes admin.
+- Desactiver les options legacy d'impersonation sauf besoin explicite.
+- L'API mobile utilise Sanctum et des tokens Bearer ; leur duree est pilotee par `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS`.
