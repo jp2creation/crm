@@ -21,8 +21,8 @@ import {
     t as g,
     u as _,
     w as v,
-} from "./index-CqSzWeas.js?v=2026071030";
-import { t as re } from "./dashboard-Chzs1W9w.js?v=2026071016";
+} from "./index-CqSzWeas.js?v=2026071042";
+import { t as re } from "./dashboard-Chzs1W9w.js?v=2026071042";
 var y = r(o(), 1),
     b = n(),
     x = {
@@ -640,7 +640,7 @@ function de({ notice: e }) {
           })
         : null;
 }
-const adminSectionKeys = [`users`, `sites`, `modules`, `menu`, `theme`, `roles`];
+const adminSectionKeys = [`users`, `sites`, `modules`, `menu`, `equipment`, `theme`, `roles`];
 function adminSectionFromLocation() {
     let e = new URLSearchParams(window.location.search).get(`section`);
     return adminSectionKeys.includes(e) ? e : `users`;
@@ -2518,6 +2518,80 @@ function fe() {
                                                   `Enregistrer menu`,
                                               ],
                                           }),
+                                      }),
+                                  ],
+                              }),
+                          r === `equipment` &&
+                              (0, b.jsxs)(p, {
+                                  className: `rounded-xl`,
+                                  children: [
+                                      (0, b.jsxs)(`div`, {
+                                          className: `mb-5 flex flex-wrap items-start justify-between gap-3`,
+                                          children: [
+                                              (0, b.jsxs)(`div`, {
+                                                  children: [
+                                                      (0, b.jsx)(`h2`, {
+                                                          className: `heading-5 text-secondary-900 dark:text-white`,
+                                                          children: `Location materiel`,
+                                                      }),
+                                                      (0, b.jsx)(`p`, {
+                                                          className: `text-body-sm text-secondary-500`,
+                                                          children: `Gestion du parc materiel, des locations et des categories.`,
+                                                      }),
+                                                  ],
+                                              }),
+                                              (0, b.jsx)(u, {
+                                                  variant: `primary`,
+                                                  children: `Administration`,
+                                              }),
+                                          ],
+                                      }),
+                                      (0, b.jsxs)(`div`, {
+                                          className: `grid grid-cols-1 gap-4 md:grid-cols-3`,
+                                          children: [
+                                              (0, b.jsxs)(`a`, {
+                                                  href: `/admin/crm-equipment-items`,
+                                                  className: `rounded-xl border border-surface-200 bg-white p-4 transition-colors hover:border-theme-primary/60 hover:bg-theme-primary/5 dark:border-surface-700 dark:bg-surface-900`,
+                                                  children: [
+                                                      (0, b.jsx)(`p`, {
+                                                          className: `text-label text-secondary-900 dark:text-white`,
+                                                          children: `Materiel`,
+                                                      }),
+                                                      (0, b.jsx)(`p`, {
+                                                          className: `mt-1 text-body-sm text-secondary-500`,
+                                                          children: `Creer, modifier, image, prix et duree de location.`,
+                                                      }),
+                                                  ],
+                                              }),
+                                              (0, b.jsxs)(`a`, {
+                                                  href: `/admin/crm-equipment-rentals`,
+                                                  className: `rounded-xl border border-surface-200 bg-white p-4 transition-colors hover:border-theme-primary/60 hover:bg-theme-primary/5 dark:border-surface-700 dark:bg-surface-900`,
+                                                  children: [
+                                                      (0, b.jsx)(`p`, {
+                                                          className: `text-label text-secondary-900 dark:text-white`,
+                                                          children: `Locations`,
+                                                      }),
+                                                      (0, b.jsx)(`p`, {
+                                                          className: `mt-1 text-body-sm text-secondary-500`,
+                                                          children: `Consulter et corriger les reservations materiel.`,
+                                                      }),
+                                                  ],
+                                              }),
+                                              (0, b.jsxs)(`a`, {
+                                                  href: `/admin/crm-equipment-categories`,
+                                                  className: `rounded-xl border border-surface-200 bg-white p-4 transition-colors hover:border-theme-primary/60 hover:bg-theme-primary/5 dark:border-surface-700 dark:bg-surface-900`,
+                                                  children: [
+                                                      (0, b.jsx)(`p`, {
+                                                          className: `text-label text-secondary-900 dark:text-white`,
+                                                          children: `Categories`,
+                                                      }),
+                                                      (0, b.jsx)(`p`, {
+                                                          className: `mt-1 text-body-sm text-secondary-500`,
+                                                          children: `Organiser les familles de materiel.`,
+                                                      }),
+                                                  ],
+                                              }),
+                                          ],
                                       }),
                                   ],
                               }),

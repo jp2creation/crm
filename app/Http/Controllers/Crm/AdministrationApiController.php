@@ -27,7 +27,7 @@ class AdministrationApiController extends Controller
 
             $administration->ensureDefaults();
 
-            $user = $request->user();
+            $user = $this->authenticatedApiUser($request);
             if (! $user) {
                 return $this->json(['ok' => false, 'error' => 'Utilisateur CRM requis'], 401);
             }
@@ -76,9 +76,6 @@ class AdministrationApiController extends Controller
     {
         return response()
             ->json($data, $status, [], JSON_UNESCAPED_UNICODE)
-            ->withHeaders([
-                'Access-Control-Allow-Headers' => 'Content-Type, X-CSRF-TOKEN, X-XSRF-TOKEN',
-                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-            ]);
+            ->withHeaders($this->crmApiHeaders());
     }
 }

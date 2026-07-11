@@ -56,7 +56,7 @@
       rel="stylesheet"
     />
     <script src="{{ asset('assets/crm-active-site.js') }}?v=2026070907"></script>
-    <script type="module" crossorigin src="{{ asset('assets/index-CqSzWeas.js') }}?v=2026071033"></script>
+    <script type="module" crossorigin src="{{ asset('assets/index-CqSzWeas.js') }}?v=2026071042"></script>
     <script type="module" crossorigin src="{{ asset('assets/crm-conges.js') }}?v=2026071114"></script>
     <link rel="stylesheet" crossorigin href="{{ asset('assets/index-CVBlw941.css') }}">
     <style>

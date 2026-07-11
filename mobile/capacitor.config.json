@@ -1,0 +1,8 @@
+{
+  "appId": "fr.martinsols.crm",
+  "appName": "Martin Sols CRM",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

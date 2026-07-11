@@ -1,4 +1,4 @@
-import{I as jsxRuntime}from"./index-CqSzWeas.js?v=2026070530";
+import{I as jsxRuntime}from"./index-CqSzWeas.js?v=2026071042";
 
 var jsx=jsxRuntime();
 

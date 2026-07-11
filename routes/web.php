@@ -4,10 +4,29 @@ use App\Http\Controllers\Crm\AuthController;
 use App\Http\Controllers\Crm\AdministrationApiController;
 use App\Http\Controllers\Crm\EquipmentRentalApiController;
 use App\Http\Controllers\Crm\LeaveApiController;
+use App\Http\Controllers\Crm\MobileAuthController;
 use App\Http\Controllers\Crm\PageApiController;
 use App\Http\Controllers\Crm\ReservationApiController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
+
+Route::options('/api/mobile/{path}', [MobileAuthController::class, 'options'])
+    ->where('path', '.*')
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.options');
+
+Route::post('/api/mobile/token', [MobileAuthController::class, 'token'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.token');
+
+Route::get('/api/mobile/me', [MobileAuthController::class, 'me'])
+    ->middleware('auth:sanctum')
+    ->name('crm.api.mobile.me');
+
+Route::post('/api/mobile/logout', [MobileAuthController::class, 'logout'])
+    ->middleware('auth:sanctum')
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.logout');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges', LeaveApiController::class)
     ->withoutMiddleware([VerifyCsrfToken::class])
@@ -61,6 +80,9 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::middleware('auth')->group(function (): void {
     Route::view('/', 'crm')->name('crm.home');
     Route::view('/conges', 'crm')->name('crm.conges');
+    Route::view('/administration/{section?}', 'crm')
+        ->where('section', '.*')
+        ->name('crm.administration');
     Route::view('/pages-crm', 'crm-pages')->name('crm.pages');
     Route::view('/pages-crm/{slug}', 'crm-pages')
         ->where('slug', '[A-Za-z0-9_-]+')

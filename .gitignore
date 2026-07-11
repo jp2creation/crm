@@ -17,6 +17,9 @@
 /auth.json
 boost.json
 /node_modules
+/mobile/dist
+/mobile/*.apk
+/mobile/node_modules
 /public/build
 /public/hot
 /public/storage

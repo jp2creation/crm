@@ -1,4 +1,4 @@
-import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=2026071033";
+import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=2026071042";
 
 var jsx=jsxRuntime();
 var React=wrapModule(reactFactory(),1);
@@ -699,11 +699,11 @@ var styles=`
 }
 .equipment-resource-body {
   display: flex;
-  min-height: 6.1rem;
+  min-height: 3.9rem;
   flex: 1;
   flex-direction: column;
-  gap: .45rem;
-  padding: .75rem;
+  gap: .35rem;
+  padding: .65rem .75rem .7rem;
 }
 .equipment-resource-title {
   display: -webkit-box;
@@ -715,38 +715,15 @@ var styles=`
   font-weight: 800;
   line-height: 1.2;
 }
-.equipment-resource-meta {
-  overflow: hidden;
-  color: var(--color-secondary-500);
-  font-size: .72rem;
-  font-weight: 700;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .equipment-resource-foot {
   margin-top: auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: .5rem;
   color: var(--color-secondary-500);
   font-size: .7rem;
   font-weight: 700;
-}
-.equipment-resource-state {
-  display: inline-flex;
-  align-items: center;
-  gap: .32rem;
-  min-width: 0;
-}
-.equipment-resource-state::before {
-  content: "";
-  width: .5rem;
-  height: .5rem;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: var(--resource-status, #16a34a);
 }
 .equipment-resource-price {
   flex: 0 0 auto;
@@ -778,6 +755,175 @@ var styles=`
 }
 .equipment-modal-panel-wide {
   width: min(980px, 100%);
+}
+.equipment-booking-panel {
+  width: min(540px, calc(100% - 2rem));
+  max-height: min(78vh, 650px);
+}
+.equipment-booking-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .85rem;
+  border-bottom: 1px solid #e4e9f1;
+  background: #fff;
+  padding: .92rem 1.1rem .74rem;
+}
+.equipment-booking-title {
+  color: #223957;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1.18;
+}
+.equipment-booking-subtitle {
+  margin-top: .15rem;
+  color: #64748b;
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.equipment-booking-form {
+  display: grid;
+  gap: .7rem;
+  padding: .85rem 1.1rem 1rem;
+}
+.equipment-booking-material {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 54px;
+  gap: .65rem;
+  align-items: end;
+}
+.equipment-booking-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+}
+.equipment-booking-photo {
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  min-height: 2.5rem;
+}
+.equipment-booking-panel .form-field {
+  gap: .28rem;
+}
+.equipment-booking-panel .label {
+  margin-bottom: .12rem;
+  font-size: .72rem;
+  line-height: 1;
+}
+.equipment-booking-panel .input,
+.equipment-booking-panel .select-native {
+  min-height: 2.45rem;
+  font-size: .84rem;
+}
+.equipment-booking-panel .textarea {
+  min-height: 4rem;
+  padding: .62rem .72rem;
+  font-size: .84rem;
+}
+.equipment-booking-panel .btn[type="submit"] {
+  min-height: 2.45rem;
+}
+.equipment-rental-view-panel {
+  width: min(520px, calc(100% - 2rem));
+  max-height: min(78vh, 640px);
+}
+.equipment-rental-view-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .85rem;
+  border-bottom: 1px solid #e4e9f1;
+  background: #fff;
+  padding: .95rem 1.1rem .8rem;
+}
+.equipment-rental-view-title {
+  color: #223957;
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1.18;
+}
+.equipment-rental-view-subtitle {
+  margin-top: .18rem;
+  color: #64748b;
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.equipment-rental-view-body {
+  display: grid;
+  gap: .7rem;
+  padding: .9rem 1.1rem 1rem;
+}
+.equipment-rental-summary {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  gap: .7rem;
+  align-items: center;
+  border: 1px solid #e4e9f1;
+  border-radius: .85rem;
+  background: #fff;
+  padding: .65rem .7rem;
+}
+.equipment-rental-summary-title {
+  overflow: hidden;
+  color: #223957;
+  font-size: .95rem;
+  font-weight: 900;
+  line-height: 1.16;
+  text-overflow: ellipsis;
+}
+.equipment-rental-summary-meta {
+  margin-top: .12rem;
+  overflow: hidden;
+  color: #64748b;
+  font-size: .74rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.equipment-rental-view-panel .equipment-rental-detail-grid {
+  gap: .48rem;
+}
+.equipment-rental-view-panel .equipment-rental-detail-item {
+  display: grid;
+  grid-template-columns: minmax(68px, auto) minmax(0, 1fr);
+  gap: .65rem;
+  align-items: center;
+  border-radius: .68rem;
+  padding: .52rem .65rem;
+}
+.equipment-rental-view-panel .equipment-rental-detail-label {
+  font-size: .62rem;
+  line-height: 1;
+}
+.equipment-rental-view-panel .equipment-rental-detail-value {
+  margin-top: 0;
+  font-size: .8rem;
+  line-height: 1.18;
+  text-align: right;
+}
+.equipment-rental-view-notes {
+  border: 1px solid #e4e9f1;
+  border-radius: .75rem;
+  background: #fff;
+  padding: .65rem .75rem;
+}
+.equipment-rental-view-actions {
+  display: flex;
+  gap: .5rem;
+  padding-top: .15rem;
+}
+.equipment-rental-view-actions .btn {
+  flex: 1 1 0;
+  min-height: 2.35rem;
 }
 @media (min-width: 640px) {
   .equipment-resource-grid {
@@ -1050,6 +1196,77 @@ var styles=`
     }
     .equipment-rental-detail-grid {
       grid-template-columns: 1fr;
+    }
+    .equipment-booking-panel {
+      width: min(430px, calc(100% - 1rem));
+      max-height: 74vh;
+      border-radius: .9rem;
+    }
+    .equipment-booking-head {
+      padding: .8rem .9rem .62rem;
+    }
+    .equipment-booking-title {
+      font-size: .98rem;
+    }
+    .equipment-booking-subtitle {
+      font-size: .7rem;
+    }
+    .equipment-booking-form {
+      gap: .55rem;
+      padding: .68rem .9rem .85rem;
+    }
+    .equipment-booking-material {
+      grid-template-columns: minmax(0, 1fr) 46px;
+      gap: .5rem;
+    }
+    .equipment-booking-row {
+      gap: .5rem;
+    }
+    .equipment-booking-panel .label {
+      font-size: .66rem;
+    }
+    .equipment-booking-panel .input,
+    .equipment-booking-panel .select-native {
+      min-height: 2.32rem;
+      font-size: .78rem;
+    }
+    .equipment-booking-panel .textarea {
+      min-height: 3.3rem;
+    }
+    .equipment-booking-panel .btn[type="submit"] {
+      min-height: 2.35rem;
+    }
+    .equipment-rental-view-panel {
+      width: min(430px, calc(100% - 1rem));
+      max-height: 74vh;
+      border-radius: .9rem;
+    }
+    .equipment-rental-view-head {
+      padding: .8rem .9rem .65rem;
+    }
+    .equipment-rental-view-title {
+      font-size: .98rem;
+    }
+    .equipment-rental-view-subtitle {
+      font-size: .74rem;
+    }
+    .equipment-rental-view-body {
+      gap: .55rem;
+      padding: .7rem .9rem .85rem;
+    }
+    .equipment-rental-summary {
+      grid-template-columns: 48px minmax(0, 1fr) auto;
+      gap: .55rem;
+      padding: .55rem .6rem;
+    }
+    .equipment-rental-summary-title {
+      font-size: .86rem;
+    }
+    .equipment-rental-summary-meta {
+      font-size: .68rem;
+    }
+    .equipment-rental-view-panel .equipment-rental-detail-item {
+      padding: .47rem .58rem;
     }
     .equipment-day-planner .equipment-time-grid {
       --planner-height: 680px;
@@ -1508,10 +1725,6 @@ function EquipmentRentalsPage(){
       return item?.rentalMode==="day_only"?"day_only":"half_day_and_day";
     }
 
-    function rentalModeLabel(item){
-      return itemRentalMode(item)==="day_only"?"Journ\u00e9e uniquement":"Demi-journ\u00e9e + journ\u00e9e";
-    }
-
     function rentalSlotsForItem(item){
       return itemRentalMode(item)==="day_only"?["full_day"]:["morning","afternoon","full_day"];
     }
@@ -1692,7 +1905,7 @@ function EquipmentRentalsPage(){
       var next=upcomingRentals()[0];
       var cards=[
         ["Site actif",site?.name||"-",siteHoursLabel(site)],
-        ["Disponibles",`${available.length}/${items.length}`,selected?selected.name:"Materiel du site"],
+        ["Disponibles",`${available.length}/${items.length}`,selected?selected.name:"Site actif"],
         ["Locations du mois",String(monthCount),monthFormatter.format(state.focusDate)],
         ["Prochaine location",next?next.startAt.slice(11,16):"Aucune",next?dateFormatter.format(parseDate(next.startAt)):"Planning libre"]
       ];
@@ -1716,15 +1929,9 @@ function EquipmentRentalsPage(){
       var filtersActive=!!state.itemCategoryId;
       return`
         <section class="space-y-4">
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 class="heading-5 text-secondary-900">Materiel du site</h2>
-              <p class="text-body-sm text-secondary-500">${selected?`Planning filtre sur ${esc(selected.name)}`:"Selectionnez un materiel pour afficher son planning"}</p>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="badge badge-primary">${items.length}/${allItems.length}</span>
-              ${selected?'<button type="button" class="text-body-sm font-semibold text-theme-primary" data-item-filter="">Changer</button>':""}
-            </div>
+          <div class="flex items-center justify-end gap-3">
+            <span class="badge badge-primary">${items.length}/${allItems.length}</span>
+            ${selected?'<button type="button" class="text-body-sm font-semibold text-theme-primary" data-item-filter="">Changer</button>':""}
           </div>
           <div class="equipment-resource-controls">
             <select class="select-native input" data-item-category-filter aria-label="Categorie">
@@ -1737,7 +1944,6 @@ function EquipmentRentalsPage(){
             ${items.map(function(item){
               var active=selected?.id===item.id;
               var available=itemAvailableNow(item);
-              var category=categoryById(item.categoryId);
               return`<button type="button" class="equipment-resource-card${active?" is-active":""}" data-item-filter="${item.id}" aria-pressed="${active?"true":"false"}">
                 <span class="equipment-resource-media">
                   ${productImageHtml(item.photoUrl,item.name)}
@@ -1745,12 +1951,7 @@ function EquipmentRentalsPage(){
                 </span>
                 <span class="equipment-resource-body">
                   <span class="equipment-resource-title">${esc(item.name)}</span>
-                  <span class="equipment-resource-meta">${esc(category?.name||item.inventoryCode||"Materiel")}</span>
-                  <span class="equipment-resource-meta">${esc(rentalModeLabel(item))}</span>
-                  <span class="equipment-resource-foot">
-                    <span class="equipment-resource-state" style="--resource-status:${available?"#16a34a":"#dc2626"}">${available?"Disponible":"Indisponible"}</span>
-                    ${item.showDayPrice===false?"":`<span class="equipment-resource-price">${Number(item.dayPrice||0).toFixed(0)} EUR/j</span>`}
-                  </span>
+                  ${item.showDayPrice===false?"":`<span class="equipment-resource-foot"><span class="equipment-resource-price">${Number(item.dayPrice||0).toFixed(0)} EUR/j</span></span>`}
                 </span>
               </button>`;
             }).join("")||`<p class="w-full rounded-xl border border-dashed border-surface-200 p-4 text-center text-body-sm text-secondary-400">${allItems.length?"Aucun materiel ne correspond aux filtres.":"Aucun materiel sur ce site."}</p>`}
@@ -2078,33 +2279,32 @@ function EquipmentRentalsPage(){
       var slotLabels={morning:"Matin",afternoon:"Apr\u00e8s-midi",full_day:"Journ\u00e9e"};
       var slotOptions=rentalSlotsForItem(modalItem);
       return`<div class="equipment-modal-backdrop" data-close-modal>
-        <div class="equipment-modal-panel" data-modal-panel>
-          <div class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-surface-200 bg-white px-6 py-4">
+        <div class="equipment-modal-panel equipment-booking-panel" data-modal-panel>
+          <div class="equipment-booking-head">
             <div>
-              <h2 class="heading-5 text-secondary-900">${isEdit?"Modifier location":"Location rapide"}</h2>
-              <p class="mt-1 text-body-sm text-secondary-500">Materiel branche sur le planning CRM.</p>
+              <h2 class="equipment-booking-title">${isEdit?"Modifier location":"Location rapide"}</h2>
+              <p class="equipment-booking-subtitle">Materiel branche sur le planning CRM.</p>
             </div>
             <button type="button" class="btn btn-ghost btn-sm" data-close>Fermer</button>
           </div>
-          <form class="space-y-4 p-6" data-rental-form>
+          <form class="equipment-booking-form" data-rental-form>
             ${state.notice?`<div class="rounded-xl border ${state.notice.type==="success"?"border-success-200 bg-success-50 text-success-800":"border-danger-200 bg-danger-50 text-danger-800"} p-3 text-body-sm">${esc(state.notice.message)}</div>`:""}
             <input type="hidden" name="status" value="${esc(isEdit?form.status||"reserved":"reserved")}">
             <input type="hidden" name="periodType" value="${esc(form.periodType)}">
             <input type="hidden" name="startAt" value="${esc(form.startAt)}">
             <input type="hidden" name="endAt" value="${esc(form.endAt)}">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-[1fr_88px]">
+            <div class="equipment-booking-material">
               <label class="form-field">
                 <span class="label label-required">Materiel</span>
                 <select class="select-native input" name="equipmentItemId" required>
                   ${itemsForSite().map(function(item){return`<option value="${item.id}" ${String(item.id)===form.equipmentItemId?"selected":""}>${esc(item.name)}${item.inventoryCode?` - ${esc(item.inventoryCode)}`:""}</option>`}).join("")}
                 </select>
               </label>
-              <div>
-                <span class="label">Photo</span>
-                <div class="mt-2">${imageHtml(modalItem?.photoUrl,modalItem?.name||"Materiel","h-16 w-16")}</div>
+              <div class="equipment-booking-photo">
+                ${imageHtml(modalItem?.photoUrl,modalItem?.name||"Materiel","h-12 w-12")}
               </div>
             </div>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="equipment-booking-row">
               <label class="form-field">
                 <span class="label">Date</span>
                 <input class="input" type="date" name="date" value="${esc(form.date)}">
@@ -2116,7 +2316,7 @@ function EquipmentRentalsPage(){
                 </select>
               </label>
             </div>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="equipment-booking-row">
               <label class="form-field">
                 <span class="label">Client / chantier</span>
                 <input class="input" name="title" value="${esc(form.title)}" placeholder="Ex : Client Dupont">
@@ -2128,7 +2328,7 @@ function EquipmentRentalsPage(){
             </div>
             <label class="form-field">
               <span class="label">Notes</span>
-              <textarea class="textarea" name="notes" rows="3">${esc(form.notes)}</textarea>
+              <textarea class="textarea" name="notes" rows="2">${esc(form.notes)}</textarea>
             </label>
             <button type="submit" class="btn btn-primary btn-md w-full" ${state.saving?"disabled":""}>${state.saving?"Enregistrement...":isEdit?"Modifier la location":"Enregistrer la location"}</button>
           </form>
@@ -2162,43 +2362,42 @@ function EquipmentRentalsPage(){
       var item=itemById(rental.equipmentItemId);
       var category=categoryById(item?.categoryId);
       var periodLabel=daySlotLabel(rental.slot||"full_day");
-      var title=rental.title||"Location mat\u00e9riel";
+      var projectTitle=rental.title&&rental.title!=="Location mat\u00e9riel"?rental.title:"";
       var canEdit=canUpdate(rental);
       var canRemove=canDelete(rental);
       return`<div class="equipment-modal-backdrop" data-close-rental-view>
-        <div class="equipment-modal-panel" data-modal-panel>
-          <div class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-surface-200 bg-white px-6 py-4">
+        <div class="equipment-modal-panel equipment-rental-view-panel" data-modal-panel>
+          <div class="equipment-rental-view-head">
             <div>
-              <h2 class="heading-5 text-secondary-900">${esc(title)}</h2>
-              <p class="mt-1 text-body-sm text-secondary-500">${esc(item?.name||"Mat\u00e9riel")} - ${esc(periodLabel)}</p>
+              <h2 class="equipment-rental-view-title">Location mat\u00e9riel</h2>
+              <p class="equipment-rental-view-subtitle">${esc(item?.name||"Mat\u00e9riel")} - ${esc(periodLabel)}</p>
             </div>
             <button type="button" class="btn btn-ghost btn-sm" data-close-rental>Fermer</button>
           </div>
-          <div class="space-y-4 p-6">
-            <div class="flex items-center gap-4 rounded-xl border border-surface-200 bg-surface-50 p-4">
-              ${imageHtml(item?.photoUrl,item?.name||"Mat\u00e9riel","h-20 w-20")}
+          <div class="equipment-rental-view-body">
+            <div class="equipment-rental-summary">
+              ${imageHtml(item?.photoUrl,item?.name||"Mat\u00e9riel","h-12 w-12")}
               <div class="min-w-0">
-                <p class="heading-5 text-secondary-900">${esc(item?.name||"Mat\u00e9riel")}</p>
-                <p class="text-body-sm text-secondary-500">${esc(category?.name||item?.inventoryCode||"Location")}</p>
-                <span class="badge badge-primary mt-2">${esc(rentalStatusLabel(rental.status))}</span>
+                <p class="equipment-rental-summary-title">${esc(item?.name||"Mat\u00e9riel")}</p>
+                <p class="equipment-rental-summary-meta">${esc(category?.name||item?.inventoryCode||"Location")}</p>
               </div>
+              <span class="badge badge-primary">${esc(rentalStatusLabel(rental.status))}</span>
             </div>
             <div class="equipment-rental-detail-grid">
+              ${rentalDetailItem("Chantier",projectTitle)}
               ${rentalDetailItem("D\u00e9but",dateFormatter.format(parseDate(rental.startAt)))}
               ${rentalDetailItem("Fin",dateFormatter.format(parseDate(rental.endAt)))}
               ${rentalDetailItem("Cr\u00e9neau",periodLabel)}
               ${rentalDetailItem("Utilisateur",rental.userName||"")}
               ${rentalDetailItem("T\u00e9l\u00e9phone",rental.contactPhone||"")}
-              ${rentalDetailItem("Statut",rentalStatusLabel(rental.status))}
             </div>
-            ${rental.notes?`<div class="rounded-xl border border-surface-200 bg-white p-4">
+            ${rental.notes?`<div class="equipment-rental-view-notes">
               <p class="equipment-rental-detail-label">Notes</p>
-              <p class="mt-2 whitespace-pre-wrap text-body-sm font-semibold text-secondary-700">${esc(rental.notes)}</p>
+              <p class="mt-1 whitespace-pre-wrap text-body-sm font-semibold text-secondary-700">${esc(rental.notes)}</p>
             </div>`:""}
-            <div class="flex flex-col gap-2 border-t border-surface-200 pt-4 sm:flex-row sm:justify-end">
+            <div class="equipment-rental-view-actions">
               ${canRemove?`<button type="button" class="btn btn-secondary btn-sm" data-delete="${rental.id}">Supprimer</button>`:""}
               ${canEdit?`<button type="button" class="btn btn-primary btn-sm" data-edit="${rental.id}">Modifier</button>`:""}
-              <button type="button" class="btn btn-ghost btn-sm" data-close-rental>Fermer</button>
             </div>
           </div>
         </div>
@@ -2344,16 +2543,12 @@ function EquipmentRentalsPage(){
             <div>
               <h1 class="heading-2 text-secondary-900">Location materiel</h1>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-              ${!role.blocked&&hasPermission("equipment_rentals.manage_items")?`<button type="button" class="btn btn-secondary btn-sm" data-admin-toggle>${state.adminOpen?"Fermer administration":"Administration"}</button>`:""}
-              <button type="button" class="btn btn-primary btn-sm" data-new ${role.blocked||!hasPermission("equipment_rentals.create")?"disabled":""}>Nouvelle location</button>
-            </div>
           </header>
           ${state.notice&&!state.modal&&!state.itemModal?`<div class="rounded-xl border ${state.notice.type==="success"?"border-success-200 bg-success-50 text-success-800":"border-danger-200 bg-danger-50 text-danger-800"} p-3 text-body-sm">${esc(state.notice.message)}</div>`:""}
           ${role.blocked?`<section class="card rounded-xl border border-dashed border-danger-200 bg-danger-50 p-6 text-center">
             <h2 class="heading-4 text-secondary-900">Module location materiel masque</h2>
             <p class="mx-auto mt-2 max-w-xl text-body-sm text-secondary-600">Ce profil ne possede pas le droit equipment_rentals.view ou le module locations-materiel.</p>
-          </section>`:`${adminSection()}${resourcesSection()}${selectedItem()?calendarSection():""}`}
+          </section>`:`${resourcesSection()}${selectedItem()?calendarSection():""}`}
           ${modalHtml()}
           ${itemModalHtml()}
           ${rentalDetailHtml()}
@@ -2366,7 +2561,6 @@ function EquipmentRentalsPage(){
 
     function bindEvents(){
       root.querySelector("[data-new]")?.addEventListener("click",function(){openCreate()});
-      root.querySelector("[data-admin-toggle]")?.addEventListener("click",function(){state.adminOpen=!state.adminOpen;render()});
       root.querySelector("[data-item-new]")?.addEventListener("click",function(){openItemCreate()});
       root.querySelectorAll("[data-item-edit]").forEach(function(button){
         button.addEventListener("click",function(){openItemEdit(button.dataset.itemEdit)});
