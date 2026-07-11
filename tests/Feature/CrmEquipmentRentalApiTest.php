@@ -58,6 +58,7 @@ class CrmEquipmentRentalApiTest extends TestCase
             ->assertJsonPath('ok', true)
             ->assertJsonPath('equipmentItems.0.name', 'Ponceuse Test')
             ->assertJsonPath('equipmentItems.0.showDayPrice', true)
+            ->assertJsonPath('equipmentItems.0.rentalMode', 'half_day_and_day')
             ->assertJsonPath('equipmentRentals.0.title', 'Location test')
             ->assertJsonPath('user.siteIds.0', $site->id);
     }
@@ -149,12 +150,14 @@ class CrmEquipmentRentalApiTest extends TestCase
                 'halfDayPrice' => '12,5',
                 'dayPrice' => '20',
                 'showDayPrice' => false,
+                'rentalMode' => 'day_only',
                 'depositAmount' => '100',
             ])
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('equipmentItem.name', 'Scie test')
             ->assertJsonPath('equipmentItem.showDayPrice', false)
+            ->assertJsonPath('equipmentItem.rentalMode', 'day_only')
             ->assertJsonPath('equipmentCategory.slug', 'outillage')
             ->json('equipmentItem.id');
 
@@ -167,8 +170,57 @@ class CrmEquipmentRentalApiTest extends TestCase
         $this->assertDatabaseHas('crm_equipment_items', [
             'id' => $itemId,
             'show_day_price' => false,
+            'rental_mode' => 'day_only',
             'active' => false,
         ]);
+    }
+
+    public function test_day_only_equipment_rejects_half_day_rental(): void
+    {
+        [$account, , , $item] = $this->createCrmUser(['equipment_rentals.create']);
+        $item->forceFill(['rental_mode' => 'day_only'])->save();
+
+        $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=create_rental', [
+                'equipmentItemId' => $item->id,
+                'date' => '2026-08-07',
+                'slot' => 'morning',
+                'title' => 'Demi journee refusee',
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Ce materiel se loue uniquement a la journee');
+
+        $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=create_rental', [
+                'equipmentItemId' => $item->id,
+                'date' => '2026-08-07',
+                'slot' => 'full_day',
+                'periodType' => 'day',
+                'title' => 'Journee acceptee',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('equipmentRental.slot', 'full_day');
+    }
+
+    public function test_day_only_equipment_rejects_custom_partial_day_times(): void
+    {
+        [$account, , , $item] = $this->createCrmUser(['equipment_rentals.create']);
+        $item->forceFill(['rental_mode' => 'day_only'])->save();
+
+        $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=create_rental', [
+                'equipmentItemId' => $item->id,
+                'periodType' => 'day',
+                'slot' => 'full_day',
+                'startAt' => '2026-08-08T07:30',
+                'endAt' => '2026-08-08T12:00',
+                'title' => 'Fausse journee',
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Ce materiel se loue uniquement a la journee');
     }
 
     /**

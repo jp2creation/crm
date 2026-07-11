@@ -82,6 +82,16 @@ class CrmPageApiTest extends TestCase
             ->assertJsonPath('error', 'Droit administration insuffisant');
     }
 
+    public function test_authenticated_user_can_open_pages_crm_screen(): void
+    {
+        [$account] = $this->createCrmUser(canManage: false);
+
+        $this->actingAs($account)
+            ->get('/pages-crm')
+            ->assertOk()
+            ->assertSee('crm-pages-root');
+    }
+
     public function test_manager_can_create_page_and_menu_item(): void
     {
         [$account] = $this->createCrmUser(canManage: true);

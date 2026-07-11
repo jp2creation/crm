@@ -31,6 +31,7 @@ return new class extends Migration
                 $table->string('color', 20)->default('#95002e');
                 $table->decimal('half_day_price', 10, 2)->default(0);
                 $table->decimal('day_price', 10, 2)->default(0);
+                $table->string('rental_mode', 32)->default('half_day_and_day');
                 $table->decimal('deposit_amount', 10, 2)->default(0);
                 $table->boolean('active')->default(true);
                 $table->integer('sort_order')->default(100);

@@ -23,6 +23,7 @@ class CrmEquipmentItem extends Model
         'half_day_price',
         'day_price',
         'show_day_price',
+        'rental_mode',
         'deposit_amount',
         'active',
         'sort_order',

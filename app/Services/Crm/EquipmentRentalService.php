@@ -236,6 +236,7 @@ class EquipmentRentalService
             $halfDayPrice = $this->decimal($data['halfDayPrice'] ?? $data['half_day_price'] ?? 0);
             $dayPrice = $this->decimal($data['dayPrice'] ?? $data['day_price'] ?? 0);
             $showDayPrice = $this->boolean($data['showDayPrice'] ?? $data['show_day_price'] ?? true);
+            $rentalMode = $this->rentalMode($data['rentalMode'] ?? $data['rental_mode'] ?? 'half_day_and_day');
             $depositAmount = $this->decimal($data['depositAmount'] ?? $data['deposit_amount'] ?? 0);
             $sortOrder = (int) ($data['sortOrder'] ?? $data['sort_order'] ?? 100);
 
@@ -341,6 +342,7 @@ class EquipmentRentalService
                 'half_day_price' => $halfDayPrice,
                 'day_price' => $dayPrice,
                 'show_day_price' => $showDayPrice,
+                'rental_mode' => $rentalMode,
                 'deposit_amount' => $depositAmount,
                 'active' => true,
                 'sort_order' => $sortOrder,
@@ -414,6 +416,23 @@ class EquipmentRentalService
 
         [$periodType, $slot, $startAt, $endAt] = $this->slotRange($data, $site);
 
+        if ($this->rentalMode($item->getAttribute('rental_mode') ?? 'half_day_and_day') === 'day_only') {
+            [, , $expectedStartAt, $expectedEndAt] = $this->slotRange([
+                'date' => CarbonImmutable::parse($startAt)->format('Y-m-d'),
+                'periodType' => 'day',
+                'slot' => 'full_day',
+            ], $site);
+
+            if (
+                $periodType !== 'day'
+                || $slot !== 'full_day'
+                || strtotime($startAt) !== strtotime($expectedStartAt)
+                || strtotime($endAt) !== strtotime($expectedEndAt)
+            ) {
+                $this->fail('Ce materiel se loue uniquement a la journee', 400);
+            }
+        }
+
         if (strtotime($endAt) <= strtotime($startAt)) {
             $this->fail('Creneau invalide', 400);
         }
@@ -455,6 +474,11 @@ class EquipmentRentalService
             ? (string) $data['slot']
             : ($periodType === 'day' ? 'full_day' : 'morning');
 
+        if ($periodType === 'day' || $slot === 'full_day') {
+            $periodType = 'day';
+            $slot = 'full_day';
+        }
+
         $startRaw = (string) ($data['startAt'] ?? $data['start_at'] ?? '');
         $endRaw = (string) ($data['endAt'] ?? $data['end_at'] ?? '');
 
@@ -481,6 +505,13 @@ class EquipmentRentalService
         }
 
         return [$periodType, 'morning', "{$day} {$hours['morningStart']}:00", "{$day} {$hours['morningEnd']}:00"];
+    }
+
+    private function rentalMode(mixed $value): string
+    {
+        return in_array($value, ['half_day_and_day', 'day_only'], true)
+            ? (string) $value
+            : 'half_day_and_day';
     }
 
     private function requireNoRentalConflict(int $itemId, string $startAt, string $endAt, ?int $ignoreId = null): void
@@ -659,6 +690,7 @@ class EquipmentRentalService
             'halfDayPrice' => (float) $item->half_day_price,
             'dayPrice' => (float) $item->day_price,
             'showDayPrice' => (bool) ($item->show_day_price ?? true),
+            'rentalMode' => $this->rentalMode($item->getAttribute('rental_mode') ?? 'half_day_and_day'),
             'depositAmount' => (float) $item->deposit_amount,
             'active' => (bool) $item->active,
             'sortOrder' => (int) $item->sort_order,

@@ -1,4 +1,4 @@
-import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=2026071016";
+import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=2026071033";
 
 var jsx=jsxRuntime();
 var React=wrapModule(reactFactory(),1);
@@ -10,20 +10,10 @@ var styles=`
   --calendar-line: #e4e9f1;
   --calendar-soft: #f7f9fc;
   --calendar-text: #223957;
-  --period-morning-a: #e9fbf8;
-  --period-morning-b: #d3f5ef;
-  --period-morning-border: #55cbc5;
-  --period-morning-accent: #10aaa4;
-  --period-morning-text: #075d62;
-  --period-afternoon-a: #fff0ed;
-  --period-afternoon-b: #ffd6cf;
-  --period-afternoon-border: #ff8b7d;
-  --period-afternoon-accent: #ff5e52;
-  --period-afternoon-text: #842921;
-  --period-day-a: #5d7cff;
-  --period-day-b: #3f5ee6;
-  --period-day-border: #496bf1;
-  --period-day-accent: #3856d9;
+  --period-border: #e4e9f1;
+  --period-accent: rgb(var(--theme-primary));
+  --period-text: #223957;
+  --period-muted: #64748b;
   color: var(--color-secondary-900);
 }
 .equipment-calendar-shell {
@@ -87,11 +77,12 @@ var styles=`
   position: relative;
   overflow: hidden;
   width: 100%;
-  border: 1px solid var(--rental-border, var(--color-surface-200));
+  border: 1px solid #e4e9f1;
   border-radius: .55rem;
-  background: var(--rental-bg, #fff);
+  background: #fff;
   box-shadow: 0 8px 18px rgba(15, 23, 42, .035);
-  color: var(--rental-text, var(--color-secondary-900));
+  color: var(--period-text);
+  cursor: pointer;
   padding: .68rem .74rem;
   text-align: left;
   transition: border-color var(--duration-fast), box-shadow var(--duration-fast), transform var(--duration-fast);
@@ -108,25 +99,20 @@ var styles=`
   box-shadow: 0 0 0 3px rgba(255, 255, 255, .45);
 }
 .equipment-rental-card:hover {
-  border-color: var(--rental-accent, rgb(var(--theme-primary) / .45));
+  border-color: rgb(var(--theme-primary) / .4);
   box-shadow: 0 14px 30px rgba(15, 23, 42, .08);
   transform: translateY(-1px);
 }
 .equipment-rental-time {
-  color: var(--rental-muted, var(--color-secondary-600));
+  color: var(--period-muted);
   display: block;
   padding-left: 1.05rem;
 }
 .equipment-rental-title {
-  color: var(--rental-text, var(--color-secondary-900));
+  color: var(--period-text);
 }
 .equipment-rental-details {
-  color: var(--rental-muted, var(--color-secondary-500));
-}
-.equipment-rental-card[data-period="day"] .equipment-rental-time,
-.equipment-rental-card[data-period="day"] .equipment-rental-title,
-.equipment-rental-card[data-period="day"] .equipment-rental-details {
-  color: #fff;
+  color: var(--period-muted);
 }
 .equipment-calendar-events {
   position: relative;
@@ -277,19 +263,19 @@ var styles=`
 }
 .equipment-day-planner {
   padding: 1rem;
-  background: linear-gradient(180deg, #fff 0%, #f8fbff 100%);
+  background: #fff;
 }
 .equipment-day-hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: .9rem;
+  margin-bottom: .75rem;
   border: 1px solid var(--calendar-line);
-  border-radius: 1rem;
+  border-radius: .9rem;
   background: #fff;
-  padding: .9rem 1rem;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, .055);
+  padding: .75rem .9rem;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .045);
 }
 .equipment-day-kicker {
   color: rgb(var(--theme-primary));
@@ -317,9 +303,9 @@ var styles=`
   display: inline-flex;
   align-items: center;
   gap: .45rem;
-  border: 1px solid var(--pill-border, #d9e7f7);
+  border: 1px solid #e4e9f1;
   border-radius: 999px;
-  background: var(--pill-bg, #f8fbff);
+  background: #f8fafc;
   color: #31435a;
   padding: .45rem .7rem;
   font-size: .74rem;
@@ -330,20 +316,14 @@ var styles=`
   height: .55rem;
   width: .55rem;
   border-radius: 999px;
-  background: var(--pill-color);
-  box-shadow: 0 0 0 3px var(--pill-ring, rgba(16,170,164,.16));
+  background: rgb(var(--theme-primary));
+  box-shadow: none;
 }
 .equipment-day-pill-morning {
-  --pill-color: #10aaa4;
-  --pill-ring: rgba(16,170,164,.16);
-  --pill-bg: #effbf9;
-  --pill-border: #c6efea;
+  --pill-color: rgb(var(--theme-primary));
 }
 .equipment-day-pill-afternoon {
-  --pill-color: #ff5e52;
-  --pill-ring: rgba(255,94,82,.16);
-  --pill-bg: #fff4f2;
-  --pill-border: #ffd4ce;
+  --pill-color: rgb(var(--theme-primary));
 }
 .equipment-day-planner .equipment-time-grid {
   --planner-height: 560px;
@@ -394,6 +374,243 @@ var styles=`
 .equipment-day-planner .equipment-available-slot:hover {
   background: rgb(var(--theme-primary) / .08);
   box-shadow: 0 12px 24px rgb(var(--theme-primary) / .12);
+}
+.equipment-day-slots {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: .75rem;
+  align-items: stretch;
+}
+.equipment-day-slot-card {
+  position: relative;
+  display: flex;
+  min-height: 7.2rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e4e9f1;
+  border-radius: .95rem;
+  background: #fff;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, .04);
+}
+.equipment-day-slot-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: .22rem;
+  background: var(--slot-accent, rgb(var(--theme-primary)));
+}
+.equipment-day-slot-morning {
+  grid-column: 1;
+  grid-row: 1;
+  --slot-accent: rgb(var(--theme-primary));
+}
+.equipment-day-slot-afternoon {
+  grid-column: 1;
+  grid-row: 2;
+  --slot-accent: rgb(var(--theme-primary));
+}
+.equipment-day-slot-full_day {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  --slot-accent: rgb(var(--theme-primary));
+}
+.equipment-day-slots.is-day-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+.equipment-day-slots.is-day-only .equipment-day-slot-full_day {
+  grid-column: 1;
+  grid-row: 1;
+}
+.equipment-day-slot-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .8rem .85rem .45rem;
+}
+.equipment-day-slot-title {
+  color: var(--calendar-text);
+  font-size: .95rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.equipment-day-slot-hours {
+  margin-top: .18rem;
+  color: #526782;
+  font-size: .72rem;
+  font-weight: 800;
+}
+.equipment-day-slot-card.is-booked {
+  --slot-status: rgb(var(--theme-primary));
+}
+.equipment-day-slot-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: .45rem;
+  padding: 0 .85rem .85rem;
+}
+.equipment-day-slot-empty {
+  display: flex;
+  min-height: 2.65rem;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  border: 1px dashed #dbe4ef;
+  border-radius: .78rem;
+  background: #fafbfc;
+  color: var(--color-secondary-500);
+  text-align: center;
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.equipment-day-slot-empty::before {
+  content: "";
+  width: .5rem;
+  height: .5rem;
+  border-radius: 999px;
+  background: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, .12);
+}
+.equipment-day-slot-bookings {
+  display: flex;
+  min-height: 2.65rem;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+}
+.equipment-day-slot-full_day .equipment-day-slot-bookings {
+  min-height: 4.25rem;
+}
+.equipment-day-slot-button {
+  margin-top: auto;
+  display: flex;
+  min-height: 2.15rem;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: .85rem;
+  background: rgb(var(--theme-primary));
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 900;
+  box-shadow: 0 14px 26px rgb(var(--theme-primary) / .18);
+  transition: background .15s, transform .15s, box-shadow .15s;
+}
+.equipment-day-slot-button:hover {
+  background: rgb(var(--theme-primary) / .92);
+  box-shadow: 0 16px 30px rgb(var(--theme-primary) / .22);
+  transform: translateY(-1px);
+}
+.equipment-day-slot-note {
+  margin-top: auto;
+  border-radius: .75rem;
+  background: #f8fafc;
+  padding: .55rem;
+  color: var(--color-secondary-500);
+  text-align: center;
+  font-size: .78rem;
+  font-weight: 800;
+}
+.equipment-day-slot-full_day .equipment-day-slot-empty {
+  min-height: 4.25rem;
+}
+.equipment-day-rental-pill {
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  width: 100%;
+  border: 1px dashed #e5c9cf;
+  border-radius: .78rem;
+  background: #fffafa;
+  color: #223957;
+  padding: .55rem .65rem;
+  text-align: center;
+  box-shadow: none;
+  transition: transform .15s, box-shadow .15s, border-color .15s, background .15s;
+}
+.equipment-day-rental-pill::before {
+  content: "";
+  flex: 0 0 auto;
+  width: .5rem;
+  height: .5rem;
+  border-radius: 999px;
+  background: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .12);
+}
+.equipment-day-rental-pill:hover {
+  border-color: rgb(var(--theme-primary) / .4);
+  background: #fbfcfe;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, .06);
+  transform: translateY(-1px);
+}
+.equipment-day-rental-time {
+  display: inline-flex;
+  min-width: 3.95rem;
+  justify-content: center;
+  border: 1px solid #e4e9f1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #31435a;
+  padding: .22rem .36rem;
+  font-size: .62rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.equipment-day-rental-main {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+.equipment-day-rental-title {
+  overflow: hidden;
+  color: #223957;
+  font-size: .72rem;
+  font-weight: 900;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+.equipment-day-rental-meta {
+  margin-top: .08rem;
+  overflow: hidden;
+  color: #64748b;
+  font-size: .65rem;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.equipment-rental-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+.equipment-rental-detail-item {
+  border: 1px solid #e4e9f1;
+  border-radius: .85rem;
+  background: #f8fafc;
+  padding: .75rem;
+}
+.equipment-rental-detail-label {
+  color: #64748b;
+  font-size: .68rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+.equipment-rental-detail-value {
+  margin-top: .25rem;
+  color: #223957;
+  font-size: .88rem;
+  font-weight: 850;
+  line-height: 1.25;
 }
 .equipment-period-legend {
   display: flex;
@@ -446,8 +663,8 @@ var styles=`
 .equipment-resource-card:hover,
 .equipment-resource-card.is-active {
   border-color: rgb(var(--theme-primary) / .55);
-  background: rgb(var(--theme-primary) / .035);
-  box-shadow: 0 18px 42px rgb(var(--theme-primary) / .12);
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, .08);
   transform: translateY(-1px);
 }
 .equipment-resource-card:focus-visible {
@@ -543,12 +760,12 @@ var styles=`
 }
 .equipment-modal-backdrop {
   position: fixed;
-  inset: 0;
-  z-index: 1050;
+  inset: -96px 0 -32px;
+  z-index: 2147483000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: calc(1rem + 64px) 1rem 1rem;
   background: rgba(0, 0, 0, .5);
 }
 .equipment-modal-panel {
@@ -766,6 +983,74 @@ var styles=`
       padding-inline: .45rem;
       font-size: .66rem;
     }
+    .equipment-day-slots {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: repeat(2, auto);
+      gap: .55rem;
+    }
+    .equipment-day-slot-card {
+      min-height: 6.9rem;
+      border-radius: .9rem;
+    }
+    .equipment-day-slot-head {
+      gap: .45rem;
+      padding: .75rem .68rem .45rem;
+    }
+    .equipment-day-slot-title {
+      font-size: .88rem;
+    }
+    .equipment-day-slot-hours {
+      font-size: .68rem;
+    }
+    .equipment-day-slot-body {
+      gap: .45rem;
+      padding: 0 .68rem .68rem;
+    }
+    .equipment-day-slot-empty {
+      min-height: 2.35rem;
+      padding: .55rem;
+      font-size: .68rem;
+    }
+    .equipment-day-slot-full_day .equipment-day-slot-empty {
+      min-height: 3.7rem;
+    }
+    .equipment-day-slot-full_day .equipment-day-slot-bookings {
+      min-height: 3.7rem;
+    }
+    .equipment-day-slot-button {
+      min-height: 2.2rem;
+      border-radius: .7rem;
+      padding-inline: .45rem;
+      font-size: .72rem;
+      line-height: 1.12;
+      text-align: center;
+    }
+    .equipment-day-slot-note {
+      padding: .55rem;
+      font-size: .66rem;
+    }
+    .equipment-day-rental-pill {
+      min-height: 2.35rem;
+      gap: .35rem;
+      padding: .5rem .45rem;
+    }
+    .equipment-day-rental-time {
+      min-width: 0;
+      width: max-content;
+      max-width: 100%;
+      padding-inline: .32rem;
+      font-size: .58rem;
+    }
+    .equipment-day-rental-title {
+      font-size: .64rem;
+      white-space: normal;
+    }
+    .equipment-day-rental-meta {
+      display: none;
+    }
+    .equipment-rental-detail-grid {
+      grid-template-columns: 1fr;
+    }
     .equipment-day-planner .equipment-time-grid {
       --planner-height: 680px;
       grid-template-columns: 48px minmax(240px, 1fr);
@@ -815,9 +1100,9 @@ function fallbackEquipmentData(){
     {id:3,name:"Remi G",role:"user",active:true,siteIds:[1],moduleIds:[7],permissions:permissions}
   ];
   var equipmentItems=[
-    {id:1,siteId:1,categoryId:1,name:"Ponceuse parquet",inventoryCode:"PON-PARQUET",description:"Ponceuse principale pour parquet",color:"#95002e",photoUrl:"",halfDayPrice:45,dayPrice:80,showDayPrice:true,depositAmount:300,active:true,sortOrder:10},
-    {id:2,siteId:1,categoryId:1,name:"Bordureuse",inventoryCode:"BOR-001",description:"Bordureuse pour finitions et plinthes",color:"#f59e0b",photoUrl:"",halfDayPrice:35,dayPrice:60,showDayPrice:true,depositAmount:200,active:true,sortOrder:20},
-    {id:3,siteId:1,categoryId:1,name:"Aspirateur chantier",inventoryCode:"ASP-001",description:"Aspirateur poussiere pour poncage",color:"#1d354f",photoUrl:"",halfDayPrice:25,dayPrice:40,showDayPrice:true,depositAmount:150,active:true,sortOrder:30}
+    {id:1,siteId:1,categoryId:1,name:"Ponceuse parquet",inventoryCode:"PON-PARQUET",description:"Ponceuse principale pour parquet",color:"#95002e",photoUrl:"",halfDayPrice:45,dayPrice:80,showDayPrice:true,rentalMode:"half_day_and_day",depositAmount:300,active:true,sortOrder:10},
+    {id:2,siteId:1,categoryId:1,name:"Bordureuse",inventoryCode:"BOR-001",description:"Bordureuse pour finitions et plinthes",color:"#f59e0b",photoUrl:"",halfDayPrice:35,dayPrice:60,showDayPrice:true,rentalMode:"half_day_and_day",depositAmount:200,active:true,sortOrder:20},
+    {id:3,siteId:1,categoryId:1,name:"Aspirateur chantier",inventoryCode:"ASP-001",description:"Aspirateur poussiere pour poncage",color:"#1d354f",photoUrl:"",halfDayPrice:25,dayPrice:40,showDayPrice:true,rentalMode:"half_day_and_day",depositAmount:150,active:true,sortOrder:30}
   ];
   return{
     ok:true,
@@ -864,6 +1149,7 @@ function EquipmentRentalsPage(){
       focusDate:new Date(now.getFullYear(),now.getMonth(),now.getDate()),
       modal:null,
       itemModal:null,
+      rentalViewId:null,
       adminOpen:false,
       viewAll:false,
       itemCategoryId:""
@@ -997,6 +1283,7 @@ function EquipmentRentalsPage(){
       state.selectedItemId=null;
       state.itemCategoryId="";
       state.viewAll=false;
+      state.rentalViewId=null;
       render();
     }
 
@@ -1043,40 +1330,40 @@ function EquipmentRentalsPage(){
 	      if(start<=morningStart+15&&end>=afternoonEnd-15){
 	        return{
 	          name:"day",
-	          bg:"linear-gradient(135deg,var(--period-day-a) 0%,var(--period-day-b) 100%)",
-	          border:"var(--period-day-border)",
-	          accent:"var(--period-day-accent)",
-	          text:"#ffffff",
-	          muted:"#eef3ff"
+	          bg:"#fff",
+	          border:"var(--period-border)",
+	          accent:"var(--period-accent)",
+	          text:"var(--period-text)",
+	          muted:"var(--period-muted)"
 	        };
 	      }
 	      if(end<=morningEnd+15){
 	        return{
 	          name:"morning",
-	          bg:"linear-gradient(135deg,var(--period-morning-a) 0%,var(--period-morning-b) 100%)",
-	          border:"var(--period-morning-border)",
-	          accent:"var(--period-morning-accent)",
-	          text:"var(--period-morning-text)",
-	          muted:"#08797d"
+	          bg:"#fff",
+	          border:"var(--period-border)",
+	          accent:"var(--period-accent)",
+	          text:"var(--period-text)",
+	          muted:"var(--period-muted)"
 	        };
 	      }
 	      if(start>=morningEnd-15||start>=afternoonStart-30){
 	        return{
 	          name:"afternoon",
-	          bg:"linear-gradient(135deg,var(--period-afternoon-a) 0%,var(--period-afternoon-b) 100%)",
-	          border:"var(--period-afternoon-border)",
-	          accent:"var(--period-afternoon-accent)",
-	          text:"var(--period-afternoon-text)",
-	          muted:"#a62d2b"
+	          bg:"#fff",
+	          border:"var(--period-border)",
+	          accent:"var(--period-accent)",
+	          text:"var(--period-text)",
+	          muted:"var(--period-muted)"
 	        };
 	      }
       return{
         name:"mixed",
-        bg:"linear-gradient(135deg,#f8fafc 0%,#e9edf3 100%)",
-        border:"#b9c3cf",
-        accent:"#64748b",
-        text:"#1e293b",
-        muted:"#526174"
+        bg:"#fff",
+        border:"var(--period-border)",
+        accent:"var(--period-accent)",
+        text:"var(--period-text)",
+        muted:"var(--period-muted)"
       };
     }
 
@@ -1217,6 +1504,23 @@ function EquipmentRentalsPage(){
       return[dateTimeLocal(applyTime(day,hours.morningStart)),dateTimeLocal(applyTime(day,hours.morningEnd))];
     }
 
+    function itemRentalMode(item){
+      return item?.rentalMode==="day_only"?"day_only":"half_day_and_day";
+    }
+
+    function rentalModeLabel(item){
+      return itemRentalMode(item)==="day_only"?"Journ\u00e9e uniquement":"Demi-journ\u00e9e + journ\u00e9e";
+    }
+
+    function rentalSlotsForItem(item){
+      return itemRentalMode(item)==="day_only"?["full_day"]:["morning","afternoon","full_day"];
+    }
+
+    function normalizeSlotForItem(slot,item){
+      var slots=rentalSlotsForItem(item);
+      return slots.includes(slot)?slot:slots[0];
+    }
+
     function firstAvailableItem(startAt,endAt,ignoreRentalId){
       return itemsForSite().find(function(item){
         return!rentalsForSite().some(function(rental){
@@ -1257,10 +1561,10 @@ function EquipmentRentalsPage(){
       var details=[];
       if(!compact&&rental.title&&rental.title!==itemName)details.push(rental.title);
       if(!compact&&rental.userName)details.push(rental.userName);
-      var editAttr=canUpdate(rental)?` data-edit="${rental.id}"`:"";
+      var viewAttr=` data-view-rental="${rental.id}" role="button" tabindex="0"`;
       var deleteButton=canDelete(rental)?`<button type="button" class="btn btn-ghost btn-xs" data-delete="${rental.id}" aria-label="Supprimer">Supprimer</button>`:"";
       return`
-        <article class="equipment-rental-card" data-period="${tone.name}"${editAttr} style="${style}">
+        <article class="equipment-rental-card" data-period="${tone.name}"${viewAttr} style="${style}">
           <div class="flex items-center justify-between gap-2">
             <span class="equipment-rental-time text-ui-xs font-bold">${esc(rental.startAt.slice(11,16))}-${esc(rental.endAt.slice(11,16))}</span>
           </div>
@@ -1269,6 +1573,26 @@ function EquipmentRentalsPage(){
           ${compact?"":`<div class="mt-2 flex flex-wrap items-center gap-2">${deleteButton}</div>`}
 	        </article>
 	      `;
+	    }
+
+	    function rentalSlotReservedLabel(rental){
+	      if(rental.slot==="morning")return"Matin r\u00e9serv\u00e9";
+	      if(rental.slot==="afternoon")return"Apr\u00e8s-midi r\u00e9serv\u00e9";
+	      if(rental.slot==="full_day")return"Journ\u00e9e r\u00e9serv\u00e9e";
+	      var tone=rentalPeriodTone(rental).name;
+	      if(tone==="morning")return"Matin r\u00e9serv\u00e9";
+	      if(tone==="afternoon")return"Apr\u00e8s-midi r\u00e9serv\u00e9";
+	      if(tone==="day")return"Journ\u00e9e r\u00e9serv\u00e9e";
+	      return"Cr\u00e9neau r\u00e9serv\u00e9";
+	    }
+
+	    function dayRentalButton(rental,contextSlot){
+	      var label=contextSlot==="full_day"?rentalSlotReservedLabel(rental):"R\u00e9serv\u00e9";
+	      return`<button type="button" class="equipment-day-rental-pill" data-view-rental="${rental.id}">
+	        <span class="equipment-day-rental-main">
+	          <span class="equipment-day-rental-title">${esc(label)}</span>
+	        </span>
+	      </button>`;
 	    }
 
 	    function minuteLabel(minutes){
@@ -1325,10 +1649,10 @@ function EquipmentRentalsPage(){
 	      var details=[];
 	      if(rental.title&&rental.title!==itemName)details.push(rental.title);
 	      if(rental.userName)details.push(rental.userName);
-	      var editAttr=canUpdate(rental)?` data-edit="${rental.id}"`:"";
+	      var viewAttr=` data-view-rental="${rental.id}" role="button" tabindex="0"`;
 	      var style=`--rental-bg:${tone.bg};--rental-border:${tone.border};--rental-accent:${tone.accent};--rental-text:${tone.text};--rental-muted:${tone.muted};top:${pos.top}%;height:${pos.height}%;`;
 	      return`
-	        <article class="equipment-rental-card equipment-timeline-card" data-period="${tone.name}"${editAttr} style="${style}">
+	        <article class="equipment-rental-card equipment-timeline-card" data-period="${tone.name}"${viewAttr} style="${style}">
 	          <span class="equipment-rental-time text-ui-xs font-bold">${esc(rental.startAt.slice(11,16))}-${esc(rental.endAt.slice(11,16))}</span>
 	          <p class="equipment-rental-title mt-1 text-label font-bold">${esc(itemName)}</p>
 	          ${details.length?`<p class="equipment-rental-details mt-1 text-caption">${esc(details.join(" - "))}</p>`:""}
@@ -1340,14 +1664,14 @@ function EquipmentRentalsPage(){
 	      var available=firstAvailableItem(startAt,endAt);
 	      if(!available||!hasPermission("equipment_rentals.create"))return"";
 	      var pos=timelinePosition(startAt,endAt,state.focusDate,bounds);
-	      return`<button type="button" class="equipment-available-slot" data-slot="${slot}" style="top:${pos.top}%;height:${pos.height}%">Creneau disponible</button>`;
+	      return`<button type="button" class="equipment-available-slot" data-slot="${slot}" style="top:${pos.top}%;height:${pos.height}%">Cr\u00e9neau disponible</button>`;
 	    }
 
 	    function periodLegendHtml(){
 	      return`<div class="equipment-period-legend">
         <span><i style="background:linear-gradient(135deg,#55cbc5 0%,#10aaa4 100%)"></i>Matin</span>
-        <span><i style="background:linear-gradient(135deg,#ff8b7d 0%,#ff5e52 100%)"></i>Apres-midi</span>
-        <span><i style="background:linear-gradient(135deg,#5d7cff 0%,#3f5ee6 100%)"></i>Journee complete</span>
+        <span><i style="background:linear-gradient(135deg,#ff8b7d 0%,#ff5e52 100%)"></i>Apr\u00e8s-midi</span>
+        <span><i style="background:linear-gradient(135deg,#5d7cff 0%,#3f5ee6 100%)"></i>Journ\u00e9e compl\u00e8te</span>
       </div>`;
 	    }
 
@@ -1422,6 +1746,7 @@ function EquipmentRentalsPage(){
                 <span class="equipment-resource-body">
                   <span class="equipment-resource-title">${esc(item.name)}</span>
                   <span class="equipment-resource-meta">${esc(category?.name||item.inventoryCode||"Materiel")}</span>
+                  <span class="equipment-resource-meta">${esc(rentalModeLabel(item))}</span>
                   <span class="equipment-resource-foot">
                     <span class="equipment-resource-state" style="--resource-status:${available?"#16a34a":"#dc2626"}">${available?"Disponible":"Indisponible"}</span>
                     ${item.showDayPrice===false?"":`<span class="equipment-resource-price">${Number(item.dayPrice||0).toFixed(0)} EUR/j</span>`}
@@ -1499,34 +1824,45 @@ function EquipmentRentalsPage(){
 	      </div>`;
 	    }
 
+	    function daySlotLabel(slot){
+	      if(slot==="morning")return"Matin";
+	      if(slot==="afternoon")return"Apr\u00e8s-midi";
+	      return"Journ\u00e9e compl\u00e8te";
+	    }
+
+	    function daySlotCard(slot){
+	      var selected=selectedItem();
+	      var range=slotRange(state.focusDate,slot);
+	      var overlapping=rentalsForDay(state.focusDate).filter(function(rental){
+	        return rental.status!=="cancelled"&&overlaps(range[0],range[1],rental.startAt,rental.endAt);
+	      });
+	      var available=selected&&overlapping.length===0;
+	      var label=daySlotLabel(slot);
+	      return`<article class="equipment-day-slot-card equipment-day-slot-${slot} ${available?"is-available":"is-booked"}">
+	        <div class="equipment-day-slot-head">
+	          <div>
+	            <h3 class="equipment-day-slot-title">${esc(label)}</h3>
+	          </div>
+	        </div>
+	        <div class="equipment-day-slot-body">
+	          ${overlapping.length?`<div class="equipment-day-slot-bookings">${overlapping.map(function(rental){return dayRentalButton(rental,slot)}).join("")}</div>`:`<div class="equipment-day-slot-empty">Disponible</div>`}
+	          ${available&&hasPermission("equipment_rentals.create")?`<button type="button" class="equipment-day-slot-button" data-slot="${slot}">R\u00e9server</button>`:""}
+	        </div>
+	      </article>`;
+	    }
+
 	    function renderDay(){
-	      var hours=siteHours(activeSite());
-	      var bounds=plannerBounds();
-	      var rentals=rentalsForDay(state.focusDate);
-	      var morning=slotRange(state.focusDate,"morning");
-	      var afternoon=slotRange(state.focusDate,"afternoon");
+        var slots=rentalSlotsForItem(selectedItem());
 	      return`<div class="equipment-time-planner equipment-day-planner rounded-b-xl">
           <div class="equipment-day-hero">
             <div>
-              <p class="equipment-day-kicker">Journee</p>
+              <p class="equipment-day-kicker">Journ\u00e9e</p>
               <p class="equipment-day-date">${esc(dayFormatter.format(state.focusDate))}</p>
-              <p class="equipment-day-meta">${rentals.length} ${rentals.length>1?"locations":"location"}</p>
-            </div>
-            <div class="equipment-day-pills">
-              <span class="equipment-day-pill equipment-day-pill-morning"><i></i>Matin ${esc(hours.morningStart)}-${esc(hours.morningEnd)}</span>
-              <span class="equipment-day-pill equipment-day-pill-afternoon"><i></i>Apres-midi ${esc(hours.afternoonStart)}-${esc(hours.afternoonEnd)}</span>
+              <p class="equipment-day-meta">${esc(selectedItem()?.name||"Mat\u00e9riel")}</p>
             </div>
           </div>
-	        <div class="equipment-time-grid equipment-time-grid-day" style="--planner-columns:1">
-	          <div class="equipment-time-spacer"></div>
-	          <div class="equipment-time-header"><button type="button" data-day="${dateKey(state.focusDate)}">${esc(dayFormatter.format(state.focusDate))}<small>${esc(hours.morningStart)}-${esc(hours.afternoonEnd)}</small></button></div>
-	          ${timeAxisHtml(bounds)}
-	          <div class="equipment-time-column">
-	            ${timeLinesHtml(bounds)}
-	            ${rentals.map(function(rental){return timelineRentalCard(rental,state.focusDate)}).join("")}
-	            ${availableSlotButton("morning",morning[0],morning[1],bounds)}
-	            ${availableSlotButton("afternoon",afternoon[0],afternoon[1],bounds)}
-	          </div>
+          <div class="equipment-day-slots ${slots.length===1?"is-day-only":""}">
+	          ${slots.map(daySlotCard).join("")}
 	        </div>
 	      </div>`;
 	    }
@@ -1536,7 +1872,6 @@ function EquipmentRentalsPage(){
 	      return`<section class="card equipment-calendar-shell overflow-hidden rounded-xl" data-equipment-calendar>
         ${calendarHeader()}
         ${state.view==="month"?renderMonth():renderDay()}
-        ${periodLegendHtml()}
       </section>`;
     }
 
@@ -1614,9 +1949,12 @@ function EquipmentRentalsPage(){
     }
 
     function defaultForm(slot){
-      var selectedSlot=slot||"morning";
+      var fallbackItem=selectedItem()||allItemsForSite()[0]||null;
+      var selectedSlot=normalizeSlotForItem(slot||"morning",fallbackItem);
       var range=slotRange(state.focusDate,selectedSlot);
-      var item=selectedItem()||firstAvailableItem(range[0],range[1])||allItemsForSite()[0];
+      var item=selectedItem()||firstAvailableItem(range[0],range[1])||fallbackItem;
+      selectedSlot=normalizeSlotForItem(selectedSlot,item);
+      range=slotRange(state.focusDate,selectedSlot);
       return{
         equipmentItemId:item?.id?String(item.id):"",
         periodType:selectedSlot==="full_day"?"day":"half_day",
@@ -1633,6 +1971,7 @@ function EquipmentRentalsPage(){
 
     function openCreate(slot){
       state.notice=null;
+      state.rentalViewId=null;
       state.modal={mode:"create",form:defaultForm(slot)};
       render();
     }
@@ -1641,6 +1980,7 @@ function EquipmentRentalsPage(){
       var rental=rentalsForSite().find(function(item){return item.id===Number(id)});
       if(!rental||!canUpdate(rental))return;
       state.notice=null;
+      state.rentalViewId=null;
       state.focusDate=parseDate(rental.startAt);
       state.modal={mode:"edit",id:rental.id,form:{
         equipmentItemId:String(rental.equipmentItemId),
@@ -1657,6 +1997,16 @@ function EquipmentRentalsPage(){
       render();
     }
 
+    function openRentalView(id){
+      var rental=rentalsForSite().find(function(item){return item.id===Number(id)});
+      if(!rental)return;
+      state.notice=null;
+      state.modal=null;
+      state.itemModal=null;
+      state.rentalViewId=rental.id;
+      render();
+    }
+
     function defaultItemForm(){
       var items=allItemsForSite();
       return{
@@ -1670,6 +2020,7 @@ function EquipmentRentalsPage(){
         halfDayPrice:"0",
         dayPrice:"0",
         showDayPrice:true,
+        rentalMode:"half_day_and_day",
         depositAmount:"0",
         photoUrl:"",
         sortOrder:String((items.length+1)*10)
@@ -1678,6 +2029,7 @@ function EquipmentRentalsPage(){
 
     function openItemCreate(){
       state.notice=null;
+      state.rentalViewId=null;
       state.itemModal={mode:"create",form:defaultItemForm()};
       render();
     }
@@ -1686,6 +2038,7 @@ function EquipmentRentalsPage(){
       var item=allItemsForSite().find(function(entry){return entry.id===Number(id)});
       if(!item||!hasPermission("equipment_rentals.manage_items"))return;
       state.notice=null;
+      state.rentalViewId=null;
       state.itemModal={mode:"edit",id:item.id,form:{
         siteId:String(item.siteId),
         categoryId:item.categoryId?String(item.categoryId):"",
@@ -1697,6 +2050,7 @@ function EquipmentRentalsPage(){
         halfDayPrice:String(item.halfDayPrice??0),
         dayPrice:String(item.dayPrice??0),
         showDayPrice:item.showDayPrice!==false,
+        rentalMode:itemRentalMode(item),
         depositAmount:String(item.depositAmount??0),
         photoUrl:item.photoUrl||"",
         sortOrder:String(item.sortOrder??100)
@@ -1707,6 +2061,7 @@ function EquipmentRentalsPage(){
     function syncSlotFields(){
       if(!state.modal)return;
       var form=state.modal.form;
+      form.slot=normalizeSlotForItem(form.slot,itemById(form.equipmentItemId));
       var day=parseDate(`${form.date}T00:00`);
       var range=slotRange(day,form.slot);
       form.periodType=form.slot==="full_day"?"day":"half_day";
@@ -1719,7 +2074,9 @@ function EquipmentRentalsPage(){
       var form=state.modal.form;
       var isEdit=state.modal.mode==="edit";
       var modalItem=itemById(form.equipmentItemId)||itemsForSite()[0]||null;
-      var hours=siteHours(activeSite());
+      form.slot=normalizeSlotForItem(form.slot,modalItem);
+      var slotLabels={morning:"Matin",afternoon:"Apr\u00e8s-midi",full_day:"Journ\u00e9e"};
+      var slotOptions=rentalSlotsForItem(modalItem);
       return`<div class="equipment-modal-backdrop" data-close-modal>
         <div class="equipment-modal-panel" data-modal-panel>
           <div class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-surface-200 bg-white px-6 py-4">
@@ -1755,9 +2112,7 @@ function EquipmentRentalsPage(){
               <label class="form-field">
                 <span class="label">Creneau</span>
                 <select class="select-native input" name="slot">
-                  <option value="morning" ${form.slot==="morning"?"selected":""}>Matin (${esc(hours.morningStart)}-${esc(hours.morningEnd)})</option>
-                  <option value="afternoon" ${form.slot==="afternoon"?"selected":""}>Apres-midi (${esc(hours.afternoonStart)}-${esc(hours.afternoonEnd)})</option>
-                  <option value="full_day" ${form.slot==="full_day"?"selected":""}>Journee (${esc(hours.morningStart)}-${esc(hours.afternoonEnd)})</option>
+                  ${slotOptions.map(function(slot){return`<option value="${slot}" ${form.slot===slot?"selected":""}>${esc(slotLabels[slot]||"Journ\u00e9e")}</option>`}).join("")}
                 </select>
               </label>
             </div>
@@ -1777,6 +2132,75 @@ function EquipmentRentalsPage(){
             </label>
             <button type="submit" class="btn btn-primary btn-md w-full" ${state.saving?"disabled":""}>${state.saving?"Enregistrement...":isEdit?"Modifier la location":"Enregistrer la location"}</button>
           </form>
+        </div>
+      </div>`;
+    }
+
+    function rentalStatusLabel(status){
+      var labels={
+        reserved:"R\u00e9serv\u00e9e",
+        confirmed:"Confirm\u00e9e",
+        picked_up:"Sortie",
+        returned:"Rendue",
+        cancelled:"Annul\u00e9e"
+      };
+      return labels[status]||status||"R\u00e9serv\u00e9e";
+    }
+
+    function rentalDetailItem(label,value){
+      if(!value)return"";
+      return`<div class="equipment-rental-detail-item">
+        <p class="equipment-rental-detail-label">${esc(label)}</p>
+        <p class="equipment-rental-detail-value">${esc(value)}</p>
+      </div>`;
+    }
+
+    function rentalDetailHtml(){
+      if(!state.rentalViewId)return"";
+      var rental=rentalsForSite().find(function(item){return item.id===Number(state.rentalViewId)});
+      if(!rental)return"";
+      var item=itemById(rental.equipmentItemId);
+      var category=categoryById(item?.categoryId);
+      var periodLabel=daySlotLabel(rental.slot||"full_day");
+      var title=rental.title||"Location mat\u00e9riel";
+      var canEdit=canUpdate(rental);
+      var canRemove=canDelete(rental);
+      return`<div class="equipment-modal-backdrop" data-close-rental-view>
+        <div class="equipment-modal-panel" data-modal-panel>
+          <div class="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-surface-200 bg-white px-6 py-4">
+            <div>
+              <h2 class="heading-5 text-secondary-900">${esc(title)}</h2>
+              <p class="mt-1 text-body-sm text-secondary-500">${esc(item?.name||"Mat\u00e9riel")} - ${esc(periodLabel)}</p>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" data-close-rental>Fermer</button>
+          </div>
+          <div class="space-y-4 p-6">
+            <div class="flex items-center gap-4 rounded-xl border border-surface-200 bg-surface-50 p-4">
+              ${imageHtml(item?.photoUrl,item?.name||"Mat\u00e9riel","h-20 w-20")}
+              <div class="min-w-0">
+                <p class="heading-5 text-secondary-900">${esc(item?.name||"Mat\u00e9riel")}</p>
+                <p class="text-body-sm text-secondary-500">${esc(category?.name||item?.inventoryCode||"Location")}</p>
+                <span class="badge badge-primary mt-2">${esc(rentalStatusLabel(rental.status))}</span>
+              </div>
+            </div>
+            <div class="equipment-rental-detail-grid">
+              ${rentalDetailItem("D\u00e9but",dateFormatter.format(parseDate(rental.startAt)))}
+              ${rentalDetailItem("Fin",dateFormatter.format(parseDate(rental.endAt)))}
+              ${rentalDetailItem("Cr\u00e9neau",periodLabel)}
+              ${rentalDetailItem("Utilisateur",rental.userName||"")}
+              ${rentalDetailItem("T\u00e9l\u00e9phone",rental.contactPhone||"")}
+              ${rentalDetailItem("Statut",rentalStatusLabel(rental.status))}
+            </div>
+            ${rental.notes?`<div class="rounded-xl border border-surface-200 bg-white p-4">
+              <p class="equipment-rental-detail-label">Notes</p>
+              <p class="mt-2 whitespace-pre-wrap text-body-sm font-semibold text-secondary-700">${esc(rental.notes)}</p>
+            </div>`:""}
+            <div class="flex flex-col gap-2 border-t border-surface-200 pt-4 sm:flex-row sm:justify-end">
+              ${canRemove?`<button type="button" class="btn btn-secondary btn-sm" data-delete="${rental.id}">Supprimer</button>`:""}
+              ${canEdit?`<button type="button" class="btn btn-primary btn-sm" data-edit="${rental.id}">Modifier</button>`:""}
+              <button type="button" class="btn btn-ghost btn-sm" data-close-rental>Fermer</button>
+            </div>
+          </div>
         </div>
       </div>`;
     }
@@ -1840,6 +2264,13 @@ function EquipmentRentalsPage(){
                   <span>Afficher</span>
                 </label>
               </div>
+              <label class="form-field md:col-span-2">
+                <span class="label">Mode de location</span>
+                <select class="select-native input" name="rentalMode">
+                  <option value="half_day_and_day" ${form.rentalMode==="day_only"?"":"selected"}>Demi-journ\u00e9e + journ\u00e9e</option>
+                  <option value="day_only" ${form.rentalMode==="day_only"?"selected":""}>Journ\u00e9e uniquement</option>
+                </select>
+              </label>
               <label class="form-field">
                 <span class="label">Caution</span>
                 <input class="input" type="number" step="0.01" min="0" name="depositAmount" value="${esc(form.depositAmount)}">
@@ -1925,6 +2356,7 @@ function EquipmentRentalsPage(){
           </section>`:`${adminSection()}${resourcesSection()}${selectedItem()?calendarSection():""}`}
           ${modalHtml()}
           ${itemModalHtml()}
+          ${rentalDetailHtml()}
           ${viewAllHtml()}
         </div>
       `;
@@ -1958,6 +2390,7 @@ function EquipmentRentalsPage(){
         button.addEventListener("click",function(){
           var nextItemId=button.dataset.itemFilter?Number(button.dataset.itemFilter):null;
           state.selectedItemId=nextItemId;
+          state.rentalViewId=null;
           render();
           if(nextItemId){
             window.requestAnimationFrame(function(){
@@ -1967,8 +2400,11 @@ function EquipmentRentalsPage(){
         });
       });
       root.querySelector("[data-close-view]")?.addEventListener("click",function(){state.viewAll=false;render()});
+      root.querySelectorAll("[data-close-rental]").forEach(function(button){
+        button.addEventListener("click",function(){state.rentalViewId=null;render()});
+      });
       root.querySelectorAll("[data-close]").forEach(function(button){
-        button.addEventListener("click",function(){state.modal=null;state.itemModal=null;state.notice=null;render()});
+        button.addEventListener("click",function(){state.modal=null;state.itemModal=null;state.rentalViewId=null;state.notice=null;render()});
       });
       root.querySelector("[data-today]")?.addEventListener("click",function(){state.focusDate=new Date(now.getFullYear(),now.getMonth(),now.getDate());render()});
       root.querySelectorAll("[data-view]").forEach(function(button){
@@ -1982,6 +2418,19 @@ function EquipmentRentalsPage(){
       });
       root.querySelectorAll("[data-slot]").forEach(function(button){
         button.addEventListener("click",function(){openCreate(button.dataset.slot)});
+      });
+      root.querySelectorAll("[data-view-rental]").forEach(function(card){
+        card.addEventListener("click",function(event){
+          if(event.target.closest("[data-delete]"))return;
+          event.stopPropagation();
+          openRentalView(card.dataset.viewRental);
+        });
+        card.addEventListener("keydown",function(event){
+          if(event.key==="Enter"||event.key===" "){
+            event.preventDefault();
+            openRentalView(card.dataset.viewRental);
+          }
+        });
       });
       root.querySelectorAll("[data-edit]").forEach(function(card){
         card.addEventListener("click",function(event){
@@ -2007,19 +2456,26 @@ function EquipmentRentalsPage(){
           render();
         }
         if(field==="equipmentItemId"){
+          state.modal.form.slot=normalizeSlotForItem(state.modal.form.slot,itemById(state.modal.form.equipmentItemId));
+          syncSlotFields();
           render();
         }
       });
-      root.querySelectorAll("[data-close-modal], [data-close-view-all]").forEach(function(backdrop){
+      root.querySelectorAll("[data-close-modal], [data-close-view-all], [data-close-rental-view]").forEach(function(backdrop){
         backdrop.addEventListener("click",function(event){
           if(event.target.dataset.closeModal!==void 0){
             state.modal=null;
             state.itemModal=null;
+            state.rentalViewId=null;
             state.notice=null;
             render();
           }
           if(event.target.dataset.closeViewAll!==void 0){
             state.viewAll=false;
+            render();
+          }
+          if(event.target.dataset.closeRentalView!==void 0){
+            state.rentalViewId=null;
             render();
           }
         });
@@ -2069,6 +2525,7 @@ function EquipmentRentalsPage(){
         await api("delete_rental",{id,actorUserId:state.selectedUserId});
         state.data.equipmentRentals=state.data.equipmentRentals.filter(function(item){return item.id!==id});
         state.notice={type:"success",message:"Location supprimee."};
+        state.rentalViewId=null;
       }catch(error){
         state.notice={type:"error",message:error instanceof Error?error.message:"Impossible de supprimer la location."};
       }finally{
@@ -2098,6 +2555,7 @@ function EquipmentRentalsPage(){
       var photoFile=form.querySelector('input[name="photoFile"]')?.files?.[0]||null;
       delete payload.photoFile;
       payload.showDayPrice=form.querySelector('input[name="showDayPrice"]')?.checked?"1":"0";
+      payload.rentalMode=payload.rentalMode==="day_only"?"day_only":"half_day_and_day";
       if(photoFile)payload.photoDataUrl=await fileToDataUrl(photoFile);
       payload.actorUserId=state.selectedUserId;
       if(state.itemModal.id)payload.id=state.itemModal.id;

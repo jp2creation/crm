@@ -84,6 +84,14 @@ class CrmEquipmentItemResource extends Resource
                 Toggle::make('show_day_price')
                     ->label('Afficher le prix journee sur les cartes')
                     ->default(true),
+                Select::make('rental_mode')
+                    ->label('Mode de location')
+                    ->options([
+                        'half_day_and_day' => 'Demi-journee et journee',
+                        'day_only' => 'Journee uniquement',
+                    ])
+                    ->default('half_day_and_day')
+                    ->required(),
                 TextInput::make('deposit_amount')
                     ->label('Caution')
                     ->numeric()
@@ -118,6 +126,9 @@ class CrmEquipmentItemResource extends Resource
                 TextEntry::make('half_day_price')->label('Demi-journee')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ') . ' EUR'),
                 TextEntry::make('day_price')->label('Journee')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ') . ' EUR'),
                 IconEntry::make('show_day_price')->label('Prix affiche')->boolean(),
+                TextEntry::make('rental_mode')
+                    ->label('Mode')
+                    ->formatStateUsing(fn ($state): string => $state === 'day_only' ? 'Journee uniquement' : 'Demi-journee et journee'),
                 TextEntry::make('deposit_amount')->label('Caution')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ') . ' EUR'),
                 TextEntry::make('rentals_count')->label('Locations')->counts('rentals'),
                 TextEntry::make('description')->label('Description')->columnSpanFull(),
@@ -156,6 +167,12 @@ class CrmEquipmentItemResource extends Resource
                 IconColumn::make('show_day_price')
                     ->label('Prix carte')
                     ->boolean()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('rental_mode')
+                    ->label('Mode')
+                    ->formatStateUsing(fn ($state): string => $state === 'day_only' ? 'Journee uniquement' : 'Demi + journee')
+                    ->badge()
                     ->sortable()
                     ->toggleable(),
                 IconColumn::make('active')

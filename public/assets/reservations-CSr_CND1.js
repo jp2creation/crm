@@ -12,7 +12,7 @@ import {
     p as u,
     u as d,
     w as f,
-} from "./index-CqSzWeas.js?v=2026071016";
+} from "./index-CqSzWeas.js?v=2026071030";
 import { t as p } from "./dashboard-Chzs1W9w.js?v=2026071016";
 import {
     a as m,
@@ -194,13 +194,13 @@ function siteDaySlots(e, t) {
         },
         {
             key: `afternoon`,
-            label: `Apres-midi`,
+            label: `Apr\u00e8s-midi`,
             start: siteTime(e, n.afternoonStart),
             end: siteTime(e, n.afternoonEnd),
         },
         {
             key: `full_day`,
-            label: `Journee`,
+            label: `Journ\u00e9e`,
             start: siteTime(e, n.morningStart),
             end: siteTime(e, n.afternoonEnd),
         },
@@ -630,7 +630,7 @@ function ReservationPeriodLegend() {
 	            background: `linear-gradient(135deg,#ff8b7d 0%,#ff5e52 100%)`,
                         },
                     }),
-                    `Apres-midi`,
+                    `Apr\u00e8s-midi`,
                 ],
             }),
             (0, S.jsxs)(`span`, {
@@ -642,7 +642,7 @@ function ReservationPeriodLegend() {
 	            background: `linear-gradient(135deg,#5d7cff 0%,#3f5ee6 100%)`,
                         },
                     }),
-                    `Journee complete`,
+                    `Journ\u00e9e compl\u00e8te`,
                 ],
             }),
         ],
@@ -710,6 +710,25 @@ function ReservationTimelineStyles() {
 .reservation-day-planner .reservation-timeline-card{left:1rem;right:1rem;min-height:64px;border-radius:1rem!important;padding:.78rem 1rem .78rem 1.15rem;box-shadow:0 18px 36px rgba(15,23,42,.1)!important}
 .reservation-day-planner .reservation-available-slot{left:1rem;right:1rem;min-height:58px;border-color:rgb(var(--theme-primary)/.38);border-radius:1rem;background:rgba(255,255,255,.86);color:rgb(var(--theme-primary));box-shadow:inset 0 0 0 1px rgb(var(--theme-primary)/.08)}
 .reservation-day-planner .reservation-available-slot:hover{background:rgb(var(--theme-primary)/.08);box-shadow:0 12px 24px rgb(var(--theme-primary)/.12)}
+.reservation-day-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.reservation-day-slot-card{position:relative;display:flex;min-height:15.5rem;flex-direction:column;overflow:hidden;border:1px solid var(--slot-border,#e4e9f1);border-radius:1rem;background:var(--slot-bg,#fff);box-shadow:0 18px 42px rgba(15,23,42,.06)}
+.reservation-day-slot-card:before{content:"";position:absolute;inset:0 0 auto;height:.32rem;background:var(--slot-accent,rgb(var(--theme-primary)))}
+.reservation-day-slot-morning{--slot-accent:#10aaa4;--slot-border:#bfeee8;--slot-bg:linear-gradient(180deg,#f0fbf9 0%,#fff 62%)}
+.reservation-day-slot-afternoon{--slot-accent:#ff5e52;--slot-border:#ffd0c9;--slot-bg:linear-gradient(180deg,#fff3f1 0%,#fff 62%)}
+.reservation-day-slot-full_day{--slot-accent:#496bf1;--slot-border:#cad5ff;--slot-bg:linear-gradient(180deg,#f1f4ff 0%,#fff 62%)}
+.reservation-day-slot-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;padding:1rem 1rem .75rem}
+.reservation-day-slot-title{color:#223957;font-size:1rem;font-weight:900;line-height:1.1}
+.reservation-day-slot-hours{margin-top:.25rem;color:#526782;font-size:.78rem;font-weight:800}
+.reservation-day-slot-status{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--slot-status-border,#dbe4ef);border-radius:999px;background:#fff;padding:.35rem .55rem;color:#31435a;font-size:.68rem;font-weight:900;white-space:nowrap}
+.reservation-day-slot-status:before{content:"";height:.48rem;width:.48rem;border-radius:999px;background:var(--slot-status,#16a34a)}
+.reservation-day-slot-card.is-booked{--slot-status:#dc2626;--slot-status-border:#fecaca}
+.reservation-day-slot-body{display:flex;min-height:0;flex:1;flex-direction:column;gap:.65rem;padding:0 1rem 1rem}
+.reservation-day-slot-empty{display:flex;min-height:5.5rem;flex:1;align-items:center;justify-content:center;border:1px dashed var(--slot-border,#dbe4ef);border-radius:.85rem;background:rgba(255,255,255,.66);color:#64748b;text-align:center;font-size:.82rem;font-weight:800;line-height:1.35}
+.reservation-day-slot-bookings{display:grid;gap:.55rem}
+.reservation-day-slot-bookings .reservation-event-card{box-shadow:none!important}
+.reservation-day-slot-button{margin-top:auto;display:flex;min-height:2.85rem;width:100%;align-items:center;justify-content:center;border:0;border-radius:.85rem;background:rgb(var(--theme-primary));color:#fff;font-size:.9rem;font-weight:900;box-shadow:0 14px 26px rgb(var(--theme-primary)/.18);transition:background .15s,transform .15s,box-shadow .15s}
+.reservation-day-slot-button:hover{background:rgb(var(--theme-primary)/.92);box-shadow:0 16px 30px rgb(var(--theme-primary)/.22);transform:translateY(-1px)}
+.reservation-day-slot-note{margin-top:auto;border-radius:.75rem;background:#f8fafc;padding:.75rem;color:#64748b;text-align:center;font-size:.78rem;font-weight:800}
 .reservation-month-grid{background:#e4e9f1!important;border:1px solid #e4e9f1;overflow:hidden}
 .reservation-month-heading{background:#fff!important;color:#243957!important;letter-spacing:0}
 .reservation-month-cell{position:relative;display:flex;flex-direction:column;overflow:hidden;background:#fff!important}
@@ -745,6 +764,10 @@ function ReservationTimelineStyles() {
   .reservation-day-hero{align-items:flex-start;flex-direction:column;padding:.75rem}
   .reservation-day-pills{display:grid;width:100%;grid-template-columns:repeat(2,minmax(0,1fr));justify-content:stretch}
   .reservation-day-pill{justify-content:center;padding-inline:.45rem;font-size:.66rem}
+  .reservation-day-slots{grid-template-columns:1fr;gap:.75rem}
+  .reservation-day-slot-card{min-height:0}
+  .reservation-day-slot-head{padding:.85rem .85rem .55rem}
+  .reservation-day-slot-body{padding:0 .85rem .85rem}
   .reservation-day-planner .reservation-time-grid{--planner-height:680px;grid-template-columns:48px minmax(240px,1fr)}
   .reservation-day-planner .reservation-timeline-card,.reservation-day-planner .reservation-available-slot{left:.55rem;right:.55rem}
   .reservation-month-grid{overflow:hidden}
@@ -872,6 +895,90 @@ function ReservationAvailableSlot({ slot: e, reservations: t, vehicles: n, site:
               onClick: () => i(a, o),
               children: `Creneau disponible`,
           });
+}
+function reservationSlotTitle(e) {
+    return e === `morning`
+        ? `Matin`
+        : e === `afternoon`
+          ? `Apr\u00e8s-midi`
+          : `Journ\u00e9e compl\u00e8te`;
+}
+function ReservationDaySlot({
+    slot: e,
+    reservations: t,
+    vehicle: n,
+    site: r,
+    canEditReservation: i,
+    onEditReservation: a,
+    onSelectSlot: o,
+}) {
+    let s = D(e.start),
+        c = D(e.end),
+        l = t.filter((e) => P(s, c, e.startAt, e.endAt)),
+        u = l.length === 0,
+        d = reservationSlotTitle(e.key);
+    return (0, S.jsxs)(`article`, {
+        className: `reservation-day-slot-card reservation-day-slot-${e.key} ${u ? `is-available` : `is-booked`}`,
+        children: [
+            (0, S.jsxs)(`div`, {
+                className: `reservation-day-slot-head`,
+                children: [
+                    (0, S.jsxs)(`div`, {
+                        children: [
+                            (0, S.jsx)(`h3`, {
+                                className: `reservation-day-slot-title`,
+                                children: d,
+                            }),
+                            (0, S.jsxs)(`p`, {
+                                className: `reservation-day-slot-hours`,
+                                children: [M(s), ` - `, M(c)],
+                            }),
+                        ],
+                    }),
+                    (0, S.jsx)(`span`, {
+                        className: `reservation-day-slot-status`,
+                        children: u ? `Libre` : `Occup\u00e9`,
+                    }),
+                ],
+            }),
+            (0, S.jsxs)(`div`, {
+                className: `reservation-day-slot-body`,
+                children: [
+                    l.length
+                        ? (0, S.jsx)(`div`, {
+                              className: `reservation-day-slot-bookings`,
+                              children: l.map((e) =>
+                                  (0, S.jsx)(
+                                      R,
+                                      {
+                                          reservation: e,
+                                          vehicle: n,
+                                          site: r,
+                                          onEdit: i(e) ? () => a(e) : void 0,
+                                      },
+                                      e.id,
+                                  ),
+                              ),
+                          })
+                        : (0, S.jsx)(`div`, {
+                              className: `reservation-day-slot-empty`,
+                              children: `Disponible pour ${n?.name || `ce v\u00e9hicule`}`,
+                          }),
+                    u
+                        ? (0, S.jsx)(`button`, {
+                              type: `button`,
+                              className: `reservation-day-slot-button`,
+                              onClick: () => o(s, c),
+                              children: `R\u00e9server ${d.toLowerCase()}`,
+                          })
+                        : (0, S.jsx)(`p`, {
+                              className: `reservation-day-slot-note`,
+                              children: `Ce cr\u00e9neau chevauche d\u00e9j\u00e0 une r\u00e9servation.`,
+                          }),
+                ],
+            }),
+        ],
+    });
 }
 function z({
     view: e,
@@ -1113,9 +1220,9 @@ function V({
     onEditReservation: o,
 }) {
     let s = j(t, e),
-        l = reservationPlannerBounds(r),
-        u = siteDaySlots(e, r).filter((e) => e.key !== `full_day`),
-        f = siteHours(r);
+        l = siteDaySlots(e, r),
+        u = siteHours(r),
+        f = n[0] || null;
     return (0, S.jsxs)(`div`, {
         className: `reservation-time-planner reservation-day-planner rounded-b-xl`,
         children: [
@@ -1126,7 +1233,7 @@ function V({
                         children: [
                             (0, S.jsx)(`p`, {
                                 className: `reservation-day-kicker`,
-                                children: `Journee`,
+                                children: `Journ\u00e9e`,
                             }),
                             (0, S.jsx)(`p`, {
                                 className: `reservation-day-date`,
@@ -1136,7 +1243,8 @@ function V({
                                 className: `reservation-day-meta`,
                                 children: [
                                     s.length,
-                                    s.length > 1 ? ` reservations` : ` reservation`,
+                                    s.length > 1 ? ` reservations sur ` : ` reservation sur `,
+                                    f?.name || `le v\u00e9hicule`,
                                 ],
                             }),
                         ],
@@ -1148,66 +1256,37 @@ function V({
                                 className: `reservation-day-pill reservation-day-pill-morning`,
                                 children: [
                                     (0, S.jsx)(`i`, {}),
-                                    `Matin ${f.morningStart}-${f.morningEnd}`,
+                                    `Matin ${u.morningStart}-${u.morningEnd}`,
                                 ],
                             }),
                             (0, S.jsxs)(`span`, {
                                 className: `reservation-day-pill reservation-day-pill-afternoon`,
                                 children: [
                                     (0, S.jsx)(`i`, {}),
-                                    `Apres-midi ${f.afternoonStart}-${f.afternoonEnd}`,
+                                    `Apr\u00e8s-midi ${u.afternoonStart}-${u.afternoonEnd}`,
                                 ],
                             }),
                         ],
                     }),
                 ],
             }),
-            (0, S.jsxs)(`div`, {
-                className: `reservation-time-grid reservation-time-grid-day`,
-                style: { "--planner-columns": 1 },
-                children: [
-                    (0, S.jsx)(`div`, { className: `reservation-time-spacer` }),
-                    (0, S.jsx)(ReservationTimeHeader, {
-                        day: e,
-                        site: r,
-                        onSelectDay: () => {},
-                        showHours: !0,
-                    }),
-                    (0, S.jsx)(ReservationTimeAxis, { bounds: l }),
-                    (0, S.jsxs)(`div`, {
-                        className: `reservation-time-column`,
-                        children: [
-                            (0, S.jsx)(ReservationTimeLines, { bounds: l }),
-                            s.map((e) =>
-                                (0, S.jsx)(
-                                    ReservationTimelineCard,
-                                    {
-                                        reservation: e,
-                                        vehicle: F(n, e.vehicleId),
-                                        site: r,
-                                        day: T(e.startAt),
-                                        canEditReservation: a,
-                                        onEditReservation: o,
-                                    },
-                                    e.id,
-                                ),
-                            ),
-                            u.map((e) =>
-                                (0, S.jsx)(
-                                    ReservationAvailableSlot,
-                                    {
-                                        slot: e,
-                                        reservations: s,
-                                        vehicles: n,
-                                        site: r,
-                                        onSelectSlot: i,
-                                    },
-                                    e.key,
-                                ),
-                            ),
-                        ],
-                    }),
-                ],
+            (0, S.jsx)(`div`, {
+                className: `reservation-day-slots`,
+                children: l.map((e) =>
+                    (0, S.jsx)(
+                        ReservationDaySlot,
+                        {
+                            slot: e,
+                            reservations: s,
+                            vehicle: f,
+                            site: r,
+                            canEditReservation: a,
+                            onEditReservation: o,
+                            onSelectSlot: i,
+                        },
+                        e.key,
+                    ),
+                ),
             }),
         ],
     });

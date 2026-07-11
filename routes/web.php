@@ -61,6 +61,10 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::middleware('auth')->group(function (): void {
     Route::view('/', 'crm')->name('crm.home');
     Route::view('/conges', 'crm')->name('crm.conges');
+    Route::view('/pages-crm', 'crm-pages')->name('crm.pages');
+    Route::view('/pages-crm/{slug}', 'crm-pages')
+        ->where('slug', '[A-Za-z0-9_-]+')
+        ->name('crm.pages.show');
 
     Route::view('/{path}', 'crm')
         ->where('path', '^(?!admin(?:/|$)|api(?:/|$)|assets(?:/|$)|build(?:/|$)|filament(?:/|$)|livewire(?:/|$)|storage(?:/|$)|up$).*$')
