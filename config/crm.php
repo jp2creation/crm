@@ -15,6 +15,18 @@ return [
         'throttle_per_minute' => (int) env('CRM_LOGIN_THROTTLE_PER_MINUTE', 10),
     ],
 
+    'compression' => [
+        'enabled' => env('CRM_RESPONSE_COMPRESSION_ENABLED', true),
+        'min_bytes' => (int) env('CRM_RESPONSE_COMPRESSION_MIN_BYTES', 1024),
+        'level' => (int) env('CRM_RESPONSE_COMPRESSION_LEVEL', 6),
+    ],
+
+    'backup' => [
+        'disk' => env('CRM_BACKUP_DISK', 'local'),
+        'path' => env('CRM_BACKUP_PATH', 'backups/database'),
+        'keep' => (int) env('CRM_BACKUP_KEEP', 14),
+    ],
+
     'admin_password' => [
         'min_length' => (int) env('CRM_ADMIN_PASSWORD_MIN', 12),
         'hash_rounds' => (int) env('CRM_ADMIN_HASH_ROUNDS', env('BCRYPT_ROUNDS', 12)),

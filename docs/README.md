@@ -158,6 +158,8 @@ sequenceDiagram
 - Le cache applicatif utilise le store configure par `CACHE_STORE`.
 - Les categories materiel actives sont mises en cache et invalidees lors des modifications.
 - Les routes API CRM utilisent `CRM_API_THROTTLE_PER_MINUTE`; login web et token mobile utilisent `CRM_LOGIN_THROTTLE_PER_MINUTE`.
+- Les reponses JSON API peuvent etre compressees en gzip via `CRM_RESPONSE_COMPRESSION_ENABLED`.
+- Les sauvegardes SQL locales sont ecrites par `backup:run` dans `CRM_BACKUP_PATH` sur `CRM_BACKUP_DISK`.
 - Le developpement local peut utiliser Sail via `docker-compose.yml`.
 - La CI GitHub lance Pint, le build Vite et les tests sur PHP 8.3.
 
@@ -172,6 +174,10 @@ Le scheduler Laravel doit etre execute toutes les minutes par cron :
 Taches actuellement planifiees :
 
 - `sanctum:prune-expired --hours=24`, chaque jour a `02:15`.
+- `backup:run --quiet`, chaque jour a `02:30`.
+
+Les sauvegardes locales par defaut sont conservees dans `storage/app/private/backups/database`.
+Pour un stockage externe, configurer un disque S3 puis passer `CRM_BACKUP_DISK=s3` et un chemin dedie.
 
 ## Deploiement
 
@@ -187,6 +193,8 @@ php artisan view:cache
 php artisan view:clear
 php artisan test
 ```
+
+Quand le nombre de migrations deviendra trop couteux pour les environnements de test, generer un schema dump avec `php artisan schema:dump` depuis une base propre et versionner le fichier genere.
 
 ## Releases
 

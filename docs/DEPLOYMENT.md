@@ -36,6 +36,7 @@ php artisan migrate --force
 ```bash
 php artisan optimize:clear
 php artisan optimize
+php artisan view:cache
 ```
 
 7. Verifier les pages critiques :
@@ -46,6 +47,13 @@ php artisan optimize
 - `/locations-materiel`
 - `/admin`
 - `/api/conges.php?action=bootstrap`
+
+8. Verifier le scheduler et declencher un backup de controle si besoin :
+
+```bash
+php artisan schedule:list
+php artisan backup:run
+```
 
 ## Regle importante
 

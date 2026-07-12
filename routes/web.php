@@ -10,72 +10,77 @@ use App\Http\Controllers\Crm\ReservationApiController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
+$crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
+$crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
+$crmLoginApiMiddleware = ['throttle:crm-login', 'crm.compress'];
+
 Route::options('/api/mobile/{path}', [MobileAuthController::class, 'options'])
+    ->middleware('crm.compress')
     ->where('path', '.*')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.options');
 
 Route::post('/api/mobile/token', [MobileAuthController::class, 'token'])
-    ->middleware('throttle:crm-login')
+    ->middleware($crmLoginApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.token');
 
 Route::get('/api/mobile/me', [MobileAuthController::class, 'me'])
-    ->middleware(['auth:sanctum', 'throttle:crm-api'])
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware])
     ->name('crm.api.mobile.me');
 
 Route::post('/api/mobile/logout', [MobileAuthController::class, 'logout'])
-    ->middleware(['auth:sanctum', 'throttle:crm-api'])
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.logout');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges', LeaveApiController::class)
-    ->middleware('throttle:crm-api')
+    ->middleware($crmApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.conges');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges.php', LeaveApiController::class)
-    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
+    ->middleware($crmLegacyApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.conges.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages', PageApiController::class)
-    ->middleware('throttle:crm-api')
+    ->middleware($crmApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.pages');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages.php', PageApiController::class)
-    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
+    ->middleware($crmLegacyApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.pages.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations', ReservationApiController::class)
-    ->middleware('throttle:crm-api')
+    ->middleware($crmApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.reservations');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations.php', ReservationApiController::class)
-    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
+    ->middleware($crmLegacyApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.reservations.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals', EquipmentRentalApiController::class)
-    ->middleware('throttle:crm-api')
+    ->middleware($crmApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipment-rentals');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals.php', EquipmentRentalApiController::class)
-    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
+    ->middleware($crmLegacyApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipment-rentals.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration', AdministrationApiController::class)
-    ->middleware('throttle:crm-api')
+    ->middleware($crmApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.administration');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration.php', AdministrationApiController::class)
-    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
+    ->middleware($crmLegacyApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.administration.legacy');
 

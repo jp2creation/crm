@@ -27,6 +27,9 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Throttles Laravel explicites pour les routes API CRM, token mobile et login web.
 - Canal de log `horizon` en rotation quotidienne.
 - Nettoyage automatique des anciennes entrees de menu issues du template UI.
+- Middleware de compression gzip pour les reponses API JSON.
+- Commande `backup:run` et planification quotidienne des sauvegardes SQL compressees.
+- Page maintenance `503` personnalisee.
 
 ### Changed
 
@@ -44,6 +47,7 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Le projet exige maintenant PHP 8.3 minimum, aligne avec l'hebergement Planethoster.
 - Les reservations vehicules et locations materiel refusent maintenant les dates passees.
 - Le menu CRM se limite aux modules reels : applications metier, administration/interne et pages internes seulement si elles existent.
+- La documentation de deploiement rappelle la generation du cache vues et le controle du scheduler.
 
 ### Removed
 

@@ -250,6 +250,8 @@ Verifier ensuite :
 - `CRM_ADMIN_PASSWORD_MIN`, `CRM_ADMIN_HASH_ROUNDS` : politique de mot de passe admin.
 - `CRM_API_THROTTLE_PER_MINUTE` : limite minute des API CRM Laravel.
 - `CRM_LOGIN_THROTTLE_PER_MINUTE` : limite minute du login web et du token mobile.
+- `CRM_RESPONSE_COMPRESSION_*` : activation, taille minimale et niveau gzip des reponses API.
+- `CRM_BACKUP_DISK`, `CRM_BACKUP_PATH`, `CRM_BACKUP_KEEP` : destination et retention des sauvegardes SQL.
 - `CRM_TRUST_LARAVEL_SESSION` : autorise les API CRM a utiliser la session Laravel.
 - `CRM_ALLOW_LEGACY_ACTOR_IMPERSONATION` : compatibilite legacy, a garder desactivee sauf besoin controle.
 - `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS` : duree des tokens mobiles.

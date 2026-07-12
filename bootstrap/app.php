@@ -1,7 +1,9 @@
 <?php
 
+use App\Console\Commands\BackupDatabaseCommand;
 use App\Console\Commands\EnsureCrmAdminCommand;
 use App\Http\Middleware\AuditLegacyPhpApi;
+use App\Http\Middleware\CompressResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,10 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withCommands([
+        BackupDatabaseCommand::class,
         EnsureCrmAdminCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'crm.compress' => CompressResponse::class,
             'crm.legacy_php_api' => AuditLegacyPhpApi::class,
         ]);
     })

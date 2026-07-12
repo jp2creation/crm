@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::command('sanctum:prune-expired --hours=24')
     ->dailyAt('02:15')
     ->withoutOverlapping();
+
+Schedule::command('backup:run --quiet')
+    ->dailyAt('02:30')
+    ->withoutOverlapping();
