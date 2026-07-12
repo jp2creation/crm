@@ -73,7 +73,7 @@ erDiagram
 - `crm_leave_employees`, `crm_leave_entries` : profils conges et absences.
 - `crm_menu_groups`, `crm_menu_items` : structure du menu.
 - `crm_pages` : pages internes administrables.
-- `crm_logs` : journal metier.
+- `crm_logs` : journal metier des actions critiques, alimente par `CrmActivityLogger`.
 - `personal_access_tokens` : tokens Sanctum mobile.
 
 ## Flux principaux
@@ -156,6 +156,8 @@ sequenceDiagram
 - Les logs Laravel utilisent le canal `daily`, avec `LOG_DAILY_DAYS=30`.
 - Le cache applicatif utilise le store configure par `CACHE_STORE`.
 - Les categories materiel actives sont mises en cache et invalidees lors des modifications.
+- Le developpement local peut utiliser Sail via `docker-compose.yml`.
+- La CI GitHub lance Pint, le build Vite et les tests sur PHP 8.3.
 
 ## Scheduler
 

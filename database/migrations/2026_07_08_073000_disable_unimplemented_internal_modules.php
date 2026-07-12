@@ -22,7 +22,7 @@ return new class extends Migration
 
         DB::table('crm_menu_items')
             ->whereIn('item_key', array_map(
-                static fn (string $slug): string => 'module:' . $slug,
+                static fn (string $slug): string => 'module:'.$slug,
                 self::UNIMPLEMENTED_MODULES,
             ))
             ->update([
@@ -42,7 +42,7 @@ return new class extends Migration
 
         DB::table('crm_menu_items')
             ->whereIn('item_key', array_map(
-                static fn (string $slug): string => 'module:' . $slug,
+                static fn (string $slug): string => 'module:'.$slug,
                 self::UNIMPLEMENTED_MODULES,
             ))
             ->update([

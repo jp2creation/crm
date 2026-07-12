@@ -4,7 +4,7 @@ Ce document decrit l'installation locale et les commandes utiles pour preparer u
 
 ## Prerequis
 
-- PHP 8.2 ou superieur avec les extensions usuelles Laravel.
+- PHP 8.3 ou superieur avec les extensions usuelles Laravel.
 - Composer.
 - Node.js et npm.
 - MySQL ou MariaDB.
@@ -104,6 +104,36 @@ php artisan serve
 ```
 
 L'application sera disponible sur `http://127.0.0.1:8000`.
+
+## Installation Docker avec Sail
+
+Le projet fournit `docker-compose.yml` avec PHP 8.3, MySQL, Redis et Mailpit :
+
+```bash
+cp .env.example .env
+composer install
+```
+
+Adapter le `.env` local pour Sail :
+
+```dotenv
+DB_HOST=mysql
+DB_USERNAME=sail
+DB_PASSWORD=password
+```
+
+Puis lancer la stack :
+
+```bash
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail artisan db:seed
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run dev
+```
+
+L'application est disponible sur `http://localhost` et Mailpit sur `http://localhost:8025`.
 
 ## Developpement
 
@@ -222,6 +252,15 @@ Verifier ensuite :
 - `CRM_ALLOW_LEGACY_ACTOR_IMPERSONATION` : compatibilite legacy, a garder desactivee sauf besoin controle.
 - `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS` : duree des tokens mobiles.
 - `CORS_ALLOWED_ORIGINS` : origins autorisees pour l'API mobile et les appels `api/*`.
+
+## CI/CD
+
+Le workflow GitHub Actions `.github/workflows/ci.yml` execute a chaque push ou pull request :
+
+- installation Composer et npm
+- Pint en mode verification
+- build Vite
+- tests Laravel sur PHP 8.3.
 
 ## Depannage
 

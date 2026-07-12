@@ -174,6 +174,42 @@ class CrmLeaveApiTest extends TestCase
             ->assertJsonPath('error', 'Un conge existe deja sur cette periode');
     }
 
+    public function test_leave_creation_and_deletion_are_written_to_activity_log(): void
+    {
+        [$account, $crmUser, , $employee] = $this->createCrmUser(canManage: true);
+
+        $leaveId = $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', [
+                'employeeId' => $employee->id,
+                'startDate' => '2026-08-18',
+                'endDate' => '2026-08-18',
+                'type' => 'conge',
+                'period' => 'full',
+                'status' => 'approved',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->json('leave.id');
+
+        $this->assertDatabaseHas('crm_logs', [
+            'user_id' => $crmUser->id,
+            'action' => 'creation conge',
+            'details' => "Conge #{$leaveId} - {$employee->name} - 2026-08-18 au 2026-08-18",
+        ]);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=delete_leave', ['id' => $leaveId])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('deleted', true);
+
+        $this->assertDatabaseHas('crm_logs', [
+            'user_id' => $crmUser->id,
+            'action' => 'suppression conge',
+            'details' => "Conge #{$leaveId} - {$employee->name}",
+        ]);
+    }
+
     /**
      * @return array{0: User, 1: CrmUser, 2: CrmSite, 3: CrmLeaveEmployee}
      */

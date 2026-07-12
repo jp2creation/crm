@@ -20,7 +20,7 @@ Ce depot contient l'application Laravel qui remplace les anciens endpoints PHP d
 
 ## Stack technique
 
-- PHP 8.2+
+- PHP 8.3+
 - Laravel 12
 - Filament 5
 - Laravel Sanctum
@@ -79,6 +79,22 @@ Creer ou mettre a jour le compte admin avec une saisie masquee :
 php artisan crm:admin --email=admin@crm.jp2.fr --name="Administrateur"
 ```
 
+### Demarrage Docker
+
+Une stack Laravel Sail est disponible pour travailler sans configuration PHP locale :
+
+```bash
+cp .env.example .env
+composer install
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan key:generate
+./vendor/bin/sail artisan migrate
+./vendor/bin/sail npm install
+./vendor/bin/sail npm run dev
+```
+
+Pour Sail, mettre `DB_HOST=mysql`, `DB_USERNAME=sail` et `DB_PASSWORD=password` dans le `.env` local.
+
 ## Verification
 
 ```bash
@@ -107,3 +123,4 @@ Regle importante : les fichiers de `public/assets` sont des sorties compilees. U
 - Creer l'admin via `php artisan crm:admin`; ne pas stocker de mot de passe admin dans `.env.example`.
 - Desactiver les options legacy d'impersonation sauf besoin explicite.
 - L'API mobile utilise Sanctum et des tokens Bearer ; leur duree est pilotee par `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS`.
+- Les actions critiques CRM sont journalisees dans `crm_logs`.

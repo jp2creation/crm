@@ -9,6 +9,11 @@ final class CrmAsset
      */
     private static ?array $manifest = null;
 
+    /**
+     * @var array<string, string|null>
+     */
+    private static array $importVersions = [];
+
     public static function url(string $path): string
     {
         $path = ltrim($path, '/');
@@ -22,8 +27,11 @@ final class CrmAsset
         $version = config('crm.assets.version');
 
         if (! $version) {
-            $fullPath = public_path($path);
-            $version = is_file($fullPath) ? (string) filemtime($fullPath) : null;
+            $version = self::importVersion($path);
+        }
+
+        if (! $version) {
+            $version = self::fileVersion($path);
         }
 
         if (! $version) {
@@ -53,6 +61,55 @@ final class CrmAsset
         }
 
         return null;
+    }
+
+    private static function fileVersion(string $path): ?string
+    {
+        $fullPath = public_path($path);
+
+        return is_file($fullPath) ? (string) filemtime($fullPath) : null;
+    }
+
+    private static function importVersion(string $path): ?string
+    {
+        $directory = trim(str_replace('\\', '/', dirname($path)), '.');
+
+        if ($directory === '') {
+            return null;
+        }
+
+        $basename = basename($path);
+        $cacheKey = $directory.'/'.$basename;
+
+        if (array_key_exists($cacheKey, self::$importVersions)) {
+            return self::$importVersions[$cacheKey];
+        }
+
+        $assetDirectory = public_path($directory);
+
+        if (! is_dir($assetDirectory)) {
+            return self::$importVersions[$cacheKey] = null;
+        }
+
+        $pattern = '#[\\\'"]\\./'.preg_quote($basename, '#').'\\?v=([^\\\'"]+)#';
+
+        foreach (glob($assetDirectory.'/*.js') ?: [] as $assetPath) {
+            if (! is_file($assetPath) || basename($assetPath) === $basename) {
+                continue;
+            }
+
+            $contents = file_get_contents($assetPath);
+
+            if (! is_string($contents) || $contents === '') {
+                continue;
+            }
+
+            if (preg_match($pattern, $contents, $matches) === 1) {
+                return self::$importVersions[$cacheKey] = $matches[1];
+            }
+        }
+
+        return self::$importVersions[$cacheKey] = null;
     }
 
     /**

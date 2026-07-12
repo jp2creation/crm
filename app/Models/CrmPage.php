@@ -49,8 +49,8 @@ class CrmPage extends Model
         static::deleting(function (CrmPage $page): void {
             CrmMenuItem::query()
                 ->whereIn('item_key', [
-                    'cms-page:' . $page->slug,
-                    'cms-page:' . ($page->getOriginal('slug') ?: $page->slug),
+                    'cms-page:'.$page->slug,
+                    'cms-page:'.($page->getOriginal('slug') ?: $page->slug),
                 ])
                 ->delete();
         });
@@ -78,11 +78,11 @@ class CrmPage extends Model
         $oldSlug = $page->getOriginal('slug') ?: $page->slug;
         if ($oldSlug !== $page->slug) {
             CrmMenuItem::query()
-                ->where('item_key', 'cms-page:' . $oldSlug)
+                ->where('item_key', 'cms-page:'.$oldSlug)
                 ->delete();
         }
 
-        $menuItem = CrmMenuItem::firstOrNew(['item_key' => 'cms-page:' . $page->slug]);
+        $menuItem = CrmMenuItem::firstOrNew(['item_key' => 'cms-page:'.$page->slug]);
         $menuItem->fill([
             'group_key' => 'pages',
             'icon_key' => $page->icon_key ?: 'article',
@@ -95,6 +95,6 @@ class CrmPage extends Model
 
     public function getRoutePathAttribute(): string
     {
-        return '/pages-crm/' . $this->slug;
+        return '/pages-crm/'.$this->slug;
     }
 }

@@ -19,6 +19,10 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Commande Artisan `crm:admin` pour creer ou mettre a jour l'administrateur sans mot de passe dans `.env.example`.
 - Configuration CORS explicite pour les routes `api/*`, dont `api/mobile/*` et les origins Capacitor/Ionic.
 - Tests unitaires de la politique de mot de passe admin.
+- Detection automatique de la version des bundles importes par les chunks CRM pour eviter le double chargement de React.
+- Stack Docker Sail PHP 8.3 avec MySQL, Redis et Mailpit.
+- Workflow GitHub Actions pour Pint, build Vite et tests Laravel en PHP 8.3.
+- `CrmActivityLogger` centralise pour journaliser les actions critiques dans `crm_logs`.
 
 ### Changed
 
@@ -31,6 +35,9 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Les conflits de conges utilisent un service metier testable au lieu d'une logique uniquement portee par la requete SQL.
 - Les erreurs de validation des `FormRequest` API CRM retournent maintenant le statut HTTP `422`.
 - Le seeder ne bloque plus l'installation si aucun mot de passe admin n'est fourni ; l'admin se gere via `php artisan crm:admin`.
+- Les assets CRM generes par Laravel utilisent la meme query string que les imports Vite existants, ce qui corrige les pages blanches au rafraichissement.
+- Les creations et suppressions de conges sont maintenant tracees dans le journal CRM.
+- Le projet exige maintenant PHP 8.3 minimum, aligne avec l'hebergement Planethoster.
 
 ### Removed
 

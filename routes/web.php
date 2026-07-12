@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\Crm\AuthController;
 use App\Http\Controllers\Crm\AdministrationApiController;
+use App\Http\Controllers\Crm\AuthController;
 use App\Http\Controllers\Crm\EquipmentRentalApiController;
 use App\Http\Controllers\Crm\LeaveApiController;
 use App\Http\Controllers\Crm\MobileAuthController;

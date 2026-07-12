@@ -22,7 +22,10 @@ class LeaveService
 
     private const STATUSES = ['approved', 'planned', 'pending', 'refused'];
 
-    public function __construct(private readonly ReservationConflictQuery $conflicts) {}
+    public function __construct(
+        private readonly ReservationConflictQuery $conflicts,
+        private readonly CrmActivityLogger $activity,
+    ) {}
 
     public function actorForUser(User $user): CrmUser
     {
@@ -167,6 +170,12 @@ class LeaveService
             ]);
             $entry->save();
 
+            $this->activity->log(
+                $actor,
+                $id > 0 ? 'modification conge' : 'creation conge',
+                "Conge #{$entry->id} - {$employee->name} - {$startDate} au {$endDate}",
+            );
+
             return ['ok' => true, 'leave' => $this->entryRow($entry->refresh()->load('employee'))];
         });
     }
@@ -198,6 +207,8 @@ class LeaveService
             $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
 
             $entry->delete();
+
+            $this->activity->log($actor, 'suppression conge', "Conge #{$id} - {$employee->name}");
 
             return ['ok' => true, 'deleted' => true];
         });

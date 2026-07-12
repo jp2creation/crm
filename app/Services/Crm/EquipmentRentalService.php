@@ -21,7 +21,10 @@ use Throwable;
 
 class EquipmentRentalService
 {
-    public function __construct(private readonly ReservationConflictQuery $conflicts) {}
+    public function __construct(
+        private readonly ReservationConflictQuery $conflicts,
+        private readonly CrmActivityLogger $activity,
+    ) {}
 
     public function actorForUser(User $user): CrmUser
     {
@@ -883,14 +886,7 @@ class EquipmentRentalService
 
     private function log(CrmUser $actor, string $action, string $details = ''): void
     {
-        DB::table('crm_logs')->insert([
-            'user_id' => $actor->id,
-            'user_name' => $actor->name,
-            'action' => $action,
-            'details' => $details,
-            'created_at' => now(),
-            'ip' => request()->ip() ?? '',
-        ]);
+        $this->activity->log($actor, $action, $details);
     }
 
     private function fail(string $message, int $status): never

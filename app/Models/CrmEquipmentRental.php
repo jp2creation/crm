@@ -13,8 +13,11 @@ class CrmEquipmentRental extends Model
     protected $table = 'crm_equipment_rentals';
 
     public const STATUS_RESERVED = 'reserved';
+
     public const STATUS_PICKED_UP = 'picked_up';
+
     public const STATUS_RETURNED = 'returned';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
