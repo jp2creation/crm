@@ -27,6 +27,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 use UnitEnum;
@@ -113,6 +114,8 @@ class CrmUserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->with(['account:id,email']))
             ->columns([
                 TextColumn::make('name')
                     ->label('Nom')

@@ -33,6 +33,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges', LeaveApiController::clas
     ->name('crm.api.conges');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges.php', LeaveApiController::class)
+    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.conges.legacy');
 
@@ -41,6 +42,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages', PageApiController::class)
     ->name('crm.api.pages');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages.php', PageApiController::class)
+    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.pages.legacy');
 
@@ -49,6 +51,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations', ReservationApiCont
     ->name('crm.api.reservations');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations.php', ReservationApiController::class)
+    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.reservations.legacy');
 
@@ -57,6 +60,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals', EquipmentRent
     ->name('crm.api.equipment-rentals');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals.php', EquipmentRentalApiController::class)
+    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipment-rentals.legacy');
 
@@ -65,6 +69,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration', AdministrationAp
     ->name('crm.api.administration');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration.php', AdministrationApiController::class)
+    ->middleware(['crm.legacy_php_api', 'throttle:crm-legacy-api'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.administration.legacy');
 

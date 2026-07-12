@@ -8,6 +8,7 @@ use App\Models\CrmModule;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
+use App\Queries\Crm\ReservationConflictQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -20,6 +21,8 @@ class LeaveService
     private const PERIODS = ['full', 'morning', 'afternoon'];
 
     private const STATUSES = ['approved', 'planned', 'pending', 'refused'];
+
+    public function __construct(private readonly ReservationConflictQuery $conflicts) {}
 
     public function actorForUser(User $user): CrmUser
     {
@@ -143,15 +146,7 @@ class LeaveService
                 $this->requireEmployeeSiteAccess($actor, $currentEmployee, $siteId);
             }
 
-            $conflictExists = CrmLeaveEntry::query()
-                ->where('employee_id', $employeeId)
-                ->when($id > 0, fn ($query) => $query->whereKeyNot($id))
-                ->where('end_date', '>=', $startDate)
-                ->where('start_date', '<=', $endDate)
-                ->lockForUpdate()
-                ->exists();
-
-            if ($conflictExists) {
+            if ($this->conflicts->leaveOverlaps($employeeId, $startDate, $endDate, $id > 0 ? $id : null)) {
                 $this->fail('Un conge existe deja sur cette periode', 409);
             }
 

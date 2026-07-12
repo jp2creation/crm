@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Crm;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Crm\MobileTokenRequest;
 use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -20,13 +21,9 @@ class MobileAuthController extends Controller
         return $this->json(['ok' => true]);
     }
 
-    public function token(Request $request): JsonResponse
+    public function token(MobileTokenRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-            'device_name' => ['required', 'string', 'max:120'],
-        ]);
+        $data = $request->validated();
 
         $throttleKey = $this->throttleKey($request);
 

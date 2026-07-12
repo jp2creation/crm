@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Crm;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Crm\CrmApiRequest;
 use App\Services\Crm\LeaveService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class LeaveApiController extends Controller
 {
-    public function __invoke(Request $request, LeaveService $leaves): JsonResponse
+    public function __invoke(CrmApiRequest $request, LeaveService $leaves): JsonResponse
     {
         if ($request->isMethod('OPTIONS')) {
             return $this->json(['ok' => true]);
@@ -26,9 +26,9 @@ class LeaveApiController extends Controller
             }
 
             $actor = $leaves->actorForUser($user);
-            $action = (string) $request->query('action', 'bootstrap');
-            $body = $this->body($request);
-            $siteId = $this->siteId($request, $body);
+            $action = $request->action();
+            $body = $request->body();
+            $siteId = $request->siteId($body);
 
             if ($siteId && ! array_key_exists('siteId', $body) && ! array_key_exists('site_id', $body)) {
                 $body['siteId'] = $siteId;
@@ -50,30 +50,6 @@ class LeaveApiController extends Controller
                 'error' => config('app.debug') ? $error->getMessage() : 'Erreur API conges',
             ], 500);
         }
-    }
-
-    private function body(Request $request): array
-    {
-        $json = $request->json()->all();
-
-        if ($json !== []) {
-            return $json;
-        }
-
-        return $request->request->all();
-    }
-
-    private function siteId(Request $request, array $body): ?int
-    {
-        $value = $request->query('siteId')
-            ?? $request->query('site_id')
-            ?? $body['siteId']
-            ?? $body['site_id']
-            ?? null;
-
-        $siteId = (int) $value;
-
-        return $siteId > 0 ? $siteId : null;
     }
 
     private function json(array $data, int $status = 200): JsonResponse

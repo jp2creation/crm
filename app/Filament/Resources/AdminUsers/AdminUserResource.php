@@ -18,6 +18,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\Rules\Password;
 use UnitEnum;
 
 class AdminUserResource extends Resource
@@ -56,6 +58,10 @@ class AdminUserResource extends Resource
                     ->revealable()
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->dehydrated(fn (?string $state): bool => filled($state))
+                    ->rule(fn (): Password => Password::min(max(12, (int) config('crm.admin_password.min_length', 12)))
+                        ->mixedCase()
+                        ->numbers()
+                        ->symbols())
                     ->maxLength(255),
                 Select::make('roles')
                     ->label('Roles')
@@ -83,6 +89,7 @@ class AdminUserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('roles:id,name'))
             ->columns([
                 TextColumn::make('name')
                     ->label('Nom')

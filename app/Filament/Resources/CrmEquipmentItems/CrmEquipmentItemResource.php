@@ -12,8 +12,8 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\ColorPicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\ColorEntry;
 use Filament\Infolists\Components\IconEntry;
@@ -27,6 +27,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use UnitEnum;
 
 class CrmEquipmentItemResource extends Resource
@@ -123,13 +124,13 @@ class CrmEquipmentItemResource extends Resource
                 TextEntry::make('category.name')->label('Categorie')->placeholder('-'),
                 ColorEntry::make('color')->label('Couleur'),
                 IconEntry::make('active')->label('Actif')->boolean(),
-                TextEntry::make('half_day_price')->label('Demi-journee')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ') . ' EUR'),
-                TextEntry::make('day_price')->label('Journee')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ') . ' EUR'),
+                TextEntry::make('half_day_price')->label('Demi-journee')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ').' EUR'),
+                TextEntry::make('day_price')->label('Journee')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ').' EUR'),
                 IconEntry::make('show_day_price')->label('Prix affiche')->boolean(),
                 TextEntry::make('rental_mode')
                     ->label('Mode')
                     ->formatStateUsing(fn ($state): string => $state === 'day_only' ? 'Journee uniquement' : 'Demi-journee et journee'),
-                TextEntry::make('deposit_amount')->label('Caution')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ') . ' EUR'),
+                TextEntry::make('deposit_amount')->label('Caution')->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ').' EUR'),
                 TextEntry::make('rentals_count')->label('Locations')->counts('rentals'),
                 TextEntry::make('description')->label('Description')->columnSpanFull(),
             ])
@@ -139,6 +140,8 @@ class CrmEquipmentItemResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                ->with(['category:id,name', 'site:id,name']))
             ->columns([
                 TextColumn::make('name')
                     ->label('Nom')
@@ -162,7 +165,7 @@ class CrmEquipmentItemResource extends Resource
                     ->label('Couleur'),
                 TextColumn::make('day_price')
                     ->label('Journee')
-                    ->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ') . ' EUR')
+                    ->formatStateUsing(fn ($state): string => number_format((float) $state, 2, ',', ' ').' EUR')
                     ->sortable(),
                 IconColumn::make('show_day_price')
                     ->label('Prix carte')

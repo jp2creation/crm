@@ -12,8 +12,8 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -113,6 +113,11 @@ class CrmEquipmentRentalResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with([
+                'equipmentItem:id,name',
+                'site:id,name',
+                'user:id,name',
+            ]))
             ->columns([
                 TextColumn::make('equipmentItem.name')
                     ->label('Materiel')

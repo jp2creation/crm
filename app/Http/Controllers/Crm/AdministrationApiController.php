@@ -3,23 +3,23 @@
 namespace App\Http\Controllers\Crm;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Crm\CrmApiRequest;
 use App\Services\Crm\AdministrationService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
 
 class AdministrationApiController extends Controller
 {
-    public function __invoke(Request $request, AdministrationService $administration): JsonResponse
+    public function __invoke(CrmApiRequest $request, AdministrationService $administration): JsonResponse
     {
         if ($request->isMethod('OPTIONS')) {
             return $this->json(['ok' => true]);
         }
 
         try {
-            $action = (string) $request->query('action', 'bootstrap');
+            $action = $request->action();
 
             if ($action === 'health') {
                 return $this->json(['ok' => true, 'mode' => 'laravel']);
@@ -33,7 +33,7 @@ class AdministrationApiController extends Controller
             }
 
             $actor = $administration->actorForUser($user);
-            $body = $this->body($request);
+            $body = $request->body();
 
             return match ($action) {
                 'profile' => $this->json($administration->profile($actor)),
@@ -59,17 +59,6 @@ class AdministrationApiController extends Controller
                 'error' => config('app.debug') ? $error->getMessage() : 'Erreur API administration',
             ], 500);
         }
-    }
-
-    private function body(Request $request): array
-    {
-        $json = $request->json()->all();
-
-        if ($json !== []) {
-            return $json;
-        }
-
-        return $request->request->all();
     }
 
     private function json(array $data, int $status = 200): JsonResponse

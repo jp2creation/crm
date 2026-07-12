@@ -91,6 +91,11 @@ La procedure de reference est dans [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 Regle importante : les fichiers de `public/assets` sont des sorties compilees. Une correction durable doit etre faite dans les sources applicatives puis reconstruite.
 
+## Documentation
+
+- Architecture, schema ER et flux principaux : [docs/README.md](docs/README.md)
+- Historique des changements : [CHANGELOG.md](CHANGELOG.md)
+
 ## Securite
 
 - Ne jamais commiter `.env`, tokens, exports de base de donnees ou logs.

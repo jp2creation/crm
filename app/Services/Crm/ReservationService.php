@@ -8,6 +8,7 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
+use App\Queries\Crm\ReservationConflictQuery;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -17,6 +18,8 @@ use Throwable;
 
 class ReservationService
 {
+    public function __construct(private readonly ReservationConflictQuery $conflicts) {}
+
     public function actorForUser(User $user): CrmUser
     {
         $actor = CrmUser::query()
@@ -362,15 +365,7 @@ class ReservationService
 
     private function requireNoReservationConflict(int $vehicleId, string $startAt, string $endAt, ?int $ignoreId = null): void
     {
-        $conflictExists = CrmReservation::query()
-            ->where('vehicle_id', $vehicleId)
-            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
-            ->where('end_at', '>', $startAt)
-            ->where('start_at', '<', $endAt)
-            ->lockForUpdate()
-            ->exists();
-
-        if ($conflictExists) {
+        if ($this->conflicts->vehicleOverlaps($vehicleId, $startAt, $endAt, $ignoreId)) {
             $this->fail('Le vehicule est deja reserve sur ce creneau', 409);
         }
     }

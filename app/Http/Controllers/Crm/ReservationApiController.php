@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Crm;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Crm\CrmApiRequest;
 use App\Services\Crm\ReservationService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
@@ -13,14 +13,14 @@ use Throwable;
 
 class ReservationApiController extends Controller
 {
-    public function __invoke(Request $request, ReservationService $reservations): JsonResponse
+    public function __invoke(CrmApiRequest $request, ReservationService $reservations): JsonResponse
     {
         if ($request->isMethod('OPTIONS')) {
             return $this->json(['ok' => true]);
         }
 
         try {
-            $action = (string) $request->query('action', 'bootstrap');
+            $action = $request->action();
 
             if ($action === 'health') {
                 return $this->json(['ok' => true, 'mode' => 'mysql']);
@@ -33,7 +33,7 @@ class ReservationApiController extends Controller
             }
 
             $actor = $reservations->actorForUser($user);
-            $body = $this->body($request);
+            $body = $request->body();
 
             return match ($action) {
                 'bootstrap' => $this->json($reservations->bootstrap($actor)),
@@ -56,17 +56,6 @@ class ReservationApiController extends Controller
                 'error' => config('app.debug') ? $error->getMessage() : 'Erreur API reservations',
             ], 500);
         }
-    }
-
-    private function body(Request $request): array
-    {
-        $json = $request->json()->all();
-
-        if ($json !== []) {
-            return $json;
-        }
-
-        return $request->request->all();
     }
 
     private function json(array $data, int $status = 200): JsonResponse

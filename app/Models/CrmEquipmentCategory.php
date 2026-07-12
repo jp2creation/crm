@@ -5,11 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class CrmEquipmentCategory extends Model
 {
+    public const ACTIVE_CACHE_KEY = 'crm:equipment-categories:active:v1';
+
     protected $table = 'crm_equipment_categories';
 
     protected $fillable = [
@@ -42,6 +45,19 @@ class CrmEquipmentCategory extends Model
                 ]);
             }
         });
+
+        static::saved(function (): void {
+            static::clearActiveCache();
+        });
+
+        static::deleted(function (): void {
+            static::clearActiveCache();
+        });
+    }
+
+    public static function clearActiveCache(): bool
+    {
+        return Cache::forget(static::ACTIVE_CACHE_KEY);
     }
 
     public static function uniqueSlug(string $value, ?int $ignoreId = null): string

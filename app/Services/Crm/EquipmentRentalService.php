@@ -9,7 +9,9 @@ use App\Models\CrmModule;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
+use App\Queries\Crm\ReservationConflictQuery;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -18,6 +20,8 @@ use Throwable;
 
 class EquipmentRentalService
 {
+    public function __construct(private readonly ReservationConflictQuery $conflicts) {}
+
     public function actorForUser(User $user): CrmUser
     {
         $actor = CrmUser::query()
@@ -41,12 +45,6 @@ class EquipmentRentalService
             ->get();
 
         $modules = CrmModule::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
-        $categories = CrmEquipmentCategory::query()
             ->active()
             ->orderBy('sort_order')
             ->orderBy('name')
@@ -80,7 +78,7 @@ class EquipmentRentalService
             'user' => $this->actorRow($actor),
             'sites' => $sites->map(fn (CrmSite $site): array => $this->siteRow($site))->values()->all(),
             'modules' => $modules->map(fn (CrmModule $module): array => $this->moduleRow($module))->values()->all(),
-            'equipmentCategories' => $categories->map(fn (CrmEquipmentCategory $category): array => $this->categoryRow($category))->values()->all(),
+            'equipmentCategories' => $this->activeCategoryRows(),
             'equipmentItems' => $items->map(fn (CrmEquipmentItem $item): array => $this->itemRow($item))->values()->all(),
             'equipmentRentals' => $rentals->map(fn (CrmEquipmentRental $rental): array => $this->rentalRow($rental))->values()->all(),
             'permissions' => $permissions->map(fn (object $permission): array => [
@@ -516,16 +514,7 @@ class EquipmentRentalService
 
     private function requireNoRentalConflict(int $itemId, string $startAt, string $endAt, ?int $ignoreId = null): void
     {
-        $conflictExists = CrmEquipmentRental::query()
-            ->where('equipment_item_id', $itemId)
-            ->where('status', '<>', CrmEquipmentRental::STATUS_CANCELLED)
-            ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
-            ->where('end_at', '>', $startAt)
-            ->where('start_at', '<', $endAt)
-            ->lockForUpdate()
-            ->exists();
-
-        if ($conflictExists) {
+        if ($this->conflicts->equipmentOverlaps($itemId, $startAt, $endAt, $ignoreId)) {
             $this->fail('Ce materiel est deja loue sur ce creneau', 409);
         }
     }
@@ -674,6 +663,20 @@ class EquipmentRentalService
             'active' => (bool) $category->active,
             'sortOrder' => (int) $category->sort_order,
         ];
+    }
+
+    private function activeCategoryRows(): array
+    {
+        return Cache::rememberForever(CrmEquipmentCategory::ACTIVE_CACHE_KEY, function (): array {
+            return CrmEquipmentCategory::query()
+                ->active()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (CrmEquipmentCategory $category): array => $this->categoryRow($category))
+                ->values()
+                ->all();
+        });
     }
 
     private function itemRow(CrmEquipmentItem $item): array

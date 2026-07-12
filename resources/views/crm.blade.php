@@ -55,10 +55,10 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
-    <script src="{{ asset('assets/crm-active-site.js') }}?v=2026070907"></script>
-    <script type="module" crossorigin src="{{ asset('assets/index-CqSzWeas.js') }}?v=2026071042"></script>
-    <script type="module" crossorigin src="{{ asset('assets/crm-conges.js') }}?v=2026071114"></script>
-    <link rel="stylesheet" crossorigin href="{{ asset('assets/index-CVBlw941.css') }}">
+    <script src="{{ \App\Support\CrmAsset::url('assets/crm-active-site.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/index-CqSzWeas.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-conges.js') }}"></script>
+    <link rel="stylesheet" crossorigin href="{{ \App\Support\CrmAsset::url('assets/index-CVBlw941.css') }}">
     <style>
       .layout-header .header-search-wrap,
       .layout-header .header-mobile-panel,
