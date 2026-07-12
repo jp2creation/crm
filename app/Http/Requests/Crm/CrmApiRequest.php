@@ -25,6 +25,21 @@ class CrmApiRequest extends FormRequest
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'action.string' => 'Action invalide.',
+            'action.max' => 'Action trop longue.',
+            'siteId.integer' => 'Site invalide.',
+            'siteId.min' => 'Site invalide.',
+            'site_id.integer' => 'Site invalide.',
+            'site_id.min' => 'Site invalide.',
+        ];
+    }
+
     public function action(string $default = 'bootstrap'): string
     {
         return (string) $this->query('action', $default);
@@ -64,7 +79,7 @@ class CrmApiRequest extends FormRequest
                 ->json([
                     'ok' => false,
                     'error' => $validator->errors()->first(),
-                ], 400, [], JSON_UNESCAPED_UNICODE)
+                ], 422, [], JSON_UNESCAPED_UNICODE)
                 ->withHeaders([
                     'Access-Control-Allow-Origin' => $this->headers->get('Origin', '*'),
                     'Access-Control-Allow-Headers' => 'Accept, Authorization, Content-Type, X-CSRF-TOKEN, X-Requested-With, X-XSRF-TOKEN',

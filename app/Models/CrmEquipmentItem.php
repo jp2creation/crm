@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -43,12 +44,20 @@ class CrmEquipmentItem extends Model
 
     protected static function booted(): void
     {
+        static::saved(function (): void {
+            CrmReferenceCache::forgetEquipmentItems();
+        });
+
         static::deleting(function (CrmEquipmentItem $item): void {
             if ($item->rentals()->exists()) {
                 throw ValidationException::withMessages([
                     'equipment' => 'Ce materiel a des locations. Desactive-le pour le masquer.',
                 ]);
             }
+        });
+
+        static::deleted(function (): void {
+            CrmReferenceCache::forgetEquipmentItems();
         });
     }
 

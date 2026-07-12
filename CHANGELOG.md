@@ -11,10 +11,26 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 
 - Documentation technique dans `docs/README.md` avec architecture, schema ER et flux principaux.
 - Convention de release et rappel d'utilisation des tags Git.
+- Tests de conflit conges pour les demi-journees.
+- Cache applicatif centralise pour les listes de reference CRM.
+- Index de consultation sur les pivots CRM et colonnes de jointure restantes.
+- Tests unitaires du calcul de chevauchement des conges.
+- Tests d'echec API pour validation `422`, ressource introuvable `404`, limitation de tentatives et CSRF.
 
 ### Changed
 
 - `.editorconfig` complete pour mieux cadrer les fichiers PHP, JS, CSS, JSON et Markdown.
+- Les anciennes entrees physiques `public/api/*.php` sont supprimees afin que les URL legacy passent par les routes Laravel et leur middleware.
+- Les conflits de conges tiennent compte des demi-journees et ignorent les demandes refusees.
+- La documentation d'installation rappelle que `CRM_ADMIN_PASSWORD` doit etre defini uniquement dans le vrai `.env`.
+- Les bootstraps API reservations/location materiel prechargent les relations et reutilisent les donnees statiques cachees.
+- `CrmAsset` utilise le manifest Vite quand un asset y est declare, puis le cache-busting `filemtime` pour les bundles CRM historiques.
+- Les conflits de conges utilisent un service metier testable au lieu d'une logique uniquement portee par la requete SQL.
+- Les erreurs de validation des `FormRequest` API CRM retournent maintenant le statut HTTP `422`.
+
+### Removed
+
+- Vues Blade obsoletes et sauvegardes locales non routees.
 
 ## [2026.07.11.3] - 2026-07-11
 

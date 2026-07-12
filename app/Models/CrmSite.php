@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -49,8 +50,8 @@ class CrmSite extends Model
 
             if (! $site->isForceDeleting()) {
                 $site->forceFill([
-                    'name' => Str::limit((string) $site->name, 100, '') . ' supprime ' . $site->getKey(),
-                    'slug' => Str::limit((string) ($site->slug ?: Str::slug($site->name)), 110, '') . '-deleted-' . $site->getKey(),
+                    'name' => Str::limit((string) $site->name, 100, '').' supprime '.$site->getKey(),
+                    'slug' => Str::limit((string) ($site->slug ?: Str::slug($site->name)), 110, '').'-deleted-'.$site->getKey(),
                     'active' => false,
                 ])->saveQuietly();
 
@@ -67,6 +68,14 @@ class CrmSite extends Model
                     'site' => 'Ce site est utilise par des vehicules, du materiel ou des reservations. Supprime-le sans forcer pour l archiver.',
                 ]);
             }
+        });
+
+        static::saved(function (): void {
+            CrmReferenceCache::forgetSites();
+        });
+
+        static::deleted(function (): void {
+            CrmReferenceCache::forgetSites();
         });
     }
 

@@ -32,6 +32,14 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('error', 'Utilisateur CRM requis');
     }
 
+    public function test_invalid_reservation_query_parameters_return_validation_error(): void
+    {
+        $this->getJson('/api/reservations?action=bootstrap&siteId=invalide')
+            ->assertStatus(422)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Site invalide.');
+    }
+
     public function test_authorized_user_can_read_reservation_bootstrap(): void
     {
         [$account, $crmUser, $site, $vehicle] = $this->createCrmUser(['reservations.view']);
@@ -127,6 +135,23 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('ok', true)
             ->assertJsonPath('reservation.title', 'Modifie')
             ->assertJsonPath('reservation.startAt', '2026-08-06T09:00');
+    }
+
+    public function test_updating_unknown_reservation_returns_not_found(): void
+    {
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.update']);
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=update_reservation', [
+                'id' => 999999,
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-06T09:00',
+                'endAt' => '2026-08-06T10:00',
+                'title' => 'Introuvable',
+            ])
+            ->assertStatus(404)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Reservation introuvable');
     }
 
     public function test_manager_can_save_and_hide_vehicle(): void

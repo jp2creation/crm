@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -30,12 +31,20 @@ class CrmVehicle extends Model
 
     protected static function booted(): void
     {
+        static::saved(function (): void {
+            CrmReferenceCache::forgetVehicles();
+        });
+
         static::deleting(function (CrmVehicle $vehicle): void {
             if ($vehicle->reservations()->exists()) {
                 throw ValidationException::withMessages([
                     'vehicle' => 'Ce vehicule a des reservations. Desactive-le pour le masquer.',
                 ]);
             }
+        });
+
+        static::deleted(function (): void {
+            CrmReferenceCache::forgetVehicles();
         });
     }
 

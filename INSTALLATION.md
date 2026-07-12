@@ -55,10 +55,11 @@ DB_PASSWORD=
 
 CRM_ADMIN_EMAIL=admin@crm.jp2.fr
 CRM_ADMIN_NAME=Administrateur
-CRM_ADMIN_PASSWORD=changer-ce-mot-de-passe
 
 SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS=365
 ```
+
+Ajouter `CRM_ADMIN_PASSWORD` uniquement dans le vrai fichier `.env`, avec un mot de passe fort propre a l'environnement. Ne pas le renseigner dans `.env.example`.
 
 Generer la cle Laravel :
 
@@ -204,7 +205,8 @@ Verifier ensuite :
 
 - `APP_URL` : URL publique de l'application.
 - `DB_*` : connexion MySQL/MariaDB.
-- `CRM_ADMIN_EMAIL`, `CRM_ADMIN_NAME`, `CRM_ADMIN_PASSWORD` : compte admin cree par le seeder.
+- `CRM_ADMIN_EMAIL`, `CRM_ADMIN_NAME` : identite du compte admin cree par le seeder.
+- `CRM_ADMIN_PASSWORD` : mot de passe admin a definir uniquement dans le vrai `.env`, jamais dans `.env.example`.
 - `CRM_TRUST_LARAVEL_SESSION` : autorise les API CRM a utiliser la session Laravel.
 - `CRM_ALLOW_LEGACY_ACTOR_IMPERSONATION` : compatibilite legacy, a garder desactivee sauf besoin controle.
 - `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS` : duree des tokens mobiles.

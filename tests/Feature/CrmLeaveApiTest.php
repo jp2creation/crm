@@ -120,6 +120,60 @@ class CrmLeaveApiTest extends TestCase
             ->assertJsonPath('error', 'Un conge existe deja sur cette periode');
     }
 
+    public function test_opposite_half_day_leaves_can_share_same_day(): void
+    {
+        [$account, , , $employee] = $this->createCrmUser(canManage: true);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', [
+                'employeeId' => $employee->id,
+                'startDate' => '2026-08-14',
+                'endDate' => '2026-08-14',
+                'type' => 'conge',
+                'period' => 'morning',
+                'status' => 'approved',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', [
+                'employeeId' => $employee->id,
+                'startDate' => '2026-08-14',
+                'endDate' => '2026-08-14',
+                'type' => 'conge',
+                'period' => 'afternoon',
+                'status' => 'approved',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+    }
+
+    public function test_same_half_day_leave_is_rejected(): void
+    {
+        [$account, , , $employee] = $this->createCrmUser(canManage: true);
+
+        $payload = [
+            'employeeId' => $employee->id,
+            'startDate' => '2026-08-15',
+            'endDate' => '2026-08-15',
+            'type' => 'conge',
+            'period' => 'morning',
+            'status' => 'approved',
+        ];
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', $payload)
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', $payload)
+            ->assertStatus(409)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Un conge existe deja sur cette periode');
+    }
+
     /**
      * @return array{0: User, 1: CrmUser, 2: CrmSite, 3: CrmLeaveEmployee}
      */

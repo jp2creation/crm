@@ -9,7 +9,9 @@ use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
 use App\Queries\Crm\ReservationConflictQuery;
+use App\Support\CrmReferenceCache;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -37,34 +39,14 @@ class ReservationService
 
     public function bootstrap(CrmUser $actor): array
     {
-        $sites = CrmSite::query()
-            ->active()
-            ->orderBy('id')
-            ->get();
-
-        $modules = CrmModule::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
-        $vehicles = CrmVehicle::query()
-            ->active()
-            ->orderBy('site_id')
-            ->orderBy('name')
-            ->get();
-
         $reservations = CrmReservation::query()
+            ->with(['site:id,name', 'user:id,name', 'vehicle:id,name'])
             ->orderBy('start_at')
             ->orderBy('id')
             ->get();
 
-        $permissions = DB::table('crm_permissions')
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
         $users = CrmUser::query()
+            ->with(['modules:id', 'permissions:id,name,sort_order', 'sites:id'])
             ->where('active', true)
             ->orderBy('id')
             ->get();
@@ -73,15 +55,11 @@ class ReservationService
             'ok' => true,
             'mode' => 'mysql',
             'user' => $this->actorRow($actor),
-            'sites' => $sites->map(fn (CrmSite $site): array => $this->siteRow($site))->values()->all(),
-            'modules' => $modules->map(fn (CrmModule $module): array => $this->moduleRow($module))->values()->all(),
-            'vehicles' => $vehicles->map(fn (CrmVehicle $vehicle): array => $this->vehicleRow($vehicle))->values()->all(),
+            'sites' => $this->activeSiteRows(),
+            'modules' => $this->activeModuleRows(),
+            'vehicles' => $this->activeVehicleRows(),
             'reservations' => $reservations->map(fn (CrmReservation $reservation): array => $this->reservationRow($reservation))->values()->all(),
-            'permissions' => $permissions->map(fn (object $permission): array => [
-                'name' => $permission->name,
-                'label' => $permission->label,
-                'group' => $permission->group_label,
-            ])->values()->all(),
+            'permissions' => $this->permissionRows(),
             'users' => $users->map(fn (CrmUser $user): array => $this->userRow($user))->values()->all(),
         ];
     }
@@ -447,6 +425,18 @@ class ReservationService
      */
     private function siteIds(CrmUser $user): array
     {
+        if ($user->relationLoaded('sites')) {
+            return $user->sites
+                ->sortBy([
+                    fn ($siteA, $siteB): int => (int) ($siteB->pivot?->is_default ?? false) <=> (int) ($siteA->pivot?->is_default ?? false),
+                    fn ($siteA, $siteB): int => (int) $siteA->id <=> (int) $siteB->id,
+                ])
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->values()
+                ->all();
+        }
+
         return $user->sites()
             ->whereNull('crm_sites.deleted_at')
             ->orderByDesc('crm_user_sites.is_default')
@@ -462,6 +452,15 @@ class ReservationService
      */
     private function moduleIds(CrmUser $user): array
     {
+        if ($user->relationLoaded('modules')) {
+            return $user->modules
+                ->sortBy('id')
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->values()
+                ->all();
+        }
+
         return $user->modules()
             ->orderBy('crm_modules.id')
             ->pluck('crm_modules.id')
@@ -475,6 +474,17 @@ class ReservationService
      */
     private function permissionNames(CrmUser $user): array
     {
+        if ($user->relationLoaded('permissions')) {
+            return $user->permissions
+                ->sortBy([
+                    fn ($permissionA, $permissionB): int => (int) $permissionA->sort_order <=> (int) $permissionB->sort_order,
+                    fn ($permissionA, $permissionB): int => strcmp((string) $permissionA->name, (string) $permissionB->name),
+                ])
+                ->pluck('name')
+                ->values()
+                ->all();
+        }
+
         return $user->permissions()
             ->orderBy('crm_permissions.sort_order')
             ->orderBy('crm_permissions.name')
@@ -537,6 +547,64 @@ class ReservationService
             'endAt' => $reservation->end_at?->format('Y-m-d\TH:i') ?? '',
             'notes' => $reservation->notes ?? '',
         ];
+    }
+
+    private function activeSiteRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::ACTIVE_SITE_ROWS, function (): array {
+            return CrmSite::query()
+                ->active()
+                ->orderBy('id')
+                ->get()
+                ->map(fn (CrmSite $site): array => $this->siteRow($site))
+                ->values()
+                ->all();
+        });
+    }
+
+    private function activeModuleRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::ACTIVE_MODULE_ROWS, function (): array {
+            return CrmModule::query()
+                ->active()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (CrmModule $module): array => $this->moduleRow($module))
+                ->values()
+                ->all();
+        });
+    }
+
+    private function activeVehicleRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::ACTIVE_VEHICLE_ROWS, function (): array {
+            return CrmVehicle::query()
+                ->active()
+                ->orderBy('site_id')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (CrmVehicle $vehicle): array => $this->vehicleRow($vehicle))
+                ->values()
+                ->all();
+        });
+    }
+
+    private function permissionRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::PERMISSION_ROWS, function (): array {
+            return DB::table('crm_permissions')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (object $permission): array => [
+                    'name' => $permission->name,
+                    'label' => $permission->label,
+                    'group' => $permission->group_label,
+                ])
+                ->values()
+                ->all();
+        });
     }
 
     private function normalizeDateTime(string $value): string

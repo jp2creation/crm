@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -40,7 +41,7 @@ class CrmModule extends Model
             }
 
             if (blank($module->route_path)) {
-                $module->route_path = '/' . $module->slug;
+                $module->route_path = '/'.$module->slug;
             }
         });
 
@@ -48,15 +49,15 @@ class CrmModule extends Model
             $oldSlug = $module->getOriginal('slug') ?: $module->slug;
 
             $menuItem = CrmMenuItem::query()
-                ->where('item_key', 'module:' . $oldSlug)
+                ->where('item_key', 'module:'.$oldSlug)
                 ->first();
 
             if (! $menuItem) {
-                $menuItem = CrmMenuItem::firstOrNew(['item_key' => 'module:' . $module->slug]);
+                $menuItem = CrmMenuItem::firstOrNew(['item_key' => 'module:'.$module->slug]);
             }
 
             $menuItem->fill([
-                'item_key' => 'module:' . $module->slug,
+                'item_key' => 'module:'.$module->slug,
                 'group_key' => $menuItem->group_key ?: 'internal',
                 'icon_key' => $menuItem->icon_key ?: static::defaultIconKey($module->slug),
                 'label' => $module->name,
@@ -65,6 +66,7 @@ class CrmModule extends Model
             ]);
 
             $menuItem->saveQuietly();
+            CrmReferenceCache::forgetModules();
         });
 
         static::deleting(function (CrmModule $module): void {
@@ -75,7 +77,11 @@ class CrmModule extends Model
             }
 
             $module->users()->detach();
-            CrmMenuItem::query()->where('item_key', 'module:' . $module->slug)->delete();
+            CrmMenuItem::query()->where('item_key', 'module:'.$module->slug)->delete();
+        });
+
+        static::deleted(function (): void {
+            CrmReferenceCache::forgetModules();
         });
     }
 

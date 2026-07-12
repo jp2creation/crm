@@ -115,6 +115,9 @@ class LeaveService
                 $this->fail('Periode trop longue', 400);
             }
 
+            $period = $this->choice((string) ($data['period'] ?? 'full'), self::PERIODS, 'full');
+            $status = $this->choice((string) ($data['status'] ?? 'approved'), self::STATUSES, 'approved');
+
             $employee = CrmLeaveEmployee::query()
                 ->where('active', true)
                 ->lockForUpdate()
@@ -146,7 +149,7 @@ class LeaveService
                 $this->requireEmployeeSiteAccess($actor, $currentEmployee, $siteId);
             }
 
-            if ($this->conflicts->leaveOverlaps($employeeId, $startDate, $endDate, $id > 0 ? $id : null)) {
+            if ($status !== 'refused' && $this->conflicts->leaveOverlaps($employeeId, $startDate, $endDate, $period, $id > 0 ? $id : null)) {
                 $this->fail('Un conge existe deja sur cette periode', 409);
             }
 
@@ -155,8 +158,8 @@ class LeaveService
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'type' => $this->choice((string) ($data['type'] ?? 'conge'), self::TYPES, 'conge'),
-                'period' => $this->choice((string) ($data['period'] ?? 'full'), self::PERIODS, 'full'),
-                'status' => $this->choice((string) ($data['status'] ?? 'approved'), self::STATUSES, 'approved'),
+                'period' => $period,
+                'status' => $status,
                 'notes' => trim((string) ($data['notes'] ?? '')),
                 'source' => $entry->exists ? $entry->source : 'crm',
                 'created_by' => $entry->exists ? $entry->created_by : $actor->id,

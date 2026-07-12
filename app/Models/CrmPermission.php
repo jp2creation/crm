@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -21,6 +22,17 @@ class CrmPermission extends Model
         return [
             'sort_order' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            CrmReferenceCache::forgetPermissions();
+        });
+
+        static::deleted(function (): void {
+            CrmReferenceCache::forgetPermissions();
+        });
     }
 
     public function users(): BelongsToMany

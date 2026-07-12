@@ -10,6 +10,7 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
 use App\Queries\Crm\ReservationConflictQuery;
+use App\Support\CrmReferenceCache;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -39,35 +40,14 @@ class EquipmentRentalService
 
     public function bootstrap(CrmUser $actor): array
     {
-        $sites = CrmSite::query()
-            ->active()
-            ->orderBy('id')
-            ->get();
-
-        $modules = CrmModule::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
-        $items = CrmEquipmentItem::query()
-            ->active()
-            ->orderBy('site_id')
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
         $rentals = CrmEquipmentRental::query()
+            ->with(['equipmentItem:id,name', 'site:id,name', 'user:id,name'])
             ->orderBy('start_at')
             ->orderBy('id')
             ->get();
 
-        $permissions = DB::table('crm_permissions')
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-
         $users = CrmUser::query()
+            ->with(['modules:id', 'permissions:id,name,sort_order', 'sites:id'])
             ->where('active', true)
             ->orderBy('id')
             ->get();
@@ -76,16 +56,12 @@ class EquipmentRentalService
             'ok' => true,
             'mode' => 'mysql',
             'user' => $this->actorRow($actor),
-            'sites' => $sites->map(fn (CrmSite $site): array => $this->siteRow($site))->values()->all(),
-            'modules' => $modules->map(fn (CrmModule $module): array => $this->moduleRow($module))->values()->all(),
+            'sites' => $this->activeSiteRows(),
+            'modules' => $this->activeModuleRows(),
             'equipmentCategories' => $this->activeCategoryRows(),
-            'equipmentItems' => $items->map(fn (CrmEquipmentItem $item): array => $this->itemRow($item))->values()->all(),
+            'equipmentItems' => $this->activeEquipmentItemRows(),
             'equipmentRentals' => $rentals->map(fn (CrmEquipmentRental $rental): array => $this->rentalRow($rental))->values()->all(),
-            'permissions' => $permissions->map(fn (object $permission): array => [
-                'name' => $permission->name,
-                'label' => $permission->label,
-                'group' => $permission->group_label,
-            ])->values()->all(),
+            'permissions' => $this->permissionRows(),
             'users' => $users->map(fn (CrmUser $user): array => $this->userRow($user))->values()->all(),
         ];
     }
@@ -596,6 +572,18 @@ class EquipmentRentalService
      */
     private function siteIds(CrmUser $user): array
     {
+        if ($user->relationLoaded('sites')) {
+            return $user->sites
+                ->sortBy([
+                    fn ($siteA, $siteB): int => (int) ($siteB->pivot?->is_default ?? false) <=> (int) ($siteA->pivot?->is_default ?? false),
+                    fn ($siteA, $siteB): int => (int) $siteA->id <=> (int) $siteB->id,
+                ])
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->values()
+                ->all();
+        }
+
         return $user->sites()
             ->whereNull('crm_sites.deleted_at')
             ->orderByDesc('crm_user_sites.is_default')
@@ -611,6 +599,15 @@ class EquipmentRentalService
      */
     private function moduleIds(CrmUser $user): array
     {
+        if ($user->relationLoaded('modules')) {
+            return $user->modules
+                ->sortBy('id')
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->values()
+                ->all();
+        }
+
         return $user->modules()
             ->orderBy('crm_modules.id')
             ->pluck('crm_modules.id')
@@ -624,6 +621,17 @@ class EquipmentRentalService
      */
     private function permissionNames(CrmUser $user): array
     {
+        if ($user->relationLoaded('permissions')) {
+            return $user->permissions
+                ->sortBy([
+                    fn ($permissionA, $permissionB): int => (int) $permissionA->sort_order <=> (int) $permissionB->sort_order,
+                    fn ($permissionA, $permissionB): int => strcmp((string) $permissionA->name, (string) $permissionB->name),
+                ])
+                ->pluck('name')
+                ->values()
+                ->all();
+        }
+
         return $user->permissions()
             ->orderBy('crm_permissions.sort_order')
             ->orderBy('crm_permissions.name')
@@ -654,6 +662,33 @@ class EquipmentRentalService
         ];
     }
 
+    private function activeSiteRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::ACTIVE_SITE_ROWS, function (): array {
+            return CrmSite::query()
+                ->active()
+                ->orderBy('id')
+                ->get()
+                ->map(fn (CrmSite $site): array => $this->siteRow($site))
+                ->values()
+                ->all();
+        });
+    }
+
+    private function activeModuleRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::ACTIVE_MODULE_ROWS, function (): array {
+            return CrmModule::query()
+                ->active()
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (CrmModule $module): array => $this->moduleRow($module))
+                ->values()
+                ->all();
+        });
+    }
+
     private function categoryRow(CrmEquipmentCategory $category): array
     {
         return [
@@ -667,13 +702,28 @@ class EquipmentRentalService
 
     private function activeCategoryRows(): array
     {
-        return Cache::rememberForever(CrmEquipmentCategory::ACTIVE_CACHE_KEY, function (): array {
+        return Cache::rememberForever(CrmReferenceCache::ACTIVE_EQUIPMENT_CATEGORY_ROWS, function (): array {
             return CrmEquipmentCategory::query()
                 ->active()
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get()
                 ->map(fn (CrmEquipmentCategory $category): array => $this->categoryRow($category))
+                ->values()
+                ->all();
+        });
+    }
+
+    private function activeEquipmentItemRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::ACTIVE_EQUIPMENT_ITEM_ROWS, function (): array {
+            return CrmEquipmentItem::query()
+                ->active()
+                ->orderBy('site_id')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (CrmEquipmentItem $item): array => $this->itemRow($item))
                 ->values()
                 ->all();
         });
@@ -717,6 +767,23 @@ class EquipmentRentalService
             'endAt' => $rental->end_at?->format('Y-m-d\TH:i') ?? '',
             'notes' => $rental->notes ?? '',
         ];
+    }
+
+    private function permissionRows(): array
+    {
+        return Cache::rememberForever(CrmReferenceCache::PERMISSION_ROWS, function (): array {
+            return DB::table('crm_permissions')
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+                ->map(fn (object $permission): array => [
+                    'name' => $permission->name,
+                    'label' => $permission->label,
+                    'group' => $permission->group_label,
+                ])
+                ->values()
+                ->all();
+        });
     }
 
     /**
