@@ -7,6 +7,7 @@ use App\Models\CrmPermission;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -64,6 +65,19 @@ class MobileAuthApiTest extends TestCase
         ])
             ->assertForbidden()
             ->assertJsonPath('ok', false);
+    }
+
+    public function test_mobile_tokens_are_revoked_after_password_reset_event(): void
+    {
+        [$account] = $this->createMobileCrmUser();
+
+        $account->createToken('Pixel Test', ['crm:mobile']);
+
+        $this->assertDatabaseCount('personal_access_tokens', 1);
+
+        event(new PasswordReset($account));
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
     }
 
     /**

@@ -59,8 +59,6 @@ CRM_ADMIN_NAME=Administrateur
 SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS=365
 ```
 
-Ajouter `CRM_ADMIN_PASSWORD` uniquement dans le vrai fichier `.env`, avec un mot de passe fort propre a l'environnement. Ne pas le renseigner dans `.env.example`.
-
 Generer la cle Laravel :
 
 ```bash
@@ -73,10 +71,24 @@ Creer la base de donnees MySQL/MariaDB si elle n'existe pas encore, puis execute
 php artisan migrate
 ```
 
-Pour creer le compte admin par defaut, garder `CRM_ADMIN_PASSWORD` renseigne et lancer :
+Initialiser les roles de base :
 
 ```bash
 php artisan db:seed
+```
+
+Creer ou mettre a jour le compte admin CRM avec une saisie masquee :
+
+```bash
+php artisan crm:admin --email=admin@crm.jp2.fr --name="Administrateur"
+```
+
+En deploiement non interactif, utiliser une variable temporaire du shell, sans l'ajouter a `.env` :
+
+```powershell
+$env:CRM_ADMIN_TMP='MotDePasseFort-2026!'
+php artisan crm:admin --email=admin@crm.jp2.fr --name="Administrateur" --password-env=CRM_ADMIN_TMP
+Remove-Item Env:\CRM_ADMIN_TMP
 ```
 
 Compiler les assets :
@@ -205,11 +217,11 @@ Verifier ensuite :
 
 - `APP_URL` : URL publique de l'application.
 - `DB_*` : connexion MySQL/MariaDB.
-- `CRM_ADMIN_EMAIL`, `CRM_ADMIN_NAME` : identite du compte admin cree par le seeder.
-- `CRM_ADMIN_PASSWORD` : mot de passe admin a definir uniquement dans le vrai `.env`, jamais dans `.env.example`.
+- `CRM_ADMIN_PASSWORD_MIN`, `CRM_ADMIN_HASH_ROUNDS` : politique de mot de passe admin.
 - `CRM_TRUST_LARAVEL_SESSION` : autorise les API CRM a utiliser la session Laravel.
 - `CRM_ALLOW_LEGACY_ACTOR_IMPERSONATION` : compatibilite legacy, a garder desactivee sauf besoin controle.
 - `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS` : duree des tokens mobiles.
+- `CORS_ALLOWED_ORIGINS` : origins autorisees pour l'API mobile et les appels `api/*`.
 
 ## Depannage
 

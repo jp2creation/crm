@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\EnsureCrmAdminCommand;
 use App\Http\Middleware\AuditLegacyPhpApi;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -11,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withCommands([
+        EnsureCrmAdminCommand::class,
+    ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'crm.legacy_php_api' => AuditLegacyPhpApi::class,

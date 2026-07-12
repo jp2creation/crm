@@ -16,6 +16,9 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Index de consultation sur les pivots CRM et colonnes de jointure restantes.
 - Tests unitaires du calcul de chevauchement des conges.
 - Tests d'echec API pour validation `422`, ressource introuvable `404`, limitation de tentatives et CSRF.
+- Commande Artisan `crm:admin` pour creer ou mettre a jour l'administrateur sans mot de passe dans `.env.example`.
+- Configuration CORS explicite pour les routes `api/*`, dont `api/mobile/*` et les origins Capacitor/Ionic.
+- Tests unitaires de la politique de mot de passe admin.
 
 ### Changed
 
@@ -27,6 +30,7 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - `CrmAsset` utilise le manifest Vite quand un asset y est declare, puis le cache-busting `filemtime` pour les bundles CRM historiques.
 - Les conflits de conges utilisent un service metier testable au lieu d'une logique uniquement portee par la requete SQL.
 - Les erreurs de validation des `FormRequest` API CRM retournent maintenant le statut HTTP `422`.
+- Le seeder ne bloque plus l'installation si aucun mot de passe admin n'est fourni ; l'admin se gere via `php artisan crm:admin`.
 
 ### Removed
 

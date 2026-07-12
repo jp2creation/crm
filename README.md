@@ -73,7 +73,11 @@ npm run build
 php artisan serve
 ```
 
-Avant d'executer les seeds, renseigner au minimum `CRM_ADMIN_PASSWORD` dans `.env`.
+Creer ou mettre a jour le compte admin avec une saisie masquee :
+
+```bash
+php artisan crm:admin --email=admin@crm.jp2.fr --name="Administrateur"
+```
 
 ## Verification
 
@@ -100,5 +104,6 @@ Regle importante : les fichiers de `public/assets` sont des sorties compilees. U
 
 - Ne jamais commiter `.env`, tokens, exports de base de donnees ou logs.
 - Utiliser des mots de passe forts pour les comptes admin.
+- Creer l'admin via `php artisan crm:admin`; ne pas stocker de mot de passe admin dans `.env.example`.
 - Desactiver les options legacy d'impersonation sauf besoin explicite.
 - L'API mobile utilise Sanctum et des tokens Bearer ; leur duree est pilotee par `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS`.

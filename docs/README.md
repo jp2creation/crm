@@ -32,6 +32,7 @@ flowchart LR
 - Administration Filament pour les donnees de reference et permissions.
 - API mobile via Sanctum.
 - Endpoints legacy `.php` conserves pour compatibilite et audites par middleware.
+- Creation admin par commande Artisan `crm:admin`, sans mot de passe stocke dans `.env.example`.
 
 ## Schema ER simplifie
 
