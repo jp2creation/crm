@@ -53,6 +53,8 @@ class CrmPage extends Model
                     'cms-page:'.($page->getOriginal('slug') ?: $page->slug),
                 ])
                 ->delete();
+
+            static::syncPagesMenuGroupVisibility();
         });
     }
 
@@ -75,6 +77,11 @@ class CrmPage extends Model
 
     public static function syncMenuItem(CrmPage $page): void
     {
+        CrmMenuGroup::query()->updateOrCreate(
+            ['menu_key' => 'pages'],
+            ['title' => 'Pages internes', 'active' => true, 'sort_order' => 30],
+        );
+
         $oldSlug = $page->getOriginal('slug') ?: $page->slug;
         if ($oldSlug !== $page->slug) {
             CrmMenuItem::query()
@@ -91,10 +98,24 @@ class CrmPage extends Model
             'sort_order' => $page->sort_order,
         ]);
         $menuItem->saveQuietly();
+
+        static::syncPagesMenuGroupVisibility();
     }
 
     public function getRoutePathAttribute(): string
     {
         return '/pages-crm/'.$this->slug;
+    }
+
+    private static function syncPagesMenuGroupVisibility(): void
+    {
+        CrmMenuGroup::query()
+            ->where('menu_key', 'pages')
+            ->update([
+                'active' => CrmMenuItem::query()
+                    ->where('group_key', 'pages')
+                    ->where('active', true)
+                    ->exists(),
+            ]);
     }
 }

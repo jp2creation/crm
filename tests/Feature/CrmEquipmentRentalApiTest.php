@@ -107,6 +107,23 @@ class CrmEquipmentRentalApiTest extends TestCase
             ->assertJsonPath('error', 'Ce materiel est deja loue sur ce creneau');
     }
 
+    public function test_past_rental_is_rejected(): void
+    {
+        [$account, , , $item] = $this->createCrmUser(['equipment_rentals.create']);
+        $yesterday = now()->subDay()->format('Y-m-d');
+
+        $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=create_rental', [
+                'equipmentItemId' => $item->id,
+                'startAt' => $yesterday.'T08:00',
+                'endAt' => $yesterday.'T09:00',
+                'title' => 'Location passee',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Impossible de reserver dans le passe');
+    }
+
     public function test_user_can_update_own_rental(): void
     {
         [$account, , , $item] = $this->createCrmUser(['equipment_rentals.create', 'equipment_rentals.update_own']);

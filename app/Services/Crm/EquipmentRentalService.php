@@ -414,6 +414,8 @@ class EquipmentRentalService
             $this->fail('Creneau invalide', 400);
         }
 
+        $this->requireNotPastStartDate($startAt);
+
         if (! $site->containsOpeningPeriod($startAt, $endAt)) {
             $this->fail('Creneau hors horaires du site', 400);
         }
@@ -489,6 +491,13 @@ class EquipmentRentalService
         return in_array($value, ['half_day_and_day', 'day_only'], true)
             ? (string) $value
             : 'half_day_and_day';
+    }
+
+    private function requireNotPastStartDate(string $startAt): void
+    {
+        if (CarbonImmutable::parse($startAt)->startOfDay()->lt(CarbonImmutable::now()->startOfDay())) {
+            $this->fail('Impossible de reserver dans le passe', 422);
+        }
     }
 
     private function requireNoRentalConflict(int $itemId, string $startAt, string $endAt, ?int $ignoreId = null): void

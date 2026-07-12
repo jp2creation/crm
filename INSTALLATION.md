@@ -248,6 +248,8 @@ Verifier ensuite :
 - `APP_URL` : URL publique de l'application.
 - `DB_*` : connexion MySQL/MariaDB.
 - `CRM_ADMIN_PASSWORD_MIN`, `CRM_ADMIN_HASH_ROUNDS` : politique de mot de passe admin.
+- `CRM_API_THROTTLE_PER_MINUTE` : limite minute des API CRM Laravel.
+- `CRM_LOGIN_THROTTLE_PER_MINUTE` : limite minute du login web et du token mobile.
 - `CRM_TRUST_LARAVEL_SESSION` : autorise les API CRM a utiliser la session Laravel.
 - `CRM_ALLOW_LEGACY_ACTOR_IMPERSONATION` : compatibilite legacy, a garder desactivee sauf besoin controle.
 - `SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS` : duree des tokens mobiles.

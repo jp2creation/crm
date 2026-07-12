@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\CrmMenuGroup;
+use App\Models\CrmMenuItem;
 use App\Models\CrmModule;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
@@ -42,6 +44,64 @@ class CrmAdministrationApiTest extends TestCase
             ->assertJsonPath('modules.0.slug', 'reservations')
             ->assertJsonPath('menuGroups.0.menuKey', 'apps')
             ->assertJsonPath('actor.name', 'J-Philippe');
+    }
+
+    public function test_administration_bootstrap_cleans_template_menu_entries(): void
+    {
+        [$account] = $this->createAdminUser();
+
+        CrmMenuGroup::query()->create([
+            'menu_key' => 'dashboards',
+            'title' => 'Dashboards',
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+        CrmMenuGroup::query()->create([
+            'menu_key' => 'charts',
+            'title' => 'Charts',
+            'active' => true,
+            'sort_order' => 80,
+        ]);
+        CrmMenuItem::query()->create([
+            'item_key' => 'dashboard:analytics',
+            'group_key' => 'dashboards',
+            'icon_key' => 'chartLine',
+            'label' => 'Analytics',
+            'active' => true,
+            'sort_order' => 20,
+        ]);
+        CrmMenuItem::query()->create([
+            'item_key' => 'chart:line',
+            'group_key' => 'charts',
+            'icon_key' => 'chartLine',
+            'label' => 'Line',
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+
+        $this->actingAs($account)
+            ->getJson('/api/administration?action=bootstrap')
+            ->assertOk()
+            ->assertJsonMissing(['itemKey' => 'dashboard:analytics'])
+            ->assertJsonMissing(['itemKey' => 'chart:line']);
+
+        $this->assertDatabaseMissing('crm_menu_items', ['item_key' => 'dashboard:analytics']);
+        $this->assertDatabaseMissing('crm_menu_items', ['item_key' => 'chart:line']);
+        $this->assertDatabaseMissing('crm_menu_groups', ['menu_key' => 'dashboards']);
+        $this->assertDatabaseHas('crm_menu_groups', [
+            'menu_key' => 'apps',
+            'title' => 'Applications CRM',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:reservations',
+            'group_key' => 'apps',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:planning',
+            'active' => false,
+        ]);
     }
 
     public function test_user_without_platform_permission_cannot_read_bootstrap(): void

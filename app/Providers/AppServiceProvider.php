@@ -37,6 +37,20 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute($maxAttempts)->by((string) $key);
         });
 
+        RateLimiter::for('crm-api', function (Request $request): Limit {
+            $maxAttempts = max(1, (int) config('crm.api.throttle_per_minute', 120));
+            $key = $request->user()?->getAuthIdentifier() ?: $request->ip();
+
+            return Limit::perMinute($maxAttempts)->by((string) $key);
+        });
+
+        RateLimiter::for('crm-login', function (Request $request): Limit {
+            $maxAttempts = max(1, (int) config('crm.login.throttle_per_minute', 10));
+            $email = strtolower((string) $request->input('email', 'guest'));
+
+            return Limit::perMinute($maxAttempts)->by($email.'|'.$request->ip());
+        });
+
         Event::listen(PasswordReset::class, RevokeUserSanctumTokens::class);
         User::observe(UserTokenObserver::class);
     }

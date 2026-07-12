@@ -109,6 +109,23 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('error', 'Le vehicule est deja reserve sur ce creneau');
     }
 
+    public function test_past_reservation_is_rejected(): void
+    {
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
+        $yesterday = now()->subDay()->format('Y-m-d');
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => $yesterday.'T08:00',
+                'endAt' => $yesterday.'T09:00',
+                'title' => 'Reservation passee',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Impossible de reserver dans le passe');
+    }
+
     public function test_user_can_update_own_reservation(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.create', 'reservations.update_own']);

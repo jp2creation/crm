@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Crm\UploadedCrmFileCleaner;
 use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -48,6 +49,16 @@ class CrmEquipmentItem extends Model
             CrmReferenceCache::forgetEquipmentItems();
         });
 
+        static::updated(function (CrmEquipmentItem $item): void {
+            if ($item->wasChanged('photo_url')) {
+                app(UploadedCrmFileCleaner::class)->deletePublicUpload($item->getOriginal('photo_url'));
+            }
+
+            if ($item->wasChanged('active') && ! $item->active) {
+                app(UploadedCrmFileCleaner::class)->deletePublicUpload($item->getAttribute('photo_url'));
+            }
+        });
+
         static::deleting(function (CrmEquipmentItem $item): void {
             if ($item->rentals()->exists()) {
                 throw ValidationException::withMessages([
@@ -56,7 +67,8 @@ class CrmEquipmentItem extends Model
             }
         });
 
-        static::deleted(function (): void {
+        static::deleted(function (CrmEquipmentItem $item): void {
+            app(UploadedCrmFileCleaner::class)->deletePublicUpload($item->getAttribute('photo_url'));
             CrmReferenceCache::forgetEquipmentItems();
         });
     }

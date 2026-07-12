@@ -328,12 +328,21 @@ class ReservationService
             $this->fail('Creneau invalide', 400);
         }
 
+        $this->requireNotPastStartDate($startAt);
+
         if (mb_strlen($title) > 190) {
             $this->fail('Titre trop long', 400);
         }
 
         if (mb_strlen($contactPhone) > 40) {
             $this->fail('Telephone trop long', 400);
+        }
+    }
+
+    private function requireNotPastStartDate(string $startAt): void
+    {
+        if (CarbonImmutable::parse($startAt)->startOfDay()->lt(CarbonImmutable::now()->startOfDay())) {
+            $this->fail('Impossible de reserver dans le passe', 422);
         }
     }
 

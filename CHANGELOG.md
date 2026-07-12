@@ -23,6 +23,10 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Stack Docker Sail PHP 8.3 avec MySQL, Redis et Mailpit.
 - Workflow GitHub Actions pour Pint, build Vite et tests Laravel en PHP 8.3.
 - `CrmActivityLogger` centralise pour journaliser les actions critiques dans `crm_logs`.
+- Nettoyage automatique des photos uploadées lors du masquage, remplacement ou suppression des vehicules et materiels.
+- Throttles Laravel explicites pour les routes API CRM, token mobile et login web.
+- Canal de log `horizon` en rotation quotidienne.
+- Nettoyage automatique des anciennes entrees de menu issues du template UI.
 
 ### Changed
 
@@ -38,6 +42,8 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Les assets CRM generes par Laravel utilisent la meme query string que les imports Vite existants, ce qui corrige les pages blanches au rafraichissement.
 - Les creations et suppressions de conges sont maintenant tracees dans le journal CRM.
 - Le projet exige maintenant PHP 8.3 minimum, aligne avec l'hebergement Planethoster.
+- Les reservations vehicules et locations materiel refusent maintenant les dates passees.
+- Le menu CRM se limite aux modules reels : applications metier, administration/interne et pages internes seulement si elles existent.
 
 ### Removed
 

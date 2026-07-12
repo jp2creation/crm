@@ -40,14 +40,14 @@ class AdministrationService
                 CrmPermission::query()->whereKey($legacyPermissionId)->delete();
             }
 
-            foreach ($this->moduleSeed() as [$name, $slug, $description, $routePath, $sortOrder]) {
+            foreach ($this->moduleSeed() as [$name, $slug, $description, $routePath, $sortOrder, $active]) {
                 CrmModule::query()->firstOrCreate(
                     ['slug' => $slug],
                     [
                         'name' => $name,
                         'description' => $description,
                         'route_path' => $routePath,
-                        'active' => true,
+                        'active' => $active,
                         'sort_order' => $sortOrder,
                     ],
                 );
@@ -58,12 +58,14 @@ class AdministrationService
                 ->whereNull('menu_badge')
                 ->update(['menu_badge' => 'Martin', 'show_menu_badge' => true]);
 
-            foreach ($this->menuGroupSeed() as [$menuKey, $title, $sortOrder]) {
-                CrmMenuGroup::query()->firstOrCreate(
+            foreach ($this->menuGroupSeed() as [$menuKey, $title, $sortOrder, $active]) {
+                CrmMenuGroup::query()->updateOrCreate(
                     ['menu_key' => $menuKey],
-                    ['title' => $title, 'active' => true, 'sort_order' => $sortOrder],
+                    ['title' => $title, 'active' => $active, 'sort_order' => $sortOrder],
                 );
             }
+
+            $this->deleteObsoleteMenuEntries();
 
             foreach ($this->staticMenuItemSeed() as $item) {
                 $this->ensureMenuItem($item);
@@ -72,16 +74,26 @@ class AdministrationService
             CrmModule::query()
                 ->orderBy('sort_order')
                 ->orderBy('name')
-                ->get(['name', 'slug', 'sort_order'])
+                ->get(['name', 'slug', 'active', 'sort_order'])
                 ->each(function (CrmModule $module): void {
                     $this->ensureMenuItem([
                         'module:'.$module->slug,
-                        'internal',
+                        $this->defaultModuleMenuGroup($module->slug),
                         $module->name,
                         CrmModule::defaultIconKey($module->slug),
                         (int) $module->sort_order,
                     ]);
+
+                    CrmMenuItem::query()
+                        ->where('item_key', 'module:'.$module->slug)
+                        ->update([
+                            'group_key' => $this->defaultModuleMenuGroup($module->slug),
+                            'label' => $module->name,
+                            'active' => (bool) $module->active,
+                        ]);
                 });
+
+            $this->syncPagesMenuGroupVisibility();
 
             $siteIds = $this->ensureDefaultSites();
             $this->ensureDefaultUsers($siteIds);
@@ -644,6 +656,42 @@ class AdministrationService
         $menuItem->saveQuietly();
     }
 
+    private function deleteObsoleteMenuEntries(): void
+    {
+        $prefixes = ['dashboard:', 'app:', 'feature:', 'auth:', 'page:', 'form:', 'table:', 'chart:'];
+
+        CrmMenuItem::query()
+            ->where(function ($query) use ($prefixes): void {
+                foreach ($prefixes as $prefix) {
+                    $query->orWhere('item_key', 'like', $prefix.'%');
+                }
+            })
+            ->delete();
+
+        CrmMenuGroup::query()
+            ->whereIn('menu_key', ['dashboards', 'authentication', 'forms', 'tables', 'charts'])
+            ->delete();
+    }
+
+    private function defaultModuleMenuGroup(string $slug): string
+    {
+        return in_array($slug, ['reservations', 'locations-materiel', 'tapis-romus'], true)
+            ? 'apps'
+            : 'internal';
+    }
+
+    private function syncPagesMenuGroupVisibility(): void
+    {
+        CrmMenuGroup::query()
+            ->where('menu_key', 'pages')
+            ->update([
+                'active' => CrmMenuItem::query()
+                    ->where('group_key', 'pages')
+                    ->where('active', true)
+                    ->exists(),
+            ]);
+    }
+
     private function permissionSeed(): array
     {
         return [
@@ -692,7 +740,7 @@ class AdministrationService
                 'label' => 'Administrateur',
                 'description' => 'Acces global aux sites, modules, utilisateurs, roles et permissions.',
                 'permissions' => array_map(fn (array $permission): string => $permission[0], $this->permissionSeed()),
-                'moduleSlugs' => ['reservations', 'locations-materiel', 'pages-crm', 'administration', 'planning', 'documents', 'demandes', 'tapis-romus'],
+                'moduleSlugs' => ['reservations', 'locations-materiel', 'pages-crm', 'administration', 'conges', 'tapis-romus'],
             ],
             [
                 'key' => 'blocked',
@@ -707,73 +755,30 @@ class AdministrationService
     private function moduleSeed(): array
     {
         return [
-            ['Reservations vehicules', 'reservations', 'Planning et reservations des vehicules', '/reservations', 10],
-            ['Location materiel', 'locations-materiel', 'Planning et locations du materiel interne', '/locations-materiel', 15],
-            ['Pages CRM', 'pages-crm', 'Pages internes modifiables depuis le CRM', '/pages-crm', 18],
-            ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et roles', '/administration', 20],
-            ['Planning', 'planning', 'Planning interne par site', '/planning', 30],
-            ['Documents internes', 'documents', 'Procedures et documents partages', '/documents', 40],
-            ['Demandes internes', 'demandes', 'Demandes et validations internes', '/demandes', 50],
-            ['Tapis ROMUS', 'tapis-romus', 'Bon de commande et mesures tapis ROMUS', '/tapis-romus', 60],
+            ['Reservations vehicules', 'reservations', 'Planning et reservations des vehicules', '/reservations', 10, true],
+            ['Location materiel', 'locations-materiel', 'Planning et locations du materiel interne', '/locations-materiel', 15, true],
+            ['Pages CRM', 'pages-crm', 'Pages internes modifiables depuis le CRM', '/pages-crm', 18, true],
+            ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et roles', '/administration', 20, true],
+            ['Conges', 'conges', 'Planning et gestion des conges', '/conges', 24, true],
+            ['Planning', 'planning', 'Planning interne par site', '/planning', 30, false],
+            ['Documents internes', 'documents', 'Procedures et documents partages', '/documents', 40, false],
+            ['Demandes internes', 'demandes', 'Demandes et validations internes', '/demandes', 50, false],
+            ['Tapis ROMUS', 'tapis-romus', 'Bon de commande et mesures tapis ROMUS', '/tapis-romus', 60, true],
         ];
     }
 
     private function menuGroupSeed(): array
     {
         return [
-            ['dashboards', 'Dashboards', 10],
-            ['internal', 'Modules internes', 20],
-            ['apps', 'Apps', 30],
-            ['authentication', 'Authentication', 40],
-            ['pages', 'Pages', 50],
-            ['forms', 'From', 60],
-            ['tables', 'Table', 70],
-            ['charts', 'Charts', 80],
+            ['apps', 'Applications CRM', 10, true],
+            ['internal', 'Administration', 20, true],
+            ['pages', 'Pages internes', 30, false],
         ];
     }
 
     private function staticMenuItemSeed(): array
     {
-        return [
-            ['dashboard:overview', 'dashboards', 'Overview', 'dashboard', 10],
-            ['dashboard:analytics', 'dashboards', 'Analytics', 'chartLine', 20],
-            ['dashboard:ecommerce', 'dashboards', 'eCommerce', 'shopping', 30],
-            ['dashboard:crm', 'dashboards', 'CRM', 'briefcase', 40],
-            ['app:email', 'apps', 'Email', 'mail', 10],
-            ['app:chat', 'apps', 'Chat', 'message', 20],
-            ['app:calendar', 'apps', 'Calendar', 'calendar', 30],
-            ['app:contacts', 'apps', 'Contacts', 'contacts', 40],
-            ['app:blog', 'apps', 'Blog', 'article', 50],
-            ['app:ecommerce', 'apps', 'E-commerce', 'shopping', 60],
-            ['app:notes', 'apps', 'Notes', 'note', 70],
-            ['app:kanban', 'apps', 'Kanban Board', 'kanban', 80],
-            ['feature:rule-engine', 'apps', 'Rule Engine', 'ruleEngine', 90],
-            ['feature:query-builder', 'apps', 'Query Builder', 'queryBuilder', 100],
-            ['feature:simulation', 'apps', 'Real-Time Simulation', 'simulation', 110],
-            ['feature:insights', 'apps', 'Smart Insights', 'insights', 120],
-            ['feature:workflow-builder', 'apps', 'Workflow Builder', 'workflowBuilder', 130],
-            ['feature:task-scheduler', 'apps', 'Task Scheduler', 'taskScheduler', 140],
-            ['auth:login', 'authentication', 'Login', 'lock', 10],
-            ['auth:register', 'authentication', 'Register', 'userPlus', 20],
-            ['auth:forgot-password', 'authentication', 'Forgot Password', 'key', 30],
-            ['page:pricing', 'pages', 'Pricing', 'creditCard', 10],
-            ['page:account-settings', 'pages', 'Account Settings', 'settings', 20],
-            ['page:gallery', 'pages', 'Gallery', 'photo', 30],
-            ['page:faq', 'pages', 'FAQ', 'help', 40],
-            ['page:typography', 'pages', 'Typography', 'heading', 50],
-            ['form:layout', 'forms', 'Form Layout', 'layoutGrid', 10],
-            ['form:validation', 'forms', 'Form Validation', 'checklist', 20],
-            ['form:editor', 'forms', 'Editor', 'edit', 30],
-            ['table:simple', 'tables', 'Simple Table', 'table', 10],
-            ['table:data', 'tables', 'Data Table', 'database', 20],
-            ['table:crud', 'tables', 'CRUD Table', 'edit', 30],
-            ['chart:line', 'charts', 'Line', 'chartLine', 10],
-            ['chart:area', 'charts', 'Area', 'chartArea', 20],
-            ['chart:columns', 'charts', 'Columns', 'chartBar', 30],
-            ['chart:pie', 'charts', 'Pie & Doughnut', 'chartPie', 40],
-            ['chart:radar', 'charts', 'Radar', 'chartRadar', 50],
-            ['chart:candlestick', 'charts', 'Candlestick', 'chartCandle', 60],
-        ];
+        return [];
     }
 
     private function actorRow(CrmUser $actor): array

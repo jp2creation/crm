@@ -154,8 +154,10 @@ sequenceDiagram
 - Les assets servis depuis `public/assets` sont appeles avec `App\Support\CrmAsset`.
 - La version d'asset est calculee par `filemtime`, ou forcee par `CRM_ASSET_VERSION`.
 - Les logs Laravel utilisent le canal `daily`, avec `LOG_DAILY_DAYS=30`.
+- Le canal `horizon` est configure en `daily` sur `storage/logs/horizon.log`.
 - Le cache applicatif utilise le store configure par `CACHE_STORE`.
 - Les categories materiel actives sont mises en cache et invalidees lors des modifications.
+- Les routes API CRM utilisent `CRM_API_THROTTLE_PER_MINUTE`; login web et token mobile utilisent `CRM_LOGIN_THROTTLE_PER_MINUTE`.
 - Le developpement local peut utiliser Sail via `docker-compose.yml`.
 - La CI GitHub lance Pint, le build Vite et les tests sur PHP 8.3.
 

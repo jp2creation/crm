@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Crm\UploadedCrmFileCleaner;
 use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -35,6 +36,16 @@ class CrmVehicle extends Model
             CrmReferenceCache::forgetVehicles();
         });
 
+        static::updated(function (CrmVehicle $vehicle): void {
+            if ($vehicle->wasChanged('photo_url')) {
+                app(UploadedCrmFileCleaner::class)->deletePublicUpload($vehicle->getOriginal('photo_url'));
+            }
+
+            if ($vehicle->wasChanged('active') && ! $vehicle->active) {
+                app(UploadedCrmFileCleaner::class)->deletePublicUpload($vehicle->getAttribute('photo_url'));
+            }
+        });
+
         static::deleting(function (CrmVehicle $vehicle): void {
             if ($vehicle->reservations()->exists()) {
                 throw ValidationException::withMessages([
@@ -43,7 +54,8 @@ class CrmVehicle extends Model
             }
         });
 
-        static::deleted(function (): void {
+        static::deleted(function (CrmVehicle $vehicle): void {
+            app(UploadedCrmFileCleaner::class)->deletePublicUpload($vehicle->getAttribute('photo_url'));
             CrmReferenceCache::forgetVehicles();
         });
     }

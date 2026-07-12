@@ -7,6 +7,14 @@ return [
         'throttle_per_minute' => (int) env('CRM_LEGACY_PHP_API_THROTTLE_PER_MINUTE', 60),
     ],
 
+    'api' => [
+        'throttle_per_minute' => (int) env('CRM_API_THROTTLE_PER_MINUTE', 120),
+    ],
+
+    'login' => [
+        'throttle_per_minute' => (int) env('CRM_LOGIN_THROTTLE_PER_MINUTE', 10),
+    ],
+
     'admin_password' => [
         'min_length' => (int) env('CRM_ADMIN_PASSWORD_MIN', 12),
         'hash_rounds' => (int) env('CRM_ADMIN_HASH_ROUNDS', env('BCRYPT_ROUNDS', 12)),

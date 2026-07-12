@@ -16,19 +16,21 @@ Route::options('/api/mobile/{path}', [MobileAuthController::class, 'options'])
     ->name('crm.api.mobile.options');
 
 Route::post('/api/mobile/token', [MobileAuthController::class, 'token'])
+    ->middleware('throttle:crm-login')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.token');
 
 Route::get('/api/mobile/me', [MobileAuthController::class, 'me'])
-    ->middleware('auth:sanctum')
+    ->middleware(['auth:sanctum', 'throttle:crm-api'])
     ->name('crm.api.mobile.me');
 
 Route::post('/api/mobile/logout', [MobileAuthController::class, 'logout'])
-    ->middleware('auth:sanctum')
+    ->middleware(['auth:sanctum', 'throttle:crm-api'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.logout');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges', LeaveApiController::class)
+    ->middleware('throttle:crm-api')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.conges');
 
@@ -38,6 +40,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges.php', LeaveApiController::
     ->name('crm.api.conges.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages', PageApiController::class)
+    ->middleware('throttle:crm-api')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.pages');
 
@@ -47,6 +50,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages.php', PageApiController::cl
     ->name('crm.api.pages.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations', ReservationApiController::class)
+    ->middleware('throttle:crm-api')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.reservations');
 
@@ -56,6 +60,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations.php', ReservationApi
     ->name('crm.api.reservations.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals', EquipmentRentalApiController::class)
+    ->middleware('throttle:crm-api')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipment-rentals');
 
@@ -65,6 +70,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals.php', Equipment
     ->name('crm.api.equipment-rentals.legacy');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration', AdministrationApiController::class)
+    ->middleware('throttle:crm-api')
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.administration');
 
@@ -75,7 +81,7 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration.php', Administrati
 
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'show'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:crm-login');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])
