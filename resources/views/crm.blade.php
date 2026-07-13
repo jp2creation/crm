@@ -59,9 +59,14 @@
     <script src="{{ \App\Support\CrmAsset::url('assets/crm-active-site.js') }}"></script>
     <script src="{{ \App\Support\CrmAsset::url('assets/crm-text-fixes.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/index-CqSzWeas.js') }}"></script>
-    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-conges.js') }}"></script>
-    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-controle-caisse.js') }}"></script>
-    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-remise-cheques.js') }}"></script>
+    @php($crmPath = trim(request()->path(), '/'))
+    @if($crmPath === 'conges')
+      <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-conges.js') }}"></script>
+    @elseif($crmPath === 'controle-caisse')
+      <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-controle-caisse.js') }}"></script>
+    @elseif($crmPath === 'remise-cheques' || str_starts_with($crmPath, 'remise-cheques/'))
+      <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-remise-cheques.js') }}"></script>
+    @endif
     <link rel="stylesheet" crossorigin href="{{ \App\Support\CrmAsset::url('assets/index-CVBlw941.css') }}">
     <style>
       .layout-header .header-search-wrap,

@@ -41,19 +41,19 @@
   ],
   "shortcuts": [
     {
-      "name": "Réservations véhicules",
-      "short_name": "Réservations",
+      "name": "Reservations vehicules",
+      "short_name": "Reservations",
       "url": "/reservations?source=pwa",
       "icons": [{ "src": "/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Location matériel",
-      "short_name": "Matériel",
+      "name": "Location materiel",
+      "short_name": "Materiel",
       "url": "/locations-materiel?source=pwa",
       "icons": [{ "src": "/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Contrôle caisse",
+      "name": "Controle caisse",
       "short_name": "Caisse",
       "url": "/controle-caisse?source=pwa",
       "icons": [{ "src": "/assets/pwa/icon-192.png", "sizes": "192x192", "type": "image/png" }]

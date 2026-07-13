@@ -12,6 +12,31 @@ use App\Http\Controllers\Crm\ReservationApiController;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/manifest.json', function () {
+    return response()
+        ->file(public_path('manifest.json'), [
+            'Cache-Control' => 'public, max-age=3600',
+            'Content-Type' => 'application/manifest+json; charset=utf-8',
+        ]);
+})->name('crm.pwa.manifest');
+
+Route::get('/sw.js', function () {
+    return response()
+        ->file(public_path('sw.js'), [
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Content-Type' => 'application/javascript; charset=utf-8',
+            'Service-Worker-Allowed' => '/',
+        ]);
+})->name('crm.pwa.service-worker');
+
+Route::get('/offline.html', function () {
+    return response()
+        ->file(public_path('offline.html'), [
+            'Cache-Control' => 'public, max-age=3600',
+            'Content-Type' => 'text/html; charset=utf-8',
+        ]);
+})->name('crm.pwa.offline');
+
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
 $crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
 $crmLoginApiMiddleware = ['throttle:crm-login', 'crm.compress'];
