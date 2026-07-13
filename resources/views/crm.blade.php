@@ -56,14 +56,42 @@
       rel="stylesheet"
     />
     <script src="{{ \App\Support\CrmAsset::url('assets/crm-active-site.js') }}"></script>
+    <script src="{{ \App\Support\CrmAsset::url('assets/crm-text-fixes.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/index-CqSzWeas.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-conges.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-controle-caisse.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/crm-remise-cheques.js') }}"></script>
     <link rel="stylesheet" crossorigin href="{{ \App\Support\CrmAsset::url('assets/index-CVBlw941.css') }}">
     <style>
       .layout-header .header-search-wrap,
       .layout-header .header-mobile-panel,
       .layout-header .ms-auto > button.header-icon-btn.header-icon-btn-mobile {
         display: none !important;
+      }
+
+      .layout-header nav.hidden.min-w-0.flex-1.items-center {
+        display: none !important;
+      }
+
+      @media (min-width: 768px) and (max-width: 1023.98px) {
+        body:has(aside.translate-x-0) .layout-header {
+          left: var(--sidebar-width, 260px) !important;
+        }
+
+        body:has(aside.translate-x-0) main {
+          margin-left: var(--sidebar-width, 260px) !important;
+          width: calc(100% - var(--sidebar-width, 260px)) !important;
+          max-width: calc(100% - var(--sidebar-width, 260px)) !important;
+        }
+
+        body:has(aside.translate-x-0) .layout-container.layout-page {
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+
+        body:has(aside.translate-x-0) .fixed.inset-0[class*="bg-black/50"][class*="z-[1025]"] {
+          display: none !important;
+        }
       }
     </style>
   </head>

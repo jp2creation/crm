@@ -46,6 +46,8 @@ class CrmMenuItemResource extends Resource
     {
         return [
             'truck' => 'Camion',
+            'package' => 'Colis',
+            'creditCard' => 'Carte bancaire',
             'settings' => 'Parametres',
             'calendar' => 'Calendrier',
             'article' => 'Document',

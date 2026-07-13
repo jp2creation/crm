@@ -16,8 +16,8 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
-    # SPA virtual routes can collide with real public folders on shared hosting.
-    RewriteCond %{REQUEST_URI} ^/(app|dashboard|forms|tables|charts|pages|features|auth|auth-card|reservations|administration|tapis-romus|locations-materiel)(/|$)
+    # CRM SPA virtual routes can collide with real public folders on shared hosting.
+    RewriteCond %{REQUEST_URI} ^/(reservations|administration|tapis-romus|locations-materiel|conges|pages-crm)(/|$)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 

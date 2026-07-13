@@ -37,4 +37,11 @@ return [
     'assets' => [
         'version' => env('CRM_ASSET_VERSION'),
     ],
+
+    'check_ocr' => [
+        'enabled' => env('CRM_CHECK_OCR_ENABLED', true),
+        'python' => env('CRM_CHECK_OCR_PYTHON', 'python3'),
+        'script' => env('CRM_CHECK_OCR_SCRIPT') ?: base_path('scripts/check_ocr.py'),
+        'timeout' => (int) env('CRM_CHECK_OCR_TIMEOUT', 45),
+    ],
 ];

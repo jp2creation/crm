@@ -366,6 +366,7 @@
           <div class="crm-pages-nav-title">Applications CRM</div>
           <a class="crm-pages-nav-link" href="/reservations"><span class="crm-pages-nav-icon">RV</span><span>R&eacute;servations v&eacute;hicules</span></a>
           <a class="crm-pages-nav-link" href="/locations-materiel"><span class="crm-pages-nav-icon">LM</span><span>Location mat&eacute;riel</span></a>
+          <a class="crm-pages-nav-link" href="/controle-caisse"><span class="crm-pages-nav-icon">CC</span><span>Contr&ocirc;le caisse</span></a>
           <a class="crm-pages-nav-link" href="/tapis-romus"><span class="crm-pages-nav-icon">TR</span><span>Tapis ROMUS</span></a>
 
           <div class="crm-pages-nav-title">Interne</div>

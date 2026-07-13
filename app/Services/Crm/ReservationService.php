@@ -2,6 +2,7 @@
 
 namespace App\Services\Crm;
 
+use App\Models\CrmMenuItem;
 use App\Models\CrmModule;
 use App\Models\CrmReservation;
 use App\Models\CrmSite;
@@ -23,6 +24,7 @@ class ReservationService
     public function __construct(
         private readonly ReservationConflictQuery $conflicts,
         private readonly CrmActivityLogger $activity,
+        private readonly CrmAccessService $access,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -42,8 +44,16 @@ class ReservationService
 
     public function bootstrap(CrmUser $actor): array
     {
+        $this->requireModule($actor, 'reservations');
+
+        $allowedSiteIds = $this->siteIds($actor);
+        if ($allowedSiteIds === []) {
+            $this->fail('Aucun site autorise pour les reservations', 403);
+        }
+
         $reservations = CrmReservation::query()
             ->with(['site:id,name', 'user:id,name', 'vehicle:id,name'])
+            ->whereIn('site_id', $allowedSiteIds)
             ->orderBy('start_at')
             ->orderBy('id')
             ->get();
@@ -58,9 +68,9 @@ class ReservationService
             'ok' => true,
             'mode' => 'mysql',
             'user' => $this->actorRow($actor),
-            'sites' => $this->activeSiteRows(),
+            'sites' => collect($this->activeSiteRows())->whereIn('id', $allowedSiteIds)->values()->all(),
             'modules' => $this->activeModuleRows(),
-            'vehicles' => $this->activeVehicleRows(),
+            'vehicles' => collect($this->activeVehicleRows())->whereIn('siteId', $allowedSiteIds)->values()->all(),
             'reservations' => $reservations->map(fn (CrmReservation $reservation): array => $this->reservationRow($reservation))->values()->all(),
             'permissions' => $this->permissionRows(),
             'users' => $users->map(fn (CrmUser $user): array => $this->userRow($user))->values()->all(),
@@ -70,7 +80,6 @@ class ReservationService
     public function createReservation(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor, 'reservations');
-        $this->requirePermission($actor, 'reservations.create');
 
         return DB::transaction(function () use ($actor, $data): array {
             $vehicleId = (int) ($data['vehicleId'] ?? $data['vehicle_id'] ?? 0);
@@ -97,7 +106,7 @@ class ReservationService
                 $this->fail('Site introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $site->id);
+            $this->requireSitePermission($actor, (int) $site->id, 'reservations.create');
             $this->requireWithinSiteHours($site, $startAt, $endAt);
             $this->requireNoReservationConflict($vehicleId, $startAt, $endAt);
 
@@ -146,10 +155,8 @@ class ReservationService
                 $this->fail('Reservation introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $reservation->site_id);
-
-            $canUpdateAny = $this->hasPermission($actor, 'reservations.update_any');
-            $canUpdateOwn = $this->hasPermission($actor, 'reservations.update_own') && (int) $reservation->user_id === (int) $actor->id;
+            $canUpdateAny = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.update_any');
+            $canUpdateOwn = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.update_own') && (int) $reservation->user_id === (int) $actor->id;
 
             if (! $canUpdateAny && ! $canUpdateOwn) {
                 $this->fail('Modification non autorisee', 403);
@@ -170,7 +177,13 @@ class ReservationService
                 $this->fail('Site introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $site->id);
+            $canUpdateAnyOnNewSite = $this->canOnSite($actor, (int) $site->id, 'reservations.update_any');
+            $canUpdateOwnOnNewSite = $this->canOnSite($actor, (int) $site->id, 'reservations.update_own') && (int) $reservation->user_id === (int) $actor->id;
+
+            if (! $canUpdateAnyOnNewSite && ! $canUpdateOwnOnNewSite) {
+                $this->fail('Site non autorise', 403);
+            }
+
             $this->requireWithinSiteHours($site, $startAt, $endAt);
             $this->requireNoReservationConflict($vehicleId, $startAt, $endAt, $id);
 
@@ -194,7 +207,6 @@ class ReservationService
     public function saveVehicle(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor, 'reservations');
-        $this->requirePermission($actor, 'reservations.manage_vehicles');
 
         return DB::transaction(function () use ($actor, $data): array {
             $id = max(0, (int) ($data['id'] ?? 0));
@@ -204,7 +216,7 @@ class ReservationService
             $color = $this->color((string) ($data['color'] ?? '#95002e'));
             $photoDataUrl = (string) ($data['photoDataUrl'] ?? $data['photo_data_url'] ?? '');
 
-            $this->requireSiteAccess($actor, $siteId);
+            $this->requireSitePermission($actor, $siteId, 'reservations.manage_vehicles');
 
             if ($name === '' || mb_strlen($name) > 160) {
                 $this->fail('Nom de vehicule invalide', 400);
@@ -233,7 +245,7 @@ class ReservationService
             }
 
             if ($id > 0) {
-                $this->requireSiteAccess($actor, (int) $vehicle->site_id);
+                $this->requireSitePermission($actor, (int) $vehicle->site_id, 'reservations.manage_vehicles');
             }
 
             $photoUrl = $vehicle->getAttribute('photo_url') ?: null;
@@ -261,7 +273,6 @@ class ReservationService
     public function deleteVehicle(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor, 'reservations');
-        $this->requirePermission($actor, 'reservations.manage_vehicles');
 
         return DB::transaction(function () use ($actor, $data): array {
             $id = (int) ($data['id'] ?? 0);
@@ -278,7 +289,7 @@ class ReservationService
                 $this->fail('Vehicule introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $vehicle->site_id);
+            $this->requireSitePermission($actor, (int) $vehicle->site_id, 'reservations.manage_vehicles');
             $vehicle->forceFill(['active' => false])->save();
 
             $this->log($actor, 'masquage vehicule', "Vehicule #{$id}");
@@ -306,10 +317,8 @@ class ReservationService
                 $this->fail('Reservation introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $reservation->site_id);
-
-            $canDeleteAny = $this->hasPermission($actor, 'reservations.delete_any');
-            $canDeleteOwn = $this->hasPermission($actor, 'reservations.delete_own') && (int) $reservation->user_id === (int) $actor->id;
+            $canDeleteAny = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.delete_any');
+            $canDeleteOwn = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.delete_own') && (int) $reservation->user_id === (int) $actor->id;
 
             if (! $canDeleteAny && ! $canDeleteOwn) {
                 $this->fail('Suppression non autorisee', 403);
@@ -369,42 +378,19 @@ class ReservationService
 
     private function hasModule(CrmUser $actor, string $slug): bool
     {
-        if ($actor->role === 'blocked') {
-            return false;
-        }
-
-        $actor->loadMissing('modules:id,slug,active');
-        $module = CrmModule::query()
-            ->where('slug', $slug)
-            ->where('active', true)
-            ->first();
-
-        return $module !== null && $actor->modules->contains('id', $module->id);
+        return $this->access->hasModule($actor, $slug);
     }
 
-    private function requirePermission(CrmUser $actor, string $permission): void
+    private function requireSitePermission(CrmUser $actor, int $siteId, string $permission): void
     {
-        if (! $this->hasPermission($actor, $permission)) {
+        if (! $this->canOnSite($actor, $siteId, $permission)) {
             $this->fail('Droit insuffisant : '.$permission, 403);
         }
     }
 
-    private function hasPermission(CrmUser $actor, string $permission): bool
+    private function canOnSite(CrmUser $actor, int $siteId, string $permission): bool
     {
-        if ($actor->role === 'blocked') {
-            return false;
-        }
-
-        $actor->loadMissing('permissions:id,name,label');
-
-        return $actor->permissions->contains('name', $permission);
-    }
-
-    private function requireSiteAccess(CrmUser $actor, int $siteId): void
-    {
-        if ($siteId <= 0 || ! in_array($siteId, $this->siteIds($actor), true)) {
-            $this->fail('Site non autorise', 403);
-        }
+        return $this->access->canOnSite($actor, $siteId, 'reservations', $permission);
     }
 
     private function actorRow(CrmUser $actor): array
@@ -415,8 +401,8 @@ class ReservationService
             'role' => $actor->role,
             'active' => (bool) $actor->active,
             'siteIds' => $this->siteIds($actor),
-            'moduleIds' => $actor->role === 'blocked' ? [] : $this->moduleIds($actor),
-            'permissions' => $actor->role === 'blocked' ? [] : $this->permissionNames($actor),
+            'moduleIds' => $actor->role === 'blocked' ? [] : $this->access->moduleIds($actor),
+            'permissions' => $actor->role === 'blocked' ? [] : $this->access->permissionNames($actor),
         ];
     }
 
@@ -427,8 +413,8 @@ class ReservationService
             'name' => $user->name,
             'role' => $user->role,
             'siteIds' => $this->siteIds($user),
-            'moduleIds' => $this->moduleIds($user),
-            'permissions' => $this->permissionNames($user),
+            'moduleIds' => $this->access->moduleIds($user),
+            'permissions' => $this->access->permissionNames($user),
         ];
     }
 
@@ -437,72 +423,23 @@ class ReservationService
      */
     private function siteIds(CrmUser $user): array
     {
-        if ($user->relationLoaded('sites')) {
-            return $user->sites
-                ->sortBy([
-                    fn ($siteA, $siteB): int => (int) ($siteB->pivot?->is_default ?? false) <=> (int) ($siteA->pivot?->is_default ?? false),
-                    fn ($siteA, $siteB): int => (int) $siteA->id <=> (int) $siteB->id,
-                ])
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->values()
-                ->all();
-        }
-
-        return $user->sites()
-            ->whereNull('crm_sites.deleted_at')
-            ->orderByDesc('crm_user_sites.is_default')
-            ->orderBy('crm_sites.id')
-            ->pluck('crm_sites.id')
-            ->map(fn ($id): int => (int) $id)
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    private function moduleIds(CrmUser $user): array
-    {
-        if ($user->relationLoaded('modules')) {
-            return $user->modules
-                ->sortBy('id')
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->values()
-                ->all();
-        }
-
-        return $user->modules()
-            ->orderBy('crm_modules.id')
-            ->pluck('crm_modules.id')
-            ->map(fn ($id): int => (int) $id)
-            ->values()
-            ->all();
+        return $this->access->siteIdsForModule($user, 'reservations', $this->reservationPermissionNames());
     }
 
     /**
      * @return array<int, string>
      */
-    private function permissionNames(CrmUser $user): array
+    private function reservationPermissionNames(): array
     {
-        if ($user->relationLoaded('permissions')) {
-            return $user->permissions
-                ->sortBy([
-                    fn ($permissionA, $permissionB): int => (int) $permissionA->sort_order <=> (int) $permissionB->sort_order,
-                    fn ($permissionA, $permissionB): int => strcmp((string) $permissionA->name, (string) $permissionB->name),
-                ])
-                ->pluck('name')
-                ->values()
-                ->all();
-        }
-
-        return $user->permissions()
-            ->orderBy('crm_permissions.sort_order')
-            ->orderBy('crm_permissions.name')
-            ->pluck('crm_permissions.name')
-            ->values()
-            ->all();
+        return [
+            'reservations.view',
+            'reservations.create',
+            'reservations.update_own',
+            'reservations.update_any',
+            'reservations.delete_own',
+            'reservations.delete_any',
+            'reservations.manage_vehicles',
+        ];
     }
 
     private function siteRow(CrmSite $site): array
@@ -577,8 +514,18 @@ class ReservationService
     private function activeModuleRows(): array
     {
         return Cache::rememberForever(CrmReferenceCache::ACTIVE_MODULE_ROWS, function (): array {
+            $visibleModuleSlugs = CrmMenuItem::query()
+                ->where('active', true)
+                ->where('item_key', 'like', 'module:%')
+                ->pluck('item_key')
+                ->map(fn (string $key): string => substr($key, 7))
+                ->filter()
+                ->values()
+                ->all();
+
             return CrmModule::query()
                 ->active()
+                ->whereIn('slug', $visibleModuleSlugs)
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get()

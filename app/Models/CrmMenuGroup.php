@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -22,6 +23,17 @@ class CrmMenuGroup extends Model
             'active' => 'boolean',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (): void {
+            CrmReferenceCache::forgetModules();
+        });
+
+        static::deleted(function (): void {
+            CrmReferenceCache::forgetModules();
+        });
     }
 
     public function items(): HasMany

@@ -510,9 +510,21 @@
       #crm-leaves-module .leave-date.is-selected {
         background:#fff;
       }
+      #crm-leaves-module .leave-date.is-today .leave-number {
+        background:transparent;
+        color:inherit;
+        box-shadow:none;
+      }
       #crm-leaves-module .leave-date.is-selected .leave-number {
         background:rgb(var(--theme-primary));
         color:#fff;
+        box-shadow:none;
+      }
+      #crm-leaves-module .leave-date.is-sunday.is-selected .leave-number {
+        color:#fff;
+      }
+      #crm-leaves-module .leave-date.is-sunday.is-today:not(.is-selected) .leave-number {
+        color:#be123c;
       }
       #crm-leaves-module .leave-number {
         width:1.85rem;
@@ -526,7 +538,7 @@
         margin-top:.4rem;
       }
       #crm-leaves-module .leave-line,
-      #crm-leaves-module .leave-lane-spacer { height:.2rem; }
+      #crm-leaves-module .leave-lane-spacer { height:.18rem; }
       #crm-leaves-module .leave-legend {
         display:flex;
         flex-wrap:wrap;
@@ -603,7 +615,9 @@
       .dark #crm-leaves-module .leave-legend-more {
         background:var(--color-surface-800,#1e293b);
       }
-      .dark #crm-leaves-module .leave-weekdays,
+      .dark #crm-leaves-module .leave-weekdays {
+        background:var(--color-surface-900,#0f172a);
+      }
       .dark #crm-leaves-module .leave-date.is-selected {
         background:var(--color-surface-900,#0f172a);
       }
@@ -659,7 +673,7 @@
         }
         #crm-leaves-module .leave-line,
         #crm-leaves-module .leave-lane-spacer {
-          height:.15rem;
+          height:.14rem;
           box-shadow:none;
         }
         #crm-leaves-module .leave-legend {

@@ -21,8 +21,8 @@ import {
     t as g,
     u as _,
     w as v,
-} from "./index-CqSzWeas.js?v=2026071042";
-import { t as re } from "./dashboard-Chzs1W9w.js?v=2026071042";
+} from "./index-CqSzWeas.js?v=1783861909";
+import { t as re } from "./dashboard-Chzs1W9w.js?v=1783861909";
 var y = r(o(), 1),
     b = n(),
     x = {
@@ -47,9 +47,11 @@ var y = r(o(), 1),
         name: ``,
         role: `user`,
         active: !0,
+        primarySiteId: null,
         siteIds: [],
         moduleIds: [],
         permissionIds: [],
+        accessRules: [],
     },
     w = [`Essentiels`, `CRM`, `Contenu`, `Bibliothèque fine`],
     T = [
@@ -211,6 +213,10 @@ function ie(e) {
 function E(e, t) {
     return e.includes(t) ? e.filter((e) => e !== t) : [...e, t];
 }
+function userPrimarySiteId(e) {
+    let t = Number(e.primarySiteId ?? e.siteIds?.[0] ?? 0);
+    return t > 0 ? t : null;
+}
 function D(e, t) {
     let n = t?.roles.find((t) => t.key === e);
     return {
@@ -225,14 +231,17 @@ function D(e, t) {
     };
 }
 function ae(e) {
+    let t = userPrimarySiteId(e);
     return {
         id: e.id,
         name: e.name,
         role: e.role,
         active: e.active,
-        siteIds: e.siteIds,
+        primarySiteId: t,
+        siteIds: t ? [t] : e.siteIds,
         moduleIds: e.moduleIds,
         permissionIds: e.permissionIds,
+        accessRules: Array.isArray(e.accessRules) ? e.accessRules : [],
     };
 }
 function siteTimeValue(e, t) {
@@ -627,6 +636,52 @@ function ue({ items: e, values: t, onToggle: n, getLabel: r }) {
         ),
     });
 }
+function accessPermissionPrefix(e) {
+    return {
+        reservations: `reservations.`,
+        "locations-materiel": `equipment_rentals.`,
+        conges: `conges.`,
+    }[e.slug] ?? ``;
+}
+function accessPermissionItems(e, t) {
+    let n = accessPermissionPrefix(e);
+    return n ? t.filter((e) => e.name.startsWith(n)) : [];
+}
+function accessRuleKey(e) {
+    return `${Number(e.siteId)}:${Number(e.moduleId)}:${Number(e.permissionId)}`;
+}
+function normalizeAccessRules(e) {
+    let t = new Map();
+    (Array.isArray(e) ? e : []).forEach((e) => {
+        let n = Number(e.siteId ?? e.site_id),
+            r = Number(e.moduleId ?? e.module_id),
+            i = Number(e.permissionId ?? e.permission_id);
+        n > 0 &&
+            r > 0 &&
+            i > 0 &&
+            t.set(`${n}:${r}:${i}`, {
+                siteId: n,
+                moduleId: r,
+                permissionId: i,
+            });
+    });
+    return [...t.values()].sort(
+        (e, t) =>
+            e.siteId - t.siteId ||
+            e.moduleId - t.moduleId ||
+            e.permissionId - t.permissionId,
+    );
+}
+function toggleAccessRule(e, t, n, r) {
+    let i = normalizeAccessRules(e),
+        a = accessRuleKey({ siteId: t, moduleId: n, permissionId: r });
+    return i.some((e) => accessRuleKey(e) === a)
+        ? i.filter((e) => accessRuleKey(e) !== a)
+        : normalizeAccessRules([
+              ...i,
+              { siteId: t, moduleId: n, permissionId: r },
+          ]);
+}
 function de({ notice: e }) {
     return e
         ? (0, b.jsx)(`div`, {
@@ -678,6 +733,7 @@ function fe() {
                         i = D(`user`, t);
                     W((e) => ({
                         ...e,
+                        primarySiteId: r ? r.id : null,
                         siteIds: r ? [r.id] : [],
                         moduleIds: i.moduleIds,
                         permissionIds: i.permissionIds,
@@ -730,7 +786,28 @@ function fe() {
         he = (0, y.useMemo)(
             () => new Map(G.map((e) => [e.menuKey, e.title])),
             [G],
-        );
+        ),
+        Le = (0, y.useMemo)(() => {
+            let e = t?.users ?? [],
+                n = (t?.sites ?? [])
+                    .map((t) => ({
+                        site: t,
+                        users: e.filter(
+                            (e) => userPrimarySiteId(e) === Number(t.id),
+                        ),
+                    }))
+                    .filter((e) => e.users.length > 0),
+                r = e.filter((e) => userPrimarySiteId(e) === null);
+            return r.length
+                ? [
+                      ...n,
+                      {
+                          site: { id: 0, name: `Sans site`, active: !1 },
+                          users: r,
+                      },
+                  ]
+                : n;
+        }, [t?.sites, t?.users]);
     function ge(e) {
         let n = D(e, t);
         W((t) => ({
@@ -889,11 +966,13 @@ function fe() {
     async function we(e) {
         (e.preventDefault(), I(!0), T(null));
         try {
-            await ne(U);
+            let r = userPrimarySiteId(U);
+            await ne({ ...U, primarySiteId: r, siteIds: r ? [r] : U.siteIds });
             let e = t?.sites.find((e) => e.active) ?? t?.sites[0],
                 n = D(`user`, t);
             (W({
                 ...C,
+                primarySiteId: e ? e.id : null,
                 siteIds: e ? [e.id] : [],
                 moduleIds: n.moduleIds,
                 permissionIds: n.permissionIds,
@@ -1022,18 +1101,64 @@ function fe() {
                                               }),
                                               (0, b.jsx)(`div`, {
                                                   className: `space-y-3`,
-                                                  children: t.users.map((e) =>
-                                                      (0, b.jsx)(
-                                                          P,
+                                                  children: Le.map((e) =>
+                                                      (0, b.jsxs)(
+                                                          `section`,
                                                           {
-                                                              title: e.name,
-                                                              subtitle: `${e.role} - ${e.siteIds.length} site(s) - ${e.moduleIds.length} module(s)`,
-                                                              badge: `${e.permissionIds.length} droits`,
-                                                              active: e.active,
-                                                              onEdit: () =>
-                                                                  W(ae(e)),
+                                                              className: `space-y-2`,
+                                                              children: [
+                                                                  (0, b.jsxs)(
+                                                                      `div`,
+                                                                      {
+                                                                          className: `flex items-center justify-between rounded-lg bg-surface-50 px-3 py-2 dark:bg-surface-800/60`,
+                                                                          children:
+                                                                              [
+                                                                                  (0,
+                                                                                  b.jsx)(
+                                                                                      `p`,
+                                                                                      {
+                                                                                          className: `text-label text-secondary-800 dark:text-secondary-100`,
+                                                                                          children:
+                                                                                              e
+                                                                                                  .site
+                                                                                                  .name,
+                                                                                      },
+                                                                                  ),
+                                                                                  (0,
+                                                                                  b.jsx)(
+                                                                                      u,
+                                                                                      {
+                                                                                          variant: `neutral`,
+                                                                                          children: `${e.users.length} utilisateur(s)`,
+                                                                                      },
+                                                                                  ),
+                                                                              ],
+                                                                      },
+                                                                  ),
+                                                                  e.users.map(
+                                                                      (e) =>
+                                                                          (0,
+                                                                          b.jsx)(
+                                                                              P,
+                                                                              {
+                                                                                  title: e.name,
+                                                                                  subtitle: `${e.role} - ${pe.get(userPrimarySiteId(e) ?? 0) ?? `Sans site`} - ${e.moduleIds.length} module(s)`,
+                                                                                  badge: `${e.permissionIds.length} droits`,
+                                                                                  active: e.active,
+                                                                                  onEdit:
+                                                                                      () =>
+                                                                                          W(
+                                                                                              ae(
+                                                                                                  e,
+                                                                                              ),
+                                                                                          ),
+                                                                              },
+                                                                              e.id,
+                                                                          ),
+                                                                  ),
+                                                              ],
                                                           },
-                                                          e.id,
+                                                          e.site.id,
                                                       ),
                                                   ),
                                               }),
@@ -1062,7 +1187,32 @@ function fe() {
                                                       (0, b.jsx)(a, {
                                                           variant: `ghost`,
                                                           size: `sm`,
-                                                          onClick: () => W(C),
+                                                          onClick: () => {
+                                                              let e =
+                                                                      t.sites.find(
+                                                                          (e) =>
+                                                                              e.active,
+                                                                      ) ??
+                                                                      t.sites[0],
+                                                                  n = D(
+                                                                      `user`,
+                                                                      t,
+                                                                  );
+                                                              W({
+                                                                  ...C,
+                                                                  primarySiteId:
+                                                                      e
+                                                                          ? e.id
+                                                                          : null,
+                                                                  siteIds: e
+                                                                      ? [e.id]
+                                                                      : [],
+                                                                  moduleIds:
+                                                                      n.moduleIds,
+                                                                  permissionIds:
+                                                                      n.permissionIds,
+                                                              });
+                                                          },
                                                           children: `Nouveau`,
                                                       }),
                                                   ],
@@ -1167,30 +1317,63 @@ function fe() {
                                                           ],
                                                       }),
                                                       (0, b.jsx)(m, {
-                                                          label: `Sites autorises`,
+                                                          label: `Site de rattachement`,
+                                                          htmlFor: `admin-user-primary-site`,
+                                                          required: !0,
                                                           children: (0, b.jsx)(
-                                                              ue,
+                                                              i,
                                                               {
-                                                                  items: t.sites,
-                                                                  values: U.siteIds,
-                                                                  getLabel: (
-                                                                      e,
-                                                                  ) =>
-                                                                      pe.get(
-                                                                          e,
-                                                                      ) ??
-                                                                      String(e),
-                                                                  onToggle: (
-                                                                      e,
-                                                                  ) =>
-                                                                      W({
-                                                                          ...U,
-                                                                          siteIds:
-                                                                              E(
-                                                                                  U.siteIds,
+                                                                  id: `admin-user-primary-site`,
+                                                                  value: String(
+                                                                      U.primarySiteId ??
+                                                                          U
+                                                                              .siteIds?.[0] ??
+                                                                          ``,
+                                                                  ),
+                                                                  onChange:
+                                                                      (e) => {
+                                                                          let t =
+                                                                              Number(
+                                                                                  e
+                                                                                      .target
+                                                                                      .value,
+                                                                              ) ||
+                                                                              null;
+                                                                          W({
+                                                                              ...U,
+                                                                              primarySiteId:
+                                                                                  t,
+                                                                              siteIds:
+                                                                                  t
+                                                                                      ? [
+                                                                                            t,
+                                                                                        ]
+                                                                                      : [],
+                                                                          });
+                                                                      },
+                                                                  children:
+                                                                      t.sites
+                                                                          .filter(
+                                                                              (
                                                                                   e,
-                                                                              ),
-                                                                      }),
+                                                                              ) =>
+                                                                                  e.active,
+                                                                          )
+                                                                          .map(
+                                                                              (
+                                                                                  e,
+                                                                              ) =>
+                                                                                  (0,
+                                                                                  b.jsx)(
+                                                                                      `option`,
+                                                                                      {
+                                                                                          value: e.id,
+                                                                                          children:
+                                                                                              e.name,
+                                                                                      },
+                                                                                      e.id,
+                                                                                  ),
+                                                                          ),
                                                               },
                                                           ),
                                                       }),
@@ -1293,6 +1476,211 @@ function fe() {
                                                                                   e.id,
                                                                               ),
                                                                       ),
+                                                              },
+                                                          ),
+                                                      }),
+                                                      (0, b.jsx)(m, {
+                                                          label: `Droits par site et module`,
+                                                          children: (0, b.jsxs)(
+                                                              `div`,
+                                                              {
+                                                                  className: `space-y-3`,
+                                                                  children: [
+                                                                      (0,
+                                                                      b.jsx)(
+                                                                          `p`,
+                                                                          {
+                                                                              className: `text-body-sm text-secondary-500`,
+                                                                              children: `Ajoute ici des droits limites a un site precis, sans ouvrir tout le site dans les droits globaux.`,
+                                                                          },
+                                                                      ),
+                                                                      (0,
+                                                                      b.jsx)(
+                                                                          `div`,
+                                                                          {
+                                                                              className: `max-h-[420px] space-y-3 overflow-y-auto pr-1`,
+                                                                              children:
+                                                                                  t.sites
+                                                                                      .filter(
+                                                                                          (
+                                                                                              e,
+                                                                                          ) =>
+                                                                                              e.active,
+                                                                                      )
+                                                                                      .map(
+                                                                                          (
+                                                                                              e,
+                                                                                          ) =>
+                                                                                              (0,
+                                                                                              b.jsxs)(
+                                                                                                  `div`,
+                                                                                                  {
+                                                                                                      className: `rounded-xl border border-surface-200 p-3 dark:border-surface-700`,
+                                                                                                      children:
+                                                                                                          [
+                                                                                                              (0,
+                                                                                                              b.jsx)(
+                                                                                                                  `p`,
+                                                                                                                  {
+                                                                                                                      className: `mb-3 text-label text-secondary-900 dark:text-white`,
+                                                                                                                      children:
+                                                                                                                          e.name,
+                                                                                                                  },
+                                                                                                              ),
+                                                                                                              (0,
+                                                                                                              b.jsx)(
+                                                                                                                  `div`,
+                                                                                                                  {
+                                                                                                                      className: `space-y-3`,
+                                                                                                                      children:
+                                                                                                                          t.modules
+                                                                                                                              .filter(
+                                                                                                                                  (
+                                                                                                                                      e,
+                                                                                                                                  ) =>
+                                                                                                                                      e.active,
+                                                                                                                              )
+                                                                                                                              .map(
+                                                                                                                                  (
+                                                                                                                                      n,
+                                                                                                                                  ) => {
+                                                                                                                                      let r =
+                                                                                                                                          accessPermissionItems(
+                                                                                                                                              n,
+                                                                                                                                              t.permissions,
+                                                                                                                                          );
+                                                                                                                                      return r.length
+                                                                                                                                          ? (0,
+                                                                                                                                            b.jsxs)(
+                                                                                                                                                `div`,
+                                                                                                                                                {
+                                                                                                                                                    className: `rounded-lg bg-surface-50 p-3 dark:bg-surface-800/60`,
+                                                                                                                                                    children:
+                                                                                                                                                        [
+                                                                                                                                                            (0,
+                                                                                                                                                            b.jsx)(
+                                                                                                                                                                `p`,
+                                                                                                                                                                {
+                                                                                                                                                                    className: `mb-2 text-body-sm font-semibold text-secondary-800 dark:text-secondary-100`,
+                                                                                                                                                                    children:
+                                                                                                                                                                        n.name,
+                                                                                                                                                                },
+                                                                                                                                                            ),
+                                                                                                                                                            (0,
+                                                                                                                                                            b.jsx)(
+                                                                                                                                                                `div`,
+                                                                                                                                                                {
+                                                                                                                                                                    className: `grid grid-cols-1 gap-2`,
+                                                                                                                                                                    children:
+                                                                                                                                                                        r.map(
+                                                                                                                                                                            (
+                                                                                                                                                                                r,
+                                                                                                                                                                            ) =>
+                                                                                                                                                                                (0,
+                                                                                                                                                                                b.jsxs)(
+                                                                                                                                                                                    `label`,
+                                                                                                                                                                                    {
+                                                                                                                                                                                        className: `flex cursor-pointer items-start gap-2 rounded-lg border border-surface-200 bg-white px-3 py-2 text-body-sm dark:border-surface-700 dark:bg-surface-900`,
+                                                                                                                                                                                        children:
+                                                                                                                                                                                            [
+                                                                                                                                                                                                (0,
+                                                                                                                                                                                                b.jsx)(
+                                                                                                                                                                                                    c,
+                                                                                                                                                                                                    {
+                                                                                                                                                                                                        checked:
+                                                                                                                                                                                                            normalizeAccessRules(
+                                                                                                                                                                                                                U.accessRules,
+                                                                                                                                                                                                            ).some(
+                                                                                                                                                                                                                (
+                                                                                                                                                                                                                    i,
+                                                                                                                                                                                                                ) =>
+                                                                                                                                                                                                                    Number(
+                                                                                                                                                                                                                        i.siteId,
+                                                                                                                                                                                                                    ) ===
+                                                                                                                                                                                                                        Number(
+                                                                                                                                                                                                                            e.id,
+                                                                                                                                                                                                                        ) &&
+                                                                                                                                                                                                                    Number(
+                                                                                                                                                                                                                        i.moduleId,
+                                                                                                                                                                                                                    ) ===
+                                                                                                                                                                                                                        Number(
+                                                                                                                                                                                                                            n.id,
+                                                                                                                                                                                                                        ) &&
+                                                                                                                                                                                                                    Number(
+                                                                                                                                                                                                                        i.permissionId,
+                                                                                                                                                                                                                    ) ===
+                                                                                                                                                                                                                        Number(
+                                                                                                                                                                                                                            r.id,
+                                                                                                                                                                                                                        ),
+                                                                                                                                                                                                            ),
+                                                                                                                                                                                                        onChange:
+                                                                                                                                                                                                            () =>
+                                                                                                                                                                                                                W(
+                                                                                                                                                                                                                    {
+                                                                                                                                                                                                                        ...U,
+                                                                                                                                                                                                                        accessRules:
+                                                                                                                                                                                                                            toggleAccessRule(
+                                                                                                                                                                                                                                U.accessRules,
+                                                                                                                                                                                                                                e.id,
+                                                                                                                                                                                                                                n.id,
+                                                                                                                                                                                                                                r.id,
+                                                                                                                                                                                                                            ),
+                                                                                                                                                                                                                    },
+                                                                                                                                                                                                                ),
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                ),
+                                                                                                                                                                                                (0,
+                                                                                                                                                                                                b.jsxs)(
+                                                                                                                                                                                                    `span`,
+                                                                                                                                                                                                    {
+                                                                                                                                                                                                        className: `min-w-0`,
+                                                                                                                                                                                                        children:
+                                                                                                                                                                                                            [
+                                                                                                                                                                                                                (0,
+                                                                                                                                                                                                                b.jsx)(
+                                                                                                                                                                                                                    `span`,
+                                                                                                                                                                                                                    {
+                                                                                                                                                                                                                        className: `block font-medium text-secondary-800 dark:text-secondary-100`,
+                                                                                                                                                                                                                        children:
+                                                                                                                                                                                                                            r.label,
+                                                                                                                                                                                                                    },
+                                                                                                                                                                                                                ),
+                                                                                                                                                                                                                (0,
+                                                                                                                                                                                                                b.jsx)(
+                                                                                                                                                                                                                    `span`,
+                                                                                                                                                                                                                    {
+                                                                                                                                                                                                                        className: `block text-ui-xs text-secondary-400`,
+                                                                                                                                                                                                                        children:
+                                                                                                                                                                                                                            r.name,
+                                                                                                                                                                                                                    },
+                                                                                                                                                                                                                ),
+                                                                                                                                                                                                            ],
+                                                                                                                                                                                                    },
+                                                                                                                                                                                                ),
+                                                                                                                                                                                            ],
+                                                                                                                                                                                    },
+                                                                                                                                                                                    `${e.id}-${n.id}-${r.id}`,
+                                                                                                                                                                                ),
+                                                                                                                                                                        ),
+                                                                                                                                                                },
+                                                                                                                                                            ),
+                                                                                                                                                        ],
+                                                                                                                                                },
+                                                                                                                                                `${e.id}-${n.id}`,
+                                                                                                                                            )
+                                                                                                                                          : null;
+                                                                                                                                  },
+                                                                                                                              ),
+                                                                                                                  },
+                                                                                                              ),
+                                                                                                          ],
+                                                                                                  },
+                                                                                                  e.id,
+                                                                                              ),
+                                                                                      ),
+                                                                          },
+                                                                      ),
+                                                                  ],
                                                               },
                                                           ),
                                                       }),

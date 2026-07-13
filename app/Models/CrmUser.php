@@ -43,6 +43,7 @@ class CrmUser extends Model
             $user->sites()->detach();
             $user->modules()->detach();
             $user->permissions()->detach();
+            $user->siteModulePermissions()->delete();
         });
     }
 
@@ -77,6 +78,11 @@ class CrmUser extends Model
         return $this->belongsToMany(CrmPermission::class, 'crm_user_permissions', 'user_id', 'permission_id');
     }
 
+    public function siteModulePermissions(): HasMany
+    {
+        return $this->hasMany(CrmUserSiteModulePermission::class, 'user_id');
+    }
+
     public function reservations(): HasMany
     {
         return $this->hasMany(CrmReservation::class, 'user_id');
@@ -85,5 +91,15 @@ class CrmUser extends Model
     public function equipmentRentals(): HasMany
     {
         return $this->hasMany(CrmEquipmentRental::class, 'user_id');
+    }
+
+    public function createdCashRegisterDays(): HasMany
+    {
+        return $this->hasMany(CrmCashRegisterDay::class, 'created_by');
+    }
+
+    public function cashMovementsUploads(): HasMany
+    {
+        return $this->hasMany(CrmCashMovement::class, 'uploaded_by');
     }
 }

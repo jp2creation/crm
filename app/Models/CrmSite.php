@@ -47,6 +47,7 @@ class CrmSite extends Model
 
         static::deleting(function (CrmSite $site): void {
             $site->users()->detach();
+            $site->siteModulePermissions()->delete();
 
             if (! $site->isForceDeleting()) {
                 $site->forceFill([
@@ -63,9 +64,10 @@ class CrmSite extends Model
                 || $site->reservations()->exists()
                 || $site->equipmentItems()->exists()
                 || $site->equipmentRentals()->exists()
+                || $site->cashRegisterDays()->exists()
             ) {
                 throw ValidationException::withMessages([
-                    'site' => 'Ce site est utilise par des vehicules, du materiel ou des reservations. Supprime-le sans forcer pour l archiver.',
+                    'site' => 'Ce site est utilise par des vehicules, du materiel, des reservations ou des caisses. Supprime-le sans forcer pour l archiver.',
                 ]);
             }
         });
@@ -116,10 +118,20 @@ class CrmSite extends Model
         return $this->hasMany(CrmEquipmentRental::class, 'site_id');
     }
 
+    public function cashRegisterDays(): HasMany
+    {
+        return $this->hasMany(CrmCashRegisterDay::class, 'site_id');
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(CrmUser::class, 'crm_user_sites', 'site_id', 'user_id')
             ->withPivot('is_default');
+    }
+
+    public function siteModulePermissions(): HasMany
+    {
+        return $this->hasMany(CrmUserSiteModulePermission::class, 'site_id');
     }
 
     public function scopeActive(Builder $query): Builder

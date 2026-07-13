@@ -27,11 +27,11 @@ final class CrmAsset
         $version = config('crm.assets.version');
 
         if (! $version) {
-            $version = self::importVersion($path);
+            $version = self::fileVersion($path);
         }
 
         if (! $version) {
-            $version = self::fileVersion($path);
+            $version = self::importVersion($path);
         }
 
         if (! $version) {

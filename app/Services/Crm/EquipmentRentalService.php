@@ -5,6 +5,7 @@ namespace App\Services\Crm;
 use App\Models\CrmEquipmentCategory;
 use App\Models\CrmEquipmentItem;
 use App\Models\CrmEquipmentRental;
+use App\Models\CrmMenuItem;
 use App\Models\CrmModule;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
@@ -24,6 +25,7 @@ class EquipmentRentalService
     public function __construct(
         private readonly ReservationConflictQuery $conflicts,
         private readonly CrmActivityLogger $activity,
+        private readonly CrmAccessService $access,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -43,8 +45,16 @@ class EquipmentRentalService
 
     public function bootstrap(CrmUser $actor): array
     {
+        $this->requireModule($actor);
+
+        $allowedSiteIds = $this->siteIds($actor);
+        if ($allowedSiteIds === []) {
+            $this->fail('Aucun site autorise pour la location materiel', 403);
+        }
+
         $rentals = CrmEquipmentRental::query()
             ->with(['equipmentItem:id,name', 'site:id,name', 'user:id,name'])
+            ->whereIn('site_id', $allowedSiteIds)
             ->orderBy('start_at')
             ->orderBy('id')
             ->get();
@@ -59,10 +69,10 @@ class EquipmentRentalService
             'ok' => true,
             'mode' => 'mysql',
             'user' => $this->actorRow($actor),
-            'sites' => $this->activeSiteRows(),
+            'sites' => collect($this->activeSiteRows())->whereIn('id', $allowedSiteIds)->values()->all(),
             'modules' => $this->activeModuleRows(),
             'equipmentCategories' => $this->activeCategoryRows(),
-            'equipmentItems' => $this->activeEquipmentItemRows(),
+            'equipmentItems' => collect($this->activeEquipmentItemRows())->whereIn('siteId', $allowedSiteIds)->values()->all(),
             'equipmentRentals' => $rentals->map(fn (CrmEquipmentRental $rental): array => $this->rentalRow($rental))->values()->all(),
             'permissions' => $this->permissionRows(),
             'users' => $users->map(fn (CrmUser $user): array => $this->userRow($user))->values()->all(),
@@ -72,12 +82,11 @@ class EquipmentRentalService
     public function createRental(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
-        $this->requirePermission($actor, 'equipment_rentals.create');
 
         return DB::transaction(function () use ($actor, $data): array {
             [$item, $site, $periodType, $slot, $status, $title, $contactPhone, $startAt, $endAt, $notes] = $this->rentalPayload($data);
 
-            $this->requireSiteAccess($actor, (int) $site->id);
+            $this->requireSitePermission($actor, (int) $site->id, 'equipment_rentals.create');
 
             if ($status !== CrmEquipmentRental::STATUS_CANCELLED) {
                 $this->requireNoRentalConflict((int) $item->id, $startAt, $endAt);
@@ -123,10 +132,8 @@ class EquipmentRentalService
                 $this->fail('Location introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $rental->site_id);
-
-            $canUpdateAny = $this->hasPermission($actor, 'equipment_rentals.update_any');
-            $canUpdateOwn = $this->hasPermission($actor, 'equipment_rentals.update_own') && (int) $rental->user_id === (int) $actor->id;
+            $canUpdateAny = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.update_any');
+            $canUpdateOwn = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.update_own') && (int) $rental->user_id === (int) $actor->id;
 
             if (! $canUpdateAny && ! $canUpdateOwn) {
                 $this->fail('Modification non autorisee', 403);
@@ -134,7 +141,12 @@ class EquipmentRentalService
 
             [$item, $site, $periodType, $slot, $status, $title, $contactPhone, $startAt, $endAt, $notes] = $this->rentalPayload($data);
 
-            $this->requireSiteAccess($actor, (int) $site->id);
+            $canUpdateAnyOnNewSite = $this->canOnSite($actor, (int) $site->id, 'equipment_rentals.update_any');
+            $canUpdateOwnOnNewSite = $this->canOnSite($actor, (int) $site->id, 'equipment_rentals.update_own') && (int) $rental->user_id === (int) $actor->id;
+
+            if (! $canUpdateAnyOnNewSite && ! $canUpdateOwnOnNewSite) {
+                $this->fail('Site non autorise', 403);
+            }
 
             if ($status !== CrmEquipmentRental::STATUS_CANCELLED) {
                 $this->requireNoRentalConflict((int) $item->id, $startAt, $endAt, $id);
@@ -179,10 +191,8 @@ class EquipmentRentalService
                 $this->fail('Location introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $rental->site_id);
-
-            $canDeleteAny = $this->hasPermission($actor, 'equipment_rentals.delete_any');
-            $canDeleteOwn = $this->hasPermission($actor, 'equipment_rentals.delete_own') && (int) $rental->user_id === (int) $actor->id;
+            $canDeleteAny = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.delete_any');
+            $canDeleteOwn = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.delete_own') && (int) $rental->user_id === (int) $actor->id;
 
             if (! $canDeleteAny && ! $canDeleteOwn) {
                 $this->fail('Suppression non autorisee', 403);
@@ -198,7 +208,6 @@ class EquipmentRentalService
     public function saveEquipmentItem(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
-        $this->requirePermission($actor, 'equipment_rentals.manage_items');
 
         return DB::transaction(function () use ($actor, $data): array {
             $id = max(0, (int) ($data['id'] ?? 0));
@@ -217,7 +226,7 @@ class EquipmentRentalService
             $depositAmount = $this->decimal($data['depositAmount'] ?? $data['deposit_amount'] ?? 0);
             $sortOrder = (int) ($data['sortOrder'] ?? $data['sort_order'] ?? 100);
 
-            $this->requireSiteAccess($actor, $siteId);
+            $this->requireSitePermission($actor, $siteId, 'equipment_rentals.manage_items');
 
             if ($name === '' || mb_strlen($name) > 160) {
                 $this->fail('Nom du materiel invalide', 400);
@@ -299,7 +308,7 @@ class EquipmentRentalService
             }
 
             if ($id > 0) {
-                $this->requireSiteAccess($actor, (int) $item->site_id);
+                $this->requireSitePermission($actor, (int) $item->site_id, 'equipment_rentals.manage_items');
             }
 
             $photoUrl = $item->getAttribute('photo_url') ?: null;
@@ -339,7 +348,6 @@ class EquipmentRentalService
     public function deleteEquipmentItem(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
-        $this->requirePermission($actor, 'equipment_rentals.manage_items');
 
         return DB::transaction(function () use ($actor, $data): array {
             $id = (int) ($data['id'] ?? 0);
@@ -356,7 +364,7 @@ class EquipmentRentalService
                 $this->fail('Materiel introuvable', 404);
             }
 
-            $this->requireSiteAccess($actor, (int) $item->site_id);
+            $this->requireSitePermission($actor, (int) $item->site_id, 'equipment_rentals.manage_items');
             $item->forceFill(['active' => false])->save();
 
             $this->log($actor, 'masquage materiel', "Materiel #{$id}");
@@ -516,42 +524,19 @@ class EquipmentRentalService
 
     private function hasModule(CrmUser $actor): bool
     {
-        if ($actor->role === 'blocked') {
-            return false;
-        }
-
-        $actor->loadMissing('modules:id,slug,active');
-        $module = CrmModule::query()
-            ->where('slug', 'locations-materiel')
-            ->where('active', true)
-            ->first();
-
-        return $module !== null && $actor->modules->contains('id', $module->id);
+        return $this->access->hasModule($actor, 'locations-materiel');
     }
 
-    private function requirePermission(CrmUser $actor, string $permission): void
+    private function requireSitePermission(CrmUser $actor, int $siteId, string $permission): void
     {
-        if (! $this->hasPermission($actor, $permission)) {
+        if (! $this->canOnSite($actor, $siteId, $permission)) {
             $this->fail('Droit insuffisant : '.$permission, 403);
         }
     }
 
-    private function hasPermission(CrmUser $actor, string $permission): bool
+    private function canOnSite(CrmUser $actor, int $siteId, string $permission): bool
     {
-        if ($actor->role === 'blocked') {
-            return false;
-        }
-
-        $actor->loadMissing('permissions:id,name,label');
-
-        return $actor->permissions->contains('name', $permission);
-    }
-
-    private function requireSiteAccess(CrmUser $actor, int $siteId): void
-    {
-        if ($siteId <= 0 || ! in_array($siteId, $this->siteIds($actor), true)) {
-            $this->fail('Site non autorise', 403);
-        }
+        return $this->access->canOnSite($actor, $siteId, 'locations-materiel', $permission);
     }
 
     private function actorRow(CrmUser $actor): array
@@ -562,8 +547,8 @@ class EquipmentRentalService
             'role' => $actor->role,
             'active' => (bool) $actor->active,
             'siteIds' => $this->siteIds($actor),
-            'moduleIds' => $actor->role === 'blocked' ? [] : $this->moduleIds($actor),
-            'permissions' => $actor->role === 'blocked' ? [] : $this->permissionNames($actor),
+            'moduleIds' => $actor->role === 'blocked' ? [] : $this->access->moduleIds($actor),
+            'permissions' => $actor->role === 'blocked' ? [] : $this->access->permissionNames($actor),
         ];
     }
 
@@ -574,8 +559,8 @@ class EquipmentRentalService
             'name' => $user->name,
             'role' => $user->role,
             'siteIds' => $this->siteIds($user),
-            'moduleIds' => $this->moduleIds($user),
-            'permissions' => $this->permissionNames($user),
+            'moduleIds' => $this->access->moduleIds($user),
+            'permissions' => $this->access->permissionNames($user),
         ];
     }
 
@@ -584,72 +569,23 @@ class EquipmentRentalService
      */
     private function siteIds(CrmUser $user): array
     {
-        if ($user->relationLoaded('sites')) {
-            return $user->sites
-                ->sortBy([
-                    fn ($siteA, $siteB): int => (int) ($siteB->pivot?->is_default ?? false) <=> (int) ($siteA->pivot?->is_default ?? false),
-                    fn ($siteA, $siteB): int => (int) $siteA->id <=> (int) $siteB->id,
-                ])
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->values()
-                ->all();
-        }
-
-        return $user->sites()
-            ->whereNull('crm_sites.deleted_at')
-            ->orderByDesc('crm_user_sites.is_default')
-            ->orderBy('crm_sites.id')
-            ->pluck('crm_sites.id')
-            ->map(fn ($id): int => (int) $id)
-            ->values()
-            ->all();
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    private function moduleIds(CrmUser $user): array
-    {
-        if ($user->relationLoaded('modules')) {
-            return $user->modules
-                ->sortBy('id')
-                ->pluck('id')
-                ->map(fn ($id): int => (int) $id)
-                ->values()
-                ->all();
-        }
-
-        return $user->modules()
-            ->orderBy('crm_modules.id')
-            ->pluck('crm_modules.id')
-            ->map(fn ($id): int => (int) $id)
-            ->values()
-            ->all();
+        return $this->access->siteIdsForModule($user, 'locations-materiel', $this->equipmentPermissionNames());
     }
 
     /**
      * @return array<int, string>
      */
-    private function permissionNames(CrmUser $user): array
+    private function equipmentPermissionNames(): array
     {
-        if ($user->relationLoaded('permissions')) {
-            return $user->permissions
-                ->sortBy([
-                    fn ($permissionA, $permissionB): int => (int) $permissionA->sort_order <=> (int) $permissionB->sort_order,
-                    fn ($permissionA, $permissionB): int => strcmp((string) $permissionA->name, (string) $permissionB->name),
-                ])
-                ->pluck('name')
-                ->values()
-                ->all();
-        }
-
-        return $user->permissions()
-            ->orderBy('crm_permissions.sort_order')
-            ->orderBy('crm_permissions.name')
-            ->pluck('crm_permissions.name')
-            ->values()
-            ->all();
+        return [
+            'equipment_rentals.view',
+            'equipment_rentals.create',
+            'equipment_rentals.update_own',
+            'equipment_rentals.update_any',
+            'equipment_rentals.delete_own',
+            'equipment_rentals.delete_any',
+            'equipment_rentals.manage_items',
+        ];
     }
 
     private function siteRow(CrmSite $site): array
@@ -690,8 +626,18 @@ class EquipmentRentalService
     private function activeModuleRows(): array
     {
         return Cache::rememberForever(CrmReferenceCache::ACTIVE_MODULE_ROWS, function (): array {
+            $visibleModuleSlugs = CrmMenuItem::query()
+                ->where('active', true)
+                ->where('item_key', 'like', 'module:%')
+                ->pluck('item_key')
+                ->map(fn (string $key): string => substr($key, 7))
+                ->filter()
+                ->values()
+                ->all();
+
             return CrmModule::query()
                 ->active()
+                ->whereIn('slug', $visibleModuleSlugs)
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get()

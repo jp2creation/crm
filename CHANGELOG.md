@@ -30,6 +30,7 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Middleware de compression gzip pour les reponses API JSON.
 - Commande `backup:run` et planification quotidienne des sauvegardes SQL compressees.
 - Page maintenance `503` personnalisee.
+- Route 404 explicite pour les anciennes pages du template UI.
 
 ### Changed
 
@@ -48,6 +49,7 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Les reservations vehicules et locations materiel refusent maintenant les dates passees.
 - Le menu CRM se limite aux modules reels : applications metier, administration/interne et pages internes seulement si elles existent.
 - La documentation de deploiement rappelle la generation du cache vues et le controle du scheduler.
+- Le rewrite Apache ne force plus les anciens chemins `/auth`, `/dashboard`, `/forms`, `/tables`, `/charts`, `/pages` et `/features` vers le CRM.
 
 ### Removed
 

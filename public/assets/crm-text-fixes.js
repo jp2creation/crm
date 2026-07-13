@@ -1,5 +1,5 @@
 (function () {
-  var markers = /[\u00c2\u00c3\u00c5\u00e2\u00ef\u00ff]/;
+  var markers = /(?:\u00c2|\u00c3|\u00c5|\u00e2|\u00ef|\u00ff|\u0192|\u20ac|\u201a|\u201e|\u2026|\u2020|\u2021|\u02c6|\u2030|\u0160|\u0152|\u017d|\u2018|\u2019|\u201c|\u201d|\u2022|\u2013|\u2014|\u02dc|\u2122|\ufffd)/;
   var win1252 = {
     '\u20ac': 0x80,
     '\u201a': 0x82,
@@ -38,26 +38,50 @@
     return win1252[char];
   }
 
-  function decodeMojibake(value) {
-    if (!markers.test(value)) {
-      return value;
-    }
+  function markerCount(value) {
+    var match = String(value || '').match(new RegExp(markers.source, 'g'));
+    return match ? match.length : 0;
+  }
 
+  function decodeOnce(value) {
     var encoded = '';
     for (var index = 0; index < value.length; index += 1) {
       var byte = byteForChar(value[index]);
       if (byte == null) {
-        return value;
+        return null;
       }
       encoded += '%' + byte.toString(16).padStart(2, '0');
     }
 
     try {
-      var decoded = decodeURIComponent(encoded);
-      return markers.test(decoded) && !/\u00e9|\u00e8|\u00ea|\u00e0|\u00e7|\u2019/.test(decoded) ? value : decoded;
+      return decodeURIComponent(encoded);
     } catch (error) {
+      return null;
+    }
+  }
+
+  function decodeMojibake(value) {
+    if (!markers.test(value)) {
       return value;
     }
+
+    var best = value;
+    var current = value;
+
+    for (var pass = 0; pass < 4; pass += 1) {
+      var decoded = decodeOnce(current);
+      if (!decoded || decoded === current) {
+        break;
+      }
+
+      if (markerCount(decoded) <= markerCount(best)) {
+        best = decoded;
+      }
+
+      current = decoded;
+    }
+
+    return best;
   }
 
   function fixedText(value) {
@@ -68,7 +92,8 @@
       .replace(/n\u00e2\u20ac\u2122existe/g, 'n\u2019existe')
       .replace(/d\u00c3\u00a9plac\u00c3\u00a9e/g, 'd\u00e9plac\u00e9e')
       .replace(/Aller \u00c3\u00a0 l\u00e2\u20ac\u2122accueil/g, 'Aller \u00e0 l\u2019accueil')
-      .replace(/Cr\u00c3\u00a9ation/g, 'Cr\u00e9ation');
+      .replace(/Cr\u00c3\u00a9ation/g, 'Cr\u00e9ation')
+      .replace(/Fran\u00c3\u00a7ais/g, 'Fran\u00e7ais');
   }
 
   function shouldSkip(node) {

@@ -4,7 +4,6 @@ namespace App\Services\Crm;
 
 use App\Models\CrmLeaveEmployee;
 use App\Models\CrmLeaveEntry;
-use App\Models\CrmModule;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
@@ -25,6 +24,7 @@ class LeaveService
     public function __construct(
         private readonly ReservationConflictQuery $conflicts,
         private readonly CrmActivityLogger $activity,
+        private readonly CrmAccessService $access,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -45,9 +45,10 @@ class LeaveService
     public function bootstrap(CrmUser $actor, ?int $siteId = null): array
     {
         $this->requireModule($actor);
-        $this->requirePermission($actor, 'conges.view');
 
         $selectedSiteId = $this->resolveSiteId($actor, $siteId);
+        $this->requireSitePermission($actor, $selectedSiteId, 'conges.view');
+
         $sites = $this->availableSites($actor);
         $employees = $this->syncEmployeesForSite($selectedSiteId);
         $employeeIds = $employees->pluck('id')->map(fn ($id): int => (int) $id)->all();
@@ -69,8 +70,8 @@ class LeaveService
                 'id' => $actor->id,
                 'name' => $actor->name,
                 'role' => $actor->role,
-                'permissions' => $actor->permissions->pluck('name')->values()->all(),
-                'canManage' => $this->hasPermission($actor, 'conges.manage'),
+                'permissions' => $this->access->permissionNames($actor),
+                'canManage' => $this->canOnSite($actor, $selectedSiteId, 'conges.manage'),
                 'siteIds' => $this->siteIds($actor),
                 'selectedSiteId' => $selectedSiteId,
             ],
@@ -96,7 +97,6 @@ class LeaveService
     public function saveLeave(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
-        $this->requirePermission($actor, 'conges.manage');
 
         return DB::transaction(function () use ($actor, $data): array {
             $id = max(0, (int) ($data['id'] ?? 0));
@@ -130,7 +130,8 @@ class LeaveService
                 $this->fail('Utilisateur CRM introuvable', 404);
             }
 
-            $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
+            $selectedSiteId = $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
+            $this->requireSitePermission($actor, $selectedSiteId, 'conges.manage');
 
             $entry = $id > 0
                 ? CrmLeaveEntry::query()->lockForUpdate()->find($id)
@@ -149,7 +150,8 @@ class LeaveService
                     $this->fail('Utilisateur CRM introuvable', 404);
                 }
 
-                $this->requireEmployeeSiteAccess($actor, $currentEmployee, $siteId);
+                $currentSiteId = $this->requireEmployeeSiteAccess($actor, $currentEmployee, $siteId);
+                $this->requireSitePermission($actor, $currentSiteId, 'conges.manage');
             }
 
             if ($status !== 'refused' && $this->conflicts->leaveOverlaps($employeeId, $startDate, $endDate, $period, $id > 0 ? $id : null)) {
@@ -183,7 +185,6 @@ class LeaveService
     public function deleteLeave(CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
-        $this->requirePermission($actor, 'conges.manage');
 
         return DB::transaction(function () use ($actor, $data): array {
             $id = (int) ($data['id'] ?? 0);
@@ -204,7 +205,8 @@ class LeaveService
                 $this->fail('Utilisateur CRM introuvable', 404);
             }
 
-            $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
+            $selectedSiteId = $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
+            $this->requireSitePermission($actor, $selectedSiteId, 'conges.manage');
 
             $entry->delete();
 
@@ -304,7 +306,7 @@ class LeaveService
             ->first();
     }
 
-    private function requireEmployeeSiteAccess(CrmUser $actor, CrmLeaveEmployee $employee, ?int $siteId): void
+    private function requireEmployeeSiteAccess(CrmUser $actor, CrmLeaveEmployee $employee, ?int $siteId): int
     {
         $selectedSiteId = $this->resolveSiteId($actor, $siteId);
         $crmUserId = (int) $employee->crm_user_id;
@@ -322,6 +324,8 @@ class LeaveService
         if (! $exists) {
             $this->fail('Utilisateur non autorise sur ce site', 403);
         }
+
+        return $selectedSiteId;
     }
 
     private function resolveSiteId(CrmUser $actor, ?int $siteId): int
@@ -364,42 +368,26 @@ class LeaveService
      */
     private function siteIds(CrmUser $user): array
     {
-        return $user->sites()
-            ->whereNull('crm_sites.deleted_at')
-            ->orderByDesc('crm_user_sites.is_default')
-            ->orderBy('crm_sites.id')
-            ->pluck('crm_sites.id')
-            ->map(fn ($id): int => (int) $id)
-            ->values()
-            ->all();
+        return $this->access->siteIdsForModule($user, 'conges', ['conges.view', 'conges.manage']);
     }
 
     private function requireModule(CrmUser $actor): void
     {
-        $actor->loadMissing(['modules:id,slug,active', 'permissions:id,name,label']);
-
-        $module = CrmModule::query()
-            ->where('slug', 'conges')
-            ->where('active', true)
-            ->first();
-
-        if (! $module || ! $actor->modules->contains('id', $module->id)) {
+        if (! $this->access->hasModule($actor, 'conges')) {
             $this->fail('Module non autorise : conges', 403);
         }
     }
 
-    private function requirePermission(CrmUser $actor, string $permission): void
+    private function requireSitePermission(CrmUser $actor, int $siteId, string $permission): void
     {
-        if (! $this->hasPermission($actor, $permission)) {
+        if (! $this->canOnSite($actor, $siteId, $permission)) {
             $this->fail('Droit insuffisant : '.$permission, 403);
         }
     }
 
-    private function hasPermission(CrmUser $actor, string $permission): bool
+    private function canOnSite(CrmUser $actor, int $siteId, string $permission): bool
     {
-        $actor->loadMissing('permissions:id,name,label');
-
-        return $actor->permissions->contains('name', $permission);
+        return $this->access->canOnSite($actor, $siteId, 'conges', $permission);
     }
 
     private function uniqueEmployeeSlug(string $value, ?int $ignoreId = null): string

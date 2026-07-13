@@ -9,13 +9,18 @@ use App\Models\CrmPage;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
+use App\Models\CrmUserSiteModulePermission;
 use App\Models\User;
+use App\Support\CrmReferenceCache;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AdministrationService
 {
-    public function __construct(private readonly CrmActivityLogger $activity) {}
+    public function __construct(
+        private readonly CrmActivityLogger $activity,
+        private readonly CrmAccessService $access,
+    ) {}
 
     public function ensureDefaults(): void
     {
@@ -84,13 +89,11 @@ class AdministrationService
                         (int) $module->sort_order,
                     ]);
 
-                    CrmMenuItem::query()
-                        ->where('item_key', 'module:'.$module->slug)
-                        ->update([
-                            'group_key' => $this->defaultModuleMenuGroup($module->slug),
-                            'label' => $module->name,
-                            'active' => (bool) $module->active,
-                        ]);
+                    if (! $module->active) {
+                        CrmMenuItem::query()
+                            ->where('item_key', 'module:'.$module->slug)
+                            ->update(['active' => false]);
+                    }
                 });
 
             $this->syncPagesMenuGroupVisibility();
@@ -206,7 +209,7 @@ class AdministrationService
             ->orderBy('title')
             ->get();
         $users = CrmUser::query()
-            ->with(['sites:id', 'modules:id', 'permissions:id,name'])
+            ->with(['sites:id', 'modules:id', 'permissions:id,name', 'siteModulePermissions:id,user_id,site_id,module_id,permission_id'])
             ->orderByDesc('active')
             ->orderBy('name')
             ->get();
@@ -256,6 +259,7 @@ class AdministrationService
                         'title' => $title,
                         'active' => $this->boolean($groupData['active'] ?? null, true),
                         'sort_order' => (int) ($groupData['sortOrder'] ?? $groupData['sort_order'] ?? 100),
+                        'updated_at' => now(),
                     ]);
             }
 
@@ -275,17 +279,28 @@ class AdministrationService
                     $this->fail('Icone de menu invalide', 400);
                 }
 
+                $label = trim((string) ($itemData['label'] ?? ''));
+                if ($label === '') {
+                    $this->fail('Titre de lien obligatoire', 400);
+                }
+                if (mb_strlen($label) > 160) {
+                    $this->fail('Titre de lien trop long', 400);
+                }
+
                 CrmMenuItem::query()
                     ->where('item_key', $itemKey)
                     ->update([
                         'group_key' => $groupKey,
                         'icon_key' => $iconKey,
+                        'label' => $label,
                         'active' => $this->boolean($itemData['active'] ?? null, true),
                         'sort_order' => (int) ($itemData['sortOrder'] ?? $itemData['sort_order'] ?? 100),
+                        'updated_at' => now(),
                     ]);
             }
         });
 
+        CrmReferenceCache::forgetModules();
         $this->log($actor, 'modification menu', 'configuration menu lateral');
 
         return ['ok' => true];
@@ -516,13 +531,16 @@ class AdministrationService
                 $role = 'user';
             }
 
-            $siteIds = $this->validIds($data['siteIds'] ?? [], CrmSite::class);
+            $primarySiteId = max(0, (int) ($data['primarySiteId'] ?? $data['primary_site_id'] ?? $data['siteId'] ?? $data['site_id'] ?? 0));
+            $siteIds = $this->validIds($primarySiteId > 0 ? [$primarySiteId] : ($data['siteIds'] ?? []), CrmSite::class);
             $moduleIds = $this->validIds($data['moduleIds'] ?? [], CrmModule::class);
             $permissionIds = $this->validIds($data['permissionIds'] ?? [], CrmPermission::class);
+            $accessRules = $this->accessRulesFromPayload($data['accessRules'] ?? []);
 
             if ($role === 'blocked') {
                 $moduleIds = [];
                 $permissionIds = [];
+                $accessRules = [];
             }
 
             if ($siteIds === []) {
@@ -548,6 +566,7 @@ class AdministrationService
             $this->syncSites($user, $siteIds);
             $user->modules()->sync($moduleIds);
             $user->permissions()->sync($permissionIds);
+            $this->syncAccessRules($user, $accessRules);
 
             $this->log($actor, $id > 0 ? 'modification utilisateur' : 'creation utilisateur', $name);
 
@@ -649,7 +668,7 @@ class AdministrationService
         $menuItem->fill([
             'group_key' => $menuItem->exists ? $menuItem->group_key : $groupKey,
             'icon_key' => $menuItem->icon_key ?: $iconKey,
-            'label' => $label,
+            'label' => $menuItem->exists ? $menuItem->label : $label,
             'active' => $menuItem->exists ? $menuItem->active : true,
             'sort_order' => $menuItem->exists ? $menuItem->sort_order : $sortOrder,
         ]);
@@ -675,6 +694,10 @@ class AdministrationService
 
     private function defaultModuleMenuGroup(string $slug): string
     {
+        if (in_array($slug, ['controle-caisse', 'remise-cheques', 'addvance'], true)) {
+            return 'accounting';
+        }
+
         return in_array($slug, ['reservations', 'locations-materiel', 'tapis-romus'], true)
             ? 'apps'
             : 'internal';
@@ -709,12 +732,18 @@ class AdministrationService
             ['equipment_rentals.delete_own', 'Supprimer ses locations materiel', 'Location materiel', 120],
             ['equipment_rentals.delete_any', 'Supprimer toutes les locations materiel', 'Location materiel', 130],
             ['equipment_rentals.manage_items', 'Gerer le materiel de location', 'Location materiel', 140],
-            ['platform.manage_sites', 'Gerer les sites', 'Administration', 150],
-            ['platform.manage_users', 'Gerer les utilisateurs', 'Administration', 160],
-            ['platform.manage_roles', 'Gerer les roles', 'Administration', 170],
-            ['platform.manage_modules', 'Gerer les modules', 'Administration', 180],
-            ['pages.view', 'Voir les pages CRM', 'Pages CRM', 190],
-            ['pages.manage', 'Gerer les pages CRM', 'Pages CRM', 200],
+            ['conges.view', 'Voir les conges', 'Conges', 145],
+            ['conges.manage', 'Gerer les conges', 'Conges', 146],
+            ['controle_caisse.view', 'Voir le controle caisse', 'Controle caisse', 147],
+            ['controle_caisse.manage', 'Gerer le controle caisse', 'Controle caisse', 148],
+            ['check_remittances.view', 'Voir les remises de chèques', 'Remise de chèques', 149],
+            ['check_remittances.manage', 'Gérer les remises de chèques', 'Remise de chèques', 150],
+            ['platform.manage_sites', 'Gerer les sites', 'Administration', 160],
+            ['platform.manage_users', 'Gerer les utilisateurs', 'Administration', 170],
+            ['platform.manage_roles', 'Gerer les roles', 'Administration', 180],
+            ['platform.manage_modules', 'Gerer les modules', 'Administration', 190],
+            ['pages.view', 'Voir les pages CRM', 'Pages CRM', 200],
+            ['pages.manage', 'Gerer les pages CRM', 'Pages CRM', 210],
         ];
     }
 
@@ -725,22 +754,22 @@ class AdministrationService
                 'key' => 'user',
                 'label' => 'Employe',
                 'description' => 'Reservation et location sur les sites rattaches, suppression de ses propres demandes.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own'],
-                'moduleSlugs' => ['reservations', 'locations-materiel'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'controle_caisse.view'],
+                'moduleSlugs' => ['reservations', 'locations-materiel', 'conges', 'controle-caisse', 'addvance'],
             ],
             [
                 'key' => 'responsable',
                 'label' => 'Responsable site',
                 'description' => 'Gestion des reservations, vehicules et locations materiel des sites rattaches.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items'],
-                'moduleSlugs' => ['reservations', 'locations-materiel'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'controle_caisse.view', 'controle_caisse.manage', 'check_remittances.view', 'check_remittances.manage'],
+                'moduleSlugs' => ['reservations', 'locations-materiel', 'conges', 'controle-caisse', 'remise-cheques', 'addvance'],
             ],
             [
                 'key' => 'admin',
                 'label' => 'Administrateur',
                 'description' => 'Acces global aux sites, modules, utilisateurs, roles et permissions.',
                 'permissions' => array_map(fn (array $permission): string => $permission[0], $this->permissionSeed()),
-                'moduleSlugs' => ['reservations', 'locations-materiel', 'pages-crm', 'administration', 'conges', 'tapis-romus'],
+                'moduleSlugs' => ['reservations', 'locations-materiel', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'remise-cheques', 'addvance', 'tapis-romus'],
             ],
             [
                 'key' => 'blocked',
@@ -755,13 +784,16 @@ class AdministrationService
     private function moduleSeed(): array
     {
         return [
-            ['Reservations vehicules', 'reservations', 'Planning et reservations des vehicules', '/reservations', 10, true],
-            ['Location materiel', 'locations-materiel', 'Planning et locations du materiel interne', '/locations-materiel', 15, true],
+            ['Réservations véhicules', 'reservations', 'Planning et réservations des véhicules', '/reservations', 10, true],
+            ['Location matériel', 'locations-materiel', 'Planning et locations du matériel interne', '/locations-materiel', 15, true],
             ['Pages CRM', 'pages-crm', 'Pages internes modifiables depuis le CRM', '/pages-crm', 18, true],
-            ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et roles', '/administration', 20, true],
-            ['Conges', 'conges', 'Planning et gestion des conges', '/conges', 24, true],
+            ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et rôles', '/administration', 20, true],
+            ['Congés', 'conges', 'Planning et gestion des congés', '/conges', 24, true],
+            ['Contrôle caisse', 'controle-caisse', 'Contrôle journalier de caisse, reports, écarts et justificatifs', '/controle-caisse', 25, true],
+            ['Remise de chèques', 'remise-cheques', 'Remises de chèques, photos, contrôle des montants et impression PDF', '/remise-cheques', 27, true],
+            ['Addvance', 'addvance', 'Accès externe Addvance Solutions', 'https://martinsols.addvancesolutions.fr', 28, true],
             ['Planning', 'planning', 'Planning interne par site', '/planning', 30, false],
-            ['Documents internes', 'documents', 'Procedures et documents partages', '/documents', 40, false],
+            ['Documents internes', 'documents', 'Procédures et documents partagés', '/documents', 40, false],
             ['Demandes internes', 'demandes', 'Demandes et validations internes', '/demandes', 50, false],
             ['Tapis ROMUS', 'tapis-romus', 'Bon de commande et mesures tapis ROMUS', '/tapis-romus', 60, true],
         ];
@@ -771,6 +803,7 @@ class AdministrationService
     {
         return [
             ['apps', 'Applications CRM', 10, true],
+            ['accounting', 'Comptabilité', 18, true],
             ['internal', 'Administration', 20, true],
             ['pages', 'Pages internes', 30, false],
         ];
@@ -883,17 +916,23 @@ class AdministrationService
 
     private function userRow(CrmUser $user): array
     {
-        $user->loadMissing(['sites:id', 'modules:id', 'permissions:id,name,sort_order']);
+        $user->loadMissing(['sites:id', 'modules:id', 'permissions:id,name,sort_order', 'siteModulePermissions:id,user_id,site_id,module_id,permission_id']);
+        $siteIds = $user->sites->pluck('id')->map(fn ($id): int => (int) $id)->sort()->values()->all();
 
         return [
             'id' => $user->id,
             'name' => $user->name,
             'role' => $user->role,
             'active' => (bool) $user->active,
-            'siteIds' => $user->sites->pluck('id')->map(fn ($id): int => (int) $id)->sort()->values()->all(),
+            'primarySiteId' => $this->primarySiteId($user, $siteIds),
+            'siteIds' => $siteIds,
             'moduleIds' => $user->modules->pluck('id')->map(fn ($id): int => (int) $id)->sort()->values()->all(),
             'permissionIds' => $user->permissions->pluck('id')->map(fn ($id): int => (int) $id)->sort()->values()->all(),
             'permissions' => $this->permissionNames($user),
+            'effectiveSiteIds' => $this->access->siteIds($user),
+            'effectiveModuleIds' => $this->access->moduleIds($user),
+            'effectivePermissions' => $this->access->permissionNames($user),
+            'accessRules' => $this->access->accessRules($user),
         ];
     }
 
@@ -964,6 +1003,18 @@ class AdministrationService
             ->pluck('name')
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  array<int, int>  $siteIds
+     */
+    private function primarySiteId(CrmUser $user, array $siteIds): ?int
+    {
+        $defaultSite = $user->sites->first(
+            fn (CrmSite $site): bool => (bool) ($site->pivot?->is_default ?? false),
+        );
+
+        return $defaultSite ? (int) $defaultSite->id : ($siteIds[0] ?? null);
     }
 
     private function syncSites(CrmUser $user, array $siteIds): void
@@ -1074,6 +1125,86 @@ class AdministrationService
         }
 
         return in_array(strtolower((string) $value), ['1', 'true', 'yes', 'on'], true);
+    }
+
+    /**
+     * @return array<int, array{site_id: int, module_id: int, permission_id: int}>
+     */
+    private function accessRulesFromPayload(mixed $payload): array
+    {
+        if (! is_array($payload)) {
+            return [];
+        }
+
+        $validSiteIds = CrmSite::query()->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
+        $validModuleIds = CrmModule::query()->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
+        $validPermissionIds = CrmPermission::query()->pluck('id')->mapWithKeys(fn ($id): array => [(int) $id => true])->all();
+
+        $rules = [];
+
+        foreach ($payload as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $siteId = (int) ($entry['siteId'] ?? $entry['site_id'] ?? 0);
+            $moduleId = (int) ($entry['moduleId'] ?? $entry['module_id'] ?? 0);
+
+            if (! isset($validSiteIds[$siteId], $validModuleIds[$moduleId])) {
+                continue;
+            }
+
+            $permissionIds = [];
+            if (isset($entry['permissionIds']) && is_array($entry['permissionIds'])) {
+                $permissionIds = $entry['permissionIds'];
+            } elseif (isset($entry['permission_ids']) && is_array($entry['permission_ids'])) {
+                $permissionIds = $entry['permission_ids'];
+            } else {
+                $permissionIds = [$entry['permissionId'] ?? $entry['permission_id'] ?? 0];
+            }
+
+            foreach ($permissionIds as $permissionId) {
+                $permissionId = (int) $permissionId;
+                if (! isset($validPermissionIds[$permissionId])) {
+                    continue;
+                }
+
+                $rules["{$siteId}:{$moduleId}:{$permissionId}"] = [
+                    'site_id' => $siteId,
+                    'module_id' => $moduleId,
+                    'permission_id' => $permissionId,
+                ];
+            }
+        }
+
+        return array_values($rules);
+    }
+
+    /**
+     * @param  array<int, array{site_id: int, module_id: int, permission_id: int}>  $rules
+     */
+    private function syncAccessRules(CrmUser $user, array $rules): void
+    {
+        CrmUserSiteModulePermission::query()
+            ->where('user_id', $user->id)
+            ->delete();
+
+        if ($rules === []) {
+            return;
+        }
+
+        $now = now();
+        CrmUserSiteModulePermission::query()->insert(array_map(
+            fn (array $rule): array => [
+                'user_id' => (int) $user->id,
+                'site_id' => $rule['site_id'],
+                'module_id' => $rule['module_id'],
+                'permission_id' => $rule['permission_id'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            $rules,
+        ));
     }
 
     private function log(CrmUser $actor, string $action, string $details = ''): void

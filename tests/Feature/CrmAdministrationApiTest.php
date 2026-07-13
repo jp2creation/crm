@@ -102,6 +102,73 @@ class CrmAdministrationApiTest extends TestCase
             'item_key' => 'module:planning',
             'active' => false,
         ]);
+        $this->assertDatabaseMissing('crm_menu_groups', ['menu_key' => 'check_remittances']);
+        $this->assertDatabaseHas('crm_menu_groups', [
+            'menu_key' => 'accounting',
+            'title' => 'Comptabilité',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:remise-cheques',
+            'group_key' => 'accounting',
+            'label' => 'Remise de chèques',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_modules', [
+            'slug' => 'addvance',
+            'route_path' => 'https://martinsols.addvancesolutions.fr',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:addvance',
+            'group_key' => 'accounting',
+            'label' => 'Addvance',
+            'active' => true,
+        ]);
+    }
+
+    public function test_menu_settings_keep_custom_label_and_visibility_after_bootstrap(): void
+    {
+        [$account] = $this->createAdminUser();
+
+        $bootstrap = $this->actingAs($account)
+            ->getJson('/api/administration?action=bootstrap')
+            ->assertOk()
+            ->json();
+
+        $congesItem = collect($bootstrap['menuItems'])
+            ->firstWhere('itemKey', 'module:conges');
+
+        $this->assertNotNull($congesItem);
+
+        $this->actingAs($account)
+            ->postJson('/api/administration?action=save_menu_settings', [
+                'items' => [[
+                    'itemKey' => 'module:conges',
+                    'groupKey' => $congesItem['groupKey'],
+                    'iconKey' => $congesItem['iconKey'],
+                    'label' => 'Absences équipe',
+                    'active' => false,
+                    'sortOrder' => $congesItem['sortOrder'],
+                ]],
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:conges',
+            'label' => 'Absences équipe',
+            'active' => false,
+        ]);
+
+        $this->actingAs($account)
+            ->getJson('/api/administration?action=bootstrap')
+            ->assertOk()
+            ->assertJsonFragment([
+                'itemKey' => 'module:conges',
+                'label' => 'Absences équipe',
+                'active' => false,
+            ]);
     }
 
     public function test_user_without_platform_permission_cannot_read_bootstrap(): void

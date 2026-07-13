@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Crm\AdministrationApiController;
 use App\Http\Controllers\Crm\AuthController;
+use App\Http\Controllers\Crm\CashControlApiController;
+use App\Http\Controllers\Crm\CheckRemittanceApiController;
 use App\Http\Controllers\Crm\EquipmentRentalApiController;
 use App\Http\Controllers\Crm\LeaveApiController;
 use App\Http\Controllers\Crm\MobileAuthController;
@@ -44,6 +46,26 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges.php', LeaveApiController::
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.conges.legacy');
 
+Route::match(['GET', 'POST', 'OPTIONS'], '/api/controle-caisse', CashControlApiController::class)
+    ->middleware($crmApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.controle-caisse');
+
+Route::match(['GET', 'POST', 'OPTIONS'], '/api/controle-caisse.php', CashControlApiController::class)
+    ->middleware($crmLegacyApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.controle-caisse.legacy');
+
+Route::match(['GET', 'POST', 'OPTIONS'], '/api/remise-cheques', CheckRemittanceApiController::class)
+    ->middleware($crmApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.remise-cheques');
+
+Route::match(['GET', 'POST', 'OPTIONS'], '/api/remise-cheques.php', CheckRemittanceApiController::class)
+    ->middleware($crmLegacyApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.remise-cheques.legacy');
+
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages', PageApiController::class)
     ->middleware($crmApiMiddleware)
     ->withoutMiddleware([VerifyCsrfToken::class])
@@ -84,6 +106,10 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration.php', Administrati
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.administration.legacy');
 
+Route::any('/{legacyTemplatePath}', fn () => abort(404))
+    ->where('legacyTemplatePath', '^(?:app|dashboard|forms|tables|charts|pages|features|auth|auth-card)(?:/.*)?$')
+    ->name('crm.legacy-template-gone');
+
 Route::middleware('guest')->group(function (): void {
     Route::get('/login', [AuthController::class, 'show'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:crm-login');
@@ -96,6 +122,11 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::middleware('auth')->group(function (): void {
     Route::view('/', 'crm')->name('crm.home');
     Route::view('/conges', 'crm')->name('crm.conges');
+    Route::view('/controle-caisse', 'crm')->name('crm.controle-caisse');
+    Route::view('/remise-cheques', 'crm')->name('crm.remise-cheques');
+    Route::view('/remise-cheques/{remittance}', 'crm')
+        ->whereNumber('remittance')
+        ->name('crm.remise-cheques.show');
     Route::view('/administration/{section?}', 'crm')
         ->where('section', '.*')
         ->name('crm.administration');

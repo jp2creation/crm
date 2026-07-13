@@ -3,6 +3,7 @@
   var eventName = 'crm:active-site-changed';
   var rootId = 'crm-active-site-switcher';
   var styleId = 'crm-active-site-style';
+  var addvanceUrl = 'https://martinsols.addvancesolutions.fr';
   var state = {
     loading: false,
     loaded: false,
@@ -87,6 +88,8 @@
     var urls = [
       '/api/reservations.php?action=bootstrap',
       '/api/equipment-rentals.php?action=bootstrap',
+      '/api/controle-caisse.php?action=bootstrap',
+      '/api/conges.php?action=bootstrap',
       '/api/administration.php?action=bootstrap',
     ];
 
@@ -185,6 +188,47 @@
     select.value = String(state.activeSiteId || state.sites[0].id);
   }
 
+  function isAddvanceAnchor(anchor) {
+    var href = anchor.getAttribute('href') || '';
+    var text = (anchor.textContent || '').trim().toLowerCase();
+
+    return href.indexOf(addvanceUrl) !== -1
+      || href.indexOf('/https://martinsols.addvancesolutions.fr') !== -1
+      || text === 'addvance';
+  }
+
+  function normalizeExternalLinks() {
+    document.querySelectorAll('a[href]').forEach(function (anchor) {
+      if (!isAddvanceAnchor(anchor)) {
+        return;
+      }
+
+      anchor.setAttribute('href', addvanceUrl);
+      anchor.setAttribute('target', '_blank');
+      anchor.setAttribute('rel', 'noopener noreferrer');
+      anchor.setAttribute('data-crm-external-link', 'addvance');
+    });
+  }
+
+  function handleExternalLinkClick(event) {
+    var anchor = event.target instanceof Element
+      ? event.target.closest('a[data-crm-external-link="addvance"], a[href*="martinsols.addvancesolutions.fr"]')
+      : null;
+
+    if (!anchor || !isAddvanceAnchor(anchor)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (typeof event.stopImmediatePropagation === 'function') {
+      event.stopImmediatePropagation();
+    }
+
+    window.open(addvanceUrl, '_blank', 'noopener,noreferrer');
+  }
+
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, '&amp;')
@@ -230,9 +274,12 @@
   document.addEventListener('DOMContentLoaded', function () {
     loadSites();
     renderSwitcher();
+    normalizeExternalLinks();
+    document.addEventListener('click', handleExternalLinkClick, true);
 
     var observer = new MutationObserver(function () {
       renderSwitcher();
+      normalizeExternalLinks();
     });
 
     observer.observe(document.body, {

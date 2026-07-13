@@ -33,6 +33,91 @@ class CrmEquipmentRentalApiTest extends TestCase
             ->assertJsonPath('error', 'Utilisateur CRM requis');
     }
 
+    public function test_admin_can_access_equipment_without_explicit_module_permissions(): void
+    {
+        $account = User::factory()->create();
+        CrmUser::query()->create([
+            'user_id' => $account->id,
+            'name' => 'Admin Equipment',
+            'role' => 'admin',
+            'active' => true,
+        ]);
+
+        $site = CrmSite::query()->create([
+            'name' => 'Palissy Admin',
+            'slug' => 'palissy-admin',
+            'active' => true,
+            'morning_start' => '07:30:00',
+            'morning_end' => '12:00:00',
+            'afternoon_start' => '13:30:00',
+            'afternoon_end' => '17:30:00',
+        ]);
+
+        $category = CrmEquipmentCategory::query()->create([
+            'name' => 'Poncage Admin',
+            'slug' => 'poncage-admin',
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+
+        $item = CrmEquipmentItem::query()->create([
+            'site_id' => $site->id,
+            'category_id' => $category->id,
+            'name' => 'Ponceuse Admin',
+            'inventory_code' => 'PON-ADMIN',
+            'description' => 'Materiel test admin',
+            'color' => '#95002e',
+            'half_day_price' => 45,
+            'day_price' => 80,
+            'deposit_amount' => 300,
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+
+        CrmModule::query()->updateOrCreate(
+            ['slug' => 'locations-materiel'],
+            [
+                'name' => 'Location materiel',
+                'description' => 'Planning et locations du materiel interne',
+                'route_path' => '/locations-materiel',
+                'active' => true,
+                'sort_order' => 15,
+            ],
+        );
+
+        foreach (['equipment_rentals.view', 'equipment_rentals.create'] as $index => $permission) {
+            CrmPermission::query()->updateOrCreate(
+                ['name' => $permission],
+                [
+                    'label' => $permission,
+                    'group_label' => 'Location materiel',
+                    'sort_order' => 120 + $index,
+                ],
+            );
+        }
+
+        $this->actingAs($account)
+            ->getJson('/api/equipment-rentals?action=bootstrap')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('equipmentItems.0.name', 'Ponceuse Admin')
+            ->assertJsonPath('user.role', 'admin')
+            ->assertJsonPath('user.siteIds.0', $site->id);
+
+        $date = now()->addMonth()->format('Y-m-d');
+
+        $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=create_rental', [
+                'equipmentItemId' => $item->id,
+                'date' => $date,
+                'slot' => 'morning',
+                'title' => 'Location admin',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('equipmentRental.title', 'Location admin');
+    }
+
     public function test_authorized_user_can_read_equipment_bootstrap(): void
     {
         [$account, $crmUser, $site, $item] = $this->createCrmUser(['equipment_rentals.view']);

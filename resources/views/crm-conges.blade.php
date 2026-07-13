@@ -276,6 +276,7 @@
         'Applications' => [
           ['label' => 'Reservations vehicules', 'href' => '/reservations', 'icon' => 'RV'],
           ['label' => 'Location materiel', 'href' => '/locations-materiel', 'icon' => 'LM'],
+          ['label' => 'Controle caisse', 'href' => '/controle-caisse', 'icon' => 'CC'],
           ['label' => 'Tapis ROMUS', 'href' => '/tapis-romus', 'icon' => 'TR'],
         ],
         'Interne' => [

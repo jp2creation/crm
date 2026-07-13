@@ -6,6 +6,7 @@ use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -56,13 +57,15 @@ class CrmModule extends Model
                 $menuItem = CrmMenuItem::firstOrNew(['item_key' => 'module:'.$module->slug]);
             }
 
+            $menuItemExists = $menuItem->exists;
+
             $menuItem->fill([
                 'item_key' => 'module:'.$module->slug,
-                'group_key' => $menuItem->group_key ?: 'internal',
+                'group_key' => $menuItemExists ? $menuItem->group_key : static::defaultMenuGroup($module->slug),
                 'icon_key' => $menuItem->icon_key ?: static::defaultIconKey($module->slug),
-                'label' => $module->name,
-                'active' => $module->active,
-                'sort_order' => $module->sort_order,
+                'label' => $menuItemExists ? ($menuItem->label ?: $module->name) : $module->name,
+                'active' => $menuItemExists ? ((bool) $menuItem->active && (bool) $module->active) : (bool) $module->active,
+                'sort_order' => $menuItemExists ? $menuItem->sort_order : $module->sort_order,
             ]);
 
             $menuItem->saveQuietly();
@@ -77,6 +80,7 @@ class CrmModule extends Model
             }
 
             $module->users()->detach();
+            $module->siteModulePermissions()->delete();
             CrmMenuItem::query()->where('item_key', 'module:'.$module->slug)->delete();
         });
 
@@ -114,12 +118,31 @@ class CrmModule extends Model
             'locations-materiel' => 'package',
             'pages-crm' => 'article',
             'conges' => 'calendar',
+            'controle-caisse' => 'creditCard',
+            'remise-cheques' => 'creditCard',
+            'addvance' => 'creditCard',
         ][$slug] ?? 'category';
+    }
+
+    public static function defaultMenuGroup(string $slug): string
+    {
+        if (in_array($slug, ['controle-caisse', 'remise-cheques', 'addvance'], true)) {
+            return 'accounting';
+        }
+
+        return in_array($slug, ['reservations', 'locations-materiel', 'tapis-romus'], true)
+            ? 'apps'
+            : 'internal';
     }
 
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(CrmUser::class, 'crm_user_modules', 'module_id', 'user_id');
+    }
+
+    public function siteModulePermissions(): HasMany
+    {
+        return $this->hasMany(CrmUserSiteModulePermission::class, 'module_id');
     }
 
     public function scopeActive(Builder $query): Builder

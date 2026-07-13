@@ -23,6 +23,7 @@ boost.json
 /public/build
 /public/hot
 /public/storage
+/public/assets/uploads
 /storage/*.key
 /storage/pail
 /vendor
