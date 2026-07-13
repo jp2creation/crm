@@ -40,7 +40,30 @@ class MobileAuthApiTest extends TestCase
             ->getJson('/api/mobile/me')
             ->assertOk()
             ->assertJsonPath('ok', true)
-            ->assertJsonPath('user.name', $crmUser->name);
+            ->assertJsonPath('user.name', $crmUser->name)
+            ->assertJsonPath('user.sites.0.name', 'Palissy Mobile')
+            ->assertJsonPath('user.menu.0.items.0.slug', 'reservations');
+
+        $webSessionUrl = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/mobile/web-session', [
+                'redirectPath' => '/reservations',
+                'siteId' => $crmUser->sites()->first()->id,
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->json('url');
+
+        $webSessionPath = parse_url((string) $webSessionUrl, PHP_URL_PATH);
+
+        $this->get($webSessionPath)
+            ->assertRedirect('/reservations?mobile_embed=1&mobile_site_id='.$crmUser->sites()->first()->id);
+
+        $this->assertAuthenticatedAs($account);
+
+        $this->get($webSessionPath)
+            ->assertNotFound();
+
+        $this->flushSession();
 
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/mobile/logout')

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @include('partials.pwa-head')
     <title>Pages CRM - Martin Sols</title>
 
     <script>
@@ -67,10 +68,28 @@
         font-family: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
+      body.crm-mobile-embed {
+        overflow-x: hidden;
+      }
+
       .crm-pages-shell {
         display: grid;
         grid-template-columns: 16.25rem minmax(0, 1fr);
         min-height: 100vh;
+      }
+
+      body.crm-mobile-embed .crm-pages-shell {
+        display: block;
+      }
+
+      body.crm-mobile-embed .crm-pages-sidebar,
+      body.crm-mobile-embed .crm-pages-backdrop,
+      body.crm-mobile-embed .crm-pages-header {
+        display: none !important;
+      }
+
+      body.crm-mobile-embed .crm-pages-content {
+        padding: .75rem;
       }
 
       .crm-pages-sidebar {
@@ -342,7 +361,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="{{ request()->boolean('mobile_embed') ? 'crm-mobile-embed' : '' }}">
     @php
       $user = auth()->user();
       $name = $user?->name ?: $user?->email ?: 'Jean-Philippe';
@@ -411,5 +430,8 @@
     <script src="{{ \App\Support\CrmAsset::url('assets/crm-active-site.js') }}"></script>
     <script src="{{ \App\Support\CrmAsset::url('assets/crm-text-fixes.js') }}"></script>
     <script src="{{ \App\Support\CrmAsset::url('assets/crm-pages.js') }}"></script>
+    @unless(request()->boolean('mobile_embed'))
+      @include('partials.pwa-scripts')
+    @endunless
   </body>
 </html>

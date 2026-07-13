@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @include('partials.pwa-head')
     <title>Conges - CRM Martin Sols</title>
 
     <script>
@@ -329,5 +330,6 @@
         </main>
       </div>
     </div>
+    @include('partials.pwa-scripts')
   </body>
 </html>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @include('partials.pwa-head')
     <title>Martin Sols - CRM</title>
 
     <script>
@@ -93,9 +94,42 @@
           display: none !important;
         }
       }
+
+      body.crm-mobile-embed {
+        overflow-x: hidden;
+        background: #f8fafc;
+      }
+
+      body.crm-mobile-embed aside,
+      body.crm-mobile-embed .layout-header,
+      body.crm-mobile-embed .fixed.inset-0[class*="bg-black/50"],
+      body.crm-mobile-embed .header-mobile-panel {
+        display: none !important;
+      }
+
+      body.crm-mobile-embed main {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        padding-top: 0 !important;
+      }
+
+      body.crm-mobile-embed .layout-container.layout-page {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: .75rem !important;
+      }
+
+      body.crm-mobile-embed [class*="ml-[var(--sidebar-width"],
+      body.crm-mobile-embed [class*="lg:ml-[var(--sidebar-width"] {
+        margin-left: 0 !important;
+      }
     </style>
   </head>
-  <body>
+  <body class="{{ request()->boolean('mobile_embed') ? 'crm-mobile-embed' : '' }}">
     <div id="root"></div>
+    @unless(request()->boolean('mobile_embed'))
+      @include('partials.pwa-scripts')
+    @endunless
   </body>
 </html>

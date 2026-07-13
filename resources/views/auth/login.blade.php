@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex,nofollow" />
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}" />
+    @include('partials.pwa-head')
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -353,5 +354,6 @@
         </div>
       </div>
     </main>
+    @include('partials.pwa-scripts')
   </body>
 </html>
