@@ -90,6 +90,7 @@
       '/api/equipment-rentals.php?action=bootstrap',
       '/api/controle-caisse.php?action=bootstrap',
       '/api/conges.php?action=bootstrap',
+      '/api/equipes.php?action=bootstrap',
       '/api/administration.php?action=bootstrap',
     ];
 

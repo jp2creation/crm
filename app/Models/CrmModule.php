@@ -118,6 +118,7 @@ class CrmModule extends Model
             'documents-fiches-techniques' => 'article',
             'documents-procedures' => 'article',
             'demandes' => 'checklist',
+            'equipes' => 'users',
             'tapis-romus' => 'table',
             'locations-materiel' => 'package',
             'pages-crm' => 'article',
@@ -138,7 +139,7 @@ class CrmModule extends Model
             return 'accounting';
         }
 
-        return in_array($slug, ['reservations', 'locations-materiel', 'tapis-romus', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures'], true)
+        return in_array($slug, ['reservations', 'locations-materiel', 'equipes', 'tapis-romus', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures'], true)
             ? 'apps'
             : 'internal';
     }

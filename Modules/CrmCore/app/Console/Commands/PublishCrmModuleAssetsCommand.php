@@ -20,6 +20,7 @@ class PublishCrmModuleAssetsCommand extends Command
             'crm-check-remittances' => base_path('Modules/CrmCheckRemittances/resources/assets'),
             'crm-documents' => base_path('Modules/CrmDocuments/resources/assets'),
             'crm-pages' => base_path('Modules/CrmPages/resources/assets'),
+            'crm-teams' => base_path('Modules/CrmTeams/resources/assets'),
         ];
 
         $published = 0;

@@ -58,6 +58,20 @@ class CrmUserResource extends Resource
                             ->label('Nom')
                             ->required()
                             ->maxLength(160),
+                        TextInput::make('first_name')
+                            ->label('Prénom')
+                            ->maxLength(80),
+                        TextInput::make('last_name')
+                            ->label('Nom de famille')
+                            ->maxLength(80),
+                        TextInput::make('email')
+                            ->label('E-mail CRM')
+                            ->email()
+                            ->maxLength(190),
+                        TextInput::make('phone')
+                            ->label('Téléphone')
+                            ->tel()
+                            ->maxLength(40),
                         Select::make('user_id')
                             ->label('Compte Laravel')
                             ->relationship('account', 'email')
@@ -101,6 +115,10 @@ class CrmUserResource extends Resource
         return $schema
             ->components([
                 TextEntry::make('name')->label('Nom'),
+                TextEntry::make('first_name')->label('Prénom')->placeholder('Non renseigné'),
+                TextEntry::make('last_name')->label('Nom de famille')->placeholder('Non renseigné'),
+                TextEntry::make('email')->label('E-mail CRM')->placeholder('Non renseigné'),
+                TextEntry::make('phone')->label('Téléphone')->placeholder('Non renseigné'),
                 TextEntry::make('account.email')->label('Compte Laravel')->placeholder('Non rattache'),
                 TextEntry::make('role')->label('Profil')->badge(),
                 IconEntry::make('active')->label('Actif')->boolean(),
@@ -121,6 +139,10 @@ class CrmUserResource extends Resource
                     ->label('Nom')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('phone')
+                    ->label('Téléphone')
+                    ->placeholder('Non renseigné')
+                    ->searchable(),
                 TextColumn::make('role')
                     ->label('Profil')
                     ->badge()

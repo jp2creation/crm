@@ -1,0 +1,11 @@
+{
+    "name": "CrmTeams",
+    "alias": "crmteams",
+    "description": "Module CRM pour consulter les equipes par site.",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmTeams\\Providers\\CrmTeamsServiceProvider"
+    ],
+    "files": []
+}

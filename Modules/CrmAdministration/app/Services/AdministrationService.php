@@ -140,6 +140,7 @@ class AdministrationService
             ? trim((string) ($data['lastName'] ?? $data['last_name'] ?? $profile['lastName']))
             : $profile['lastName'];
         $email = trim((string) ($data['email'] ?? $profile['email']));
+        $phone = trim((string) ($data['phone'] ?? $profile['phone'] ?? ''));
         $bio = trim((string) ($data['bio'] ?? $profile['bio']));
         $photoUrl = (string) $profile['photoUrl'];
         $photoDataUrl = (string) ($data['photoDataUrl'] ?? $data['photo_data_url'] ?? '');
@@ -154,6 +155,10 @@ class AdministrationService
 
         if ($email !== '' && (! filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 190)) {
             $this->fail('Adresse e-mail invalide', 400);
+        }
+
+        if (mb_strlen($phone) > 40) {
+            $this->fail('Telephone trop long', 400);
         }
 
         if ($email !== '') {
@@ -178,6 +183,7 @@ class AdministrationService
 
         $updates = [
             'email' => $email,
+            'phone' => $phone,
             'bio' => $bio,
             'photo_url' => $photoUrl,
         ];
@@ -564,9 +570,29 @@ class AdministrationService
             $id = max(0, (int) ($data['id'] ?? 0));
             $name = trim((string) ($data['name'] ?? ''));
             $role = trim((string) ($data['role'] ?? 'user'));
+            $hasFirstName = array_key_exists('firstName', $data) || array_key_exists('first_name', $data);
+            $hasLastName = array_key_exists('lastName', $data) || array_key_exists('last_name', $data);
+            $hasEmail = array_key_exists('email', $data);
+            $hasPhone = array_key_exists('phone', $data);
+            $firstName = $hasFirstName ? trim((string) ($data['firstName'] ?? $data['first_name'] ?? '')) : '';
+            $lastName = $hasLastName ? trim((string) ($data['lastName'] ?? $data['last_name'] ?? '')) : '';
+            $email = $hasEmail ? trim((string) $data['email']) : '';
+            $phone = $hasPhone ? trim((string) $data['phone']) : '';
 
             if ($name === '') {
                 $this->fail('Nom utilisateur obligatoire', 400);
+            }
+
+            if (mb_strlen($firstName) > 80 || mb_strlen($lastName) > 80) {
+                $this->fail('Prenom ou nom trop long', 400);
+            }
+
+            if ($email !== '' && (! filter_var($email, FILTER_VALIDATE_EMAIL) || mb_strlen($email) > 190)) {
+                $this->fail('Adresse e-mail invalide', 400);
+            }
+
+            if (mb_strlen($phone) > 40) {
+                $this->fail('Telephone trop long', 400);
             }
 
             if (! in_array($role, ['admin', 'responsable', 'user', 'blocked'], true)) {
@@ -599,12 +625,30 @@ class AdministrationService
                 $this->fail('Utilisateur introuvable', 404);
             }
 
-            $user->fill([
+            $updates = [
                 'name' => $name,
                 'role' => $role,
                 'active' => $this->boolean($data['active'] ?? null, true),
                 'photo_url' => trim((string) $user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
-            ])->save();
+            ];
+
+            if ($hasFirstName) {
+                $updates['first_name'] = $firstName !== '' ? $firstName : null;
+            }
+
+            if ($hasLastName) {
+                $updates['last_name'] = $lastName !== '' ? $lastName : null;
+            }
+
+            if ($hasEmail) {
+                $updates['email'] = $email !== '' ? $email : null;
+            }
+
+            if ($hasPhone) {
+                $updates['phone'] = $phone !== '' ? $phone : null;
+            }
+
+            $user->fill($updates)->save();
 
             $this->syncSites($user, $siteIds);
             $user->modules()->sync($moduleIds);
@@ -758,7 +802,7 @@ class AdministrationService
             return 'accounting';
         }
 
-        return in_array($slug, ['reservations', 'locations-materiel', 'tapis-romus', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures'], true)
+        return in_array($slug, ['reservations', 'locations-materiel', 'equipes', 'tapis-romus', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures'], true)
             ? 'apps'
             : 'internal';
     }
@@ -798,6 +842,7 @@ class AdministrationService
             ['controle_caisse.manage', 'Gerer le controle caisse', 'Controle caisse', 148],
             ['check_remittances.view', 'Voir les remises de chèques', 'Remise de chèques', 149],
             ['check_remittances.manage', 'Gérer les remises de chèques', 'Remise de chèques', 150],
+            ['teams.view', 'Voir les equipes', 'Equipe', 155],
             ['platform.manage_sites', 'Gerer les sites', 'Administration', 160],
             ['platform.manage_users', 'Gerer les utilisateurs', 'Administration', 170],
             ['platform.manage_roles', 'Gerer les roles', 'Administration', 180],
@@ -814,22 +859,22 @@ class AdministrationService
                 'key' => 'user',
                 'label' => 'Employe',
                 'description' => 'Reservation et location sur les sites rattaches, suppression de ses propres demandes.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'controle_caisse.view'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'conges', 'controle-caisse', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'teams.view', 'controle_caisse.view'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'addvance'],
             ],
             [
                 'key' => 'responsable',
                 'label' => 'Responsable site',
                 'description' => 'Gestion des reservations, vehicules et locations materiel des sites rattaches.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'controle_caisse.view', 'controle_caisse.manage', 'check_remittances.view', 'check_remittances.manage'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'conges', 'controle-caisse', 'remise-cheques', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'teams.view', 'controle_caisse.view', 'controle_caisse.manage', 'check_remittances.view', 'check_remittances.manage'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'remise-cheques', 'addvance'],
             ],
             [
                 'key' => 'admin',
                 'label' => 'Administrateur',
                 'description' => 'Acces global aux sites, modules, utilisateurs, roles et permissions.',
                 'permissions' => array_map(fn (array $permission): string => $permission[0], $this->permissionSeed()),
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'remise-cheques', 'addvance', 'tapis-romus'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'remise-cheques', 'addvance', 'tapis-romus'],
             ],
             [
                 'key' => 'blocked',
@@ -847,6 +892,7 @@ class AdministrationService
             ['Tableau de bord', 'dashboard', 'Synthese et acces rapides du CRM', '/dashboard/crm', 0, true],
             ['Réservations véhicules', 'reservations', 'Planning et réservations des véhicules', '/reservations', 10, true],
             ['Location matériel', 'locations-materiel', 'Planning et locations du matériel interne', '/locations-materiel', 15, true],
+            ['Équipe', 'equipes', 'Annuaire des membres par site', '/equipes', 16, true],
             ['Pages CRM', 'pages-crm', 'Pages internes modifiables depuis le CRM', '/pages-crm', 18, true],
             ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et rôles', '/administration', 20, true],
             ['Congés', 'conges', 'Planning et gestion des congés', '/conges', 24, true],
@@ -886,6 +932,7 @@ class AdministrationService
             'firstName' => $actor->first_name,
             'lastName' => $actor->last_name,
             'email' => $actor->email,
+            'phone' => $actor->phone,
             'bio' => $actor->bio,
             'photoUrl' => trim((string) $actor->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             'role' => $actor->role,
@@ -984,6 +1031,10 @@ class AdministrationService
         return [
             'id' => $user->id,
             'name' => $user->name,
+            'firstName' => $user->first_name,
+            'lastName' => $user->last_name,
+            'email' => $user->email,
+            'phone' => $user->phone,
             'role' => $user->role,
             'active' => (bool) $user->active,
             'primarySiteId' => $this->primarySiteId($user, $siteIds),
@@ -1031,6 +1082,7 @@ class AdministrationService
             'firstName' => $firstName,
             'lastName' => $lastName,
             'email' => trim((string) $user->email) ?: (trim((string) ($user->account?->email ?? '')) ?: 'contact@jp2creation.fr'),
+            'phone' => trim((string) $user->phone),
             'bio' => trim((string) $user->bio) ?: ($user->role === 'admin' ? 'Administrateur CRM Martin Sols' : ''),
             'photoUrl' => trim((string) $user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             'role' => $user->role,

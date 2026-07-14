@@ -653,6 +653,11 @@
               </div>
 
               <div class="crm-account-field crm-account-field-wide">
+                <label for="crm-account-phone">Téléphone</label>
+                <input id="crm-account-phone" name="phone" type="tel" value="${escapeHtml(profile.phone || '')}" />
+              </div>
+
+              <div class="crm-account-field crm-account-field-wide">
                 <label for="crm-account-bio">Bio</label>
                 <textarea id="crm-account-bio" name="bio" maxlength="255">${escapeHtml(profile.bio || '')}</textarea>
               </div>
@@ -734,6 +739,7 @@
         firstName: formData.get('firstName'),
         lastName: formData.get('lastName'),
         email: formData.get('email'),
+        phone: formData.get('phone'),
         bio: formData.get('bio'),
       };
 

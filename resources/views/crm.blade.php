@@ -64,6 +64,7 @@
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-cash-control/crm-controle-caisse.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-check-remittances/crm-remise-cheques.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-documents/crm-documents.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-teams/crm-equipes.js') }}"></script>
     <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-account-settings.js') }}"></script>
     <link rel="stylesheet" crossorigin href="{{ \App\Support\CrmAsset::url('assets/index-CVBlw941.css') }}">
     <style>

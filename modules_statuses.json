@@ -8,5 +8,6 @@
     "CrmDocuments": true,
     "CrmPages": true,
     "CrmAdministration": true,
+    "CrmTeams": true,
     "CrmTapisRomus": true
 }
