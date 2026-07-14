@@ -11,6 +11,10 @@ return [
         'throttle_per_minute' => (int) env('CRM_API_THROTTLE_PER_MINUTE', 120),
     ],
 
+    'dashboard' => [
+        'cache_seconds' => (int) env('CRM_DASHBOARD_CACHE_SECONDS', 300),
+    ],
+
     'login' => [
         'throttle_per_minute' => (int) env('CRM_LOGIN_THROTTLE_PER_MINUTE', 10),
     ],

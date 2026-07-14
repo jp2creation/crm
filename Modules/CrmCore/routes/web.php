@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
+use Modules\CrmCore\Http\Controllers\DashboardApiController;
 use Modules\CrmCore\Http\Controllers\LegacyTemplateController;
 use Modules\CrmCore\Http\Controllers\MobileAuthController;
 use Modules\CrmCore\Http\Controllers\PwaAssetController;
@@ -16,6 +17,11 @@ Route::any('/{legacyTemplatePath}', LegacyTemplateController::class)
 
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
 $crmLoginApiMiddleware = ['throttle:crm-login', 'crm.compress'];
+
+Route::match(['GET', 'OPTIONS'], '/api/dashboard', DashboardApiController::class)
+    ->middleware($crmApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.dashboard');
 
 Route::options('/api/mobile/{path}', [MobileAuthController::class, 'options'])
     ->middleware('crm.compress')
