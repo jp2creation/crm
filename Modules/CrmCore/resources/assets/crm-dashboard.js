@@ -43,6 +43,7 @@
     style.textContent = `
       #${rootId}{--dash-primary:rgb(var(--theme-primary,149 0 46));--dash-border:var(--color-surface-200,#e2e8f0);--dash-muted:var(--color-secondary-500,#64748b);--dash-text:var(--color-secondary-900,#0f172a);display:grid;gap:1rem}
       #${rootId} *{box-sizing:border-box}
+      #${rootId} svg{width:1.1rem;height:1.1rem;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
       #${rootId} .dash-top{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
       #${rootId} .dash-title h1{margin:0;color:var(--dash-text);font-size:1.8rem;line-height:1.1;font-weight:900;letter-spacing:0}
       #${rootId} .dash-title p{margin:.35rem 0 0;color:var(--dash-muted);font-size:.92rem;font-weight:650}
@@ -74,6 +75,7 @@
       #${rootId} .dash-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:.8rem;border:1px solid var(--dash-border);border-radius:.5rem;padding:.75rem .8rem;background:#fff}
       #${rootId} .dash-row-main{min-width:0}
       #${rootId} .dash-row-title{display:flex;align-items:center;gap:.45rem;min-width:0;color:var(--dash-text);font-size:.9rem;font-weight:900}
+      #${rootId} .dash-row-icon{display:grid;place-items:center;width:2rem;height:2rem;border-radius:.45rem;background:color-mix(in srgb,var(--dash-primary) 10%,white);color:var(--dash-primary)}
       #${rootId} .dash-row-title span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       #${rootId} .dash-row-meta{margin-top:.16rem;color:var(--dash-muted);font-size:.76rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       #${rootId} .dash-badge{display:inline-flex;align-items:center;justify-content:center;min-height:1.75rem;border-radius:999px;background:#f1f5f9;padding:.25rem .65rem;color:var(--dash-text);font-size:.72rem;font-weight:900;white-space:nowrap}
@@ -324,7 +326,7 @@
     return `<div class="dash-list">${items.map((item) => `
       <a class="dash-row" href="/reservations">
         <div class="dash-row-main">
-          <div class="dash-row-title">${icon("truck")}<span>${esc(item.vehicle || item.title || "Réservation")}</span></div>
+          <div class="dash-row-title"><span class="dash-row-icon">${icon("truck")}</span><span>${esc(item.vehicle || item.title || "Réservation")}</span></div>
           <div class="dash-row-meta">${esc(dateTime(item.startAt))} · ${esc(item.user || "-")} · ${esc(item.site || "-")}</div>
         </div>
         <span class="dash-badge">${esc(item.status || "prévue")}</span>
