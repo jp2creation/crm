@@ -172,7 +172,7 @@
 
       @media (max-width: 520px) {
         body {
-          align-items: start;
+          place-items: center;
           padding: 16px;
         }
 
