@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
@@ -16,5 +17,13 @@ class ExampleTest extends TestCase
     {
         $this->get('/login')
             ->assertOk();
+    }
+
+    public function test_authenticated_user_can_refresh_crm_dashboard_route(): void
+    {
+        $this->actingAs(User::factory()->make())
+            ->get('/dashboard/crm')
+            ->assertOk()
+            ->assertViewIs('crm');
     }
 }

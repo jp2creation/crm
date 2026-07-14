@@ -11,6 +11,10 @@ Route::get('/manifest.json', [PwaAssetController::class, 'manifest'])->name('crm
 Route::get('/sw.js', [PwaAssetController::class, 'serviceWorker'])->name('crm.pwa.service-worker');
 Route::get('/offline.html', [PwaAssetController::class, 'offline'])->name('crm.pwa.offline');
 
+Route::view('/dashboard/crm', 'crm')
+    ->middleware('auth')
+    ->name('crm.dashboard');
+
 Route::any('/{legacyTemplatePath}', LegacyTemplateController::class)
     ->where('legacyTemplatePath', '^(?:app|dashboard|forms|tables|charts|pages|features|auth|auth-card)(?:/.*)?$')
     ->name('crm.legacy-template-gone');
