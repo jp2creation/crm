@@ -3,7 +3,7 @@
   const styleId = "crm-dashboard-style";
   const activeSiteStorageKey = "crm:active-site-id";
   const activeSiteEvent = "crm:active-site-changed";
-  const routePath = "/";
+  const routePaths = new Set(["/", "/dashboard/crm"]);
 
   const state = {
     loading: false,
@@ -15,7 +15,7 @@
 
   function isHome() {
     const path = window.location.pathname.replace(/\/+$/, "") || "/";
-    return path === routePath;
+    return routePaths.has(path);
   }
 
   function numberOrNull(value) {

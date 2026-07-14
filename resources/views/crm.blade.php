@@ -60,7 +60,7 @@
     <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-text-fixes.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('assets/index-CqSzWeas.js') }}"></script>
     @php($crmPath = trim(request()->path(), '/'))
-    @if($crmPath === '')
+    @if($crmPath === '' || $crmPath === 'dashboard/crm')
       <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-dashboard.js') }}"></script>
     @elseif($crmPath === 'conges')
       <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-leaves/crm-conges.js') }}"></script>
