@@ -37,6 +37,17 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString("event.data.type === 'SKIP_WAITING'", $serviceWorker);
     }
 
+    public function test_static_pwa_files_have_apache_headers_for_shared_hosting(): void
+    {
+        $htaccess = (string) file_get_contents(public_path('.htaccess'));
+
+        $this->assertStringContainsString('<Files "manifest.json">', $htaccess);
+        $this->assertStringContainsString('ForceType application/manifest+json', $htaccess);
+        $this->assertStringContainsString('<Files "sw.js">', $htaccess);
+        $this->assertStringContainsString('Service-Worker-Allowed "/"', $htaccess);
+        $this->assertStringContainsString('no-cache, no-store, must-revalidate', $htaccess);
+    }
+
     public function test_login_page_loads_the_pwa_boot_script_once(): void
     {
         $html = $this->get('/login')->assertOk()->getContent();

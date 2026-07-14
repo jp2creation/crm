@@ -31,3 +31,18 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+<Files "manifest.json">
+    ForceType application/manifest+json
+    <IfModule mod_headers.c>
+        Header set Cache-Control "public, max-age=3600"
+    </IfModule>
+</Files>
+
+<Files "sw.js">
+    ForceType application/javascript
+    <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Service-Worker-Allowed "/"
+    </IfModule>
+</Files>
