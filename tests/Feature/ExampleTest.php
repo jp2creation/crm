@@ -23,6 +23,11 @@ class ExampleTest extends TestCase
     {
         $this->actingAs(User::factory()->make())
             ->get('/dashboard/crm')
+            ->assertRedirect('/');
+
+        $this->actingAs(User::factory()->make())
+            ->followingRedirects()
+            ->get('/dashboard/crm')
             ->assertOk()
             ->assertViewIs('crm');
     }

@@ -11,7 +11,7 @@ Route::get('/manifest.json', [PwaAssetController::class, 'manifest'])->name('crm
 Route::get('/sw.js', [PwaAssetController::class, 'serviceWorker'])->name('crm.pwa.service-worker');
 Route::get('/offline.html', [PwaAssetController::class, 'offline'])->name('crm.pwa.offline');
 
-Route::view('/dashboard/crm', 'crm')
+Route::redirect('/dashboard/crm', '/')
     ->middleware('auth')
     ->name('crm.dashboard');
 
