@@ -117,50 +117,12 @@
     return cachedProfile;
   }
 
-  function findUserContainer() {
-    const actions = document.querySelector('.layout-header .ms-auto');
-    if (!actions) return null;
+  function hydrateHeader() {
+    document.getElementById('crm-header-profile-overlay')?.remove();
 
-    const relativeChildren = Array.from(actions.children).filter((child) => {
-      return child.matches('div.relative') && child.querySelector('button');
+    document.querySelectorAll('[data-crm-native-profile-hidden]').forEach((node) => {
+      node.removeAttribute('data-crm-native-profile-hidden');
     });
-
-    return relativeChildren[relativeChildren.length - 1] || null;
-  }
-
-  function hydrateHeader(profile) {
-    if (!profile) return;
-
-    const displayName = profile.displayName || profile.name || 'Utilisateur';
-    const role = roleLabel(profile.role);
-
-    ensureStyles();
-
-    const nativeContainer = findUserContainer();
-    if (nativeContainer) {
-      nativeContainer.setAttribute('data-crm-native-profile-hidden', '1');
-    }
-
-    let overlay = document.getElementById('crm-header-profile-overlay');
-    if (!overlay) {
-      overlay = document.createElement('a');
-      overlay.id = 'crm-header-profile-overlay';
-      overlay.className = 'crm-header-profile-overlay';
-      overlay.href = ACCOUNT_PATH;
-      overlay.setAttribute('aria-label', 'Profil utilisateur');
-      document.body.appendChild(overlay);
-    }
-
-    const src = photoUrl(profile);
-    overlay.innerHTML = `
-      <span class="crm-header-profile-overlay-text">
-        <strong>${escapeHtml(displayName)}</strong>
-        <small>${escapeHtml(role)}</small>
-      </span>
-      <span class="crm-header-profile-avatar" aria-hidden="true">
-        <img src="${escapeHtml(src)}" alt="" onerror="this.onerror=null;this.src='${escapeHtml(DEFAULT_PHOTO)}'" />
-      </span>
-    `;
   }
 
   function outlet() {
@@ -224,101 +186,6 @@
         background: #f8fafc !important;
         color: #64748b !important;
         cursor: not-allowed;
-      }
-
-      .layout-header [data-crm-native-profile-hidden="1"] {
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-
-      .crm-header-profile-overlay {
-        position: fixed;
-        top: .8rem;
-        right: 1rem;
-        z-index: 1200;
-        display: inline-flex;
-        align-items: center;
-        gap: .65rem;
-        min-height: 3rem;
-        border: 1px solid rgba(148, 163, 184, .22);
-        border-radius: 999px;
-        background: rgba(255, 255, 255, .96);
-        box-shadow: 0 14px 34px rgba(15, 23, 42, .12);
-        color: #1f3349;
-        padding: .35rem .4rem .35rem .8rem;
-        text-decoration: none;
-        backdrop-filter: blur(12px);
-      }
-
-      .crm-header-profile-overlay-text {
-        display: grid;
-        gap: .05rem;
-        min-width: 0;
-        text-align: right;
-      }
-
-      .crm-header-profile-overlay-text strong {
-        max-width: 10rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        color: #1f3349;
-        font-size: .88rem;
-        font-weight: 850;
-        line-height: 1.1;
-      }
-
-      .crm-header-profile-overlay-text small {
-        color: #64748b;
-        font-size: .72rem;
-        font-weight: 750;
-        line-height: 1.1;
-      }
-
-      .crm-header-profile-avatar {
-        width: 2.25rem !important;
-        height: 2.25rem !important;
-        min-width: 2.25rem !important;
-        min-height: 2.25rem !important;
-        aspect-ratio: 1 / 1;
-        flex: 0 0 2.25rem !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        overflow: hidden !important;
-        border-radius: 9999px !important;
-        background: #fff !important;
-        color: #95002e !important;
-        box-shadow: inset 0 0 0 1px rgba(149, 0, 46, .12);
-      }
-
-      .crm-header-profile-avatar img {
-        width: 100% !important;
-        height: 100% !important;
-        min-width: 100%;
-        min-height: 100%;
-        object-fit: cover;
-        display: block;
-        border-radius: inherit !important;
-        overflow: hidden;
-      }
-
-      .layout-header .ms-auto button .crm-header-profile-avatar,
-      .layout-header .ms-auto button .crm-header-profile-avatar img {
-        border-radius: 9999px !important;
-      }
-
-      @media (max-width: 640px) {
-        .crm-header-profile-overlay {
-          top: .72rem;
-          right: .72rem;
-          min-height: 2.65rem;
-          padding: .2rem;
-        }
-
-        .crm-header-profile-overlay-text {
-          display: none;
-        }
       }
 
       .crm-account-shell {
