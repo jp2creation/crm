@@ -1,12 +1,14 @@
 <?php
 
-use App\Console\Commands\BackupDatabaseCommand;
-use App\Console\Commands\EnsureCrmAdminCommand;
 use App\Http\Middleware\AuditLegacyPhpApi;
 use App\Http\Middleware\CompressResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Modules\CrmAdministration\Console\Commands\EnsureCrmAdminCommand;
+use Modules\CrmCashControl\Console\Commands\ArchiveCashReceiptsCommand;
+use Modules\CrmCore\Console\Commands\BackupDatabaseCommand;
+use Modules\CrmCore\Console\Commands\PublishCrmModuleAssetsCommand;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,8 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withCommands([
+        ArchiveCashReceiptsCommand::class,
         BackupDatabaseCommand::class,
         EnsureCrmAdminCommand::class,
+        PublishCrmModuleAssetsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

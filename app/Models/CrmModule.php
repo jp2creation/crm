@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Modules\CrmCore\Support\CrmReferenceCache;
 
 class CrmModule extends Model
 {

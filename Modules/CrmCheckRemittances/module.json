@@ -1,0 +1,11 @@
+{
+    "name": "CrmCheckRemittances",
+    "alias": "crmcheckremittances",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmCheckRemittances\\Providers\\CrmCheckRemittancesServiceProvider"
+    ],
+    "files": []
+}

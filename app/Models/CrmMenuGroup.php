@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Support\CrmReferenceCache;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\CrmCore\Support\CrmReferenceCache;
 
 class CrmMenuGroup extends Model
 {

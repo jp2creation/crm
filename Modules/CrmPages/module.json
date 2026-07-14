@@ -1,0 +1,11 @@
+{
+    "name": "CrmPages",
+    "alias": "crmpages",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmPages\\Providers\\CrmPagesServiceProvider"
+    ],
+    "files": []
+}

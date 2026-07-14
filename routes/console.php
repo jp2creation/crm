@@ -15,3 +15,7 @@ Schedule::command('sanctum:prune-expired --hours=24')
 Schedule::command('backup:run --quiet')
     ->dailyAt('02:30')
     ->withoutOverlapping();
+
+Schedule::command('cash-control:archive-receipts --quiet')
+    ->dailyAt('03:00')
+    ->withoutOverlapping();

@@ -1,0 +1,11 @@
+{
+    "CrmReservations": true,
+    "CrmEquipmentRentals": true,
+    "CrmLeaves": true,
+    "CrmCashControl": true,
+    "CrmCheckRemittances": true,
+    "CrmCore": true,
+    "CrmPages": true,
+    "CrmAdministration": true,
+    "CrmTapisRomus": true
+}

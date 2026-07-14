@@ -1,1 +1,1 @@
-<script src="{{ asset('assets/crm-pwa.js') }}" defer></script>
+<script src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-pwa.js') }}" defer></script>

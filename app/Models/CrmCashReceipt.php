@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -53,5 +55,19 @@ class CrmCashReceipt extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(CrmUser::class, 'updated_by');
+    }
+
+    public function scopeArchive(Builder $query, CarbonInterface|string|null $cutoff = null): Builder
+    {
+        $cutoffDate = $cutoff instanceof CarbonInterface
+            ? $cutoff->toDateString()
+            : (string) ($cutoff ?: now()->subYears((int) config('crm.cash_control.archive_after_years', 3))->toDateString());
+
+        return $query->whereDate('occurred_on', '<', $cutoffDate);
+    }
+
+    public function scopeArchiveCandidates(Builder $query, CarbonInterface|string|null $cutoff = null): Builder
+    {
+        return $this->scopeArchive($query, $cutoff);
     }
 }

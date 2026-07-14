@@ -1,0 +1,11 @@
+{
+    "name": "CrmEquipmentRentals",
+    "alias": "crmequipmentrentals",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmEquipmentRentals\\Providers\\CrmEquipmentRentalsServiceProvider"
+    ],
+    "files": []
+}

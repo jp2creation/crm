@@ -1,0 +1,11 @@
+{
+    "name": "CrmCashControl",
+    "alias": "crmcashcontrol",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmCashControl\\Providers\\CrmCashControlServiceProvider"
+    ],
+    "files": []
+}

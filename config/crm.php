@@ -27,6 +27,21 @@ return [
         'keep' => (int) env('CRM_BACKUP_KEEP', 14),
     ],
 
+    'cash_control' => [
+        'archive_after_years' => max(1, (int) env('CRM_CASH_RECEIPT_ARCHIVE_AFTER_YEARS', 3)),
+        'invoice_reminder_days' => array_values(array_filter(
+            array_map(
+                static fn (string $day): int => (int) trim($day),
+                explode(',', (string) env('CRM_INVOICE_REMINDER_DAYS', '15,30')),
+            ),
+            static fn (int $day): bool => $day > 0,
+        )),
+    ],
+
+    'notifications' => [
+        'locale' => env('CRM_NOTIFICATION_LOCALE', env('APP_LOCALE', 'fr')),
+    ],
+
     'admin_password' => [
         'min_length' => (int) env('CRM_ADMIN_PASSWORD_MIN', 12),
         'hash_rounds' => (int) env('CRM_ADMIN_HASH_ROUNDS', env('BCRYPT_ROUNDS', 12)),

@@ -1,0 +1,11 @@
+{
+    "name": "CrmLeaves",
+    "alias": "crmleaves",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmLeaves\\Providers\\CrmLeavesServiceProvider"
+    ],
+    "files": []
+}

@@ -47,6 +47,10 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#95002e'),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverResources(in: base_path('Modules/CrmAdministration/app/Filament/Resources'), for: 'Modules\CrmAdministration\Filament\Resources')
+            ->discoverResources(in: base_path('Modules/CrmEquipmentRentals/app/Filament/Resources'), for: 'Modules\CrmEquipmentRentals\Filament\Resources')
+            ->discoverResources(in: base_path('Modules/CrmPages/app/Filament/Resources'), for: 'Modules\CrmPages\Filament\Resources')
+            ->discoverResources(in: base_path('Modules/CrmReservations/app/Filament/Resources'), for: 'Modules\CrmReservations\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,

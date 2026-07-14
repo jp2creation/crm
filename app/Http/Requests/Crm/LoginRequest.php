@@ -2,24 +2,7 @@
 
 namespace App\Http\Requests\Crm;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class LoginRequest extends FormRequest
-{
-    public function authorize(): bool
-    {
-        return true;
-    }
-
-    /**
-     * @return array<string, array<int, string>>
-     */
-    public function rules(): array
-    {
-        return [
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-            'remember' => ['sometimes', 'boolean'],
-        ];
-    }
-}
+/**
+ * @deprecated Moved to \Modules\CrmCore\Http\Requests\LoginRequest.
+ */
+class LoginRequest extends \Modules\CrmCore\Http\Requests\LoginRequest {}

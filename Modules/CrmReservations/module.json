@@ -1,0 +1,11 @@
+{
+    "name": "CrmReservations",
+    "alias": "crmreservations",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmReservations\\Providers\\CrmReservationsServiceProvider"
+    ],
+    "files": []
+}
