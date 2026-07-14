@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmCore\Http\Controllers\DashboardApiController;
+use Modules\CrmCore\Http\Controllers\LegacyCrmPathRedirectController;
 use Modules\CrmCore\Http\Controllers\LegacyTemplateController;
 use Modules\CrmCore\Http\Controllers\MobileAuthController;
 use Modules\CrmCore\Http\Controllers\PwaAssetController;
@@ -18,6 +19,11 @@ Route::redirect('/dashboard/crm', '/')
 Route::view('/pages/account-settings', 'crm')
     ->middleware('auth')
     ->name('crm.account-settings');
+
+Route::get('/dashboard/{legacyCrmPath}', LegacyCrmPathRedirectController::class)
+    ->where('legacyCrmPath', '^(?:crm/)?(?:reservations|locations-materiel|equipes|pages-crm|administration|conges|controle-caisse|remise-cheques|tapis-romus|documents(?:-[A-Za-z0-9_-]+)?)(?:/.*)?$')
+    ->middleware('auth')
+    ->name('crm.dashboard.legacy-path');
 
 Route::any('/{legacyTemplatePath}', LegacyTemplateController::class)
     ->where('legacyTemplatePath', '^(?:app|dashboard|forms|tables|charts|pages|features|auth|auth-card)(?:/.*)?$')
