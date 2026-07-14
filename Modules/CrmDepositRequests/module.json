@@ -1,0 +1,11 @@
+{
+    "name": "CrmDepositRequests",
+    "alias": "crmdepositrequests",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmDepositRequests\\Providers\\CrmDepositRequestsServiceProvider"
+    ],
+    "files": []
+}

@@ -124,6 +124,7 @@ class CrmModule extends Model
             'pages-crm' => 'article',
             'conges' => 'calendar',
             'controle-caisse' => 'creditCard',
+            'demandes-acompte' => 'banknote',
             'remise-cheques' => 'creditCard',
             'addvance' => 'creditCard',
         ][$slug] ?? 'category';
@@ -135,7 +136,7 @@ class CrmModule extends Model
             return 'home';
         }
 
-        if (in_array($slug, ['controle-caisse', 'remise-cheques', 'addvance'], true)) {
+        if (in_array($slug, ['controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance'], true)) {
             return 'accounting';
         }
 

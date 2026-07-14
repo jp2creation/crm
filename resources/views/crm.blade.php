@@ -62,6 +62,7 @@
           { name: 'Procédures', slug: 'documents-procedures', routePath: '/documents/procedures', active: true, sortOrder: 243 },
           { name: 'Tapis ROMUS', slug: 'tapis-romus', routePath: '/tapis-romus', active: true, sortOrder: 60 },
           { name: 'Contrôle caisse', slug: 'controle-caisse', routePath: '/controle-caisse', active: true, sortOrder: 25 },
+          { name: 'Demande d\'acompte', slug: 'demandes-acompte', routePath: '/demandes-acompte', active: true, sortOrder: 26 },
           { name: 'Remise de chèques', slug: 'remise-cheques', routePath: '/remise-cheques', active: true, sortOrder: 27 },
           { name: 'Addvance', slug: 'addvance', routePath: 'https://martinsols.addvancesolutions.fr', active: true, sortOrder: 28 },
           { name: 'Pages CRM', slug: 'pages-crm', routePath: '/pages-crm', active: true, sortOrder: 18 },
@@ -84,6 +85,7 @@
           { itemKey: 'module:documents-procedures', groupKey: 'apps', label: 'Procédures', iconKey: 'article', active: true, sortOrder: 24 },
           { itemKey: 'module:tapis-romus', groupKey: 'apps', label: 'Tapis ROMUS', iconKey: 'table', active: true, sortOrder: 60 },
           { itemKey: 'module:controle-caisse', groupKey: 'accounting', label: 'Contrôle caisse', iconKey: 'creditCard', active: true, sortOrder: 10 },
+          { itemKey: 'module:demandes-acompte', groupKey: 'accounting', label: 'Demande d\'acompte', iconKey: 'banknote', active: true, sortOrder: 26 },
           { itemKey: 'module:remise-cheques', groupKey: 'accounting', label: 'Remise de chèques', iconKey: 'creditCard', active: true, sortOrder: 27 },
           { itemKey: 'module:addvance', groupKey: 'accounting', label: 'Addvance', iconKey: 'creditCard', active: true, sortOrder: 28 },
           { itemKey: 'module:pages-crm', groupKey: 'internal', label: 'Pages CRM', iconKey: 'article', active: true, sortOrder: 18 },
@@ -104,6 +106,7 @@
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-dashboard.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-leaves/crm-conges.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-cash-control/crm-controle-caisse.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-deposit-requests/crm-demandes-acompte.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-check-remittances/crm-remise-cheques.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-documents/crm-documents.js') }}"></script>
     <script defer src="{{ \App\Support\CrmAsset::url('modules/crm-pages/crm-pages.js') }}"></script>

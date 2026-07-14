@@ -21,7 +21,7 @@ Route::view('/pages/account-settings', 'crm')
     ->name('crm.account-settings');
 
 Route::get('/dashboard/{legacyCrmPath}', LegacyCrmPathRedirectController::class)
-    ->where('legacyCrmPath', '^(?:crm/)?(?:reservations|locations-materiel|equipes|pages-crm|administration|conges|controle-caisse|remise-cheques|tapis-romus|documents(?:-[A-Za-z0-9_-]+)?)(?:/.*)?$')
+    ->where('legacyCrmPath', '^(?:crm/)?(?:reservations|locations-materiel|equipes|pages-crm|administration|conges|controle-caisse|demandes-acompte|remise-cheques|tapis-romus|documents(?:-[A-Za-z0-9_-]+)?)(?:/.*)?$')
     ->middleware('auth')
     ->name('crm.dashboard.legacy-path');
 

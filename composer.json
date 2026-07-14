@@ -32,6 +32,7 @@
             "Modules\\CrmCashControl\\": "Modules/CrmCashControl/app/",
             "Modules\\CrmCheckRemittances\\": "Modules/CrmCheckRemittances/app/",
             "Modules\\CrmCore\\": "Modules/CrmCore/app/",
+            "Modules\\CrmDepositRequests\\": "Modules/CrmDepositRequests/app/",
             "Modules\\CrmEquipmentRentals\\": "Modules/CrmEquipmentRentals/app/",
             "Modules\\CrmLeaves\\": "Modules/CrmLeaves/app/",
             "Modules\\CrmPages\\": "Modules/CrmPages/app/",

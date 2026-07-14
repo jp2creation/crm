@@ -841,7 +841,7 @@ class AdministrationService
             return 'home';
         }
 
-        if (in_array($slug, ['controle-caisse', 'remise-cheques', 'addvance'], true)) {
+        if (in_array($slug, ['controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance'], true)) {
             return 'accounting';
         }
 
@@ -885,6 +885,10 @@ class AdministrationService
             ['controle_caisse.manage', 'Gerer le controle caisse', 'Controle caisse', 148],
             ['check_remittances.view', 'Voir les remises de chèques', 'Remise de chèques', 149],
             ['check_remittances.manage', 'Gérer les remises de chèques', 'Remise de chèques', 150],
+            ['deposit_requests.view', "Voir les demandes d'acompte", "Demande d'acompte", 151],
+            ['deposit_requests.create', "Créer une demande d'acompte", "Demande d'acompte", 152],
+            ['deposit_requests.manage', "Gérer les demandes d'acompte", "Demande d'acompte", 153],
+            ['deposit_requests.validate', "Valider les demandes d'acompte", "Demande d'acompte", 154],
             ['teams.view', 'Voir les equipes', 'Equipe', 155],
             ['platform.manage_sites', 'Gerer les sites', 'Administration', 160],
             ['platform.manage_users', 'Gerer les utilisateurs', 'Administration', 170],
@@ -902,22 +906,22 @@ class AdministrationService
                 'key' => 'user',
                 'label' => 'Employe',
                 'description' => 'Reservation et location sur les sites rattaches, suppression de ses propres demandes.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'teams.view', 'controle_caisse.view'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'teams.view', 'controle_caisse.view', 'deposit_requests.view', 'deposit_requests.create'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'demandes-acompte', 'addvance'],
             ],
             [
                 'key' => 'responsable',
                 'label' => 'Responsable site',
                 'description' => 'Gestion des reservations, vehicules et locations materiel des sites rattaches.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'teams.view', 'controle_caisse.view', 'controle_caisse.manage', 'check_remittances.view', 'check_remittances.manage'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'remise-cheques', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'teams.view', 'controle_caisse.view', 'controle_caisse.manage', 'deposit_requests.view', 'deposit_requests.create', 'deposit_requests.manage', 'check_remittances.view', 'check_remittances.manage'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance'],
             ],
             [
                 'key' => 'admin',
                 'label' => 'Administrateur',
                 'description' => 'Acces global aux sites, modules, utilisateurs, roles et permissions.',
                 'permissions' => array_map(fn (array $permission): string => $permission[0], $this->permissionSeed()),
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'remise-cheques', 'addvance', 'tapis-romus'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance', 'tapis-romus'],
             ],
             [
                 'key' => 'blocked',
@@ -940,6 +944,7 @@ class AdministrationService
             ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et rôles', '/administration', 20, true],
             ['Congés', 'conges', 'Planning et gestion des congés', '/conges', 24, true],
             ['Contrôle caisse', 'controle-caisse', 'Contrôle journalier de caisse, reports, écarts et justificatifs', '/controle-caisse', 25, true],
+            ['Demande d\'acompte', 'demandes-acompte', 'Demandes d\'acompte et validation par la comptabilité', '/demandes-acompte', 26, true],
             ['Remise de chèques', 'remise-cheques', 'Remises de chèques, photos, contrôle des montants et impression PDF', '/remise-cheques', 27, true],
             ['Addvance', 'addvance', 'Accès externe Addvance Solutions', 'https://martinsols.addvancesolutions.fr', 28, true],
             ['Planning', 'planning', 'Planning interne par site', '/planning', 30, false],
