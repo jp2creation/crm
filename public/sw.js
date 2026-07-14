@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'martin-sols-crm-v1';
+const CACHE_VERSION = 'martin-sols-crm-v2026071403';
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
 const OFFLINE_URL = '/offline.html';
 
@@ -60,6 +60,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  if (isFreshAsset(request, url)) {
+    event.respondWith(networkFirstAsset(request));
+    return;
+  }
+
   if (isStaticAsset(request, url)) {
     event.respondWith(staleWhileRevalidate(request));
   }
@@ -74,6 +79,12 @@ function isStaticAsset(request, url) {
     || url.pathname === '/favicon.png'
     || url.pathname === '/manifest.json'
     || ['style', 'script', 'image', 'font'].includes(request.destination);
+}
+
+function isFreshAsset(request, url) {
+  return request.destination === 'script'
+    || request.destination === 'style'
+    || /\.(?:js|css)$/i.test(url.pathname);
 }
 
 async function networkFirstNavigation(request) {
@@ -100,4 +111,20 @@ async function staleWhileRevalidate(request) {
     .catch(() => cached);
 
   return cached || fetched;
+}
+
+async function networkFirstAsset(request) {
+  const cache = await caches.open(STATIC_CACHE);
+
+  try {
+    const response = await fetch(request);
+
+    if (response && response.ok) {
+      cache.put(request, response.clone());
+    }
+
+    return response;
+  } catch (error) {
+    return await cache.match(request) || Response.error();
+  }
 }

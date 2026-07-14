@@ -93,6 +93,8 @@ final class CrmAsset
 
         $pattern = '#[\\\'"]\\./'.preg_quote($basename, '#').'\\?v=([^\\\'"]+)#';
 
+        $versions = [];
+
         foreach (glob($assetDirectory.'/*.js') ?: [] as $assetPath) {
             if (! is_file($assetPath) || basename($assetPath) === $basename) {
                 continue;
@@ -105,8 +107,14 @@ final class CrmAsset
             }
 
             if (preg_match($pattern, $contents, $matches) === 1) {
-                return self::$importVersions[$cacheKey] = $matches[1];
+                $versions[] = $matches[1];
             }
+        }
+
+        if ($versions !== []) {
+            usort($versions, static fn (string $left, string $right): int => strnatcmp($right, $left));
+
+            return self::$importVersions[$cacheKey] = $versions[0];
         }
 
         return self::$importVersions[$cacheKey] = null;

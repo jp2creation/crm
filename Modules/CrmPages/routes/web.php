@@ -7,11 +7,11 @@ use Modules\CrmPages\Http\Controllers\PageApiController;
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
 $crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
 
-Route::view('/pages-crm', 'crm-pages::pages')
+Route::view('/pages-crm', 'crm')
     ->middleware('auth')
     ->name('crm.pages');
 
-Route::view('/pages-crm/{slug}', 'crm-pages::pages')
+Route::view('/pages-crm/{slug}', 'crm')
     ->middleware('auth')
     ->where('slug', '[A-Za-z0-9_-]+')
     ->name('crm.pages.show');

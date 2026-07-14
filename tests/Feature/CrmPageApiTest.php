@@ -89,7 +89,8 @@ class CrmPageApiTest extends TestCase
         $this->actingAs($account)
             ->get('/pages-crm')
             ->assertOk()
-            ->assertSee('crm-pages-root');
+            ->assertSee('CRM_NAV_FALLBACK')
+            ->assertSee('modules/crm-pages/crm-pages.js');
     }
 
     public function test_manager_can_create_page_and_menu_item(): void

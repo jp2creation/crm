@@ -96,7 +96,7 @@
     try {
       state.data = await request("bootstrap");
     } catch (error) {
-      state.error = error instanceof Error ? error.message : "Impossible de charger l equipe.";
+      state.error = error instanceof Error ? error.message : "Impossible de charger l'équipe.";
       state.data = null;
     } finally {
       state.loading = false;
@@ -118,7 +118,7 @@
 
       target = document.createElement("section");
       target.id = rootId;
-      target.textContent = "Chargement de l equipe...";
+      target.textContent = "Chargement de l'équipe...";
       container.appendChild(target);
     }
 
@@ -182,7 +182,7 @@
     mountedPath = window.location.pathname;
 
     if (state.loading && !state.data) {
-      root.innerHTML = `<div class="teams-loading">Chargement de l equipe...</div>`;
+      root.innerHTML = `<div class="teams-loading">Chargement de l'équipe...</div>`;
       return;
     }
 
@@ -192,7 +192,7 @@
     }
 
     if (!state.data) {
-      root.innerHTML = `<div class="teams-loading">Chargement de l equipe...</div>`;
+      root.innerHTML = `<div class="teams-loading">Chargement de l'équipe...</div>`;
       return;
     }
 
@@ -374,7 +374,7 @@
     style.textContent = `
       html.crm-teams-route,
       body.crm-teams-route{overflow-x:hidden}
-      html.crm-teams-route main,
+      html.crm-teams-route main{max-width:100%;min-width:0;overflow-x:hidden}
       html.crm-teams-route .layout-container.layout-page{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
       html.crm-teams-route .layout-container.layout-page > :not(#${rootId}){display:none!important}
       #${rootId}{--teams-primary:rgb(var(--theme-primary,149 0 46));--teams-border:var(--color-surface-200,#e2e8f0);--teams-muted:var(--color-secondary-500,#64748b);--teams-text:var(--color-secondary-900,#0f172a);display:block;min-width:0;color:var(--teams-text)}

@@ -2328,21 +2328,7 @@
 
     let host = document.getElementById("crm-check-remittance-module");
     if (!host) {
-      const outlet = findOutlet();
-      if (!outlet) return;
-
-      host = document.createElement("div");
-      host.id = "crm-check-remittance-module";
-      host.className = "crm-check-remittance-module-host";
-      host.dataset.crmModuleHost = "check-remittance";
-      host.textContent = "Chargement des remises de chèques...";
-
-      if (outlet.id === "crm-check-remittance-module") {
-        host = outlet;
-      } else {
-        outlet.innerHTML = "";
-        outlet.appendChild(host);
-      }
+      return;
     }
 
     if (mountedRoots.has(host)) return;

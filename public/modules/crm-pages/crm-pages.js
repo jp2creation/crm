@@ -1,11 +1,9 @@
 (function () {
   var API = '/api/pages.php';
-  var root = document.getElementById('crm-pages-root');
-  var shell = document.querySelector('[data-pages-shell]');
-
-  if (!root) {
-    return;
-  }
+  var root = null;
+  var shell = null;
+  var bootedRoot = null;
+  var shellEventsBound = false;
 
   var state = {
     loading: true,
@@ -265,7 +263,7 @@
     var page = state.selectedPage;
 
     if (!page) {
-      return '<section class="crm-card crm-page-reader"><div class="crm-empty">Selectionnez une page pour consulter son contenu.</div></section>';
+      return '<section class="crm-card crm-page-reader"><div class="crm-empty">Sélectionnez une page pour consulter son contenu.</div></section>';
     }
 
     return '<section class="crm-card crm-page-reader">' +
@@ -301,13 +299,13 @@
         '<form class="crm-form" data-page-form>' +
           '<div class="crm-form-grid">' +
             '<label class="crm-field"><span class="crm-label">Titre</span><input class="crm-input" name="title" required value="' + html(form.title) + '"></label>' +
-            '<label class="crm-field"><span class="crm-label">Slug</span><input class="crm-input" name="slug" value="' + html(form.slug) + '" placeholder="genere automatiquement"></label>' +
+            '<label class="crm-field"><span class="crm-label">Slug</span><input class="crm-input" name="slug" value="' + html(form.slug) + '" placeholder="généré automatiquement"></label>' +
           '</div>' +
           '<div class="crm-form-grid">' +
-            '<label class="crm-field"><span class="crm-label">Icone</span><input class="crm-input" name="iconKey" value="' + html(form.iconKey || 'article') + '"></label>' +
+            '<label class="crm-field"><span class="crm-label">Icône</span><input class="crm-input" name="iconKey" value="' + html(form.iconKey || 'article') + '"></label>' +
             '<label class="crm-field"><span class="crm-label">Ordre</span><input class="crm-input" type="number" min="0" max="999" name="sortOrder" value="' + html(form.sortOrder || 100) + '"></label>' +
           '</div>' +
-          '<label class="crm-field"><span class="crm-label">Resume</span><input class="crm-input" name="excerpt" value="' + html(form.excerpt || '') + '"></label>' +
+          '<label class="crm-field"><span class="crm-label">Résumé</span><input class="crm-input" name="excerpt" value="' + html(form.excerpt || '') + '"></label>' +
           '<label class="crm-field"><span class="crm-label">Contenu</span><textarea class="crm-textarea" name="content" required>' + html(form.content || '') + '</textarea></label>' +
           '<div class="crm-checks">' +
             '<label class="crm-check"><input type="checkbox" name="active" ' + (form.active !== false ? 'checked' : '') + '> Active</label>' +
@@ -380,7 +378,7 @@
 
     try {
       var payload = await api('save_page', data);
-      state.notice = { type: 'success', message: 'Page enregistree.' };
+      state.notice = { type: 'success', message: 'Page enregistrée.' };
       state.modal = null;
       state.saving = false;
       await loadData(payload.page && payload.page.slug);
@@ -402,7 +400,7 @@
 
     try {
       await api('delete_page', { id: page.id });
-      state.notice = { type: 'success', message: 'Page supprimee.' };
+      state.notice = { type: 'success', message: 'Page supprimée.' };
       window.history.pushState({}, '', '/pages-crm');
       await loadData('');
     } catch (error) {
@@ -459,17 +457,70 @@
     });
   }
 
-  document.querySelector('[data-sidebar-toggle]')?.addEventListener('click', function () {
-    shell && shell.classList.toggle('is-sidebar-open');
-  });
+  function bindShellEvents() {
+    if (shellEventsBound) {
+      return;
+    }
 
-  document.querySelector('[data-sidebar-close]')?.addEventListener('click', function () {
-    shell && shell.classList.remove('is-sidebar-open');
-  });
+    document.querySelector('[data-sidebar-toggle]')?.addEventListener('click', function () {
+      shell && shell.classList.toggle('is-sidebar-open');
+    });
+
+    document.querySelector('[data-sidebar-close]')?.addEventListener('click', function () {
+      shell && shell.classList.remove('is-sidebar-open');
+    });
+
+    shellEventsBound = true;
+  }
+
+  function boot() {
+    var nextRoot = document.getElementById('crm-pages-root');
+
+    if (!nextRoot) {
+      return false;
+    }
+
+    if (nextRoot === bootedRoot) {
+      return true;
+    }
+
+    root = nextRoot;
+    shell = document.querySelector('[data-pages-shell]');
+    bootedRoot = nextRoot;
+    state.loading = true;
+    state.error = '';
+    state.notice = null;
+    bindShellEvents();
+    loadData(slugFromLocation());
+
+    return true;
+  }
+
+  document.addEventListener('click', function (event) {
+    var link = event.target && event.target.closest ? event.target.closest('a[href^="/pages-crm"]') : null;
+
+    if (link) {
+      window.setTimeout(boot, 80);
+    }
+  }, true);
+
+  function startBootObserver() {
+    boot();
+
+    if (document.body) {
+      new MutationObserver(boot).observe(document.body, { childList: true, subtree: true });
+    }
+  }
 
   window.addEventListener('popstate', function () {
-    loadData(slugFromLocation());
+    if (boot()) {
+      loadData(slugFromLocation());
+    }
   });
 
-  loadData(slugFromLocation());
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startBootObserver, { once: true });
+  } else {
+    startBootObserver();
+  }
 })();
