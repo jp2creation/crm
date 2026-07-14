@@ -12,6 +12,7 @@ use App\Models\CrmUser;
 use App\Models\CrmUserSiteModulePermission;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
@@ -216,6 +217,48 @@ class AdministrationService
         }
 
         $this->log($actor, 'modification profil', $email);
+
+        return ['ok' => true, 'profile' => $this->profilePayload($actor->refresh())];
+    }
+
+    public function deleteSession(CrmUser $actor, array $data): array
+    {
+        $sessionId = trim((string) ($data['sessionId'] ?? $data['session_id'] ?? ''));
+
+        if ($sessionId === '') {
+            $this->fail('Session invalide', 400);
+        }
+
+        $accountId = (int) $actor->user_id;
+        if ($accountId <= 0) {
+            $this->fail('Compte Laravel introuvable', 404);
+        }
+
+        $table = $this->sessionTable();
+        if (! Schema::hasTable($table)) {
+            $this->fail('Sessions indisponibles', 404);
+        }
+
+        $currentSessionId = $this->currentSessionId();
+        $rawSessionId = DB::table($table)
+            ->where('user_id', $accountId)
+            ->pluck('id')
+            ->first(fn (string $rawId): bool => $this->publicSessionId($rawId) === $sessionId);
+
+        if (! $rawSessionId) {
+            $this->fail('Session introuvable', 404);
+        }
+
+        if ($rawSessionId === $currentSessionId) {
+            $this->fail('Impossible de supprimer la session actuelle', 400);
+        }
+
+        DB::table($table)
+            ->where('user_id', $accountId)
+            ->where('id', $rawSessionId)
+            ->delete();
+
+        $this->log($actor, 'deconnexion appareil', $sessionId);
 
         return ['ok' => true, 'profile' => $this->profilePayload($actor->refresh())];
     }
@@ -1087,7 +1130,137 @@ class AdministrationService
             'photoUrl' => trim((string) $user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             'role' => $user->role,
             'canEditIdentity' => $user->role === 'admin' || $this->hasPermission($user, 'platform.manage_users'),
+            'connectedDevices' => $this->connectedDevices($user),
         ];
+    }
+
+    private function connectedDevices(CrmUser $user): array
+    {
+        $accountId = (int) $user->user_id;
+        if ($accountId <= 0) {
+            return [];
+        }
+
+        $table = $this->sessionTable();
+        if (! Schema::hasTable($table)) {
+            return [];
+        }
+
+        $currentSessionId = $this->currentSessionId();
+        $minimumActivity = now()->subMinutes((int) config('session.lifetime', 120))->timestamp;
+
+        return DB::table($table)
+            ->where('user_id', $accountId)
+            ->where('last_activity', '>=', $minimumActivity)
+            ->orderByDesc('last_activity')
+            ->limit(12)
+            ->get(['id', 'ip_address', 'user_agent', 'last_activity'])
+            ->sortByDesc(fn (object $session): int => $session->id === $currentSessionId ? 1 : 0)
+            ->values()
+            ->map(function (object $session) use ($currentSessionId): array {
+                $agent = $this->parseUserAgent((string) ($session->user_agent ?? ''));
+                $lastActivity = (int) $session->last_activity;
+
+                return [
+                    'id' => $this->publicSessionId((string) $session->id),
+                    'name' => $agent['name'],
+                    'browser' => $agent['browser'],
+                    'platform' => $agent['platform'],
+                    'deviceType' => $agent['deviceType'],
+                    'ipAddress' => (string) ($session->ip_address ?: 'IP inconnue'),
+                    'userAgent' => mb_substr((string) ($session->user_agent ?? ''), 0, 180),
+                    'lastActivity' => date('c', $lastActivity),
+                    'lastActivityLabel' => $this->humanLastActivity($lastActivity),
+                    'isCurrent' => $session->id === $currentSessionId,
+                ];
+            })
+            ->all();
+    }
+
+    private function sessionTable(): string
+    {
+        return (string) config('session.table', 'sessions');
+    }
+
+    private function currentSessionId(): string
+    {
+        $request = request();
+
+        return $request->hasSession()
+            ? (string) $request->session()->getId()
+            : '';
+    }
+
+    private function publicSessionId(string $sessionId): string
+    {
+        return substr(hash('sha256', $sessionId), 0, 32);
+    }
+
+    /**
+     * @return array{name: string, browser: string, platform: string, deviceType: string}
+     */
+    private function parseUserAgent(string $userAgent): array
+    {
+        $browser = match (true) {
+            str_contains($userAgent, 'Edg/') => 'Microsoft Edge',
+            str_contains($userAgent, 'OPR/') || str_contains($userAgent, 'Opera') => 'Opera',
+            str_contains($userAgent, 'SamsungBrowser') => 'Samsung Internet',
+            str_contains($userAgent, 'CriOS') || str_contains($userAgent, 'Chrome/') => 'Chrome',
+            str_contains($userAgent, 'FxiOS') || str_contains($userAgent, 'Firefox/') => 'Firefox',
+            str_contains($userAgent, 'Safari/') => 'Safari',
+            default => 'Navigateur inconnu',
+        };
+
+        $platform = match (true) {
+            str_contains($userAgent, 'iPhone') => 'iPhone',
+            str_contains($userAgent, 'iPad') => 'iPad',
+            str_contains($userAgent, 'Android') => 'Android',
+            str_contains($userAgent, 'Mac OS X') || str_contains($userAgent, 'Macintosh') => 'macOS',
+            str_contains($userAgent, 'Windows') => 'Windows',
+            str_contains($userAgent, 'Linux') => 'Linux',
+            default => 'Système inconnu',
+        };
+
+        $deviceType = match (true) {
+            str_contains($userAgent, 'iPad') || (str_contains($userAgent, 'Android') && ! str_contains($userAgent, 'Mobile')) => 'Tablette',
+            str_contains($userAgent, 'Mobile') || str_contains($userAgent, 'iPhone') => 'Mobile',
+            default => 'Ordinateur',
+        };
+
+        return [
+            'name' => $browser !== 'Navigateur inconnu' && $platform !== 'Système inconnu'
+                ? $browser.' sur '.$platform
+                : $browser,
+            'browser' => $browser,
+            'platform' => $platform,
+            'deviceType' => $deviceType,
+        ];
+    }
+
+    private function humanLastActivity(int $timestamp): string
+    {
+        $seconds = max(0, now()->timestamp - $timestamp);
+
+        if ($seconds < 60) {
+            return 'à l’instant';
+        }
+
+        $minutes = intdiv($seconds, 60);
+        if ($minutes < 60) {
+            return 'il y a '.$minutes.' min';
+        }
+
+        $hours = intdiv($minutes, 60);
+        if ($hours < 24) {
+            return 'il y a '.$hours.' h';
+        }
+
+        $days = intdiv($hours, 24);
+        if ($days === 1) {
+            return 'hier';
+        }
+
+        return 'il y a '.$days.' j';
     }
 
     private function hasPermission(CrmUser $actor, string $permission): bool

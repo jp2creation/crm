@@ -38,6 +38,7 @@ class AdministrationApiController extends Controller
             return match ($action) {
                 'profile' => $this->json($administration->profile($actor)),
                 'save_profile' => $this->json($administration->saveProfile($actor, $body)),
+                'delete_session' => $this->json($administration->deleteSession($actor, $body)),
                 'bootstrap' => $this->json($administration->bootstrap($actor)),
                 'save_menu_settings' => $this->json($administration->saveMenuSettings($actor, $body)),
                 'pages_bootstrap' => $this->json($administration->pagesBootstrap($actor)),

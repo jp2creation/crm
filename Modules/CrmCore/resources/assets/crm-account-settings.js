@@ -733,6 +733,135 @@
     });
   }
 
+  function nativePanelCard(root, titleText) {
+    if (!root) return null;
+
+    const title = findByText(root, 'h2', titleText);
+    return title?.closest('.card') || null;
+  }
+
+  function deviceIcon(device) {
+    const isMobile = String(device?.deviceType || '').toLowerCase().includes('mobile');
+    const isTablet = String(device?.deviceType || '').toLowerCase().includes('tablette');
+
+    if (isMobile || isTablet) {
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" class="iconify iconify--solar text-secondary-600 dark:text-secondary-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="6" y="2.75" width="12" height="18.5" rx="2.5"></rect>
+          <path stroke-linecap="round" d="M10 18h4"></path>
+        </svg>
+      `;
+    }
+
+    return `
+      <svg xmlns="http://www.w3.org/2000/svg" class="iconify iconify--solar text-secondary-600 dark:text-secondary-400" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 6.5C3 5.12 4.12 4 5.5 4h13A2.5 2.5 0 0 1 21 6.5v8A2.5 2.5 0 0 1 18.5 17h-13A2.5 2.5 0 0 1 3 14.5z"></path>
+        <path stroke-linecap="round" d="M8 20h8m-4-3v3"></path>
+      </svg>
+    `;
+  }
+
+  function deviceSignature(devices) {
+    return JSON.stringify(devices.map((device) => [
+      device.id,
+      device.name,
+      device.ipAddress,
+      device.lastActivity,
+      device.isCurrent,
+    ]));
+  }
+
+  function renderDeviceCard(device) {
+    const currentBadge = device.isCurrent
+      ? `<span class="px-2 py-0.5 bg-success-100 dark:bg-success-900/30 text-success-700 dark:text-success-400 text-xs rounded-full">Actuel</span>`
+      : '';
+    const removeButton = !device.isCurrent
+      ? `<button type="button" class="btn btn-sm btn-ghost text-danger-600 hover:text-danger-700 shrink-0" data-crm-delete-session="${escapeHtml(device.id)}"><span class="inline-flex flex-row flex-nowrap items-center justify-center gap-2">Déconnecter</span></button>`
+      : '';
+
+    return `
+      <div class="p-4 border border-surface-200 dark:border-surface-700 rounded-xl flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex min-w-0 items-start gap-3">
+          <div class="p-2 bg-surface-100 dark:bg-surface-800 rounded-lg shrink-0">${deviceIcon(device)}</div>
+          <div class="min-w-0">
+            <div class="font-medium text-secondary-900 dark:text-white flex flex-wrap items-center gap-2">
+              <span class="truncate">${escapeHtml(device.name || 'Appareil connecté')}</span>
+              ${currentBadge}
+            </div>
+            <div class="text-sm text-secondary-600 dark:text-secondary-400 mt-1">
+              ${escapeHtml(device.deviceType || 'Appareil')} • ${escapeHtml(device.browser || 'Navigateur inconnu')} • ${escapeHtml(device.platform || 'Système inconnu')}
+            </div>
+            <div class="text-xs text-secondary-500 dark:text-secondary-400 mt-0.5">
+              ${escapeHtml(device.ipAddress || 'IP inconnue')} • Dernière activité : ${escapeHtml(device.lastActivityLabel || '')}
+            </div>
+          </div>
+        </div>
+        ${removeButton}
+      </div>
+    `;
+  }
+
+  function renderNativeDevicesPage(root, profile, status, error) {
+    const card = nativePanelCard(root, 'Appareils connectés');
+    if (!card) return false;
+
+    const devices = Array.isArray(profile.connectedDevices) ? profile.connectedDevices : [];
+    const signature = deviceSignature(devices);
+    const isAlreadyRendered = card.querySelector('[data-crm-native-devices]');
+
+    if (card.dataset.crmDevicesSignature === signature && isAlreadyRendered && status === undefined) {
+      bindNativeDeviceEvents(card, profile);
+      return true;
+    }
+
+    card.dataset.crmDevicesSignature = signature;
+    card.innerHTML = `
+      <div class="space-y-6" data-crm-native-devices>
+        <div>
+          <h2 class="heading-4 text-secondary-900 dark:text-white mb-1">Appareils connectés</h2>
+          <p class="text-sm text-secondary-500 dark:text-secondary-400">Sessions réellement enregistrées pour votre compte CRM</p>
+        </div>
+        ${status ? `<div class="rounded-xl border p-3 text-sm font-semibold ${error ? 'border-danger-200 bg-danger-50 text-danger-700 dark:border-danger-800 dark:bg-danger-900/20 dark:text-danger-300' : 'border-success-200 bg-success-50 text-success-700 dark:border-success-800 dark:bg-success-900/20 dark:text-success-300'}">${escapeHtml(status)}</div>` : ''}
+        <div class="space-y-3">
+          ${devices.length ? devices.map(renderDeviceCard).join('') : `
+            <div class="rounded-xl border border-dashed border-surface-200 p-4 text-sm text-secondary-500 dark:border-surface-700 dark:text-secondary-400">
+              Aucune session enregistrée pour ce compte.
+            </div>
+          `}
+        </div>
+      </div>
+    `;
+
+    bindNativeDeviceEvents(card, profile);
+
+    return true;
+  }
+
+  function bindNativeDeviceEvents(card, profile) {
+    Array.from(card.querySelectorAll('[data-crm-delete-session]')).forEach((button) => {
+      if (button.dataset.crmNativeBound) return;
+      button.dataset.crmNativeBound = '1';
+
+      button.addEventListener('click', async (event) => {
+        event.preventDefault();
+
+        const sessionId = button.dataset.crmDeleteSession || '';
+        if (!sessionId || !window.confirm('Déconnecter cet appareil ?')) return;
+
+        try {
+          button.disabled = true;
+          const data = await api('delete_session', { sessionId });
+          cachedProfile = data.profile || profile;
+          renderNativeDevicesPage(nativeAccountRoot(), cachedProfile, 'Appareil déconnecté.');
+        } catch (error) {
+          renderNativeDevicesPage(nativeAccountRoot(), profile, error.message || 'Impossible de déconnecter cet appareil.', true);
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+  }
+
   function ensureNativePhoneField(root) {
     const existing = nativeField(root, 'Téléphone');
     if (existing) return existing;
@@ -860,6 +989,10 @@
 
     ensureStyles();
     hideNativeBillingTab(root);
+
+    if (renderNativeDevicesPage(root, profile)) {
+      return true;
+    }
 
     const canEditIdentity = profile.canEditIdentity !== false;
     const src = pendingPhotoDataUrl || photoUrl(profile);

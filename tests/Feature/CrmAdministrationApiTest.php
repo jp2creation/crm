@@ -10,6 +10,7 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CrmAdministrationApiTest extends TestCase
@@ -142,6 +143,67 @@ class CrmAdministrationApiTest extends TestCase
             ->assertStatus(400)
             ->assertJsonPath('ok', false)
             ->assertJsonPath('error', 'Adresse e-mail deja utilisee');
+    }
+
+    public function test_profile_returns_real_connected_devices_from_sessions(): void
+    {
+        [$account] = $this->createAdminUser();
+
+        DB::table('sessions')->insert([
+            'id' => 'desktop-session',
+            'user_id' => $account->id,
+            'ip_address' => '192.0.2.10',
+            'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+            'payload' => '',
+            'last_activity' => now()->timestamp,
+        ]);
+        DB::table('sessions')->insert([
+            'id' => 'other-user-session',
+            'user_id' => User::factory()->create()->id,
+            'ip_address' => '198.51.100.50',
+            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Version/17.0 Mobile/15E148 Safari/604.1',
+            'payload' => '',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        $profile = $this->actingAs($account)
+            ->getJson('/api/administration?action=profile')
+            ->assertOk()
+            ->assertJsonMissing(['ipAddress' => '198.51.100.50'])
+            ->json('profile');
+
+        $device = collect($profile['connectedDevices'])->firstWhere('id', substr(hash('sha256', 'desktop-session'), 0, 32));
+
+        $this->assertNotNull($device);
+        $this->assertSame('Chrome', $device['browser']);
+        $this->assertSame('macOS', $device['platform']);
+        $this->assertSame('Ordinateur', $device['deviceType']);
+        $this->assertSame('192.0.2.10', $device['ipAddress']);
+    }
+
+    public function test_user_can_disconnect_another_session(): void
+    {
+        [$account] = $this->createAdminUser();
+
+        DB::table('sessions')->insert([
+            'id' => 'old-session',
+            'user_id' => $account->id,
+            'ip_address' => '192.0.2.11',
+            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Version/17.0 Mobile/15E148 Safari/604.1',
+            'payload' => '',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        $profile = $this->actingAs($account)
+            ->postJson('/api/administration?action=delete_session', [
+                'sessionId' => substr(hash('sha256', 'old-session'), 0, 32),
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->json('profile');
+
+        $this->assertDatabaseMissing('sessions', ['id' => 'old-session']);
+        $this->assertNull(collect($profile['connectedDevices'])->firstWhere('id', substr(hash('sha256', 'old-session'), 0, 32)));
     }
 
     public function test_admin_can_read_bootstrap_from_legacy_endpoint(): void
