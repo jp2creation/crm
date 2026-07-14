@@ -109,6 +109,7 @@ class CrmModule extends Model
     public static function defaultIconKey(string $slug): string
     {
         return [
+            'dashboard' => 'dashboard',
             'reservations' => 'truck',
             'administration' => 'settings',
             'planning' => 'calendar',
@@ -126,6 +127,10 @@ class CrmModule extends Model
 
     public static function defaultMenuGroup(string $slug): string
     {
+        if ($slug === 'dashboard') {
+            return 'home';
+        }
+
         if (in_array($slug, ['controle-caisse', 'remise-cheques', 'addvance'], true)) {
             return 'accounting';
         }

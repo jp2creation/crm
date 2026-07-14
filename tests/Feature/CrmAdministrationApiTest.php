@@ -41,8 +41,8 @@ class CrmAdministrationApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('roles.2.key', 'admin')
-            ->assertJsonPath('modules.0.slug', 'reservations')
-            ->assertJsonPath('menuGroups.0.menuKey', 'apps')
+            ->assertJsonPath('modules.0.slug', 'dashboard')
+            ->assertJsonPath('menuGroups.0.menuKey', 'home')
             ->assertJsonPath('actor.name', 'J-Philippe');
     }
 
@@ -88,6 +88,22 @@ class CrmAdministrationApiTest extends TestCase
         $this->assertDatabaseMissing('crm_menu_items', ['item_key' => 'dashboard:analytics']);
         $this->assertDatabaseMissing('crm_menu_items', ['item_key' => 'chart:line']);
         $this->assertDatabaseMissing('crm_menu_groups', ['menu_key' => 'dashboards']);
+        $this->assertDatabaseHas('crm_menu_groups', [
+            'menu_key' => 'home',
+            'title' => 'Accueil',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_modules', [
+            'slug' => 'dashboard',
+            'route_path' => '/dashboard/crm',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:dashboard',
+            'group_key' => 'home',
+            'label' => 'Tableau de bord',
+            'active' => true,
+        ]);
         $this->assertDatabaseHas('crm_menu_groups', [
             'menu_key' => 'apps',
             'title' => 'Applications CRM',

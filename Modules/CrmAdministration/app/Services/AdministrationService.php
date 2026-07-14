@@ -696,6 +696,10 @@ class AdministrationService
 
     private function defaultModuleMenuGroup(string $slug): string
     {
+        if ($slug === 'dashboard') {
+            return 'home';
+        }
+
         if (in_array($slug, ['controle-caisse', 'remise-cheques', 'addvance'], true)) {
             return 'accounting';
         }
@@ -757,21 +761,21 @@ class AdministrationService
                 'label' => 'Employe',
                 'description' => 'Reservation et location sur les sites rattaches, suppression de ses propres demandes.',
                 'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'controle_caisse.view'],
-                'moduleSlugs' => ['reservations', 'locations-materiel', 'conges', 'controle-caisse', 'addvance'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'conges', 'controle-caisse', 'addvance'],
             ],
             [
                 'key' => 'responsable',
                 'label' => 'Responsable site',
                 'description' => 'Gestion des reservations, vehicules et locations materiel des sites rattaches.',
                 'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'controle_caisse.view', 'controle_caisse.manage', 'check_remittances.view', 'check_remittances.manage'],
-                'moduleSlugs' => ['reservations', 'locations-materiel', 'conges', 'controle-caisse', 'remise-cheques', 'addvance'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'conges', 'controle-caisse', 'remise-cheques', 'addvance'],
             ],
             [
                 'key' => 'admin',
                 'label' => 'Administrateur',
                 'description' => 'Acces global aux sites, modules, utilisateurs, roles et permissions.',
                 'permissions' => array_map(fn (array $permission): string => $permission[0], $this->permissionSeed()),
-                'moduleSlugs' => ['reservations', 'locations-materiel', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'remise-cheques', 'addvance', 'tapis-romus'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'remise-cheques', 'addvance', 'tapis-romus'],
             ],
             [
                 'key' => 'blocked',
@@ -786,6 +790,7 @@ class AdministrationService
     private function moduleSeed(): array
     {
         return [
+            ['Tableau de bord', 'dashboard', 'Synthese et acces rapides du CRM', '/dashboard/crm', 0, true],
             ['Réservations véhicules', 'reservations', 'Planning et réservations des véhicules', '/reservations', 10, true],
             ['Location matériel', 'locations-materiel', 'Planning et locations du matériel interne', '/locations-materiel', 15, true],
             ['Pages CRM', 'pages-crm', 'Pages internes modifiables depuis le CRM', '/pages-crm', 18, true],
@@ -804,6 +809,7 @@ class AdministrationService
     private function menuGroupSeed(): array
     {
         return [
+            ['home', 'Accueil', 0, true],
             ['apps', 'Applications CRM', 10, true],
             ['accounting', 'Comptabilité', 18, true],
             ['internal', 'Administration', 20, true],
