@@ -101,13 +101,13 @@
   function mount() {
     if (!isHome()) return false;
 
-    const container = document.querySelector("main .layout-container.layout-page") || document.querySelector("main .layout-container") || document.querySelector("main");
-    if (!container) return false;
+    const root = document.getElementById(rootId);
+    if (!root) return false;
 
     ensureStyle();
-
-    if (!document.getElementById(rootId)) {
-      container.innerHTML = `<div id="${rootId}">${renderLoading()}</div>`;
+    if (!root.dataset.crmDashboardMounted) {
+      root.dataset.crmDashboardMounted = "1";
+      root.innerHTML = renderLoading();
     }
 
     state.mounted = true;
