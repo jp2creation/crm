@@ -198,8 +198,32 @@
         overflow-x: hidden;
       }
 
-      html.crm-account-settings-route .layout-container.layout-page > :not(.crm-account-shell):not(#crm-account-settings-module) {
+      @media (min-width: 1024px) {
+        html.crm-account-settings-route body:not(.crm-mobile-embed) main {
+          width: calc(100vw - var(--sidebar-width, 260px)) !important;
+          max-width: calc(100vw - var(--sidebar-width, 260px)) !important;
+        }
+      }
+
+      html.crm-account-settings-route #crm-account-settings-module {
         display: none !important;
+      }
+
+      html.crm-account-settings-route [data-crm-native-billing-hidden="1"] {
+        display: none !important;
+      }
+
+      html.crm-account-settings-route [data-crm-native-status] {
+        min-height: 1.25rem;
+        color: #16a34a;
+        font-size: .88rem;
+        font-weight: 800;
+      }
+
+      html.crm-account-settings-route input[data-crm-native-readonly="1"] {
+        background: #f8fafc !important;
+        color: #64748b !important;
+        cursor: not-allowed;
       }
 
       .layout-header [data-crm-native-profile-hidden="1"] {
@@ -763,41 +787,256 @@
     });
   }
 
+  function nativeAccountRoot() {
+    return document.querySelector('main .layout-container.layout-page > .space-y-6');
+  }
+
+  function textOf(node) {
+    return String(node?.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function findByText(root, selector, needle) {
+    return Array.from(root.querySelectorAll(selector))
+      .find((node) => textOf(node).toLowerCase() === needle.toLowerCase()) || null;
+  }
+
+  function nativeField(root, labelText) {
+    const label = findByText(root, 'label', labelText);
+    if (!label) return null;
+
+    const wrapper = label.parentElement;
+    return wrapper?.querySelector('input, textarea') || null;
+  }
+
+  function setNativeValue(control, value) {
+    if (!control) return;
+
+    const prototype = control.tagName === 'TEXTAREA'
+      ? window.HTMLTextAreaElement.prototype
+      : window.HTMLInputElement.prototype;
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
+
+    if (descriptor?.set) {
+      descriptor.set.call(control, String(value ?? ''));
+    } else {
+      control.value = String(value ?? '');
+    }
+
+    control.dispatchEvent(new Event('input', { bubbles: true }));
+    control.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function setNativeReadonly(control, readonly) {
+    if (!control) return;
+
+    control.toggleAttribute('readonly', Boolean(readonly));
+    control.dataset.crmNativeReadonly = readonly ? '1' : '0';
+  }
+
+  function ensureNativeStatus(root) {
+    let status = root.querySelector('[data-crm-native-status]');
+    if (status) return status;
+
+    const title = findByText(root, 'h2', 'Informations personnelles');
+    const header = title?.parentElement;
+
+    status = document.createElement('div');
+    status.dataset.crmNativeStatus = '1';
+
+    if (header) {
+      header.appendChild(status);
+    }
+
+    return status;
+  }
+
+  function setNativeStatus(root, message, error) {
+    const status = ensureNativeStatus(root);
+    if (!status) return;
+
+    status.textContent = message || '';
+    status.style.color = error ? '#b91c1c' : '#16a34a';
+  }
+
+  function hideNativeBillingTab(root) {
+    Array.from(root.querySelectorAll('button')).forEach((button) => {
+      if (textOf(button) === 'Facturation') {
+        button.dataset.crmNativeBillingHidden = '1';
+      }
+    });
+  }
+
+  function ensureNativePhoneField(root) {
+    const existing = nativeField(root, 'Téléphone');
+    if (existing) return existing;
+
+    const email = nativeField(root, 'Adresse e-mail');
+    const bio = nativeField(root, 'Bio');
+    const reference = bio?.parentElement || email?.parentElement;
+
+    if (!reference?.parentElement) return null;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = reference.className || 'md:col-span-2';
+    wrapper.dataset.crmNativePhoneField = '1';
+    wrapper.innerHTML = `
+      <label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1.5">Téléphone</label>
+      <input class="${escapeHtml(email?.className || '')}" type="tel" />
+    `;
+
+    reference.parentElement.insertBefore(wrapper, reference);
+
+    return wrapper.querySelector('input');
+  }
+
+  function nativePhotoImage(root) {
+    const label = findByText(root, 'label', 'Photo de profil');
+    return label?.parentElement?.querySelector('img') || root.querySelector('img[alt="Profile"]');
+  }
+
+  function nativePhotoButton(root) {
+    return Array.from(root.querySelectorAll('button'))
+      .find((button) => textOf(button).includes('Télécharger une nouvelle photo')) || null;
+  }
+
+  function nativeActionButton(root, labelPart) {
+    return Array.from(root.querySelectorAll('button'))
+      .find((button) => textOf(button).includes(labelPart)) || null;
+  }
+
+  function bindNativeAccountEvents(root, profile) {
+    const photoButton = nativePhotoButton(root);
+    const preview = nativePhotoImage(root);
+    const saveButton = nativeActionButton(root, 'Enregistrer');
+    const resetButton = nativeActionButton(root, 'Annuler');
+
+    if (photoButton && !photoButton.dataset.crmNativeBound) {
+      photoButton.dataset.crmNativeBound = '1';
+
+      let input = root.querySelector('[data-crm-native-photo-input]');
+      if (!input) {
+        input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.hidden = true;
+        input.dataset.crmNativePhotoInput = '1';
+        photoButton.insertAdjacentElement('afterend', input);
+      }
+
+      photoButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        input.click();
+      });
+
+      input.addEventListener('change', async () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+
+        try {
+          pendingPhotoDataUrl = await readFileAsDataUrl(file);
+          if (preview) preview.src = pendingPhotoDataUrl;
+          setNativeStatus(root, 'Photo prête à enregistrer.');
+        } catch (error) {
+          setNativeStatus(root, error.message || 'Photo illisible', true);
+        }
+      });
+    }
+
+    if (resetButton && !resetButton.dataset.crmNativeBound) {
+      resetButton.dataset.crmNativeBound = '1';
+      resetButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        pendingPhotoDataUrl = '';
+        hydrateNativeAccountPage(profile);
+      });
+    }
+
+    if (saveButton && !saveButton.dataset.crmNativeBound) {
+      saveButton.dataset.crmNativeBound = '1';
+      saveButton.addEventListener('click', async (event) => {
+        event.preventDefault();
+
+        const payload = {
+          firstName: nativeField(root, 'Prénom')?.value || '',
+          lastName: nativeField(root, 'Nom')?.value || '',
+          email: nativeField(root, 'Adresse e-mail')?.value || '',
+          phone: nativeField(root, 'Téléphone')?.value || '',
+          bio: nativeField(root, 'Bio')?.value || '',
+        };
+
+        if (pendingPhotoDataUrl) {
+          payload.photoDataUrl = pendingPhotoDataUrl;
+        }
+
+        try {
+          saveButton.disabled = true;
+          setNativeStatus(root, 'Enregistrement...');
+          const data = await api('save_profile', payload);
+          pendingPhotoDataUrl = '';
+          cachedProfile = data.profile;
+          hydrateHeader(cachedProfile);
+          hydrateNativeAccountPage(cachedProfile, 'Profil enregistré.');
+        } catch (error) {
+          setNativeStatus(root, error.message || 'Erreur pendant l’enregistrement', true);
+        } finally {
+          saveButton.disabled = false;
+        }
+      });
+    }
+  }
+
+  function hydrateNativeAccountPage(profile, status) {
+    if (!isAccountRoute()) return false;
+
+    const root = nativeAccountRoot();
+    if (!root || !profile) return false;
+
+    ensureStyles();
+    hideNativeBillingTab(root);
+
+    const canEditIdentity = profile.canEditIdentity !== false;
+    const src = pendingPhotoDataUrl || photoUrl(profile);
+    const image = nativePhotoImage(root);
+
+    if (image) {
+      image.src = src;
+      image.alt = profile.displayName || profile.name || 'Profil';
+      image.onerror = () => {
+        image.onerror = null;
+        image.src = DEFAULT_PHOTO;
+      };
+    }
+
+    setNativeValue(nativeField(root, 'Prénom'), profile.firstName || '');
+    setNativeValue(nativeField(root, 'Nom'), profile.lastName || '');
+    setNativeValue(nativeField(root, 'Adresse e-mail'), profile.email || '');
+    setNativeValue(ensureNativePhoneField(root), profile.phone || '');
+    setNativeValue(nativeField(root, 'Bio'), profile.bio || '');
+    setNativeReadonly(nativeField(root, 'Prénom'), !canEditIdentity);
+    setNativeReadonly(nativeField(root, 'Nom'), !canEditIdentity);
+    if (status !== undefined) {
+      setNativeStatus(root, status || '');
+    }
+    bindNativeAccountEvents(root, profile);
+
+    return true;
+  }
+
   async function mountAccountPage(forceRender) {
     syncRouteClass();
 
     if (!isAccountRoute()) return;
 
-    const target = outlet();
-    if (!target) return;
-
     ensureStyles();
-
-    const alreadyMounted = target.dataset.crmAccountSettingsMounted === '1'
-      && accountMountedPath === window.location.pathname;
-
-    if (alreadyMounted && cachedProfile && !forceRender) {
-      return true;
-    }
-
-    if (!cachedProfile) {
-      target.dataset.crmAccountSettingsMounted = '1';
-      accountMountedPath = window.location.pathname;
-      target.innerHTML = loadingMarkup();
-    }
 
     try {
       const profile = await loadProfile(forceRender);
-
-      if (alreadyMounted && !forceRender) {
-        return true;
-      }
-
-      renderAccount(profile);
+      hydrateNativeAccountPage(profile);
     } catch (error) {
-      target.dataset.crmAccountSettingsMounted = '1';
-      accountMountedPath = window.location.pathname;
-      target.innerHTML = errorMarkup(error.message || 'Impossible de charger le compte.');
+      const root = nativeAccountRoot();
+      if (root) {
+        setNativeStatus(root, error.message || 'Impossible de charger le compte.', true);
+      }
     }
   }
 
