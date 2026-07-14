@@ -32,6 +32,118 @@ class CrmAdministrationApiTest extends TestCase
             ->assertJsonPath('error', 'Utilisateur CRM requis');
     }
 
+    public function test_admin_can_read_and_save_profile(): void
+    {
+        [$account, $crmUser] = $this->createAdminUser();
+
+        $this->actingAs($account)
+            ->getJson('/api/administration?action=profile')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('profile.displayName', 'Jean-Philippe')
+            ->assertJsonPath('profile.firstName', 'Jean-Philippe')
+            ->assertJsonPath('profile.email', $account->email)
+            ->assertJsonPath('profile.photoUrl', '/assets/logo/logomark.png')
+            ->assertJsonPath('profile.canEditIdentity', true);
+
+        $profile = $this->actingAs($account)
+            ->postJson('/api/administration?action=save_profile', [
+                'firstName' => 'Jean-Philippe',
+                'lastName' => 'Martin',
+                'email' => 'jp.martin@example.test',
+                'bio' => 'Direction CRM',
+                'photoDataUrl' => 'data:image/png;base64,'.base64_encode('fake png content'),
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('profile.displayName', 'Jean-Philippe Martin')
+            ->assertJsonPath('profile.email', 'jp.martin@example.test')
+            ->assertJsonPath('profile.bio', 'Direction CRM')
+            ->json('profile');
+
+        $this->assertStringStartsWith('/assets/uploads/profiles/photo_', $profile['photoUrl']);
+
+        $this->assertDatabaseHas('crm_users', [
+            'id' => $crmUser->id,
+            'name' => 'Jean-Philippe Martin',
+            'first_name' => 'Jean-Philippe',
+            'last_name' => 'Martin',
+            'email' => 'jp.martin@example.test',
+            'bio' => 'Direction CRM',
+            'photo_url' => $profile['photoUrl'],
+        ]);
+        $this->assertDatabaseHas('users', [
+            'id' => $account->id,
+            'name' => 'Jean-Philippe Martin',
+            'email' => 'jp.martin@example.test',
+        ]);
+
+        @unlink(public_path(ltrim($profile['photoUrl'], '/')));
+    }
+
+    public function test_non_admin_profile_cannot_change_identity(): void
+    {
+        $account = User::factory()->create([
+            'name' => 'Marie Durand',
+            'email' => 'marie.old@example.test',
+        ]);
+        $crmUser = CrmUser::query()->create([
+            'user_id' => $account->id,
+            'name' => 'Marie Durand',
+            'first_name' => 'Marie',
+            'last_name' => 'Durand',
+            'email' => 'marie.old@example.test',
+            'role' => 'user',
+            'active' => true,
+        ]);
+
+        $this->actingAs($account)
+            ->postJson('/api/administration?action=save_profile', [
+                'firstName' => 'Pirate',
+                'lastName' => 'Invisible',
+                'email' => 'marie.new@example.test',
+                'bio' => 'Equipe Palissy',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('profile.displayName', 'Marie Durand')
+            ->assertJsonPath('profile.firstName', 'Marie')
+            ->assertJsonPath('profile.lastName', 'Durand')
+            ->assertJsonPath('profile.email', 'marie.new@example.test')
+            ->assertJsonPath('profile.bio', 'Equipe Palissy')
+            ->assertJsonPath('profile.canEditIdentity', false);
+
+        $this->assertDatabaseHas('crm_users', [
+            'id' => $crmUser->id,
+            'name' => 'Marie Durand',
+            'first_name' => 'Marie',
+            'last_name' => 'Durand',
+            'email' => 'marie.new@example.test',
+            'bio' => 'Equipe Palissy',
+        ]);
+        $this->assertDatabaseHas('users', [
+            'id' => $account->id,
+            'name' => 'Marie Durand',
+            'email' => 'marie.new@example.test',
+        ]);
+    }
+
+    public function test_profile_rejects_duplicate_account_email(): void
+    {
+        [$account] = $this->createAdminUser();
+        User::factory()->create(['email' => 'already-used@example.test']);
+
+        $this->actingAs($account)
+            ->postJson('/api/administration?action=save_profile', [
+                'firstName' => 'Jean-Philippe',
+                'lastName' => 'Martin',
+                'email' => 'already-used@example.test',
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Adresse e-mail deja utilisee');
+    }
+
     public function test_admin_can_read_bootstrap_from_legacy_endpoint(): void
     {
         [$account] = $this->createAdminUser();

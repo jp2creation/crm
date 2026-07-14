@@ -156,6 +156,18 @@ class AdministrationService
             $this->fail('Adresse e-mail invalide', 400);
         }
 
+        if ($email !== '') {
+            $emailQuery = User::query()->where('email', $email);
+
+            if ($actor->user_id) {
+                $emailQuery->whereKeyNot($actor->user_id);
+            }
+
+            if ($emailQuery->exists()) {
+                $this->fail('Adresse e-mail deja utilisee', 400);
+            }
+        }
+
         if (mb_strlen($bio) > 255) {
             $this->fail('Bio trop longue', 400);
         }
@@ -164,13 +176,38 @@ class AdministrationService
             $photoUrl = $this->saveDataImage($photoDataUrl, 'profiles') ?: $photoUrl;
         }
 
-        $actor->forceFill([
-            'first_name' => $firstName,
-            'last_name' => $lastName,
+        $updates = [
             'email' => $email,
             'bio' => $bio,
             'photo_url' => $photoUrl,
-        ])->save();
+        ];
+
+        $displayName = $profile['displayName'];
+        if ($canEditIdentity) {
+            $displayName = trim($firstName.' '.$lastName) ?: $firstName;
+            $updates['name'] = $displayName;
+            $updates['first_name'] = $firstName;
+            $updates['last_name'] = $lastName;
+        }
+
+        $actor->forceFill($updates)->save();
+
+        $account = $actor->account()->first();
+        if ($account) {
+            $accountUpdates = [];
+
+            if ($canEditIdentity && $account->name !== $displayName) {
+                $accountUpdates['name'] = $displayName;
+            }
+
+            if ($email !== '' && $account->email !== $email) {
+                $accountUpdates['email'] = $email;
+            }
+
+            if ($accountUpdates !== []) {
+                $account->forceFill($accountUpdates)->save();
+            }
+        }
 
         $this->log($actor, 'modification profil', $email);
 
@@ -963,11 +1000,12 @@ class AdministrationService
 
     private function profilePayload(CrmUser $user): array
     {
-        $user->loadMissing('permissions:id,name,sort_order');
+        $user->loadMissing(['permissions:id,name,sort_order', 'account:id,name,email']);
 
         $firstName = trim((string) $user->first_name);
         $lastName = trim((string) $user->last_name);
-        $rawName = trim((string) $user->name);
+        $accountName = trim((string) ($user->account?->name ?? ''));
+        $rawName = trim((string) $user->name) ?: $accountName;
 
         if ($firstName === '' && $rawName !== '') {
             if ($rawName === 'J-Philippe') {
@@ -992,7 +1030,7 @@ class AdministrationService
             'displayName' => $displayName,
             'firstName' => $firstName,
             'lastName' => $lastName,
-            'email' => trim((string) $user->email) ?: 'contact@jp2creation.fr',
+            'email' => trim((string) $user->email) ?: (trim((string) ($user->account?->email ?? '')) ?: 'contact@jp2creation.fr'),
             'bio' => trim((string) $user->bio) ?: ($user->role === 'admin' ? 'Administrateur CRM Martin Sols' : ''),
             'photoUrl' => trim((string) $user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             'role' => $user->role,

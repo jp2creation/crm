@@ -6,6 +6,9 @@
   let cachedProfile = null;
   let pendingPhotoDataUrl = '';
   let bootScheduled = false;
+  let accountMountedPath = '';
+  let lastProfileError = null;
+  let lastProfileErrorAt = 0;
 
   function isAccountRoute() {
     return window.location.pathname.replace(/\/+$/, '') === ACCOUNT_PATH;
@@ -92,8 +95,20 @@
   async function loadProfile(force) {
     if (cachedProfile && !force) return cachedProfile;
 
-    const data = await api('profile');
-    cachedProfile = data.profile || null;
+    if (!force && lastProfileErrorAt && Date.now() - lastProfileErrorAt < 10000) {
+      throw lastProfileError || new Error('Erreur API profil');
+    }
+
+    try {
+      const data = await api('profile');
+      cachedProfile = data.profile || null;
+      lastProfileError = null;
+      lastProfileErrorAt = 0;
+    } catch (error) {
+      lastProfileError = error;
+      lastProfileErrorAt = Date.now();
+      throw error;
+    }
 
     if (cachedProfile) {
       hydrateHeader(cachedProfile);
@@ -102,7 +117,7 @@
     return cachedProfile;
   }
 
-  function findUserButton() {
+  function findUserContainer() {
     const actions = document.querySelector('.layout-header .ms-auto');
     if (!actions) return null;
 
@@ -110,58 +125,58 @@
       return child.matches('div.relative') && child.querySelector('button');
     });
 
-    const userContainer = relativeChildren[relativeChildren.length - 1];
-
-    return userContainer ? userContainer.querySelector('button') : null;
-  }
-
-  function findAvatar(button) {
-    if (!button) return null;
-
-    return Array.from(button.querySelectorAll('div')).find((node) => {
-      const classes = String(node.className || '');
-
-      return classes.includes('rounded-full') && classes.includes('h-9') && classes.includes('w-9');
-    });
+    return relativeChildren[relativeChildren.length - 1] || null;
   }
 
   function hydrateHeader(profile) {
-    const button = findUserButton();
-    if (!button || !profile) return;
+    if (!profile) return;
 
-    const lines = Array.from(button.querySelectorAll('p'));
     const displayName = profile.displayName || profile.name || 'Utilisateur';
     const role = roleLabel(profile.role);
 
-    if (lines[0] && lines[0].textContent !== displayName) {
-      lines[0].textContent = displayName;
-    }
-
-    if (lines[1] && lines[1].textContent !== role) {
-      lines[1].textContent = role;
-    }
-
     ensureStyles();
 
-    const avatar = findAvatar(button);
-    if (!avatar) return;
+    const nativeContainer = findUserContainer();
+    if (nativeContainer) {
+      nativeContainer.setAttribute('data-crm-native-profile-hidden', '1');
+    }
+
+    let overlay = document.getElementById('crm-header-profile-overlay');
+    if (!overlay) {
+      overlay = document.createElement('a');
+      overlay.id = 'crm-header-profile-overlay';
+      overlay.className = 'crm-header-profile-overlay';
+      overlay.href = ACCOUNT_PATH;
+      overlay.setAttribute('aria-label', 'Profil utilisateur');
+      document.body.appendChild(overlay);
+    }
 
     const src = photoUrl(profile);
-    if (avatar.dataset.crmPhotoUrl === src && avatar.dataset.crmInitials === initials(profile)) return;
-
-    avatar.dataset.crmPhotoUrl = src;
-    avatar.dataset.crmInitials = initials(profile);
-    avatar.classList.add('crm-header-profile-avatar');
-    avatar.innerHTML = `
-      <img src="${escapeHtml(src)}" alt="${escapeHtml(displayName)}" onerror="this.remove(); this.parentElement.textContent='${escapeHtml(initials(profile))}'" />
+    overlay.innerHTML = `
+      <span class="crm-header-profile-overlay-text">
+        <strong>${escapeHtml(displayName)}</strong>
+        <small>${escapeHtml(role)}</small>
+      </span>
+      <span class="crm-header-profile-avatar" aria-hidden="true">
+        <img src="${escapeHtml(src)}" alt="" onerror="this.onerror=null;this.src='${escapeHtml(DEFAULT_PHOTO)}'" />
+      </span>
     `;
   }
 
   function outlet() {
-    return document.getElementById('crm-account-settings-module')
-      || document.querySelector('main .layout-container.layout-page')
-      || document.querySelector('main')
-      || document.getElementById('root');
+    let target = document.getElementById('crm-account-settings-module');
+    if (target) return target;
+
+    const container = document.querySelector('main .layout-container.layout-page')
+      || document.querySelector('main');
+
+    if (!container) return null;
+
+    target = document.createElement('section');
+    target.id = 'crm-account-settings-module';
+    container.appendChild(target);
+
+    return target;
   }
 
   function ensureStyles() {
@@ -185,6 +200,55 @@
 
       html.crm-account-settings-route .layout-container.layout-page > :not(.crm-account-shell):not(#crm-account-settings-module) {
         display: none !important;
+      }
+
+      .layout-header [data-crm-native-profile-hidden="1"] {
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+
+      .crm-header-profile-overlay {
+        position: fixed;
+        top: .8rem;
+        right: 1rem;
+        z-index: 1200;
+        display: inline-flex;
+        align-items: center;
+        gap: .65rem;
+        min-height: 3rem;
+        border: 1px solid rgba(148, 163, 184, .22);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .96);
+        box-shadow: 0 14px 34px rgba(15, 23, 42, .12);
+        color: #1f3349;
+        padding: .35rem .4rem .35rem .8rem;
+        text-decoration: none;
+        backdrop-filter: blur(12px);
+      }
+
+      .crm-header-profile-overlay-text {
+        display: grid;
+        gap: .05rem;
+        min-width: 0;
+        text-align: right;
+      }
+
+      .crm-header-profile-overlay-text strong {
+        max-width: 10rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #1f3349;
+        font-size: .88rem;
+        font-weight: 850;
+        line-height: 1.1;
+      }
+
+      .crm-header-profile-overlay-text small {
+        color: #64748b;
+        font-size: .72rem;
+        font-weight: 750;
+        line-height: 1.1;
       }
 
       .crm-header-profile-avatar {
@@ -218,6 +282,19 @@
       .layout-header .ms-auto button .crm-header-profile-avatar,
       .layout-header .ms-auto button .crm-header-profile-avatar img {
         border-radius: 9999px !important;
+      }
+
+      @media (max-width: 640px) {
+        .crm-header-profile-overlay {
+          top: .72rem;
+          right: .72rem;
+          min-height: 2.65rem;
+          padding: .2rem;
+        }
+
+        .crm-header-profile-overlay-text {
+          display: none;
+        }
       }
 
       .crm-account-shell {
@@ -535,7 +612,7 @@
         <div class="crm-account-grid">
           <aside class="crm-account-card crm-account-summary">
             <div class="crm-account-avatar">
-              <img src="${escapeHtml(src)}" alt="${escapeHtml(profile.displayName)}" />
+              <img src="${escapeHtml(src)}" alt="${escapeHtml(profile.displayName)}" onerror="this.onerror=null;this.src='${escapeHtml(DEFAULT_PHOTO)}'" />
             </div>
             <p class="crm-account-eyebrow">Compte utilisateur</p>
             <h1>${escapeHtml(profile.displayName || profile.name || 'Utilisateur')}</h1>
@@ -552,7 +629,7 @@
             <div class="crm-account-form-body">
               <div class="crm-account-photo-row">
                 <div class="crm-account-avatar">
-                  <img data-crm-account-preview src="${escapeHtml(src)}" alt="${escapeHtml(profile.displayName)}" />
+                  <img data-crm-account-preview src="${escapeHtml(src)}" alt="${escapeHtml(profile.displayName)}" onerror="this.onerror=null;this.src='${escapeHtml(DEFAULT_PHOTO)}'" />
                 </div>
                 <div>
                   <button class="crm-account-btn" type="button" data-crm-account-photo-button>Changer la photo</button>
@@ -597,6 +674,7 @@
 
     ensureStyles();
     target.dataset.crmAccountSettingsMounted = '1';
+    accountMountedPath = window.location.pathname;
     target.innerHTML = accountMarkup(profile, status);
     bindAccountEvents(target, profile);
 
@@ -679,7 +757,7 @@
     });
   }
 
-  async function mountAccountPage() {
+  async function mountAccountPage(forceRender) {
     syncRouteClass();
 
     if (!isAccountRoute()) return;
@@ -689,16 +767,30 @@
 
     ensureStyles();
 
+    const alreadyMounted = target.dataset.crmAccountSettingsMounted === '1'
+      && accountMountedPath === window.location.pathname;
+
+    if (alreadyMounted && cachedProfile && !forceRender) {
+      return true;
+    }
+
     if (!cachedProfile) {
       target.dataset.crmAccountSettingsMounted = '1';
+      accountMountedPath = window.location.pathname;
       target.innerHTML = loadingMarkup();
     }
 
     try {
-      const profile = await loadProfile();
+      const profile = await loadProfile(forceRender);
+
+      if (alreadyMounted && !forceRender) {
+        return true;
+      }
+
       renderAccount(profile);
     } catch (error) {
       target.dataset.crmAccountSettingsMounted = '1';
+      accountMountedPath = window.location.pathname;
       target.innerHTML = errorMarkup(error.message || 'Impossible de charger le compte.');
     }
   }
@@ -722,7 +814,7 @@
         }
       }
 
-      mountAccountPage();
+      mountAccountPage(forceProfile);
     }, 80);
   }
 
