@@ -15,6 +15,10 @@ Route::redirect('/dashboard/crm', '/')
     ->middleware('auth')
     ->name('crm.dashboard');
 
+Route::view('/pages/account-settings', 'crm')
+    ->middleware('auth')
+    ->name('crm.account-settings');
+
 Route::any('/{legacyTemplatePath}', LegacyTemplateController::class)
     ->where('legacyTemplatePath', '^(?:app|dashboard|forms|tables|charts|pages|features|auth|auth-card)(?:/.*)?$')
     ->name('crm.legacy-template-gone');

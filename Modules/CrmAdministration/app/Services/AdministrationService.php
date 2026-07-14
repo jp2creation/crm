@@ -19,6 +19,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AdministrationService
 {
+    private const DEFAULT_PROFILE_PHOTO = '/assets/logo/logomark.png';
+
     public function __construct(
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
@@ -102,6 +104,7 @@ class AdministrationService
 
             $siteIds = $this->ensureDefaultSites();
             $this->ensureDefaultUsers($siteIds);
+            $this->ensureDefaultProfilePhotos();
         });
     }
 
@@ -563,6 +566,7 @@ class AdministrationService
                 'name' => $name,
                 'role' => $role,
                 'active' => $this->boolean($data['active'] ?? null, true),
+                'photo_url' => trim((string) $user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             ])->save();
 
             $this->syncSites($user, $siteIds);
@@ -622,8 +626,13 @@ class AdministrationService
         foreach ($users as [$name, $role, $sites]) {
             $user = CrmUser::query()->firstOrCreate(
                 ['name' => $name],
-                ['role' => $role, 'active' => true],
+                ['role' => $role, 'active' => true, 'photo_url' => self::DEFAULT_PROFILE_PHOTO],
             );
+
+            if (! trim((string) $user->photo_url)) {
+                $user->forceFill(['photo_url' => self::DEFAULT_PROFILE_PHOTO])->save();
+            }
+
             $profile = $profiles->get($role, $profiles->get('user'));
 
             if ($role === 'blocked') {
@@ -660,6 +669,14 @@ class AdministrationService
                 $user->permissions()->syncWithoutDetaching($permissionIds);
             }
         }
+    }
+
+    private function ensureDefaultProfilePhotos(): void
+    {
+        CrmUser::query()
+            ->whereNull('photo_url')
+            ->orWhere('photo_url', '')
+            ->update(['photo_url' => self::DEFAULT_PROFILE_PHOTO]);
     }
 
     private function ensureMenuItem(array $item): void
@@ -704,7 +721,7 @@ class AdministrationService
             return 'accounting';
         }
 
-        return in_array($slug, ['reservations', 'locations-materiel', 'tapis-romus'], true)
+        return in_array($slug, ['reservations', 'locations-materiel', 'tapis-romus', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures'], true)
             ? 'apps'
             : 'internal';
     }
@@ -833,7 +850,7 @@ class AdministrationService
             'lastName' => $actor->last_name,
             'email' => $actor->email,
             'bio' => $actor->bio,
-            'photoUrl' => $actor->photo_url,
+            'photoUrl' => trim((string) $actor->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             'role' => $actor->role,
             'active' => (bool) $actor->active,
             'permissions' => $this->permissionNames($actor),
@@ -977,7 +994,7 @@ class AdministrationService
             'lastName' => $lastName,
             'email' => trim((string) $user->email) ?: 'contact@jp2creation.fr',
             'bio' => trim((string) $user->bio) ?: ($user->role === 'admin' ? 'Administrateur CRM Martin Sols' : ''),
-            'photoUrl' => trim((string) $user->photo_url) ?: '/assets/logo/logomark.png',
+            'photoUrl' => trim((string) $user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             'role' => $user->role,
             'canEditIdentity' => $user->role === 'admin' || $this->hasPermission($user, 'platform.manage_users'),
         ];

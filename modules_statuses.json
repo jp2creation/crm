@@ -5,6 +5,7 @@
     "CrmCashControl": true,
     "CrmCheckRemittances": true,
     "CrmCore": true,
+    "CrmDocuments": true,
     "CrmPages": true,
     "CrmAdministration": true,
     "CrmTapisRomus": true

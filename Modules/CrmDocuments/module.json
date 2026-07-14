@@ -1,0 +1,11 @@
+{
+    "name": "CrmDocuments",
+    "alias": "crmdocuments",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\CrmDocuments\\Providers\\CrmDocumentsServiceProvider"
+    ],
+    "files": []
+}

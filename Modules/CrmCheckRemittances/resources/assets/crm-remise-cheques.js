@@ -2314,15 +2314,13 @@
     const explicit = document.getElementById("crm-check-remittance-module");
     if (explicit) return explicit;
 
-    const mains = [...document.querySelectorAll("main")];
+    const layout = document.querySelector(".layout-container.layout-page") || document.querySelector(".layout-page");
+    if (layout) return layout;
+
+    const mains = [...document.querySelectorAll("main")].filter((element) => !element.closest("aside"));
     if (mains.length) return mains[mains.length - 1];
 
-    const layout = document.querySelector(".layout-container.layout-page") || document.querySelector(".layout-page");
-    if (!layout) return null;
-
-    const candidates = [...layout.querySelectorAll("section,main,[class*='content'],[class*='page']")]
-      .filter((element) => !element.closest("aside") && element !== layout);
-    return candidates[candidates.length - 1] || null;
+    return document.getElementById("root");
   }
 
   function ensureHost() {
@@ -2336,6 +2334,7 @@
       host = document.createElement("div");
       host.id = "crm-check-remittance-module";
       host.className = "crm-check-remittance-module-host";
+      host.dataset.crmModuleHost = "check-remittance";
       host.textContent = "Chargement des remises de chèques...";
 
       if (outlet.id === "crm-check-remittance-module") {
@@ -2381,8 +2380,12 @@
     const style = document.createElement("style");
     style.id = "crm-check-remittance-style";
     style.textContent = `
-      #crm-check-remittance-module{color:var(--color-secondary-900,#0f172a);min-width:0;max-width:100%;overflow-x:hidden}
-      #crm-check-remittance-module .check-page{display:grid;gap:1rem;min-width:0}
+      .layout-container.layout-page:has(#crm-check-remittance-module),
+      .layout-page:has(#crm-check-remittance-module){width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+      main:has(#crm-check-remittance-module){min-width:0;overflow-x:hidden}
+      #crm-check-remittance-module{color:var(--color-secondary-900,#0f172a);width:100%;max-width:100%;min-width:0;overflow-x:hidden;box-sizing:border-box}
+      #crm-check-remittance-module *{box-sizing:border-box}
+      #crm-check-remittance-module .check-page{display:grid;gap:1rem;width:100%;max-width:100%;min-width:0}
       #crm-check-remittance-module .check-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
       #crm-check-remittance-module h1,#crm-check-remittance-module h2{margin:0;color:var(--color-secondary-900,#0f172a);letter-spacing:0;line-height:1.15}
       #crm-check-remittance-module h1{font-size:1.55rem;font-weight:900}
@@ -2417,7 +2420,7 @@
       #crm-check-remittance-module .check-section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--color-surface-200,#e2e8f0);padding:.9rem 1rem}
       #crm-check-remittance-module .check-section-head span{color:var(--color-secondary-500,#64748b);font-size:.78rem;font-weight:850}
       #crm-check-remittance-module .check-table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
-      #crm-check-remittance-module .check-table{width:100%;border-collapse:collapse;min-width:50rem}
+      #crm-check-remittance-module .check-table{width:100%;border-collapse:collapse;min-width:min(50rem,calc(100vw - 2rem))}
       #crm-check-remittance-module th,#crm-check-remittance-module td{border-bottom:1px solid var(--color-surface-200,#e2e8f0);padding:.72rem .8rem;text-align:left;font-size:.82rem;vertical-align:middle}
       #crm-check-remittance-module th{background:var(--color-surface-50,#f8fafc);color:var(--color-secondary-500,#64748b);font-size:.72rem;font-weight:900;text-transform:uppercase}
       #crm-check-remittance-module td{color:var(--color-secondary-800,#1e293b);font-weight:750}

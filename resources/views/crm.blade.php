@@ -63,10 +63,14 @@
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-leaves/crm-conges.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-cash-control/crm-controle-caisse.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-check-remittances/crm-remise-cheques.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-documents/crm-documents.js') }}"></script>
+    <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-account-settings.js') }}"></script>
     <link rel="stylesheet" crossorigin href="{{ \App\Support\CrmAsset::url('assets/index-CVBlw941.css') }}">
     <style>
       .layout-header .header-search-wrap,
       .layout-header .header-mobile-panel,
+      .layout-header .header-actions-divider,
+      .layout-header .ms-auto > div.hidden.sm\:block:has(img[src*="/assets/flags/"]),
       .layout-header .ms-auto > button.header-icon-btn.header-icon-btn-mobile {
         display: none !important;
       }
