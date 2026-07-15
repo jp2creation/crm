@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Plaquette CRM Martin Sols</title>
+  <style>
+    @page { size: A4 landscape; margin: 0; }
+    * { box-sizing: border-box; }
+    :root {
+      --red: #a90034;
+      --red-dark: #7d0028;
+      --yellow: #f5c400;
+      --ink: #142437;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --paper: #f8fafc;
+      --green: #16a34a;
+      --blue: #2563eb;
+      --orange: #f59e0b;
+    }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #d9dee7;
+      font-family: "DM Sans", "Segoe UI", Arial, sans-serif;
+      line-height: 1.35;
+    }
+    .slide {
+      position: relative;
+      width: 297mm;
+      height: 210mm;
+      overflow: hidden;
+      page-break-after: always;
+      background:
+        radial-gradient(circle at 92% 10%, rgba(245,196,0,.16), transparent 26%),
+        linear-gradient(135deg, #fff 0%, #fff 58%, #f8fafc 100%);
+      padding: 12mm 16mm;
+    }
+    .slide::after {
+      content: "";
+      position: absolute;
+      right: -22mm;
+      bottom: -38mm;
+      width: 110mm;
+      height: 110mm;
+      border-radius: 999px;
+      background: rgba(169, 0, 52, .08);
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10mm;
+      position: relative;
+      z-index: 2;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 4mm;
+    }
+    .logo img {
+      width: 38mm;
+      height: auto;
+      display: block;
+    }
+    .deck-label {
+      display: inline-flex;
+      align-items: center;
+      min-height: 8mm;
+      border: 1px solid rgba(169, 0, 52, .18);
+      border-radius: 999px;
+      padding: 1.8mm 4mm;
+      background: #fff7fa;
+      color: var(--red);
+      font-size: 8.6pt;
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .meta {
+      display: flex;
+      gap: 2.4mm;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: var(--muted);
+      font-size: 8.6pt;
+      font-weight: 800;
+    }
+    .meta span {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 1.8mm 3.6mm;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+      gap: 9mm;
+      align-items: center;
+      min-height: 124mm;
+      position: relative;
+      z-index: 2;
+    }
+    .eyebrow {
+      margin: 0 0 3mm;
+      color: var(--red);
+      font-size: 9.2pt;
+      font-weight: 950;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      max-width: 122mm;
+      color: var(--ink);
+      font-size: 30pt;
+      line-height: .98;
+      letter-spacing: 0;
+    }
+    h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 27pt;
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+    .lead {
+      margin: 4mm 0 0;
+      max-width: 118mm;
+      color: #475569;
+      font-size: 12pt;
+      font-weight: 650;
+    }
+    .value-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3mm;
+      margin-top: 6mm;
+    }
+    .value-card,
+    .strength-card,
+    .module-card,
+    .proof-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 11px 28px rgba(15, 23, 42, .06);
+    }
+    .value-card {
+      min-height: 20mm;
+      padding: 3.4mm;
+    }
+    .value-card strong {
+      display: block;
+      color: var(--red);
+      font-size: 15pt;
+      line-height: 1;
+      font-weight: 950;
+    }
+    .value-card span {
+      display: block;
+      margin-top: 1.4mm;
+      color: #475569;
+      font-size: 9.3pt;
+      font-weight: 760;
+    }
+    .screen-stack {
+      position: relative;
+      min-height: 105mm;
+    }
+    .browser {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, .16);
+    }
+    .browser::before {
+      content: "";
+      display: block;
+      height: 8mm;
+      background:
+        radial-gradient(circle at 5mm 4mm, #ef4444 0 1.3mm, transparent 1.4mm),
+        radial-gradient(circle at 10mm 4mm, #f59e0b 0 1.3mm, transparent 1.4mm),
+        radial-gradient(circle at 15mm 4mm, #22c55e 0 1.3mm, transparent 1.4mm),
+        #f8fafc;
+      border-bottom: 1px solid var(--line);
+    }
+    .browser img {
+      display: block;
+      width: 100%;
+      height: 88mm;
+      object-fit: cover;
+      object-position: top left;
+    }
+    .phone {
+      position: absolute;
+      right: -2mm;
+      bottom: -4mm;
+      width: 31mm;
+      overflow: hidden;
+      border: 2.4mm solid #111827;
+      border-radius: 9mm;
+      background: #111827;
+      box-shadow: 0 22px 40px rgba(15, 23, 42, .24);
+    }
+    .phone img {
+      display: block;
+      width: 100%;
+      height: 60mm;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 6mm;
+    }
+    .ribbon {
+      position: absolute;
+      left: -6mm;
+      bottom: 5mm;
+      display: grid;
+      grid-template-columns: 8mm minmax(0, 1fr);
+      gap: 3mm;
+      align-items: center;
+      width: 86mm;
+      border-radius: 8px;
+      background: var(--red);
+      color: #fff;
+      padding: 4mm;
+      box-shadow: 0 18px 36px rgba(169, 0, 52, .24);
+    }
+    .ribbon .dot {
+      width: 8mm;
+      height: 8mm;
+      border-radius: 50%;
+      background: var(--yellow);
+    }
+    .ribbon strong {
+      display: block;
+      font-size: 10.5pt;
+      font-weight: 950;
+    }
+    .ribbon span {
+      display: block;
+      margin-top: .6mm;
+      font-size: 8.6pt;
+      opacity: .9;
+    }
+    .problem-solution {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4mm;
+      position: relative;
+      z-index: 2;
+    }
+    .proof-card {
+      padding: 4.2mm;
+      min-height: 25mm;
+    }
+    .proof-card h3 {
+      margin: 0 0 2mm;
+      color: var(--ink);
+      font-size: 11.4pt;
+      font-weight: 950;
+    }
+    .proof-card ul {
+      margin: 0;
+      padding-left: 4.4mm;
+      color: #475569;
+      font-size: 8.9pt;
+      font-weight: 700;
+    }
+    .proof-card li { margin-bottom: 1mm; }
+    .slide-title {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 8mm;
+      margin-top: 7mm;
+      position: relative;
+      z-index: 2;
+    }
+    .slide-title p {
+      margin: 3mm 0 0;
+      max-width: 170mm;
+      color: #475569;
+      font-size: 11.6pt;
+      font-weight: 650;
+    }
+    .module-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+      gap: 6mm;
+      margin-top: 7mm;
+      position: relative;
+      z-index: 2;
+    }
+    .modules {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3mm;
+    }
+    .module-card {
+      display: grid;
+      grid-template-columns: 10mm minmax(0, 1fr);
+      gap: 3mm;
+      min-height: 23mm;
+      padding: 3.2mm;
+    }
+    .module-icon {
+      display: grid;
+      place-items: center;
+      width: 10mm;
+      height: 10mm;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 11pt;
+      font-weight: 950;
+    }
+    .module-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 9.6pt;
+      font-weight: 950;
+    }
+    .module-card span {
+      display: block;
+      margin-top: .9mm;
+      color: #64748b;
+      font-size: 7.8pt;
+      font-weight: 700;
+    }
+    .strength-card {
+      padding: 5mm;
+      min-height: 104mm;
+      background:
+        linear-gradient(135deg, rgba(169,0,52,.07), rgba(245,196,0,.1)),
+        #fff;
+    }
+    .strength-card h3 {
+      margin: 0 0 3mm;
+      color: var(--red);
+      font-size: 14.5pt;
+      font-weight: 950;
+    }
+    .strength-list {
+      display: grid;
+      gap: 2.5mm;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .strength-list li {
+      display: grid;
+      grid-template-columns: 7mm minmax(0, 1fr);
+      gap: 2.5mm;
+      align-items: start;
+      color: #334155;
+      font-size: 9.2pt;
+      font-weight: 760;
+    }
+    .check {
+      display: grid;
+      place-items: center;
+      width: 6.4mm;
+      height: 6.4mm;
+      border-radius: 50%;
+      background: var(--red);
+      color: #fff;
+      font-size: 8.2pt;
+      font-weight: 950;
+    }
+    .visual-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 3mm;
+      margin-top: 4mm;
+    }
+    .visual-tile {
+      overflow: hidden;
+      height: 27mm;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+    }
+    .visual-tile img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top left;
+    }
+    .footer {
+      position: absolute;
+      left: 16mm;
+      right: 16mm;
+      bottom: 8mm;
+      display: flex;
+      justify-content: space-between;
+      gap: 8mm;
+      color: #94a3b8;
+      font-size: 8.3pt;
+      font-weight: 800;
+      z-index: 3;
+    }
+    .footer strong { color: var(--red); }
+  </style>
+</head>
+<body>
+  <section class="slide">
+    <header>
+      <div class="logo">
+        <img src="../public/assets/logo/martin-sols-logo.png" alt="Martin Sols">
+        <span class="deck-label">Plaquette CRM</span>
+      </div>
+      <div class="meta">
+        <span>CRM multi-site</span>
+        <span>crm.jp2.fr</span>
+        <span>Interface terrain</span>
+      </div>
+    </header>
+
+    <main class="hero">
+      <div>
+        <p class="eyebrow">CRM Martin Sols</p>
+        <h1>Un centre de pilotage clair pour tous les sites</h1>
+        <p class="lead">
+          Une interface moderne pour centraliser les réservations, la location matériel,
+          les congés, la caisse, les remises de chèques, les documents et les rapports commerciaux.
+        </p>
+        <div class="value-grid">
+          <div class="value-card"><strong>1</strong><span>Interface commune pour tous les sites.</span></div>
+          <div class="value-card"><strong>+10</strong><span>Modules métier intégrés dans le même environnement.</span></div>
+          <div class="value-card"><strong>0 Excel</strong><span>Remplacement progressif des fichiers isolés.</span></div>
+          <div class="value-card"><strong>PDF</strong><span>Exports propres pour caisse, chèques, ROMUS et guides.</span></div>
+        </div>
+      </div>
+
+      <div class="screen-stack">
+        <div class="browser">
+          <img src="user-guide-assets/desktop-dashboard.jpg" alt="Tableau de bord CRM">
+        </div>
+        <div class="phone">
+          <img src="user-guide-assets/mobile-mobile-dashboard.jpg" alt="CRM mobile">
+        </div>
+        <div class="ribbon">
+          <span class="dot"></span>
+          <div>
+            <strong>Simple, visuel, multi-site</strong>
+            <span>Un CRM pensé pour le terrain, le suivi quotidien et la comptabilité.</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="problem-solution">
+      <article class="proof-card">
+        <h3>Une base plus claire</h3>
+        <ul>
+          <li>Les données importantes sont rassemblées dans un même espace.</li>
+          <li>Chaque site garde ses informations, ses utilisateurs et ses droits.</li>
+          <li>Les modules métier remplacent progressivement les fichiers isolés.</li>
+        </ul>
+      </article>
+      <article class="proof-card">
+        <h3>Une lecture immédiate</h3>
+        <ul>
+          <li>Menus simples, visuels cohérents et accès rapide aux actions.</li>
+          <li>Plannings, cartes, tableaux de bord et exports PDF intégrés.</li>
+          <li>Utilisation confortable sur ordinateur, tablette et smartphone.</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="footer">
+      <span><strong>Martin Sols CRM</strong> - plaquette de présentation</span>
+      <span>1 / 2</span>
+    </div>
+  </section>
+
+  <section class="slide">
+    <header>
+      <div class="logo">
+        <img src="../public/assets/logo/martin-sols-logo.png" alt="Martin Sols">
+        <span class="deck-label">Points forts</span>
+      </div>
+      <div class="meta">
+        <span>Multi-site</span>
+        <span>Responsive</span>
+      </div>
+    </header>
+
+    <div class="slide-title">
+      <div>
+        <p class="eyebrow">Une solution complète pour l'équipe</p>
+        <h2>Des modules opérationnels, lisibles et rapides à utiliser</h2>
+        <p>
+          Chaque module répond à un usage terrain précis, tout en donnant aux équipes
+          et à la comptabilité une lecture rapide par site.
+        </p>
+      </div>
+    </div>
+
+    <main class="module-layout">
+      <section>
+        <div class="modules">
+          <article class="module-card">
+            <div class="module-icon" style="background:var(--blue)">R</div>
+            <div><strong>Réservations véhicules</strong><span>Planning clair, disponibilité par véhicule, réduction des doublons.</span></div>
+          </article>
+          <article class="module-card">
+            <div class="module-icon" style="background:var(--red)">M</div>
+            <div><strong>Location matériel</strong><span>Cartes visuelles, créneaux simples, suivi immédiat des machines.</span></div>
+          </article>
+          <article class="module-card">
+            <div class="module-icon" style="background:var(--green)">C</div>
+            <div><strong>Contrôle caisse</strong><span>Vérification par site, écarts visibles, PDF et numéros de facture.</span></div>
+          </article>
+          <article class="module-card">
+            <div class="module-icon" style="background:var(--orange)">€</div>
+            <div><strong>Remise de chèques</strong><span>Photos, total automatique, contrôle signature et destinataire.</span></div>
+          </article>
+          <article class="module-card">
+            <div class="module-icon" style="background:#7c3aed">V</div>
+            <div><strong>Rapport de visite</strong><span>Tournées commerciales, visites clients, compte rendu et actions à suivre.</span></div>
+          </article>
+          <article class="module-card">
+            <div class="module-icon" style="background:#0f766e">D</div>
+            <div><strong>Documents et ROMUS</strong><span>Bibliothèque interne, procédures, fiches techniques et génération PDF.</span></div>
+          </article>
+        </div>
+
+        <div class="visual-grid">
+          <div class="visual-tile"><img src="user-guide-assets/desktop-locations-materiel.jpg" alt="Location matériel"></div>
+          <div class="visual-tile"><img src="user-guide-assets/desktop-cash-dashboard.jpg" alt="Contrôle caisse"></div>
+          <div class="visual-tile"><img src="user-guide-assets/desktop-rapport-visite.jpg" alt="Rapport de visite"></div>
+          <div class="visual-tile"><img src="user-guide-assets/desktop-check-remittances.jpg" alt="Remise de chèques"></div>
+        </div>
+      </section>
+
+      <aside class="strength-card">
+        <h3>Les points forts du CRM</h3>
+        <ul class="strength-list">
+          <li><span class="check">1</span><span>Une interface unique pour suivre les opérations de chaque site.</span></li>
+          <li><span class="check">2</span><span>Des modules visuels conçus pour une prise en main rapide.</span></li>
+          <li><span class="check">3</span><span>Des droits adaptés par utilisateur, site et responsabilité.</span></li>
+          <li><span class="check">4</span><span>Des exports PDF propres pour les contrôles et les transmissions.</span></li>
+        </ul>
+
+        <div class="proof-card" style="margin-top:5mm; box-shadow:none;">
+          <h3>Impact au quotidien</h3>
+          <ul>
+            <li>Moins de fichiers séparés et moins de ressaisie.</li>
+            <li>Un suivi plus net des réservations, locations et absences.</li>
+            <li>Une comptabilité plus rapide à vérifier par site.</li>
+            <li>Des rapports commerciaux conservés au même endroit.</li>
+          </ul>
+        </div>
+      </aside>
+    </main>
+
+    <div class="footer">
+      <span>Création visuelle et conception CRM : <strong>www.jp2creation.fr</strong></span>
+      <span>2 / 2</span>
+    </div>
+  </section>
+</body>
+</html>

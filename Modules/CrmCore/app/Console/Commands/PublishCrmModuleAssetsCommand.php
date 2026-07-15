@@ -21,6 +21,7 @@ class PublishCrmModuleAssetsCommand extends Command
             'crm-documents' => base_path('Modules/CrmDocuments/resources/assets'),
             'crm-pages' => base_path('Modules/CrmPages/resources/assets'),
             'crm-teams' => base_path('Modules/CrmTeams/resources/assets'),
+            'crm-sales-tours' => base_path('Modules/CrmSalesTours/resources/assets'),
         ];
 
         $published = 0;

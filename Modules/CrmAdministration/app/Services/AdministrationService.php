@@ -51,7 +51,7 @@ class AdministrationService
             }
 
             foreach ($this->moduleSeed() as [$name, $slug, $description, $routePath, $sortOrder, $active]) {
-                CrmModule::query()->firstOrCreate(
+                $module = CrmModule::query()->firstOrCreate(
                     ['slug' => $slug],
                     [
                         'name' => $name,
@@ -61,6 +61,16 @@ class AdministrationService
                         'sort_order' => $sortOrder,
                     ],
                 );
+
+                if ($this->isDocumentCategoryModule($slug)) {
+                    $module->forceFill([
+                        'name' => $name,
+                        'description' => $description,
+                        'route_path' => $routePath,
+                        'active' => $active,
+                        'sort_order' => $sortOrder,
+                    ])->save();
+                }
             }
 
             CrmModule::query()
@@ -93,6 +103,26 @@ class AdministrationService
                         CrmModule::defaultIconKey($module->slug),
                         (int) $module->sort_order,
                     ]);
+
+                    if ($this->isDocumentCategoryModule($module->slug)) {
+                        CrmMenuItem::query()
+                            ->where('item_key', 'module:'.$module->slug)
+                            ->update([
+                                'group_key' => $this->defaultModuleMenuGroup($module->slug),
+                                'label' => $module->name,
+                                'active' => (bool) $module->active,
+                                'sort_order' => (int) $module->sort_order,
+                            ]);
+                    }
+
+                    if ($module->slug === 'conges') {
+                        CrmMenuItem::query()
+                            ->where('item_key', 'module:conges')
+                            ->update([
+                                'group_key' => 'apps',
+                                'sort_order' => (int) $module->sort_order,
+                            ]);
+                    }
 
                     if (! $module->active) {
                         CrmMenuItem::query()
@@ -845,9 +875,18 @@ class AdministrationService
             return 'accounting';
         }
 
-        return in_array($slug, ['reservations', 'locations-materiel', 'equipes', 'tapis-romus', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures'], true)
+        if ($this->isDocumentCategoryModule($slug)) {
+            return 'documents';
+        }
+
+        return in_array($slug, ['reservations', 'locations-materiel', 'equipes', 'conges', 'tournees-representants', 'tapis-romus'], true)
             ? 'apps'
             : 'internal';
+    }
+
+    private function isDocumentCategoryModule(string $slug): bool
+    {
+        return in_array($slug, ['documents-promo', 'documents-fiches-techniques', 'documents-procedures'], true);
     }
 
     private function syncPagesMenuGroupVisibility(): void
@@ -890,6 +929,12 @@ class AdministrationService
             ['deposit_requests.manage', "Gérer les demandes d'acompte", "Demande d'acompte", 153],
             ['deposit_requests.validate', "Valider les demandes d'acompte", "Demande d'acompte", 154],
             ['teams.view', 'Voir les equipes', 'Equipe', 155],
+            ['documents.view', 'Voir les documents', 'Documents', 156],
+            ['documents.manage', 'Gerer les documents', 'Documents', 157],
+            ['sales_tours.view', 'Voir les rapports de visite', 'Rapport de visite', 158],
+            ['sales_tours.create', 'Creer un rapport de visite', 'Rapport de visite', 159],
+            ['sales_tours.report', 'Renseigner les rapports de visite', 'Rapport de visite', 161],
+            ['sales_tours.manage', 'Gerer tous les rapports de visite', 'Rapport de visite', 162],
             ['platform.manage_sites', 'Gerer les sites', 'Administration', 160],
             ['platform.manage_users', 'Gerer les utilisateurs', 'Administration', 170],
             ['platform.manage_roles', 'Gerer les roles', 'Administration', 180],
@@ -906,22 +951,22 @@ class AdministrationService
                 'key' => 'user',
                 'label' => 'Employe',
                 'description' => 'Reservation et location sur les sites rattaches, suppression de ses propres demandes.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'teams.view', 'controle_caisse.view', 'deposit_requests.view', 'deposit_requests.create'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'demandes-acompte', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'teams.view', 'sales_tours.view', 'sales_tours.create', 'sales_tours.report', 'controle_caisse.view', 'deposit_requests.view', 'deposit_requests.create'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'conges', 'controle-caisse', 'demandes-acompte', 'addvance'],
             ],
             [
                 'key' => 'responsable',
                 'label' => 'Responsable site',
                 'description' => 'Gestion des reservations, vehicules et locations materiel des sites rattaches.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'teams.view', 'controle_caisse.view', 'controle_caisse.manage', 'deposit_requests.view', 'deposit_requests.create', 'deposit_requests.manage', 'check_remittances.view', 'check_remittances.manage'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'teams.view', 'sales_tours.view', 'sales_tours.create', 'sales_tours.report', 'sales_tours.manage', 'controle_caisse.view', 'controle_caisse.manage', 'deposit_requests.view', 'deposit_requests.create', 'deposit_requests.manage', 'check_remittances.view', 'check_remittances.manage'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance'],
             ],
             [
                 'key' => 'admin',
                 'label' => 'Administrateur',
                 'description' => 'Acces global aux sites, modules, utilisateurs, roles et permissions.',
                 'permissions' => array_map(fn (array $permission): string => $permission[0], $this->permissionSeed()),
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance', 'tapis-romus'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures', 'tapis-romus'],
             ],
             [
                 'key' => 'blocked',
@@ -940,13 +985,17 @@ class AdministrationService
             ['Réservations véhicules', 'reservations', 'Planning et réservations des véhicules', '/reservations', 10, true],
             ['Location matériel', 'locations-materiel', 'Planning et locations du matériel interne', '/locations-materiel', 15, true],
             ['Équipe', 'equipes', 'Annuaire des membres par site', '/equipes', 16, true],
+            ['Congés', 'conges', 'Planning et gestion des congés', '/conges', 17, true],
+            ['Rapport de visite', 'tournees-representants', 'Planning, visites clients et rapports de visite', '/rapport-visite', 18, true],
             ['Pages CRM', 'pages-crm', 'Pages internes modifiables depuis le CRM', '/pages-crm', 18, true],
             ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et rôles', '/administration', 20, true],
-            ['Congés', 'conges', 'Planning et gestion des congés', '/conges', 24, true],
             ['Contrôle caisse', 'controle-caisse', 'Contrôle journalier de caisse, reports, écarts et justificatifs', '/controle-caisse', 25, true],
             ['Demande d\'acompte', 'demandes-acompte', 'Demandes d\'acompte et validation par la comptabilité', '/demandes-acompte', 26, true],
             ['Remise de chèques', 'remise-cheques', 'Remises de chèques, photos, contrôle des montants et impression PDF', '/remise-cheques', 27, true],
             ['Addvance', 'addvance', 'Accès externe Addvance Solutions', 'https://martinsols.addvancesolutions.fr', 28, true],
+            ['Promo', 'documents-promo', 'Documents commerciaux et promotions.', '/documents/promo', 241, true],
+            ['Fiches techniques', 'documents-fiches-techniques', 'Fiches techniques produits et materiel.', '/documents/fiches-techniques', 242, true],
+            ['Procédures', 'documents-procedures', 'Procédures internes du CRM.', '/documents/procedures', 243, true],
             ['Planning', 'planning', 'Planning interne par site', '/planning', 30, false],
             ['Documents internes', 'documents', 'Procédures et documents partagés', '/documents', 40, false],
             ['Demandes internes', 'demandes', 'Demandes et validations internes', '/demandes', 50, false],
@@ -960,6 +1009,7 @@ class AdministrationService
             ['home', 'Accueil', 0, true],
             ['apps', 'Applications CRM', 10, true],
             ['accounting', 'Comptabilité', 18, true],
+            ['documents', 'Documents', 19, true],
             ['internal', 'Administration', 20, true],
             ['pages', 'Pages internes', 30, false],
         ];

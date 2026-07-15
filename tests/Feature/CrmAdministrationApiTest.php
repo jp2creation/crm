@@ -252,6 +252,17 @@ class CrmAdministrationApiTest extends TestCase
             'active' => true,
             'sort_order' => 10,
         ]);
+        CrmMenuItem::query()
+            ->updateOrCreate(
+                ['item_key' => 'module:documents-promo'],
+                [
+                    'group_key' => 'apps',
+                    'icon_key' => 'article',
+                    'label' => 'Documents',
+                    'active' => true,
+                    'sort_order' => 22,
+                ],
+            );
 
         $this->actingAs($account)
             ->getJson('/api/administration?action=bootstrap')
@@ -289,6 +300,12 @@ class CrmAdministrationApiTest extends TestCase
             'active' => true,
         ]);
         $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:conges',
+            'group_key' => 'apps',
+            'sort_order' => 17,
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
             'item_key' => 'module:planning',
             'active' => false,
         ]);
@@ -315,6 +332,48 @@ class CrmAdministrationApiTest extends TestCase
             'label' => 'Addvance',
             'active' => true,
         ]);
+        $this->assertDatabaseHas('crm_menu_groups', [
+            'menu_key' => 'documents',
+            'title' => 'Documents',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_modules', [
+            'slug' => 'documents-promo',
+            'route_path' => '/documents/promo',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_modules', [
+            'slug' => 'documents-fiches-techniques',
+            'route_path' => '/documents/fiches-techniques',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_modules', [
+            'slug' => 'documents-procedures',
+            'route_path' => '/documents/procedures',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:documents-promo',
+            'group_key' => 'documents',
+            'label' => 'Promo',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:documents-fiches-techniques',
+            'group_key' => 'documents',
+            'label' => 'Fiches techniques',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:documents-procedures',
+            'group_key' => 'documents',
+            'label' => 'Procédures',
+            'active' => true,
+        ]);
+        $this->assertDatabaseHas('crm_menu_items', [
+            'item_key' => 'module:documents',
+            'active' => false,
+        ]);
     }
 
     public function test_menu_settings_keep_custom_label_and_visibility_after_bootstrap(): void
@@ -330,6 +389,7 @@ class CrmAdministrationApiTest extends TestCase
             ->firstWhere('itemKey', 'module:conges');
 
         $this->assertNotNull($congesItem);
+        $this->assertSame('apps', $congesItem['groupKey']);
 
         $this->actingAs($account)
             ->postJson('/api/administration?action=save_menu_settings', [

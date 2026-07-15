@@ -3,6 +3,7 @@
   const styleId = "crm-dashboard-style";
   const activeSiteStorageKey = "crm:active-site-id";
   const activeSiteEvent = "crm:active-site-changed";
+  const routeChangeEvent = "crm:dashboard-route-changed";
   const routePaths = new Set(["/", "/dashboard/crm"]);
 
   const state = {
@@ -12,6 +13,9 @@
     siteId: null,
     mounted: false,
   };
+
+  let mountTimer = null;
+  let loadSequence = 0;
 
   function isHome() {
     const path = window.location.pathname.replace(/\/+$/, "") || "/";
@@ -135,9 +139,11 @@
     root.innerHTML = renderDashboard(state.data);
   }
 
-  async function load() {
-    if (!isHome() || state.loading) return;
+  async function load(options = {}) {
+    if (!isHome()) return;
+    if (state.loading && !options.force) return;
 
+    const sequence = ++loadSequence;
     state.loading = true;
     state.error = "";
     state.siteId = activeSiteId();
@@ -158,10 +164,15 @@
         throw new Error(data.error || "Dashboard indisponible");
       }
 
-      state.data = data;
+      if (sequence === loadSequence) {
+        state.data = data;
+      }
     } catch (error) {
-      state.error = error.message || "Dashboard indisponible";
+      if (sequence === loadSequence) {
+        state.error = error.message || "Dashboard indisponible";
+      }
     } finally {
+      if (sequence !== loadSequence) return;
       state.loading = false;
       render();
     }
@@ -455,28 +466,81 @@
       .replace(/'/g, "&#039;");
   }
 
-  function scheduleMount() {
+  function shouldReload() {
+    const nextSiteId = activeSiteId();
+
+    return (
+      !state.data ||
+      Boolean(state.error) ||
+      Number(state.siteId || 0) !== Number(nextSiteId || 0)
+    );
+  }
+
+  function scheduleMount(options = {}) {
     if (!isHome()) return;
 
+    if (mountTimer) {
+      window.clearInterval(mountTimer);
+      mountTimer = null;
+    }
+
     let attempts = 0;
-    const timer = window.setInterval(() => {
+    mountTimer = window.setInterval(() => {
       attempts += 1;
       if (mount() || attempts > 80) {
-        window.clearInterval(timer);
-        load();
+        window.clearInterval(mountTimer);
+        mountTimer = null;
+
+        if (!isHome()) return;
+
+        if (options.force || shouldReload()) {
+          if (Number(state.siteId || 0) !== Number(activeSiteId() || 0)) {
+            state.data = null;
+          }
+
+          load({ force: options.force });
+          return;
+        }
+
+        render();
       }
     }, 100);
   }
 
+  function installRouteObserver() {
+    if (window.__crmDashboardRouteObserverInstalled) return;
+
+    window.__crmDashboardRouteObserverInstalled = true;
+
+    ["pushState", "replaceState"].forEach((method) => {
+      const original = window.history[method];
+      window.history[method] = function (...args) {
+        const result = original.apply(this, args);
+        window.dispatchEvent(new Event(routeChangeEvent));
+        window.dispatchEvent(new Event("crm:route-changed"));
+        return result;
+      };
+    });
+  }
+
+  function handleRouteChange() {
+    if (!isHome()) return;
+    window.setTimeout(() => scheduleMount({ force: shouldReload() }), 0);
+  }
+
+  installRouteObserver();
   document.addEventListener("DOMContentLoaded", scheduleMount);
   window.addEventListener("load", scheduleMount);
+  window.addEventListener("popstate", () => window.dispatchEvent(new Event(routeChangeEvent)));
+  window.addEventListener("crm:route-changed", handleRouteChange);
+  window.addEventListener(routeChangeEvent, handleRouteChange);
   window.addEventListener(activeSiteEvent, () => {
     if (!isHome()) return;
     const nextSiteId = activeSiteId();
     if (Number(state.siteId || 0) !== Number(nextSiteId || 0)) {
       state.siteId = nextSiteId;
       state.data = null;
-      load();
+      load({ force: true });
     }
   });
 })();

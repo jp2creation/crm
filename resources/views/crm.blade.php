@@ -57,6 +57,8 @@
           { name: 'Réservations véhicules', slug: 'reservations', routePath: '/reservations', active: true, sortOrder: 10, menuBadge: 'Martin', showMenuBadge: true },
           { name: 'Location matériel', slug: 'locations-materiel', routePath: '/locations-materiel', active: true, sortOrder: 15 },
           { name: 'Équipe', slug: 'equipes', routePath: '/equipes', active: true, sortOrder: 16 },
+          { name: 'Congés', slug: 'conges', routePath: '/conges', active: true, sortOrder: 17 },
+          { name: 'Rapport de visite', slug: 'tournees-representants', routePath: '/rapport-visite', active: true, sortOrder: 18 },
           { name: 'Promo', slug: 'documents-promo', routePath: '/documents/promo', active: true, sortOrder: 241 },
           { name: 'Fiches techniques', slug: 'documents-fiches-techniques', routePath: '/documents/fiches-techniques', active: true, sortOrder: 242 },
           { name: 'Procédures', slug: 'documents-procedures', routePath: '/documents/procedures', active: true, sortOrder: 243 },
@@ -66,8 +68,7 @@
           { name: 'Remise de chèques', slug: 'remise-cheques', routePath: '/remise-cheques', active: true, sortOrder: 27 },
           { name: 'Addvance', slug: 'addvance', routePath: 'https://martinsols.addvancesolutions.fr', active: true, sortOrder: 28 },
           { name: 'Pages CRM', slug: 'pages-crm', routePath: '/pages-crm', active: true, sortOrder: 18 },
-          { name: 'Administration', slug: 'administration', routePath: '/administration', active: true, sortOrder: 20 },
-          { name: 'Congés', slug: 'conges', routePath: '/conges', active: true, sortOrder: 24 }
+          { name: 'Administration', slug: 'administration', routePath: '/administration', active: true, sortOrder: 20 }
         ],
         menuGroups: [
           { menuKey: 'home', title: 'Accueil', active: true, sortOrder: 0 },
@@ -80,6 +81,8 @@
           { itemKey: 'module:reservations', groupKey: 'apps', label: 'Réservations véhicules', iconKey: 'truck', active: true, sortOrder: 10 },
           { itemKey: 'module:locations-materiel', groupKey: 'apps', label: 'Location matériel', iconKey: 'package', active: true, sortOrder: 15 },
           { itemKey: 'module:equipes', groupKey: 'apps', label: 'Équipe', iconKey: 'users', active: true, sortOrder: 16 },
+          { itemKey: 'module:conges', groupKey: 'apps', label: 'Congés', iconKey: 'calendar', active: true, sortOrder: 17 },
+          { itemKey: 'module:tournees-representants', groupKey: 'apps', label: 'Rapport de visite', iconKey: 'calendar', active: true, sortOrder: 18 },
           { itemKey: 'module:documents-promo', groupKey: 'apps', label: 'Promo', iconKey: 'article', active: true, sortOrder: 22 },
           { itemKey: 'module:documents-fiches-techniques', groupKey: 'apps', label: 'Fiches techniques', iconKey: 'article', active: true, sortOrder: 23 },
           { itemKey: 'module:documents-procedures', groupKey: 'apps', label: 'Procédures', iconKey: 'article', active: true, sortOrder: 24 },
@@ -89,8 +92,7 @@
           { itemKey: 'module:remise-cheques', groupKey: 'accounting', label: 'Remise de chèques', iconKey: 'creditCard', active: true, sortOrder: 27 },
           { itemKey: 'module:addvance', groupKey: 'accounting', label: 'Addvance', iconKey: 'creditCard', active: true, sortOrder: 28 },
           { itemKey: 'module:pages-crm', groupKey: 'internal', label: 'Pages CRM', iconKey: 'article', active: true, sortOrder: 18 },
-          { itemKey: 'module:administration', groupKey: 'internal', label: 'Administration', iconKey: 'settings', active: true, sortOrder: 20 },
-          { itemKey: 'module:conges', groupKey: 'internal', label: 'Congés', iconKey: 'calendar', active: true, sortOrder: 24 }
+          { itemKey: 'module:administration', groupKey: 'internal', label: 'Administration', iconKey: 'settings', active: true, sortOrder: 20 }
         ]
       }
     </script>
@@ -109,6 +111,7 @@
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-deposit-requests/crm-demandes-acompte.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-check-remittances/crm-remise-cheques.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-documents/crm-documents.js') }}"></script>
+    <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-sales-tours/crm-tournees-representants.js') }}"></script>
     <script defer src="{{ \App\Support\CrmAsset::url('modules/crm-pages/crm-pages.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-teams/crm-equipes.js') }}"></script>
     <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-account-settings.js') }}"></script>

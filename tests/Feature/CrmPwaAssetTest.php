@@ -33,7 +33,7 @@ class CrmPwaAssetTest extends TestCase
         $serviceWorker = (string) file_get_contents(public_path('sw.js'));
 
         $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-", $serviceWorker);
-        $this->assertStringContainsString("cache.add(url).catch(() => null)", $serviceWorker);
+        $this->assertStringContainsString('cache.add(url).catch(() => null)', $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'SKIP_WAITING'", $serviceWorker);
     }
 
