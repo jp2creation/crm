@@ -215,9 +215,15 @@
   }
 
   function monthLeaves() {
-    const first = formatDate(new Date(state.month.getFullYear(), state.month.getMonth(), 1));
-    const last = formatDate(new Date(state.month.getFullYear(), state.month.getMonth() + 1, 0));
+    const { first, last } = monthBounds();
     return activeLeaves().filter((leave) => leave.startDate <= last && leave.endDate >= first);
+  }
+
+  function monthBounds() {
+    return {
+      first: formatDate(new Date(state.month.getFullYear(), state.month.getMonth(), 1)),
+      last: formatDate(new Date(state.month.getFullYear(), state.month.getMonth() + 1, 0)),
+    };
   }
 
   function yearLeaves() {
@@ -251,6 +257,19 @@
     return Number.isInteger(value) ? String(value) : String(value).replace(".", ",");
   }
 
+  function monthReportLeaves() {
+    const { first, last } = monthBounds();
+
+    return filteredLeaves()
+      .filter((leave) => leave.startDate <= last && leave.endDate >= first)
+      .sort((a, b) => (
+        a.startDate.localeCompare(b.startDate)
+        || a.endDate.localeCompare(b.endDate)
+        || employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId)
+        || a.employeeName.localeCompare(b.employeeName)
+      ));
+  }
+
   function openModal(leave) {
     state.modal = {
       id: leave?.id || "",
@@ -263,6 +282,250 @@
       notes: leave?.notes || "",
     };
     render();
+  }
+
+  function renderHeader() {
+    return `
+      <header class="leaves-header">
+        <div>
+          <p class="leaves-kicker">Equipe</p>
+          <h1 class="leaves-title">Congés</h1>
+          <p class="leaves-subtitle">Planning des absences du site ${esc(activeSiteName())}</p>
+        </div>
+        <div class="leaves-header-actions">
+          <button type="button" class="leaves-button leaves-button-export" data-export-pdf>
+            <span aria-hidden="true">PDF</span>
+            <span>Exporter</span>
+          </button>
+        </div>
+      </header>
+    `;
+  }
+
+  function exportStats(leaves) {
+    const { first, last } = monthBounds();
+    const active = leaves.filter((leave) => leave.status !== "refused");
+
+    return {
+      employees: new Set(active.map((leave) => Number(leave.employeeId))).size,
+      entries: leaves.length,
+      days: active.reduce((sum, leave) => sum + overlapDays(leave, first, last), 0),
+      pending: leaves.filter((leave) => leave.status === "pending").length,
+    };
+  }
+
+  function reportLeavesForDate(date, leaves) {
+    return leaves
+      .filter((leave) => leave.status !== "refused" && leave.startDate <= date && leave.endDate >= date)
+      .sort((a, b) => (
+        employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId)
+        || a.employeeName.localeCompare(b.employeeName)
+        || a.startDate.localeCompare(b.startDate)
+      ));
+  }
+
+  function renderExportCalendar(leaves) {
+    const days = calendarDays(state.month);
+
+    return `
+      <section class="pdf-section">
+        <div class="pdf-section-head">
+          <h2>Planning mensuel</h2>
+          <p>${esc(monthLabel(state.month))}</p>
+        </div>
+        <div class="pdf-calendar">
+          ${["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => `<div class="pdf-weekday">${day}</div>`).join("")}
+          ${days.map((day) => {
+            const date = formatDate(day);
+            const dayLeaves = reportLeavesForDate(date, leaves);
+            const visible = dayLeaves.slice(0, 4);
+            const more = dayLeaves.length - visible.length;
+            const classes = [
+              "pdf-day",
+              day.getMonth() !== state.month.getMonth() ? "is-other" : "",
+              date === state.selectedDate ? "is-selected" : "",
+            ].filter(Boolean).join(" ");
+
+            return `
+              <div class="${classes}">
+                <div class="pdf-day-number">${day.getDate()}</div>
+                <div class="pdf-day-list">
+                  ${visible.map((leave) => {
+                    const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
+                    return `
+                      <span class="pdf-day-leave" style="--leave-color:${esc(color)}">
+                        <strong>${esc(leave.employeeName)}</strong>
+                        <em>${esc(periodLabel(leave.period))}</em>
+                      </span>
+                    `;
+                  }).join("")}
+                  ${more > 0 ? `<span class="pdf-day-more">+${more} autre(s)</span>` : ""}
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderExportLegend(leaves) {
+    const employeeIds = new Set(leaves.map((leave) => Number(leave.employeeId)));
+    const visible = employees().filter((employee) => employeeIds.has(Number(employee.id)));
+
+    if (!visible.length) return "";
+
+    return `
+      <section class="pdf-legend">
+        ${visible.map((employee) => `
+          <span>
+            <i style="background:${esc(normalizeColor(employee.color, "#38bdf8"))}"></i>
+            ${esc(employee.name)}
+          </span>
+        `).join("")}
+      </section>
+    `;
+  }
+
+  function renderExportRows(leaves) {
+    if (!leaves.length) {
+      return '<div class="pdf-empty">Aucune donnee a exporter pour ce mois avec les filtres actuels.</div>';
+    }
+
+    const { first, last } = monthBounds();
+
+    return `
+      <section class="pdf-section">
+        <div class="pdf-section-head">
+          <h2>Detail des absences</h2>
+          <p>${leaves.length} ligne(s)</p>
+        </div>
+        <table class="pdf-table">
+          <thead>
+            <tr>
+              <th>Utilisateur</th>
+              <th>Type</th>
+              <th>Periode</th>
+              <th>Dates</th>
+              <th>Jours</th>
+              <th>Statut</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${leaves.map((leave) => {
+              const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
+              const range = leave.startDate === leave.endDate
+                ? dateLabel(leave.startDate)
+                : `${dateLabel(leave.startDate)} au ${dateLabel(leave.endDate)}`;
+              return `
+                <tr>
+                  <td><span class="pdf-user"><i style="background:${esc(color)}"></i>${esc(leave.employeeName)}</span></td>
+                  <td>${esc(typeMeta(leave.type).label)}</td>
+                  <td>${esc(periodLabel(leave.period))}</td>
+                  <td>${esc(range)}</td>
+                  <td>${esc(formatDaysCount(overlapDays(leave, first, last)))}</td>
+                  <td>${esc(statusLabel(leave.status))}</td>
+                  <td>${esc(leave.notes || "")}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </section>
+    `;
+  }
+
+  function exportDocumentHtml() {
+    const leaves = monthReportLeaves();
+    const stats = exportStats(leaves);
+    const title = `Congés - ${activeSiteName()} - ${monthLabel(state.month)}`;
+    const generatedAt = new Date().toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+
+    return `<!doctype html>
+      <html lang="fr">
+        <head>
+          <meta charset="utf-8">
+          <title>${esc(title)}</title>
+          <style>
+            @page { size:A4 landscape; margin:10mm; }
+            * { box-sizing:border-box; }
+            body { margin:0; background:#fff; color:#172033; font-family:Inter, Arial, sans-serif; font-size:11px; }
+            .pdf-page { display:grid; gap:10px; }
+            .pdf-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; border-bottom:3px solid #95002e; padding-bottom:8px; }
+            .pdf-kicker { margin:0 0 4px; color:#95002e; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
+            h1 { margin:0; color:#172033; font-size:25px; line-height:1; }
+            .pdf-subtitle { margin:5px 0 0; color:#64748b; font-size:11px; font-weight:700; }
+            .pdf-meta { text-align:right; color:#64748b; font-size:10px; font-weight:700; }
+            .pdf-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+            .pdf-stat { border:1px solid #e2e8f0; border-radius:7px; padding:8px; background:#f8fafc; }
+            .pdf-stat span { display:block; color:#64748b; font-size:9px; font-weight:900; text-transform:uppercase; }
+            .pdf-stat strong { display:block; margin-top:3px; color:#172033; font-size:19px; line-height:1; }
+            .pdf-section { border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; }
+            .pdf-section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid #e2e8f0; background:#f8fafc; padding:7px 9px; }
+            .pdf-section-head h2 { margin:0; color:#172033; font-size:13px; }
+            .pdf-section-head p { margin:0; color:#64748b; font-size:10px; font-weight:800; }
+            .pdf-calendar { display:grid; grid-template-columns:repeat(7,1fr); background:#e2e8f0; gap:1px; }
+            .pdf-weekday { background:#fff; color:#64748b; padding:5px; text-align:center; font-size:9px; font-weight:900; text-transform:uppercase; }
+            .pdf-day { min-height:68px; background:#fff; padding:5px; }
+            .pdf-day.is-other { background:#f8fafc; color:#94a3b8; }
+            .pdf-day.is-selected { outline:2px solid #95002e; outline-offset:-2px; }
+            .pdf-day-number { display:inline-flex; width:18px; height:18px; align-items:center; justify-content:center; border-radius:999px; font-size:10px; font-weight:900; }
+            .pdf-day-list { display:grid; gap:3px; margin-top:4px; }
+            .pdf-day-leave { display:flex; min-width:0; align-items:center; justify-content:space-between; gap:4px; border-left:3px solid var(--leave-color); border-radius:4px; background:#f8fafc; padding:3px 4px; color:#172033; }
+            .pdf-day-leave strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; }
+            .pdf-day-leave em { flex:0 0 auto; color:#64748b; font-size:8px; font-style:normal; font-weight:800; }
+            .pdf-day-more { color:#64748b; font-size:8px; font-weight:900; }
+            .pdf-legend { display:flex; flex-wrap:wrap; gap:5px 12px; color:#334155; font-size:10px; font-weight:800; }
+            .pdf-legend span, .pdf-user { display:inline-flex; align-items:center; gap:5px; }
+            .pdf-legend i, .pdf-user i { width:8px; height:8px; flex:0 0 auto; border-radius:999px; }
+            .pdf-table { width:100%; border-collapse:collapse; }
+            .pdf-table th { background:#f8fafc; color:#64748b; padding:6px; font-size:8px; text-align:left; text-transform:uppercase; }
+            .pdf-table td { border-top:1px solid #e2e8f0; padding:6px; vertical-align:top; }
+            .pdf-table td:nth-child(4), .pdf-table td:nth-child(7) { color:#475569; }
+            .pdf-empty { border:1px dashed #cbd5e1; border-radius:8px; padding:16px; color:#64748b; font-weight:800; text-align:center; }
+            @media print {
+              .pdf-section { break-inside:avoid; }
+              .pdf-table tr { break-inside:avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <main class="pdf-page">
+            <header class="pdf-top">
+              <div>
+                <p class="pdf-kicker">Martin Sols CRM</p>
+                <h1>Planning congés</h1>
+                <p class="pdf-subtitle">${esc(activeSiteName())} - ${esc(monthLabel(state.month))}</p>
+              </div>
+              <div class="pdf-meta">Export PDF<br>${esc(generatedAt)}</div>
+            </header>
+            <section class="pdf-stats">
+              <div class="pdf-stat"><span>Utilisateurs absents</span><strong>${stats.employees}</strong></div>
+              <div class="pdf-stat"><span>Lignes</span><strong>${stats.entries}</strong></div>
+              <div class="pdf-stat"><span>Jours poses</span><strong>${esc(formatDaysCount(stats.days))}</strong></div>
+              <div class="pdf-stat"><span>A valider</span><strong>${stats.pending}</strong></div>
+            </section>
+            ${renderExportCalendar(leaves)}
+            ${renderExportLegend(leaves)}
+            ${renderExportRows(leaves)}
+          </main>
+        </body>
+      </html>`;
+  }
+
+  function exportPdf() {
+    const printWindow = window.open("", "_blank", "width=1280,height=900");
+    if (!printWindow) {
+      alert("Impossible d'ouvrir l'export PDF. Autorisez les pop-ups pour ce CRM.");
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(exportDocumentHtml());
+    printWindow.document.close();
+    printWindow.focus();
+    window.setTimeout(() => printWindow.print(), 350);
   }
 
   async function request(action, payload = null) {
@@ -314,7 +577,7 @@
       #crm-leaves-module .leaves-page { display:grid; gap:1.5rem; }
       #crm-leaves-module .leaves-header { display:flex; flex-direction:column; gap:1rem; }
       #crm-leaves-module .leaves-kicker { color:rgb(var(--theme-primary)); font-size:.72rem; font-weight:800; text-transform:uppercase; }
-      #crm-leaves-module .leaves-title { margin:.25rem 0 0; color:var(--color-secondary-900,#0f172a); font-size:1.6rem; font-weight:850; line-height:1.15; letter-spacing:0; }
+      #crm-leaves-module .leaves-title { margin:.25rem 0 0; color:var(--color-secondary-900,#0f172a); font-size:2rem; font-weight:900; line-height:1.12; letter-spacing:0; }
       #crm-leaves-module .leaves-subtitle { margin:.35rem 0 0; color:var(--color-secondary-500,#64748b); font-size:.92rem; }
       #crm-leaves-module .leaves-header-actions { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
       #crm-leaves-module .leaves-button { display:inline-flex; min-height:2.35rem; align-items:center; justify-content:center; border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.55rem; background:#fff; color:var(--color-secondary-700,#334155); padding:.55rem .75rem; font-size:.84rem; font-weight:800; line-height:1; text-decoration:none; }
@@ -322,6 +585,9 @@
       #crm-leaves-module .leaves-button-primary { border-color:rgb(var(--theme-primary)); background:rgb(var(--theme-primary)); color:#fff; }
       #crm-leaves-module .leaves-button-primary:hover { color:#fff; filter:brightness(.97); }
       #crm-leaves-module .leaves-button.is-active { border-color:rgb(var(--theme-primary) / .45); background:rgb(var(--theme-primary) / .08); color:rgb(var(--theme-primary)); }
+      #crm-leaves-module .leaves-button-export { gap:.45rem; border-color:rgb(var(--theme-primary)); background:rgb(var(--theme-primary)); color:#fff; box-shadow:0 10px 24px rgb(var(--theme-primary) / .18); }
+      #crm-leaves-module .leaves-button-export:hover { color:#fff; background:rgb(var(--theme-primary)); filter:brightness(.97); }
+      #crm-leaves-module .leaves-button-export span:first-child { display:grid; place-items:center; width:1.5rem; height:1.5rem; border-radius:.45rem; background:rgba(255,255,255,.18); font-size:.62rem; font-weight:950; }
       #crm-leaves-module .leave-loading { min-height:16rem; display:grid; place-items:center; color:var(--color-secondary-500,#64748b); font-weight:800; }
       #crm-leaves-module .leave-summary { display:grid; grid-template-columns:repeat(1,minmax(0,1fr)); gap:1rem; }
       #crm-leaves-module .leave-summary-card { border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.75rem; background:#fff; padding:1rem; }
@@ -427,7 +693,6 @@
         #crm-leaves-module .leaves-form-grid { grid-template-columns:1fr; }
       }
       #crm-leaves-module .leaves-page { gap:1.15rem; }
-      #crm-leaves-module .leaves-header { display:none; }
       #crm-leaves-module .leave-workspace { display:grid; grid-template-columns:minmax(0,1fr); gap:1.2rem; align-items:start; }
       #crm-leaves-module .leave-main-column,
       #crm-leaves-module .leave-side { display:grid; min-width:0; gap:1.2rem; }
@@ -936,6 +1201,7 @@
     syncEmployeeFilter();
     root.innerHTML = `
       <div class="leaves-page">
+        ${renderHeader()}
         <div class="leave-workspace">
           <div class="leave-main-column">
             ${renderCalendar()}
@@ -954,6 +1220,7 @@
   }
 
   function bind() {
+    root.querySelector("[data-export-pdf]")?.addEventListener("click", exportPdf);
     root.querySelector("[data-prev]")?.addEventListener("click", () => {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1);
       state.selectedDate = formatDate(state.month);

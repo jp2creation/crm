@@ -65,6 +65,44 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('user.siteIds.0', $site->id);
     }
 
+    public function test_vehicle_day_hours_are_exposed_and_enforced(): void
+    {
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.view', 'reservations.create']);
+
+        $vehicle->forceFill([
+            'day_start_time' => '08:00',
+            'day_end_time' => '16:30',
+        ])->save();
+
+        $this->actingAs($account)
+            ->getJson('/api/reservations?action=bootstrap')
+            ->assertOk()
+            ->assertJsonPath('vehicles.0.dayStartTime', '08:00')
+            ->assertJsonPath('vehicles.0.dayEndTime', '16:30');
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-04T07:30',
+                'endAt' => '2026-08-04T08:30',
+                'title' => 'Trop tot',
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Creneau hors horaires du vehicule');
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-04T08:00',
+                'endAt' => '2026-08-04T09:00',
+                'title' => 'Dans les horaires',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('reservation.title', 'Dans les horaires');
+    }
+
     public function test_create_permission_is_required_to_create_reservation(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.view']);
@@ -181,10 +219,14 @@ class CrmReservationApiTest extends TestCase
                 'name' => 'Camion test',
                 'description' => 'Vehicule atelier',
                 'color' => '#123abc',
+                'dayStartTime' => '08:15',
+                'dayEndTime' => '16:45',
             ])
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('vehicle.name', 'Camion test')
+            ->assertJsonPath('vehicle.dayStartTime', '08:15')
+            ->assertJsonPath('vehicle.dayEndTime', '16:45')
             ->json('vehicle.id');
 
         $this->actingAs($account)

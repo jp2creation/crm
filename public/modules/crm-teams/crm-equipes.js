@@ -305,21 +305,27 @@
   }
 
   function renderMemberCard(member) {
+    const fullName = String(member.name || [member.firstName, member.lastName].filter(Boolean).join(" ") || "Membre").trim();
+    const phone = member.phone
+      ? `<a class="teams-mobile-action" href="tel:${esc(phoneHref(member.phone))}">${icon("phone")}<span>${esc(member.phone)}</span></a>`
+      : `<span class="teams-mobile-muted">Téléphone non renseigné</span>`;
+    const email = member.email
+      ? `<a class="teams-mobile-action" href="mailto:${esc(member.email)}">${icon("mail")}<span>${esc(member.email)}</span></a>`
+      : `<span class="teams-mobile-muted">Mail non renseigné</span>`;
+
     return `
-      <article class="teams-person-card">
-        <div class="teams-member">
-          <span class="teams-avatar">${member.photoUrl ? `<img src="${esc(member.photoUrl)}" alt="" onerror="this.remove()" />` : ""}<b>${esc(initials(member))}</b></span>
-          <span>
-            <strong>${esc(member.name || [member.firstName, member.lastName].join(" "))}</strong>
+      <article class="teams-person-row">
+        <span class="teams-avatar">${member.photoUrl ? `<img src="${esc(member.photoUrl)}" alt="" onerror="this.remove()" />` : ""}<b>${esc(initials(member))}</b></span>
+        <div class="teams-person-main">
+          <div class="teams-person-title">
+            <strong>${esc(fullName)}</strong>
             <small>${esc(roleLabel(member.role))}</small>
-          </span>
+          </div>
+          <div class="teams-person-lines">
+            ${phone}
+            ${email}
+          </div>
         </div>
-        <dl>
-          <div><dt>Prénom</dt><dd>${cell(member.firstName)}</dd></div>
-          <div><dt>Nom</dt><dd>${cell(member.lastName)}</dd></div>
-          <div><dt>Téléphone</dt><dd>${member.phone ? `<a href="tel:${esc(phoneHref(member.phone))}">${esc(member.phone)}</a>` : `<span class="teams-muted">Non renseigné</span>`}</dd></div>
-          <div><dt>Mail</dt><dd>${member.email ? `<a href="mailto:${esc(member.email)}">${esc(member.email)}</a>` : `<span class="teams-muted">Non renseigné</span>`}</dd></div>
-        </dl>
       </article>
     `;
   }
@@ -417,17 +423,23 @@
       #${rootId} .teams-avatar img + b{display:none}
       #${rootId} .teams-muted{color:var(--teams-muted);font-weight:750}
       #${rootId} .teams-mobile-list{display:none}
-      #${rootId} .teams-person-card{display:grid;gap:.8rem;border-top:1px solid var(--teams-border);padding:1rem}
-      #${rootId} .teams-person-card dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;margin:0}
-      #${rootId} .teams-person-card div{min-width:0}
-      #${rootId} .teams-person-card dt{color:var(--teams-muted);font-size:.7rem;font-weight:950;text-transform:uppercase}
-      #${rootId} .teams-person-card dd{margin:.15rem 0 0;color:var(--teams-text);font-size:.9rem;font-weight:850;overflow-wrap:anywhere}
+      #${rootId} .teams-person-row{display:grid;grid-template-columns:2.55rem minmax(0,1fr);gap:.72rem;align-items:center;border-top:1px solid var(--teams-border);padding:.72rem .9rem;background:#fff}
+      #${rootId} .teams-person-row:first-child{border-top:0}
+      #${rootId} .teams-person-main{display:grid;gap:.35rem;min-width:0}
+      #${rootId} .teams-person-title{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem;min-width:0}
+      #${rootId} .teams-person-title strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--teams-text);font-size:.92rem;font-weight:950}
+      #${rootId} .teams-person-title small{flex:0 0 auto;color:var(--teams-muted);font-size:.68rem;font-weight:850}
+      #${rootId} .teams-person-lines{display:grid;gap:.18rem;min-width:0}
+      #${rootId} .teams-mobile-action,#${rootId} .teams-mobile-muted{display:flex;align-items:center;gap:.35rem;min-width:0;color:var(--teams-muted);font-size:.78rem;font-weight:800;text-decoration:none}
+      #${rootId} .teams-mobile-action span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      #${rootId} .teams-mobile-action svg{width:.9rem;height:.9rem;flex:0 0 auto;color:var(--teams-primary)}
       #${rootId} .teams-empty,.teams-loading{display:grid;place-items:center;min-height:9rem;border:1px dashed var(--teams-border);border-radius:.5rem;color:var(--teams-muted);font-size:.88rem;font-weight:850;text-align:center;padding:1rem}
       .dark #${rootId}{--teams-border:var(--color-surface-700,#334155);--teams-muted:var(--color-secondary-400,#94a3b8);--teams-text:#fff}
       .dark #${rootId} .teams-search,.dark #${rootId} .teams-stat,.dark #${rootId} .teams-site,.dark #${rootId} .teams-card{background:var(--color-surface-900,#0f172a);border-color:var(--teams-border)}
+      .dark #${rootId} .teams-person-row{background:var(--color-surface-900,#0f172a)}
       .dark #${rootId} .teams-table th{background:var(--color-surface-800,#1e293b)}
       @media (max-width:1100px){#${rootId} .teams-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media (max-width:720px){#${rootId} .teams-header{align-items:stretch;flex-direction:column}#${rootId} .teams-title h1{font-size:1.55rem}#${rootId} .teams-search{width:100%}#${rootId} .teams-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .teams-stat{grid-template-columns:2.25rem minmax(0,1fr);padding:.7rem}#${rootId} .teams-stat-icon{width:2.25rem;height:2.25rem}#${rootId} .teams-site{min-width:8.6rem}#${rootId} .teams-table-wrap{display:none}#${rootId} .teams-mobile-list{display:grid}#${rootId} .teams-person-card dl{grid-template-columns:1fr}}
+      @media (max-width:720px){#${rootId} .teams-header{align-items:stretch;flex-direction:column}#${rootId} .teams-title h1{font-size:1.55rem}#${rootId} .teams-search{width:100%}#${rootId} .teams-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .teams-stat{grid-template-columns:2.25rem minmax(0,1fr);padding:.7rem}#${rootId} .teams-stat-icon{width:2.25rem;height:2.25rem}#${rootId} .teams-site{min-width:8.6rem}#${rootId} .teams-table-wrap{display:none}#${rootId} .teams-mobile-list{display:block}#${rootId} .teams-person-row{padding:.68rem .78rem}}
     `;
     document.head.appendChild(style);
   }

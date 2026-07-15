@@ -33,6 +33,8 @@ class CrmReservation extends Model
     protected static function booted(): void
     {
         static::saving(function (CrmReservation $reservation): void {
+            $vehicle = null;
+
             if ($reservation->vehicle_id) {
                 $vehicle = CrmVehicle::query()->find($reservation->vehicle_id);
 
@@ -61,6 +63,12 @@ class CrmReservation extends Model
                 if ($site && ! $site->containsOpeningPeriod($reservation->start_at, $reservation->end_at)) {
                     throw ValidationException::withMessages([
                         'start_at' => 'Ce creneau est hors horaires du site.',
+                    ]);
+                }
+
+                if ($vehicle && ! $vehicle->containsReservationPeriod($reservation->start_at, $reservation->end_at, $site)) {
+                    throw ValidationException::withMessages([
+                        'start_at' => 'Ce creneau est hors horaires du vehicule.',
                     ]);
                 }
             }

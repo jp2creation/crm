@@ -46,6 +46,16 @@ class CrmVehicleResource extends Resource
 
     protected static ?int $navigationSort = 20;
 
+    private static function optionalTimeField(string $name, string $label): TextInput
+    {
+        return TextInput::make($name)
+            ->label($label)
+            ->type('time')
+            ->formatStateUsing(fn ($state): ?string => blank($state) ? null : substr((string) $state, 0, 5))
+            ->dehydrateStateUsing(fn ($state): ?string => blank($state) ? null : substr((string) $state, 0, 5))
+            ->helperText('Vide = horaire du site.');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
@@ -64,6 +74,8 @@ class CrmVehicleResource extends Resource
                     ->label('Couleur')
                     ->default('#95002e')
                     ->required(),
+                self::optionalTimeField('day_start_time', 'Ouverture journee'),
+                self::optionalTimeField('day_end_time', 'Fermeture journee'),
                 Toggle::make('active')
                     ->label('Vehicule actif')
                     ->default(true),
@@ -83,6 +95,9 @@ class CrmVehicleResource extends Resource
                 TextEntry::make('site.name')->label('Site'),
                 ColorEntry::make('color')->label('Couleur'),
                 IconEntry::make('active')->label('Actif')->boolean(),
+                TextEntry::make('reservation_hours')
+                    ->label('Horaires jour')
+                    ->state(fn (?CrmVehicle $record): string => $record?->reservationHoursLabel($record->site) ?? '07:30-17:30'),
                 TextEntry::make('reservations_count')->label('Reservations')->counts('reservations'),
                 TextEntry::make('description')->label('Description')->columnSpanFull(),
             ])
@@ -93,7 +108,7 @@ class CrmVehicleResource extends Resource
     {
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
-                ->with('site:id,name'))
+                ->with('site:id,name,morning_start,afternoon_end'))
             ->columns([
                 TextColumn::make('name')
                     ->label('Nom')
@@ -105,6 +120,10 @@ class CrmVehicleResource extends Resource
                     ->searchable(),
                 ColorColumn::make('color')
                     ->label('Couleur'),
+                TextColumn::make('reservation_hours')
+                    ->label('Horaires jour')
+                    ->state(fn (CrmVehicle $record): string => $record->reservationHoursLabel($record->site))
+                    ->sortable(false),
                 IconColumn::make('active')
                     ->label('Actif')
                     ->boolean()

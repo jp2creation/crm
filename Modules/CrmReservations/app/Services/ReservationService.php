@@ -110,6 +110,7 @@ class ReservationService
 
             $this->requireSitePermission($actor, (int) $site->id, 'reservations.create');
             $this->requireWithinSiteHours($site, $startAt, $endAt);
+            $this->requireWithinVehicleHours($vehicle, $site, $startAt, $endAt);
             $this->requireNoReservationConflict($vehicleId, $startAt, $endAt);
 
             $reservation = CrmReservation::query()->create([
@@ -187,6 +188,7 @@ class ReservationService
             }
 
             $this->requireWithinSiteHours($site, $startAt, $endAt);
+            $this->requireWithinVehicleHours($vehicle, $site, $startAt, $endAt);
             $this->requireNoReservationConflict($vehicleId, $startAt, $endAt, $id);
 
             $reservation->fill([
@@ -217,6 +219,8 @@ class ReservationService
             $description = trim((string) ($data['description'] ?? ''));
             $color = $this->color((string) ($data['color'] ?? '#95002e'));
             $photoDataUrl = (string) ($data['photoDataUrl'] ?? $data['photo_data_url'] ?? '');
+            $dayStartTime = $this->nullableTime5($data['dayStartTime'] ?? $data['day_start_time'] ?? null);
+            $dayEndTime = $this->nullableTime5($data['dayEndTime'] ?? $data['day_end_time'] ?? null);
 
             $this->requireSitePermission($actor, $siteId, 'reservations.manage_vehicles');
 
@@ -226,6 +230,10 @@ class ReservationService
 
             if (mb_strlen($description) > 255) {
                 $this->fail('Description trop longue', 400);
+            }
+
+            if ($dayStartTime && $dayEndTime && $this->minutes5($dayEndTime) <= $this->minutes5($dayStartTime)) {
+                $this->fail('Horaires du vehicule invalides', 400);
             }
 
             $duplicateExists = CrmVehicle::query()
@@ -262,6 +270,8 @@ class ReservationService
                 'description' => $description,
                 'color' => $color,
                 'photo_url' => $photoUrl,
+                'day_start_time' => $dayStartTime,
+                'day_end_time' => $dayEndTime,
                 'active' => true,
             ]);
             $vehicle->save();
@@ -361,6 +371,13 @@ class ReservationService
     {
         if (! $site->containsOpeningPeriod($startAt, $endAt)) {
             $this->fail('Creneau hors horaires du site', 400);
+        }
+    }
+
+    private function requireWithinVehicleHours(CrmVehicle $vehicle, CrmSite $site, string $startAt, string $endAt): void
+    {
+        if (! $vehicle->containsReservationPeriod($startAt, $endAt, $site)) {
+            $this->fail('Creneau hors horaires du vehicule', 400);
         }
     }
 
@@ -480,6 +497,8 @@ class ReservationService
             'description' => $vehicle->description ?? '',
             'color' => $vehicle->color ?: '#95002e',
             'photoUrl' => $vehicle->getAttribute('photo_url') ?? '',
+            'dayStartTime' => $this->time5($vehicle->day_start_time, ''),
+            'dayEndTime' => $this->time5($vehicle->day_end_time, ''),
             'active' => (bool) $vehicle->active,
         ];
     }
@@ -632,7 +651,31 @@ class ReservationService
     {
         $value = trim((string) $value);
 
-        return preg_match('/^([0-2][0-9]:[0-5][0-9])/', $value, $match) ? $match[1] : $default;
+        return preg_match('/^([0-2][0-9]:[0-5][0-9])/', $value, $match) && (int) substr($match[1], 0, 2) <= 23
+            ? $match[1]
+            : $default;
+    }
+
+    private function nullableTime5(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        if (! preg_match('/^([0-2][0-9]:[0-5][0-9])/', $value, $match) || (int) substr($match[1], 0, 2) > 23) {
+            $this->fail('Horaire du vehicule invalide', 400);
+        }
+
+        return $match[1];
+    }
+
+    private function minutes5(string $time): int
+    {
+        [$hour, $minute] = array_map('intval', explode(':', $time));
+
+        return ($hour * 60) + $minute;
     }
 
     private function log(CrmUser $actor, string $action, string $details = ''): void

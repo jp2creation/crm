@@ -213,6 +213,60 @@ function timeMinutes(e) {
         .map(Number);
     return (t[0] || 0) * 60 + (t[1] || 0);
 }
+function siteTimeFromMinutes(e, t) {
+    let n = new Date(e);
+    return n.setHours(Math.floor(t / 60), t % 60, 0, 0), n;
+}
+function vehicleHours(e, t) {
+    let n = siteHours(t),
+        r = String(e?.dayStartTime || e?.day_start_time || n.morningStart).slice(0, 5),
+        i = String(e?.dayEndTime || e?.day_end_time || n.afternoonEnd).slice(0, 5);
+    return timeMinutes(i) <= timeMinutes(r)
+        ? { dayStart: n.morningStart, dayEnd: n.afternoonEnd }
+        : { dayStart: r, dayEnd: i };
+}
+function vehicleDaySlots(e, t, n) {
+    let r = siteHours(n),
+        i = vehicleHours(t, n),
+        a = Math.max(timeMinutes(i.dayStart), timeMinutes(r.morningStart)),
+        o = Math.min(timeMinutes(i.dayEnd), timeMinutes(r.morningEnd)),
+        s = Math.max(timeMinutes(i.dayStart), timeMinutes(r.afternoonStart)),
+        c = Math.min(timeMinutes(i.dayEnd), timeMinutes(r.afternoonEnd)),
+        l = [];
+    return (
+        o > a &&
+            l.push({
+                key: `morning`,
+                label: `Matin`,
+                start: siteTimeFromMinutes(e, a),
+                end: siteTimeFromMinutes(e, o),
+            }),
+        c > s &&
+            l.push({
+                key: `afternoon`,
+                label: `Apr\u00e8s-midi`,
+                start: siteTimeFromMinutes(e, s),
+                end: siteTimeFromMinutes(e, c),
+            }),
+        l.length ||
+            l.push({
+                key: `full_day`,
+                label: `Journ\u00e9e`,
+                start: siteTime(e, i.dayStart),
+                end: siteTime(e, i.dayEnd),
+            }),
+        l
+    );
+}
+function vehiclePlannerBounds(e, t) {
+    let n = vehicleHours(e, t),
+        r = Math.floor(timeMinutes(n.dayStart) / 60) * 60,
+        i = Math.ceil(timeMinutes(n.dayEnd) / 60) * 60;
+    i <= r && (i = r + 600);
+    let a = [];
+    for (let e = r; e <= i; e += 60) a.push(e);
+    return a[a.length - 1] !== i && a.push(i), { start: r, end: i, total: i - r, marks: a };
+}
 function reservationPeriodTone(e, t) {
     let n = siteHours(t),
         r = timeMinutes(e.startAt.slice(11, 16)),
@@ -717,8 +771,11 @@ function ReservationTimelineStyles() {
 .reservation-day-row-track-afternoon{--segment-bg:linear-gradient(135deg,rgba(255,139,125,.18) 0%,rgba(255,139,125,.06) 100%);--segment-border:rgba(255,94,82,.34)}
 .reservation-day-vertical-line{position:absolute;top:0;bottom:0;width:1px;background:#e4e9f1;opacity:.86}
 .reservation-day-segment-line{position:absolute;top:.7rem;bottom:.7rem;width:1px;background:rgba(15,23,42,.08)}
-.reservation-day-row-empty{position:absolute;top:1.05rem;bottom:1.05rem;z-index:1;display:flex;align-items:center;justify-content:center;border:1px dashed var(--segment-border);border-radius:.82rem;background:rgba(255,255,255,.68);color:#64748b;font-size:.75rem;font-weight:850;transition:border-color .15s,background .15s,color .15s,box-shadow .15s}
-.reservation-day-row-empty:hover{border-color:rgb(var(--theme-primary));background:rgb(var(--theme-primary)/.06);color:rgb(var(--theme-primary));box-shadow:0 10px 22px rgb(var(--theme-primary)/.1)}
+.reservation-day-row-empty{position:absolute;top:1.05rem;bottom:1.05rem;z-index:1;display:flex;align-items:center;justify-content:center;border:1px dashed #16a34a;border-radius:.82rem;background:linear-gradient(135deg,#ecfdf5 0%,#dcfce7 100%);color:#166534;font-size:.75rem;font-weight:850;transition:border-color .15s,background .15s,color .15s,box-shadow .15s}
+.reservation-day-row-empty:hover{border-color:#15803d;background:linear-gradient(135deg,#dcfce7 0%,#bbf7d0 100%);color:#14532d;box-shadow:0 10px 22px rgba(22,163,74,.16)}
+.reservation-day-board .reservation-event-card{border-color:#dc2626!important;background:linear-gradient(135deg,#dc2626 0%,#95002e 100%)!important;color:#fff!important}
+.reservation-day-board .reservation-event-card span,.reservation-day-board .reservation-event-card p{color:#fff!important}
+.reservation-day-board .reservation-event-card>span:first-child{background-color:#fff!important;box-shadow:0 0 0 3px rgba(255,255,255,.28)!important}
 .reservation-day-board .reservation-timeline-card{top:.95rem!important;bottom:.95rem!important;right:auto!important;min-height:0!important;justify-content:center;border-radius:.82rem!important;padding:.58rem .7rem .58rem .8rem!important;box-shadow:0 12px 24px rgba(15,23,42,.1)!important}
 .reservation-day-board .reservation-timeline-card span{font-size:.62rem!important}
 .reservation-day-board .reservation-timeline-card p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem!important;line-height:1.15!important}
@@ -817,7 +874,8 @@ function ReservationTimelineStyles() {
   .reservation-mobile-slot-button:hover{filter:brightness(1.02);box-shadow:0 9px 18px rgba(15,143,61,.2)}
   .reservation-mobile-slot-time{font-size:.86rem;font-weight:950;line-height:1}
   .reservation-mobile-slot-label{margin-top:.18rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.52rem;font-weight:850;line-height:1.05;opacity:.9}
-  .reservation-mobile-slot-button.is-booked{box-shadow:0 7px 16px rgba(149,0,46,.14)}
+  .reservation-mobile-slot-button.is-booked{border-color:#dc2626!important;background:linear-gradient(135deg,#dc2626 0%,#95002e 100%)!important;color:#fff!important;box-shadow:0 7px 16px rgba(149,0,46,.2)}
+  .reservation-mobile-slot-button.is-booked span{color:#fff!important}
   .reservation-day-board-inner{min-width:520px;grid-template-columns:64px minmax(456px,1fr);grid-template-rows:36px repeat(2,76px)}
   .reservation-day-hour-axis span{font-size:.54rem;font-weight:850}
   .reservation-day-row-label{gap:.06rem;padding:.36rem .42rem}
@@ -1500,11 +1558,14 @@ function V({
     onEditReservation: o,
 }) {
     let s = j(t, e),
-        l = siteDaySlots(e, r),
+        f = n[0] || null,
+        d = vehicleHours(f, r),
+        l = vehicleDaySlots(e, f, r),
         p = l.filter((e) => e.key !== `full_day`),
-        m = reservationPlannerBounds(r),
-        u = siteHours(r),
-        f = n[0] || null;
+        m = vehiclePlannerBounds(f, r),
+        y = p.find((e) => e.key === `morning`),
+        b = p.find((e) => e.key === `afternoon`);
+    p.length || (p = l);
     return (0, S.jsxs)(`div`, {
         className: `reservation-time-planner reservation-day-planner rounded-b-xl`,
         children: [
@@ -1538,14 +1599,14 @@ function V({
                                 className: `reservation-day-pill reservation-day-pill-morning`,
                                 children: [
                                     (0, S.jsx)(`i`, {}),
-                                    `Matin ${u.morningStart}-${u.morningEnd}`,
+                                    y ? `Matin ${M(D(y.start))}-${M(D(y.end))}` : `Ouverture ${d.dayStart}`,
                                 ],
                             }),
                             (0, S.jsxs)(`span`, {
                                 className: `reservation-day-pill reservation-day-pill-afternoon`,
                                 children: [
                                     (0, S.jsx)(`i`, {}),
-                                    `Apr\u00e8s-midi ${u.afternoonStart}-${u.afternoonEnd}`,
+                                    b ? `Apr\u00e8s-midi ${M(D(b.start))}-${M(D(b.end))}` : `Fermeture ${d.dayEnd}`,
                                 ],
                             }),
                         ],
@@ -2295,7 +2356,7 @@ function W() {
         }, []);
     function Ae(e, t) {
         if (!e || !t) {
-            let n = siteDaySlots(le, q)[0];
+            let n = vehicleDaySlots(le, selectedVehicle, q)[0];
             e = D(n.start);
             t = D(n.end);
         }
