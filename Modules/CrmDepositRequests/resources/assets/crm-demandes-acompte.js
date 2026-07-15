@@ -190,7 +190,7 @@
       </div>
       <section class="deposit-card">
         <div class="deposit-toolbar">
-          <label><span>Recherche</span><input type="search" data-filter-query value="${esc(state.filters.query || "")}" placeholder="Facture, commande, demandeur"></label>
+          <label><span>Recherche</span><input type="search" data-filter-query value="${esc(state.filters.query || "")}" placeholder="Facture, commande, client, demandeur"></label>
           <label><span>Statut</span><select data-filter-status>
             <option value="">Tous les statuts</option>
             <option value="pending" ${state.filters.status === "pending" ? "selected" : ""}>En attente</option>
@@ -207,13 +207,14 @@
                 <th>Date</th>
                 <th>Demandeur</th>
                 <th>Facture / commande</th>
+                <th>Client</th>
                 <th>Montant</th>
                 <th>Statut</th>
                 <th>Validation</th>
                 <th></th>
               </tr>
             </thead>
-            <tbody>${state.requests.length ? state.requests.map(rowHtml).join("") : `<tr><td colspan="7"><div class="deposit-empty">Aucune demande d'acompte pour le moment.</div></td></tr>`}</tbody>
+            <tbody>${state.requests.length ? state.requests.map(rowHtml).join("") : `<tr><td colspan="8"><div class="deposit-empty">Aucune demande d'acompte pour le moment.</div></td></tr>`}</tbody>
           </table>
         </div>
       </section>
@@ -240,6 +241,7 @@
         <td><strong>${dateFr(item.requestDate)}</strong></td>
         <td>${esc(item.requesterName || "")}</td>
         <td><span class="deposit-doc">${esc(item.documentNumber || "")}</span></td>
+        <td>${esc(item.clientName || "-")}</td>
         <td class="deposit-amount">${money(item.amount || 0)}</td>
         <td><span class="deposit-status ${validated ? "is-valid" : "is-pending"}">${validated ? icon("check") : icon("clock")}${esc(item.statusLabel || "En attente")}</span></td>
         <td>${validated ? `<strong>${dateFr(item.validatedDate || item.validatedAt)}</strong><small>${esc(item.validatedByName || "")}</small>` : `<span class="deposit-muted">En attente comptabilité</span>`}</td>
@@ -268,6 +270,7 @@
             <label><span>Date</span><input type="date" name="requestDate" required value="${esc(item.requestDate || today())}"></label>
             <label><span>Demandeur</span><input name="requesterName" required value="${esc(item.requesterName || (state.user && state.user.name) || "")}"></label>
             <label><span>Facture ou commande</span><input name="documentNumber" required value="${esc(item.documentNumber || "")}" placeholder="N° facture ou commande"></label>
+            <label><span>Nom du client</span><input name="clientName" value="${esc(item.clientName || "")}" placeholder="Client"></label>
             <label><span>Montant</span><input name="amount" inputmode="decimal" required value="${esc(item.amount || "")}" placeholder="0,00"></label>
             <label class="deposit-field-full"><span>Notes</span><textarea name="notes">${esc(item.notes || "")}</textarea></label>
             <footer>
@@ -287,7 +290,7 @@
           <header>
             <div>
               <h2>Validation comptabilité</h2>
-              <p>${esc(item.documentNumber)} · ${money(item.amount || 0)}</p>
+              <p>${esc(item.documentNumber)}${item.clientName ? " · " + esc(item.clientName) : ""} · ${money(item.amount || 0)}</p>
             </div>
             <button class="deposit-mini" type="button" data-close>${icon("x")}</button>
           </header>
@@ -437,7 +440,7 @@
       #crm-deposit-requests-module textarea{min-height:5.4rem;resize:vertical}
       #crm-deposit-requests-module input:focus,#crm-deposit-requests-module select:focus,#crm-deposit-requests-module textarea:focus{border-color:rgb(var(--theme-primary,149 0 46) / .55);box-shadow:0 0 0 3px rgb(var(--theme-primary,149 0 46) / .12)}
       #crm-deposit-requests-module .deposit-table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
-      #crm-deposit-requests-module .deposit-table{width:100%;border-collapse:collapse;min-width:min(62rem,calc(100vw - 2rem))}
+      #crm-deposit-requests-module .deposit-table{width:100%;border-collapse:collapse;min-width:min(70rem,calc(100vw - 2rem))}
       #crm-deposit-requests-module th,#crm-deposit-requests-module td{border-bottom:1px solid var(--color-surface-200,#e2e8f0);padding:.72rem .8rem;text-align:left;font-size:.82rem;vertical-align:middle}
       #crm-deposit-requests-module th{background:var(--color-surface-50,#f8fafc);color:var(--color-secondary-500,#64748b);font-size:.72rem;font-weight:950;text-transform:uppercase}
       #crm-deposit-requests-module td{color:var(--color-secondary-800,#1e293b);font-weight:750}

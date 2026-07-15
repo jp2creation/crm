@@ -17,6 +17,7 @@ return new class extends Migration
                 $table->foreignId('requester_user_id')->nullable()->constrained('crm_users')->nullOnDelete();
                 $table->string('requester_name', 190)->index();
                 $table->string('document_number', 120)->index();
+                $table->string('client_name', 190)->nullable()->index();
                 $table->decimal('amount', 12, 2)->default(0);
                 $table->string('status', 30)->default('pending')->index();
                 $table->timestamp('validated_at')->nullable()->index();

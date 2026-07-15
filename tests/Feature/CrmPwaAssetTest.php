@@ -72,5 +72,8 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('beforeinstallprompt', $publicScript);
         $this->assertStringContainsString('promptEvent.prompt()', $publicScript);
         $this->assertStringContainsString('window.MartinSolsPwa', $publicScript);
+        $this->assertStringContainsString('background:#fff;color:#95002e', $publicScript);
+        $this->assertStringContainsString('button.textContent = "Installer"', $publicScript);
+        $this->assertStringNotContainsString('left:16px;right:16px;bottom:86px', $publicScript);
     }
 }

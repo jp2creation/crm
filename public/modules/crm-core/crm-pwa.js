@@ -53,11 +53,11 @@
     var style = document.createElement('style');
     style.id = installStyleId;
     style.textContent = ''
-      + '#crm-pwa-install-button{position:fixed;right:16px;bottom:16px;z-index:9999;display:inline-flex;align-items:center;gap:8px;border:0;border-radius:14px;background:#95002e;color:#fff;padding:12px 16px;font:700 14px/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 18px 40px rgba(149,0,46,.24);cursor:pointer;}'
-      + '#crm-pwa-install-button::before{content:"+";display:grid;place-items:center;width:20px;height:20px;border-radius:999px;background:rgba(255,255,255,.16);font-size:18px;line-height:1;}'
-      + '#crm-pwa-install-button:hover{background:#7f0028;}'
-      + '#crm-pwa-install-button:focus-visible{outline:3px solid rgba(149,0,46,.24);outline-offset:3px;}'
-      + '@media (max-width: 640px){#crm-pwa-install-button{left:16px;right:16px;bottom:86px;justify-content:center;padding:14px 16px;border-radius:16px;}}';
+      + '#crm-pwa-install-button{position:fixed;right:14px;bottom:14px;z-index:9999;display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(149,0,46,.18);border-radius:999px;background:#fff;color:#95002e;padding:7px 10px;font:800 12px/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 10px 24px rgba(15,23,42,.12);cursor:pointer;opacity:.94;}'
+      + '#crm-pwa-install-button::before{content:"+";display:grid;place-items:center;width:16px;height:16px;border-radius:999px;background:rgba(149,0,46,.1);font-size:14px;line-height:1;}'
+      + '#crm-pwa-install-button:hover{border-color:rgba(149,0,46,.32);background:#fff7fa;opacity:1;}'
+      + '#crm-pwa-install-button:focus-visible{outline:3px solid rgba(149,0,46,.18);outline-offset:3px;}'
+      + '@media (max-width: 640px){#crm-pwa-install-button{right:12px;bottom:74px;padding:7px 9px;font-size:11.5px;box-shadow:0 8px 20px rgba(15,23,42,.12);}}';
 
     document.head.appendChild(style);
   }
@@ -88,7 +88,9 @@
       document.body.appendChild(button);
     }
 
-    button.textContent = "Installer l'app";
+    button.textContent = "Installer";
+    button.title = "Installer l'application";
+    button.setAttribute('aria-label', "Installer l'application");
     button.hidden = false;
   }
 

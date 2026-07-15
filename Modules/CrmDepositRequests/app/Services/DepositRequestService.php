@@ -67,7 +67,8 @@ class DepositRequestService
                 $query->where(function ($query) use ($queryText): void {
                     $query
                         ->where('requester_name', 'like', '%'.$queryText.'%')
-                        ->orWhere('document_number', 'like', '%'.$queryText.'%');
+                        ->orWhere('document_number', 'like', '%'.$queryText.'%')
+                        ->orWhere('client_name', 'like', '%'.$queryText.'%');
                 });
             })
             ->orderByRaw("case when status = 'pending' then 0 else 1 end")
@@ -158,6 +159,7 @@ class DepositRequestService
             $date = $this->date((string) ($data['requestDate'] ?? $data['request_date'] ?? now()->format('Y-m-d')), 'date');
             $requesterName = $this->limitedText($data['requesterName'] ?? $data['requester_name'] ?? $actor->name, 190, 'Demandeur');
             $documentNumber = $this->limitedText($data['documentNumber'] ?? $data['document_number'] ?? '', 120, 'Numero facture ou commande');
+            $clientName = $this->limitedText($data['clientName'] ?? $data['client_name'] ?? $request->client_name ?? '', 190, 'Nom du client');
             $amount = $this->positiveDecimal($data['amount'] ?? 0, 'montant');
 
             if ($requesterName === '') {
@@ -174,6 +176,7 @@ class DepositRequestService
                 'requester_user_id' => $request->requester_user_id ?: $actor->id,
                 'requester_name' => $requesterName,
                 'document_number' => $documentNumber,
+                'client_name' => $clientName !== '' ? $clientName : null,
                 'amount' => $amount,
                 'notes' => $this->limitedText($data['notes'] ?? $request->notes ?? '', 4000, 'Notes'),
                 'updated_by' => $actor->id,
@@ -300,6 +303,7 @@ class DepositRequestService
             'requesterUserId' => $request->requester_user_id ? (int) $request->requester_user_id : null,
             'requesterName' => $request->requester_name,
             'documentNumber' => $request->document_number,
+            'clientName' => $request->client_name ?? '',
             'amount' => $this->money($request->amount),
             'status' => $request->status ?: CrmDepositRequest::STATUS_PENDING,
             'statusLabel' => $this->statusLabels()[$request->status] ?? 'En attente',

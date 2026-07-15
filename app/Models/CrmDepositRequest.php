@@ -20,6 +20,7 @@ class CrmDepositRequest extends Model
         'requester_user_id',
         'requester_name',
         'document_number',
+        'client_name',
         'amount',
         'status',
         'validated_at',

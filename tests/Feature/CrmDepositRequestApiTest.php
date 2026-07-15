@@ -41,6 +41,7 @@ class CrmDepositRequestApiTest extends TestCase
                 'requestDate' => '2026-09-01',
                 'requesterName' => 'Jean Test',
                 'documentNumber' => 'CMD-100',
+                'clientName' => 'Client Sans Droit',
                 'amount' => '120,50',
             ])
             ->assertStatus(403)
@@ -61,6 +62,7 @@ class CrmDepositRequestApiTest extends TestCase
                 'requestDate' => '2026-09-01',
                 'requesterName' => 'Jean Test',
                 'documentNumber' => 'CMD-100',
+                'clientName' => 'Client Départ',
                 'amount' => '120,50',
                 'status' => 'validated',
                 'validatedAt' => '2026-09-02 15:30:00',
@@ -80,13 +82,21 @@ class CrmDepositRequestApiTest extends TestCase
                 'requestDate' => '2026-09-03',
                 'requesterName' => 'Jean Test',
                 'documentNumber' => 'FAC-200',
+                'clientName' => 'Client Final',
                 'amount' => '140,75',
             ])
             ->assertOk()
             ->assertJsonPath('request.requestDate', '2026-09-03')
             ->assertJsonPath('request.documentNumber', 'FAC-200')
+            ->assertJsonPath('request.clientName', 'Client Final')
             ->assertJsonPath('request.amount', 140.75)
             ->assertJsonPath('request.status', CrmDepositRequest::STATUS_PENDING);
+
+        $this->actingAs($account)
+            ->getJson('/api/demandes-acompte?action=bootstrap&query=Client%20Final')
+            ->assertOk()
+            ->assertJsonPath('requests.0.id', $requestId)
+            ->assertJsonPath('requests.0.clientName', 'Client Final');
 
         $this->actingAs($account)
             ->postJson('/api/demandes-acompte?action=validate_request', [
@@ -102,6 +112,7 @@ class CrmDepositRequestApiTest extends TestCase
             'id' => $requestId,
             'site_id' => $site->id,
             'document_number' => 'FAC-200',
+            'client_name' => 'Client Final',
             'amount' => 140.75,
             'status' => CrmDepositRequest::STATUS_PENDING,
             'validated_at' => null,
@@ -125,6 +136,7 @@ class CrmDepositRequestApiTest extends TestCase
                 'requestDate' => '2026-09-01',
                 'requesterName' => 'Jean Test',
                 'documentNumber' => 'CMD-VALID',
+                'clientName' => 'Client Validé',
                 'amount' => 220,
             ])
             ->assertOk()
