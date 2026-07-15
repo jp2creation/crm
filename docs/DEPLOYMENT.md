@@ -25,13 +25,19 @@ composer install --no-dev --optimize-autoloader
 ```
 
 4. Construire ou envoyer les assets compiles selon la strategie choisie.
-5. Executer les migrations :
+5. Publier les assets des modules CRM :
+
+```bash
+php artisan crm:publish-module-assets --force
+```
+
+6. Executer les migrations :
 
 ```bash
 php artisan migrate --force
 ```
 
-6. Regenerer les caches Laravel :
+7. Regenerer les caches Laravel :
 
 ```bash
 php artisan optimize:clear
@@ -39,16 +45,21 @@ php artisan optimize
 php artisan view:cache
 ```
 
-7. Verifier les pages critiques :
+8. Verifier les pages critiques :
 
 - `/login`
+- `/dashboard/crm`
 - `/conges`
 - `/reservations`
 - `/locations-materiel`
+- `/rapport-visite`
+- `/controle-caisse`
+- `/remise-cheques`
+- `/documents/promo`
 - `/admin`
 - `/api/conges.php?action=bootstrap`
 
-8. Verifier le scheduler et declencher un backup de controle si besoin :
+9. Verifier le scheduler et declencher un backup de controle si besoin :
 
 ```bash
 php artisan schedule:list
@@ -58,3 +69,5 @@ php artisan backup:run
 ## Regle importante
 
 Les fichiers dans `public/assets` sont des sorties compilees. Toute correction durable doit etre faite dans les sources applicatives puis rebuildee.
+
+Les fichiers dans `public/modules` sont publies depuis `Modules/*/resources/assets`. Apres une modification de module, lancer `php artisan crm:publish-module-assets --force` avant de vider les caches.

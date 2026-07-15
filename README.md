@@ -1,6 +1,6 @@
 # Martin Sols CRM
 
-CRM interne pour centraliser les outils operationnels Martin Sols : portail web, administration, reservations, locations de materiel, conges, pages de contenu et API mobile.
+CRM interne pour centraliser les outils operationnels Martin Sols : portail web, tableau de bord multi-site, reservations, locations de materiel, conges, comptabilite, documents, rapports de visite, generation PDF et API mobile.
 
 ## Objectif
 
@@ -8,11 +8,17 @@ Ce depot contient l'application Laravel qui remplace les anciens endpoints PHP d
 
 ## Fonctionnalites principales
 
-- Authentification web Laravel et portail CRM protege.
-- Tableau de bord et navigation multi-sites.
-- Gestion des reservations et des vehicules.
-- Gestion des locations de materiel, categories, disponibilites et conflits.
-- Planning des conges avec employees, statuts, demi-journees et droits de gestion.
+- Authentification web Laravel, portail CRM protege et PWA installable.
+- Tableau de bord multi-site avec cartes, alertes, dernieres reservations, conges en cours et notifications.
+- Gestion des reservations vehicules avec planning, conflits et droits par utilisateur/site.
+- Gestion des locations de materiel avec cartes visuelles, categories, demi-journee ou journee, planning et disponibilites.
+- Planning des conges base sur les utilisateurs CRM existants lies au site.
+- Module Rapport de visite pour tournees commerciales, visites clients, comptes rendus et actions de suivi.
+- Comptabilite : controle caisse, demandes d'acompte, remises de cheques et lien Addvance.
+- Remises de cheques avec photo, detection assistee, controle signature/destinataire, total et export PDF.
+- Controle caisse avec comptage especes, encaissements, ecarts, justificatifs et PDF incluant les numeros de facture.
+- Documents internes : Promo, Fiches techniques et Procedures avec bibliotheque par site.
+- Module Tapis ROMUS integre au CRM avec rendu harmonise et generation PDF.
 - Pages CRM administrables et accessibles via slugs.
 - Administration Filament pour utilisateurs, roles, modules, menus, sites, vehicules, materiel et contenus.
 - API legacy compatible avec les anciens chemins `.php`.
@@ -35,11 +41,23 @@ Ce depot contient l'application Laravel qui remplace les anciens endpoints PHP d
 - Portail CRM : `/`
 - Connexion : `/login`
 - Administration : `/admin`
+- Tableau de bord : `/dashboard/crm`
+- Reservations vehicules : `/reservations`
+- Location materiel : `/locations-materiel`
 - Conges : `/conges`
+- Rapport de visite : `/rapport-visite`
+- Controle caisse : `/controle-caisse`
+- Demandes d'acompte : `/demandes-acompte`
+- Remise de cheques : `/remise-cheques`
+- Documents : `/documents/promo`, `/documents/fiches-techniques`, `/documents/procedures`
+- Tapis ROMUS : `/tapis-romus`
 - Pages CRM : `/pages-crm`
 - API reservations : `/api/reservations`
 - API locations de materiel : `/api/equipment-rentals`
 - API conges : `/api/conges`
+- API comptabilite : `/api/controle-caisse`, `/api/demandes-acompte`, `/api/remise-cheques`
+- API documents : `/api/documents`
+- API rapport de visite : `/api/rapport-visite`
 - API pages : `/api/pages`
 - API mobile : `/api/mobile/token`, `/api/mobile/me`, `/api/mobile/logout`
 
@@ -47,15 +65,14 @@ Les routes legacy en `.php` restent exposees pour compatibilite, par exemple `/a
 
 ## Structure du depot
 
-- `app/Http/Controllers/Crm/` : endpoints CRM web, legacy et mobile.
-- `app/Services/Crm/` : logique metier des modules CRM.
-- `app/Filament/Resources/` : back-office Filament.
+- `Modules/` : modules Laravel CRM decoupes par domaine metier.
+- `app/Models/` : modeles Eloquent partages.
 - `database/migrations/` : schema Laravel et tables CRM.
-- `resources/views/` : vues CRM, login et pages.
-- `public/assets/` : assets compiles servis en production.
-- `tests/Feature/` : tests fonctionnels des API CRM.
+- `resources/views/` : vues CRM, login, erreurs et shell applicatif.
+- `public/assets/` et `public/modules/` : assets compiles servis en production.
+- `tests/Feature/` et `tests/Unit/` : tests des API CRM, services et securite.
 - `mobile/` : application mobile Capacitor connectee a l'API Sanctum.
-- `docs/` : notes de deploiement et de durcissement.
+- `docs/` : documentation technique, guide utilisateur, plaquette CRM et notes de deploiement.
 
 ## Installation
 
@@ -70,6 +87,7 @@ cp .env.example .env
 php artisan key:generate
 php artisan migrate
 npm run build
+php artisan crm:publish-module-assets --force
 php artisan serve
 ```
 
@@ -91,6 +109,7 @@ composer install
 ./vendor/bin/sail artisan migrate
 ./vendor/bin/sail npm install
 ./vendor/bin/sail npm run dev
+./vendor/bin/sail artisan crm:publish-module-assets --force
 ```
 
 Pour Sail, mettre `DB_HOST=mysql`, `DB_USERNAME=sail` et `DB_PASSWORD=password` dans le `.env` local.
@@ -103,7 +122,7 @@ vendor/bin/pint --test app routes database tests
 npm run build
 ```
 
-Des tests cibles existent notamment pour les reservations, les locations de materiel, les conges, les pages CRM et l'authentification mobile.
+Des tests cibles existent notamment pour les reservations, les locations de materiel, les conges, le controle caisse, les remises de cheques, les demandes d'acompte, les documents, les rapports de visite, les pages CRM, la PWA et l'authentification mobile.
 
 ## Deploiement
 
@@ -114,6 +133,8 @@ Regle importante : les fichiers de `public/assets` sont des sorties compilees. U
 ## Documentation
 
 - Architecture, schema ER et flux principaux : [docs/README.md](docs/README.md)
+- Guide d'utilisation utilisateur : [docs/guide-utilisation-crm-martin-sols.pdf](docs/guide-utilisation-crm-martin-sols.pdf)
+- Plaquette de presentation CRM : [docs/presentation-crm-publicitaire.pdf](docs/presentation-crm-publicitaire.pdf)
 - Historique des changements : [CHANGELOG.md](CHANGELOG.md)
 
 ## Securite

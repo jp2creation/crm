@@ -95,6 +95,7 @@ Compiler les assets :
 
 ```bash
 npm run build
+php artisan crm:publish-module-assets --force
 ```
 
 Lancer le serveur local :
@@ -166,7 +167,7 @@ php artisan test
 Executer les tests CRM les plus courants :
 
 ```bash
-php artisan test tests/Feature/CrmReservationApiTest.php tests/Feature/CrmEquipmentRentalApiTest.php tests/Feature/CrmLeaveApiTest.php tests/Feature/CrmPageApiTest.php
+php artisan test tests/Feature/CrmReservationApiTest.php tests/Feature/CrmEquipmentRentalApiTest.php tests/Feature/CrmLeaveApiTest.php tests/Feature/CrmCashControlApiTest.php tests/Feature/CrmCheckRemittanceApiTest.php tests/Feature/CrmDepositRequestApiTest.php tests/Feature/CrmDocumentsApiTest.php tests/Feature/CrmSalesToursApiTest.php
 ```
 
 Verifier le style PHP :
@@ -225,6 +226,7 @@ Sur le serveur, apres envoi du code versionne :
 composer install --no-dev --optimize-autoloader
 npm install
 npm run build
+php artisan crm:publish-module-assets --force
 php artisan migrate --force
 php artisan storage:link
 php artisan optimize:clear
@@ -237,10 +239,20 @@ Verifier ensuite :
 
 - `/login`
 - `/`
+- `/dashboard/crm`
+- `/reservations`
+- `/locations-materiel`
 - `/conges`
+- `/rapport-visite`
+- `/controle-caisse`
+- `/demandes-acompte`
+- `/remise-cheques`
+- `/documents/promo`
+- `/tapis-romus`
 - `/pages-crm`
 - `/admin`
 - `/api/conges?action=bootstrap`
+- `/api/rapport-visite?action=health`
 - `/api/mobile/me` avec un token Sanctum valide
 
 ## Variables importantes

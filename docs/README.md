@@ -28,8 +28,15 @@ flowchart LR
 - Reservations vehicules avec controle de conflits.
 - Locations de materiel avec categories, planning, demi-journee ou journee.
 - Conges bases sur les utilisateurs CRM existants lies au site.
+- Rapport de visite pour tournees commerciales, visites clients, comptes rendus et suivi des actions.
+- Controle caisse avec encaissements, sorties, comptage especes, ecarts, justificatifs et PDF.
+- Demandes d'acompte avec creation terrain et validation comptable.
+- Remises de cheques avec photos, aide OCR, controles signature/destinataire et export PDF.
+- Documents par site : Promo, Fiches techniques et Procedures.
+- Tapis ROMUS integre pour saisir les mesures et generer les PDF.
 - Pages CRM administrables.
 - Administration Filament pour les donnees de reference et permissions.
+- PWA installable via `manifest.json` et Service Worker.
 - API mobile via Sanctum.
 - Endpoints legacy `.php` conserves pour compatibilite et audites par middleware.
 - Creation admin par commande Artisan `crm:admin`, sans mot de passe stocke dans `.env.example`.
@@ -58,6 +65,22 @@ erDiagram
     crm_users ||--o| crm_leave_employees : "profil conges"
     crm_leave_employees ||--o{ crm_leave_entries : "absences"
 
+    crm_sites ||--o{ crm_cash_register_days : "caisses"
+    crm_cash_register_days ||--o{ crm_cash_movements : "lignes caisse"
+    crm_cash_register_days ||--o{ crm_cash_receipts : "factures"
+
+    crm_sites ||--o{ crm_check_remittances : "remises cheques"
+    crm_check_remittances ||--o{ crm_check_remittance_lines : "cheques"
+
+    crm_sites ||--o{ crm_deposit_requests : "acomptes"
+    crm_users ||--o{ crm_deposit_requests : "demande / validation"
+
+    crm_sites ||--o{ crm_sales_tours : "tournees"
+    crm_sales_tours ||--o{ crm_sales_visits : "visites"
+
+    crm_sites ||--o{ crm_document_directories : "dossiers"
+    crm_document_directories ||--o{ crm_documents : "documents"
+
     crm_menu_groups ||--o{ crm_menu_items : "navigation"
     crm_users ||--o{ crm_logs : "actions"
 ```
@@ -71,6 +94,12 @@ erDiagram
 - `crm_vehicles`, `crm_reservations` : flotte et planning vehicules.
 - `crm_equipment_categories`, `crm_equipment_items`, `crm_equipment_rentals` : materiel et locations.
 - `crm_leave_employees`, `crm_leave_entries` : profils conges et absences.
+- `crm_cash_register_days`, `crm_cash_movements`, `crm_cash_receipts` : controle caisse, lignes, factures et comptage.
+- `crm_cash_receipt_archives`, `notification_logs` : archivage comptable et suivi des notifications.
+- `crm_check_remittances`, `crm_check_remittance_lines` : remises de cheques, photos et montants.
+- `crm_deposit_requests` : demandes d'acompte et validation.
+- `crm_sales_tours`, `crm_sales_visits` : rapports de visite commerciaux et visites clients.
+- `crm_document_directories`, `crm_documents` : bibliotheque documentaire par categorie et site.
 - `crm_menu_groups`, `crm_menu_items` : structure du menu.
 - `crm_pages` : pages internes administrables.
 - `crm_logs` : journal metier des actions critiques, alimente par `CrmActivityLogger`.
@@ -149,9 +178,46 @@ sequenceDiagram
     Service-->>UI: planning conges actualise
 ```
 
+### Controle caisse et remises de cheques
+
+```mermaid
+sequenceDiagram
+    participant UI as Interface CRM
+    participant API as API comptabilite
+    participant Service as Service metier
+    participant DB as MySQL
+    participant PDF as Export PDF
+
+    UI->>API: creer caisse ou remise
+    API->>Service: payload valide
+    Service->>DB: transaction
+    Service->>DB: enregistre lignes, factures, cheques ou justificatifs
+    UI->>API: demander impression
+    API->>PDF: genere le document
+    PDF-->>UI: PDF telechargeable
+```
+
+### Rapport de visite
+
+```mermaid
+sequenceDiagram
+    participant UI as Interface CRM
+    participant API as SalesTourApiController
+    participant Service as SalesTourService
+    participant DB as MySQL
+
+    UI->>API: action=save_tour
+    API->>Service: utilisateur, site et date
+    Service->>DB: cree la tournee
+    UI->>API: action=save_visit
+    Service->>DB: ajoute visite client, rapport et actions
+    Service-->>UI: calendrier et liste actualises
+```
+
 ## Assets, logs et cache
 
 - Les assets servis depuis `public/assets` sont appeles avec `App\Support\CrmAsset`.
+- Les assets de modules sont publies vers `public/modules` avec `php artisan crm:publish-module-assets --force`.
 - La version d'asset est calculee par `filemtime`, ou forcee par `CRM_ASSET_VERSION`.
 - Les logs Laravel utilisent le canal `daily`, avec `LOG_DAILY_DAYS=30`.
 - Le canal `horizon` est configure en `daily` sur `storage/logs/horizon.log`.

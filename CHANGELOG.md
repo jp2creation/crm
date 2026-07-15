@@ -31,6 +31,13 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Commande `backup:run` et planification quotidienne des sauvegardes SQL compressees.
 - Page maintenance `503` personnalisee.
 - Route 404 explicite pour les anciennes pages du template UI.
+- Module Documents avec categories Promo, Fiches techniques et Procedures.
+- Module Demande d'acompte avec creation, suivi et validation comptable.
+- Module Rapport de visite pour les tournees commerciales, visites clients, comptes rendus et actions.
+- Module Remise de cheques avec photo, controles signature/destinataire, detection assistee et export PDF.
+- Evolution du module Controle caisse avec factures, comptage especes, ecarts, justificatifs et PDF.
+- PWA installable avec `manifest.json`, Service Worker et scripts de boot public.
+- Guide d'utilisation PDF complet et plaquette de presentation CRM dans `docs/`.
 
 ### Changed
 
@@ -50,6 +57,8 @@ etre taguees dans Git avec la convention `vYYYY.MM.DD.N`.
 - Le menu CRM se limite aux modules reels : applications metier, administration/interne et pages internes seulement si elles existent.
 - La documentation de deploiement rappelle la generation du cache vues et le controle du scheduler.
 - Le rewrite Apache ne force plus les anciens chemins `/auth`, `/dashboard`, `/forms`, `/tables`, `/charts`, `/pages` et `/features` vers le CRM.
+- Le menu place maintenant `Conges` dans `Applications CRM`, juste sous `Equipe`.
+- Le README et la documentation technique listent les modules recents, les routes, les tables et la procedure de publication des assets modules.
 
 ### Removed
 
