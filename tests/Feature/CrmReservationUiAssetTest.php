@@ -22,16 +22,21 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('#16a34a', $reservationAsset);
         $this->assertStringContainsString('#dc2626', $reservationAsset);
         $this->assertStringContainsString('function ReservationAvailabilityLegend', $reservationAsset);
+        $this->assertStringContainsString('function ReservationPeriodLegend', $reservationAsset);
+        $this->assertStringContainsString('ReservationAvailabilityLegend : ReservationPeriodLegend', $reservationAsset);
         $this->assertStringContainsString('`Disponible`', $reservationAsset);
         $this->assertStringContainsString('`R\\u00e9serv\\u00e9`', $reservationAsset);
-        $this->assertStringNotContainsString('function ReservationPeriodLegend', $reservationAsset);
+        $this->assertStringContainsString('`Matin`', $reservationAsset);
+        $this->assertStringContainsString('`Apr\\u00e8s-midi`', $reservationAsset);
+        $this->assertStringContainsString('`Journ\\u00e9e compl\\u00e8te`', $reservationAsset);
+        $this->assertStringNotContainsString('className: `reservation-day-pills`', $reservationAsset);
         $this->assertStringContainsString('function ReservationMobileDaySlots', $reservationAsset);
         $this->assertStringContainsString('reservation-mobile-day-slots', $reservationAsset);
         $this->assertStringContainsString('reservation-mobile-slot-button', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071601', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071601', $indexAsset);
+        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071602', $indexAsset);
+        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071602', $indexAsset);
         $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071404', $indexAsset);
     }
 }

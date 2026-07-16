@@ -690,6 +690,49 @@ function ReservationAvailabilityLegend() {
         ],
     });
 }
+function ReservationPeriodLegend() {
+    return (0, S.jsxs)(`div`, {
+        className: `flex flex-wrap items-center justify-center gap-4 border-t border-surface-200 bg-white px-4 py-3 text-ui-xs font-semibold text-secondary-600 dark:border-surface-700 dark:bg-surface-900 dark:text-secondary-300`,
+        children: [
+            (0, S.jsxs)(`span`, {
+                className: `inline-flex items-center gap-2`,
+                children: [
+                    (0, S.jsx)(`i`, {
+                        className: `h-4 w-4 rounded-md shadow-sm`,
+                        style: {
+                            background: `linear-gradient(135deg,#55cbc5 0%,#10aaa4 100%)`,
+                        },
+                    }),
+                    `Matin`,
+                ],
+            }),
+            (0, S.jsxs)(`span`, {
+                className: `inline-flex items-center gap-2`,
+                children: [
+                    (0, S.jsx)(`i`, {
+                        className: `h-4 w-4 rounded-md shadow-sm`,
+                        style: {
+                            background: `linear-gradient(135deg,#ff8b7d 0%,#ff5e52 100%)`,
+                        },
+                    }),
+                    `Apr\u00e8s-midi`,
+                ],
+            }),
+            (0, S.jsxs)(`span`, {
+                className: `inline-flex items-center gap-2`,
+                children: [
+                    (0, S.jsx)(`i`, {
+                        className: `h-4 w-4 rounded-md shadow-sm`,
+                        style: {
+                            background: `linear-gradient(135deg,#5d7cff 0%,#3f5ee6 100%)`,
+                        },
+                    }),
+                    `Journ\u00e9e compl\u00e8te`,
+                ],
+            }),
+        ],
+    });
+}
 function ReservationTimelineStyles() {
     return (0, S.jsx)(`style`, {
         children: `
@@ -1580,25 +1623,6 @@ function V({
                             }),
                         ],
                     }),
-                    (0, S.jsxs)(`div`, {
-                        className: `reservation-day-pills`,
-                        children: [
-                            (0, S.jsxs)(`span`, {
-                                className: `reservation-day-pill reservation-day-pill-morning`,
-                                children: [
-                                    (0, S.jsx)(`i`, {}),
-                                    y ? `Matin ${M(D(y.start))}-${M(D(y.end))}` : `Ouverture ${d.dayStart}`,
-                                ],
-                            }),
-                            (0, S.jsxs)(`span`, {
-                                className: `reservation-day-pill reservation-day-pill-afternoon`,
-                                children: [
-                                    (0, S.jsx)(`i`, {}),
-                                    b ? `Apr\u00e8s-midi ${M(D(b.start))}-${M(D(b.end))}` : `Fermeture ${d.dayEnd}`,
-                                ],
-                            }),
-                        ],
-                    }),
                 ],
             }),
             (0, S.jsx)(`div`, {
@@ -1685,7 +1709,7 @@ function he({
                     canEditReservation: s,
                     onEditReservation: c,
                 }),
-            (0, S.jsx)(ReservationAvailabilityLegend, {}),
+            (0, S.jsx)(f === `day` ? ReservationAvailabilityLegend : ReservationPeriodLegend, {}),
         ],
     });
 }
