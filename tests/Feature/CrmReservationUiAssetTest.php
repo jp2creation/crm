@@ -30,8 +30,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-mobile-slot-button', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071416', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071416', $indexAsset);
+        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071601', $indexAsset);
+        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071601', $indexAsset);
         $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071404', $indexAsset);
     }
 }
