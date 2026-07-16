@@ -42,7 +42,7 @@ class CrmVehicle extends Model
             $site = $vehicle->site_id ? CrmSite::query()->find($vehicle->site_id) : null;
             $hours = $vehicle->dailyReservationHours($site);
 
-            if (static::minutes($hours['end'], '17:30') <= static::minutes($hours['start'], '07:30')) {
+            if (static::minutes($hours['end'], '19:00') <= static::minutes($hours['start'], '06:00')) {
                 throw ValidationException::withMessages([
                     'day_end_time' => 'L heure de fermeture du vehicule doit etre apres l heure d ouverture.',
                 ]);
@@ -98,8 +98,8 @@ class CrmVehicle extends Model
     public function dailyReservationHours(?CrmSite $site = null): array
     {
         return [
-            'start' => static::time5($this->day_start_time, $site?->morning_start ?: '07:30'),
-            'end' => static::time5($this->day_end_time, $site?->afternoon_end ?: '17:30'),
+            'start' => static::time5($this->day_start_time, '06:00'),
+            'end' => static::time5($this->day_end_time, '19:00'),
         ];
     }
 
@@ -122,8 +122,8 @@ class CrmVehicle extends Model
         $hours = $this->dailyReservationHours($site);
         $startMinute = ($start->hour * 60) + $start->minute;
         $endMinute = ($end->hour * 60) + $end->minute;
-        $allowedStart = static::minutes($hours['start'], '07:30');
-        $allowedEnd = static::minutes($hours['end'], '17:30');
+        $allowedStart = static::minutes($hours['start'], '06:00');
+        $allowedEnd = static::minutes($hours['end'], '19:00');
 
         return $endMinute > $startMinute
             && $startMinute >= $allowedStart

@@ -60,16 +60,18 @@ class CrmReservation extends Model
             if ($reservation->site_id && $reservation->start_at && $reservation->end_at) {
                 $site = CrmSite::query()->find($reservation->site_id);
 
-                if ($site && ! $site->containsOpeningPeriod($reservation->start_at, $reservation->end_at)) {
-                    throw ValidationException::withMessages([
-                        'start_at' => 'Ce creneau est hors horaires du site.',
-                    ]);
-                }
-
-                if ($vehicle && ! $vehicle->containsReservationPeriod($reservation->start_at, $reservation->end_at, $site)) {
-                    throw ValidationException::withMessages([
-                        'start_at' => 'Ce creneau est hors horaires du vehicule.',
-                    ]);
+                if ($site) {
+                    if ($vehicle) {
+                        if (! $vehicle->containsReservationPeriod($reservation->start_at, $reservation->end_at, $site)) {
+                            throw ValidationException::withMessages([
+                                'start_at' => 'Ce creneau est hors horaires du vehicule.',
+                            ]);
+                        }
+                    } elseif (! $site->containsOpeningPeriod($reservation->start_at, $reservation->end_at)) {
+                        throw ValidationException::withMessages([
+                            'start_at' => 'Ce creneau est hors horaires du site.',
+                        ]);
+                    }
                 }
             }
 

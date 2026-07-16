@@ -103,6 +103,46 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('reservation.title', 'Dans les horaires');
     }
 
+    public function test_vehicle_default_day_hours_allow_extended_day_view_slots(): void
+    {
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-07T06:00',
+                'endAt' => '2026-08-07T12:30',
+                'title' => 'Matin par defaut',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('reservation.startAt', '2026-08-07T06:00')
+            ->assertJsonPath('reservation.endAt', '2026-08-07T12:30');
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-08T13:00',
+                'endAt' => '2026-08-08T19:00',
+                'title' => 'Apres-midi par defaut',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('reservation.startAt', '2026-08-08T13:00')
+            ->assertJsonPath('reservation.endAt', '2026-08-08T19:00');
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-09T05:30',
+                'endAt' => '2026-08-09T06:30',
+                'title' => 'Trop tot',
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Creneau hors horaires du vehicule');
+    }
+
     public function test_create_permission_is_required_to_create_reservation(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.view']);

@@ -131,12 +131,18 @@ var S = n(),
         month: `2-digit`,
     }),
     w = new Intl.DateTimeFormat(`fr-FR`, { month: `long`, year: `numeric` }),
+    vehicleDefaultDayHours = {
+        morningStart: `06:00`,
+        morningEnd: `12:30`,
+        afternoonStart: `13:00`,
+        afternoonEnd: `19:00`,
+    },
     ue = {
         vehicleId: `1`,
         title: ``,
         contactPhone: ``,
-        startAt: `2026-07-22T07:30`,
-        endAt: `2026-07-22T12:00`,
+        startAt: `2026-07-22T06:00`,
+        endAt: `2026-07-22T12:30`,
         notes: ``,
     };
 function T(e) {
@@ -218,20 +224,18 @@ function siteTimeFromMinutes(e, t) {
     return n.setHours(Math.floor(t / 60), t % 60, 0, 0), n;
 }
 function vehicleHours(e, t) {
-    let n = siteHours(t),
-        r = String(e?.dayStartTime || e?.day_start_time || n.morningStart).slice(0, 5),
-        i = String(e?.dayEndTime || e?.day_end_time || n.afternoonEnd).slice(0, 5);
+    let r = String(e?.dayStartTime || e?.day_start_time || vehicleDefaultDayHours.morningStart).slice(0, 5),
+        i = String(e?.dayEndTime || e?.day_end_time || vehicleDefaultDayHours.afternoonEnd).slice(0, 5);
     return timeMinutes(i) <= timeMinutes(r)
-        ? { dayStart: n.morningStart, dayEnd: n.afternoonEnd }
+        ? { dayStart: vehicleDefaultDayHours.morningStart, dayEnd: vehicleDefaultDayHours.afternoonEnd }
         : { dayStart: r, dayEnd: i };
 }
 function vehicleDaySlots(e, t, n) {
-    let r = siteHours(n),
-        i = vehicleHours(t, n),
-        a = Math.max(timeMinutes(i.dayStart), timeMinutes(r.morningStart)),
-        o = Math.min(timeMinutes(i.dayEnd), timeMinutes(r.morningEnd)),
-        s = Math.max(timeMinutes(i.dayStart), timeMinutes(r.afternoonStart)),
-        c = Math.min(timeMinutes(i.dayEnd), timeMinutes(r.afternoonEnd)),
+    let i = vehicleHours(t, n),
+        a = Math.max(timeMinutes(i.dayStart), timeMinutes(vehicleDefaultDayHours.morningStart)),
+        o = Math.min(timeMinutes(i.dayEnd), timeMinutes(vehicleDefaultDayHours.morningEnd)),
+        s = Math.max(timeMinutes(i.dayStart), timeMinutes(vehicleDefaultDayHours.afternoonStart)),
+        c = Math.min(timeMinutes(i.dayEnd), timeMinutes(vehicleDefaultDayHours.afternoonEnd)),
         l = [];
     return (
         o > a &&
@@ -804,6 +808,10 @@ function ReservationTimelineStyles() {
 .reservation-day-segment-line{position:absolute;top:.7rem;bottom:.7rem;width:1px;background:rgba(15,23,42,.08)}
 .reservation-day-row-empty{position:absolute;top:1.05rem;bottom:1.05rem;z-index:1;display:flex;align-items:center;justify-content:center;border:1px dashed #16a34a;border-radius:.82rem;background:linear-gradient(135deg,#ecfdf5 0%,#dcfce7 100%);color:#166534;font-size:.75rem;font-weight:850;transition:border-color .15s,background .15s,color .15s,box-shadow .15s}
 .reservation-day-row-empty:hover{border-color:#15803d;background:linear-gradient(135deg,#dcfce7 0%,#bbf7d0 100%);color:#14532d;box-shadow:0 10px 22px rgba(22,163,74,.16)}
+.reservation-day-cell-button{position:absolute;top:1.05rem;bottom:1.05rem;z-index:1;display:flex;min-width:3.9rem;align-items:center;justify-content:center;border:1px dashed rgba(22,163,74,.56);border-radius:.55rem;background:rgba(236,253,245,.78);color:#166534;font-size:.62rem;font-weight:900;line-height:1;transition:border-color .15s,background .15s,color .15s,box-shadow .15s,transform .15s}
+.reservation-day-cell-button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reservation-day-cell-button:hover{border-color:#0f8f3d;background:#dcfce7;box-shadow:0 9px 18px rgba(22,163,74,.14)}
+.reservation-day-cell-button.is-selected{z-index:3;border-color:#95002e;background:linear-gradient(135deg,#95002e 0%,#c20b46 100%);color:#fff;box-shadow:0 12px 24px rgba(149,0,46,.22);transform:translateY(-1px)}
 .reservation-day-board .reservation-event-card{border-color:#dc2626!important;background:linear-gradient(135deg,#dc2626 0%,#95002e 100%)!important;color:#fff!important}
 .reservation-day-board .reservation-event-card span,.reservation-day-board .reservation-event-card p{color:#fff!important}
 .reservation-day-board .reservation-event-card>span:first-child{background-color:#fff!important;box-shadow:0 0 0 3px rgba(255,255,255,.28)!important}
@@ -907,6 +915,7 @@ function ReservationTimelineStyles() {
   .reservation-mobile-slot-label{margin-top:.18rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.52rem;font-weight:850;line-height:1.05;opacity:.9}
   .reservation-mobile-slot-button.is-booked{border-color:#dc2626!important;background:linear-gradient(135deg,#dc2626 0%,#95002e 100%)!important;color:#fff!important;box-shadow:0 7px 16px rgba(149,0,46,.2)}
   .reservation-mobile-slot-button.is-booked span{color:#fff!important}
+  .reservation-mobile-slot-button.is-selecting{border-color:#95002e!important;background:linear-gradient(135deg,#95002e 0%,#c20b46 100%)!important;color:#fff!important;box-shadow:0 9px 18px rgba(149,0,46,.24)}
   .reservation-day-board-inner{min-width:520px;grid-template-columns:64px minmax(456px,1fr);grid-template-rows:36px repeat(2,76px)}
   .reservation-day-hour-axis span{font-size:.54rem;font-weight:850}
   .reservation-day-row-label{gap:.06rem;padding:.36rem .42rem}
@@ -976,6 +985,23 @@ function reservationSegmentStyle(e, t) {
         i = ((n - t.start) / t.total) * 100,
         a = Math.max(((r - n) / t.total) * 100, 0);
     return { left: `${i}%`, width: `${a}%` };
+}
+function reservationCellIsSelected(e, t, n, r) {
+    return !!(
+        t &&
+        n &&
+        t.vehicleId === n.id &&
+        t.date === E(r) &&
+        t.startAt === D(e.start)
+    );
+}
+function reservationRangeIsFree(e, t, n, r) {
+    return !!n && !r.some((r) => r.vehicleId === n.id && P(e, t, r.startAt, r.endAt));
+}
+function reservationCellPeriod(e) {
+    return timeMinutes(String(e).slice(11, 16)) < timeMinutes(vehicleDefaultDayHours.afternoonStart)
+        ? `morning`
+        : `afternoon`;
 }
 function ReservationTimeLines({ bounds: e }) {
     return (0, S.jsx)(S.Fragment, {
@@ -1056,12 +1082,14 @@ function ReservationDayRow({
     canEditReservation: o,
     onEditReservation: s,
     onSelectSlot: l,
+    selection: c,
 }) {
     let u = D(e.start),
         f = D(e.end),
         p = r.filter((t) => P(u, f, t.startAt, t.endAt)),
         m = reservationSegmentStyle(e, t),
-        h = e.key === `morning` ? `reservation-day-row-track-morning` : `reservation-day-row-track-afternoon`;
+        h = e.key === `morning` ? `reservation-day-row-track-morning` : `reservation-day-row-track-afternoon`,
+        y = reservationMobileCells(e, r).filter((e) => !e.reservation);
     return (0, S.jsxs)(S.Fragment, {
         children: [
             (0, S.jsxs)(`div`, {
@@ -1084,14 +1112,26 @@ function ReservationDayRow({
                 },
                 children: [
                     (0, S.jsx)(ReservationDayGridLines, { bounds: t, slot: e }),
-                    p.length === 0 &&
-                        (0, S.jsx)(`button`, {
-                            type: `button`,
-                            className: `reservation-day-row-empty`,
-                            style: m,
-                            onClick: () => l(u, f),
-                            children: `Cr\u00e9neau disponible`,
-                        }),
+                    y.map((e) => {
+                        let selected = reservationCellIsSelected(e, c, i, n);
+                        return (0, S.jsx)(
+                            `button`,
+                            {
+                                type: `button`,
+                                className: `reservation-day-cell-button ${selected ? `is-selected` : ``}`,
+                                style: reservationSegmentStyle(e, t),
+                                onClick: () => l(D(e.start), D(e.end)),
+                                children: (0, S.jsxs)(`span`, {
+                                    children: [
+                                        M(D(e.start)),
+                                        `-`,
+                                        M(D(e.end)),
+                                    ],
+                                }),
+                            },
+                            `${e.start.toISOString()}-free`,
+                        );
+                    }),
                     p.map((e) => {
                         let r = reservationHorizontalPosition(e, t, n, {
                             start: siteTime(n, M(u)),
@@ -1149,6 +1189,7 @@ function ReservationMobileDaySlots({
     site: r,
     onEditReservation: i,
     onSelectSlot: a,
+    selection: selectedRange,
 }) {
     return (0, S.jsx)(`div`, {
         className: `reservation-mobile-day-slots`,
@@ -1172,14 +1213,15 @@ function ReservationMobileDaySlots({
                         o.map((e) => {
                             let t = e.reservation,
                                 o = t ? reservationPeriodTone(t, r) : null,
-                                s = t?.title || n?.name || `R\u00e9serv\u00e9`;
+                                s = t?.title || n?.name || `R\u00e9serv\u00e9`,
+                                isSelected = !t && reservationCellIsSelected(e, selectedRange, n, e.start);
                             return (0, S.jsxs)(
                                 `button`,
                                 {
                                     type: `button`,
                                     className: `reservation-mobile-slot-button ${
                                         t ? `is-booked` : `is-free`
-                                    }`,
+                                    } ${isSelected ? `is-selecting` : ``}`,
                                     style: t
                                         ? {
                                               borderColor: o.border,
@@ -1198,6 +1240,13 @@ function ReservationMobileDaySlots({
                                             (0, S.jsx)(`span`, {
                                                 className: `reservation-mobile-slot-label`,
                                                 children: s,
+                                            }),
+                                        !t &&
+                                            (0, S.jsx)(`span`, {
+                                                className: `reservation-mobile-slot-label`,
+                                                children: isSelected
+                                                    ? `Debut choisi`
+                                                    : `Fin ${M(D(e.end))}`,
                                             }),
                                     ],
                                 },
@@ -1585,6 +1634,7 @@ function V({
     vehicles: n,
     site: r,
     onSelectSlot: i,
+    selection: selectedRange,
     canEditReservation: a,
     onEditReservation: o,
 }) {
@@ -1645,6 +1695,7 @@ function V({
                                     canEditReservation: a,
                                     onEditReservation: o,
                                     onSelectSlot: i,
+                                    selection: selectedRange,
                                 },
                                 t.key,
                             ),
@@ -1659,6 +1710,7 @@ function V({
                 site: r,
                 onEditReservation: o,
                 onSelectSlot: i,
+                selection: selectedRange,
             }),
         ],
     });
@@ -1672,6 +1724,7 @@ function he({
     onViewChange: i,
     onFocusDateChange: a,
     onSelectSlot: o,
+    selection: selectedRange,
     canEditReservation: s,
     onEditReservation: c,
 }) {
@@ -1706,6 +1759,7 @@ function he({
                     vehicles: r,
                     site: p,
                     onSelectSlot: o,
+                    selection: selectedRange,
                     canEditReservation: s,
                     onEditReservation: c,
                 }),
@@ -2265,7 +2319,8 @@ function W() {
         [me, V] = (0, _.useState)(!1),
         [H, U] = (0, _.useState)(null),
         [W, xe] = (0, _.useState)(null),
-        [Pe, Fe] = (0, _.useState)(null);
+        [Pe, Fe] = (0, _.useState)(null),
+        [daySelection, setDaySelection] = (0, _.useState)(null);
     ((0, _.useEffect)(() => {
         let e = !0;
         return (
@@ -2364,15 +2419,16 @@ function W() {
         Q = (0, _.useCallback)((e) => fe(K, G, e), [G, K]),
         Oe = De ? Q(De) : N(K, `reservations.create`),
         ke = (0, _.useCallback)(() => {
-            (B(!1), j(null), U(null));
+            (B(!1), j(null), U(null), setDaySelection(null));
         }, []);
-    function Ae(e, t) {
+    function openReservationRange(e, t) {
         if (!e || !t) {
             let n = vehicleDaySlots(le, selectedVehicle, q)[0];
             e = D(n.start);
             t = D(n.end);
         }
         (j(null),
+            setDaySelection(null),
             U(null),
             k((n) => {
                 let i = selectedVehicle,
@@ -2410,8 +2466,67 @@ function W() {
             }),
             B(!0));
     }
+    function Ae(e, t) {
+        if (!e || !t) {
+            openReservationRange(e, t);
+            return;
+        }
+        let n = selectedVehicle ?? J[0] ?? null;
+        if (!n) {
+            j({ type: `error`, message: `Selectionne un vehicule avant de reserver.` });
+            return;
+        }
+        let r = e.slice(0, 10),
+            i = reservationCellPeriod(e);
+        if (
+            !daySelection ||
+            daySelection.vehicleId !== n.id ||
+            daySelection.date !== r ||
+            daySelection.period !== i
+        ) {
+            (setDaySelection({
+                vehicleId: n.id,
+                date: r,
+                period: i,
+                startAt: e,
+                endAt: t,
+            }),
+                j({
+                    type: `success`,
+                    message: `Debut choisi a ${e.slice(11, 16)}. Clique sur la fin du creneau.`,
+                }));
+            return;
+        }
+        let a = daySelection.startAt,
+            o = t;
+        T(e) < T(a) && ((o = a), (a = e));
+        if (T(o) <= T(a)) {
+            (setDaySelection({
+                vehicleId: n.id,
+                date: r,
+                period: i,
+                startAt: e,
+                endAt: t,
+            }),
+                j({
+                    type: `success`,
+                    message: `Debut choisi a ${e.slice(11, 16)}. Clique sur la fin du creneau.`,
+                }));
+            return;
+        }
+        if (!reservationRangeIsFree(a, o, n, Y)) {
+            (setDaySelection(null),
+                j({
+                    type: `error`,
+                    message: `Creneau indisponible : ce vehicule est deja reserve sur cette periode.`,
+                }));
+            return;
+        }
+        openReservationRange(a, o);
+    }
     function $(e) {
         (j(null),
+            setDaySelection(null),
             V(!1),
             U(e.id),
             k({
@@ -2428,12 +2543,12 @@ function W() {
     function je(e) {
         let n = Number(e),
             r = l.find((e) => e.siteId === n && e.active);
-        (t(n), Fe(null), k((e) => ({ ...e, vehicleId: String(r?.id ?? ``) })));
+        (t(n), Fe(null), setDaySelection(null), k((e) => ({ ...e, vehicleId: String(r?.id ?? ``) })));
     }
     function selectVehicle(e) {
         let n = Number(e) || null,
             r = J.find((e) => e.id === n);
-        (Fe(n), r && k((e) => ({ ...e, vehicleId: String(r.id) })));
+        (Fe(n), setDaySelection(null), r && k((e) => ({ ...e, vehicleId: String(r.id) })));
     }
     async function Me(e) {
         (e.preventDefault(), j(null));
@@ -2623,7 +2738,7 @@ function W() {
                                       reservations: Y,
                                       selectedVehicle: selectedVehicle,
                                       onSelect: selectVehicle,
-                                      onClear: () => Fe(null),
+                                      onClear: () => (Fe(null), setDaySelection(null)),
                                   }),
                                   selectedVehicle &&
                                       (0, S.jsx)(he, {
@@ -2635,6 +2750,7 @@ function W() {
                                           onViewChange: ce,
                                           onFocusDateChange: C,
                                           onSelectSlot: Ae,
+                                          selection: daySelection,
                                           canEditReservation: Q,
                                           onEditReservation: $,
                                       }),

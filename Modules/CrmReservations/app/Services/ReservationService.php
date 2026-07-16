@@ -109,7 +109,6 @@ class ReservationService
             }
 
             $this->requireSitePermission($actor, (int) $site->id, 'reservations.create');
-            $this->requireWithinSiteHours($site, $startAt, $endAt);
             $this->requireWithinVehicleHours($vehicle, $site, $startAt, $endAt);
             $this->requireNoReservationConflict($vehicleId, $startAt, $endAt);
 
@@ -187,7 +186,6 @@ class ReservationService
                 $this->fail('Site non autorise', 403);
             }
 
-            $this->requireWithinSiteHours($site, $startAt, $endAt);
             $this->requireWithinVehicleHours($vehicle, $site, $startAt, $endAt);
             $this->requireNoReservationConflict($vehicleId, $startAt, $endAt, $id);
 
