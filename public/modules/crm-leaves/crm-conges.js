@@ -302,18 +302,6 @@
     `;
   }
 
-  function exportStats(leaves) {
-    const { first, last } = monthBounds();
-    const active = leaves.filter((leave) => leave.status !== "refused");
-
-    return {
-      employees: new Set(active.map((leave) => Number(leave.employeeId))).size,
-      entries: leaves.length,
-      days: active.reduce((sum, leave) => sum + overlapDays(leave, first, last), 0),
-      pending: leaves.filter((leave) => leave.status === "pending").length,
-    };
-  }
-
   function reportLeavesForDate(date, leaves) {
     return leaves
       .filter((leave) => leave.status !== "refused" && leave.startDate <= date && leave.endDate >= date)
@@ -324,109 +312,128 @@
       ));
   }
 
-  function renderExportCalendar(leaves) {
-    const days = calendarDays(state.month);
+  function exportMonthDays() {
+    const days = [];
+    const current = new Date(state.month.getFullYear(), state.month.getMonth(), 1);
+    const last = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 0);
 
-    return `
-      <section class="pdf-section">
-        <div class="pdf-section-head">
-          <h2>Planning mensuel</h2>
-          <p>${esc(monthLabel(state.month))}</p>
-        </div>
-        <div class="pdf-calendar">
-          ${["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => `<div class="pdf-weekday">${day}</div>`).join("")}
-          ${days.map((day) => {
-            const date = formatDate(day);
-            const dayLeaves = reportLeavesForDate(date, leaves);
-            const visible = dayLeaves.slice(0, 4);
-            const more = dayLeaves.length - visible.length;
-            const classes = [
-              "pdf-day",
-              day.getMonth() !== state.month.getMonth() ? "is-other" : "",
-              date === state.selectedDate ? "is-selected" : "",
-            ].filter(Boolean).join(" ");
-
-            return `
-              <div class="${classes}">
-                <div class="pdf-day-number">${day.getDate()}</div>
-                <div class="pdf-day-list">
-                  ${visible.map((leave) => {
-                    const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
-                    return `
-                      <span class="pdf-day-leave" style="--leave-color:${esc(color)}">
-                        <strong>${esc(leave.employeeName)}</strong>
-                        <em>${esc(periodLabel(leave.period))}</em>
-                      </span>
-                    `;
-                  }).join("")}
-                  ${more > 0 ? `<span class="pdf-day-more">+${more} autre(s)</span>` : ""}
-                </div>
-              </div>
-            `;
-          }).join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  function renderExportLegend(leaves) {
-    const employeeIds = new Set(leaves.map((leave) => Number(leave.employeeId)));
-    const visible = employees().filter((employee) => employeeIds.has(Number(employee.id)));
-
-    if (!visible.length) return "";
-
-    return `
-      <section class="pdf-legend">
-        ${visible.map((employee) => `
-          <span>
-            <i style="background:${esc(normalizeColor(employee.color, "#38bdf8"))}"></i>
-            ${esc(employee.name)}
-          </span>
-        `).join("")}
-      </section>
-    `;
-  }
-
-  function renderExportRows(leaves) {
-    if (!leaves.length) {
-      return '<div class="pdf-empty">Aucune donnee a exporter pour ce mois avec les filtres actuels.</div>';
+    while (current <= last) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
     }
 
+    return days;
+  }
+
+  function exportEmployees(leaves) {
+    const list = employees();
+    if (state.filters.employeeId !== "all") {
+      return list.filter((employee) => Number(employee.id) === Number(state.filters.employeeId));
+    }
+
+    const query = state.filters.query.trim().toLowerCase();
+    if (!query) return list;
+
+    const visibleEmployeeIds = new Set(leaves.map((leave) => Number(leave.employeeId)));
+    return list.filter((employee) => (
+      visibleEmployeeIds.has(Number(employee.id))
+      || String(employee.name || "").toLowerCase().includes(query)
+    ));
+  }
+
+  function shortWeekday(date) {
+    return date.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "");
+  }
+
+  function isWeekend(date) {
+    return date.getDay() === 0 || date.getDay() === 6;
+  }
+
+  function leaveTypeCode(type) {
+    return {
+      conge: "CP",
+      rtt: "RTT",
+      absence: "ABS",
+      formation: "FOR",
+      maladie: "MAL",
+    }[type] || String(type || "").slice(0, 3).toUpperCase() || "ABS";
+  }
+
+  function periodShortLabel(period) {
+    return {
+      morning: "M",
+      afternoon: "AM",
+    }[period] || "";
+  }
+
+  function employeeMonthTotal(employee, leaves) {
     const { first, last } = monthBounds();
+    return leaves
+      .filter((leave) => leave.status !== "refused" && Number(leave.employeeId) === Number(employee.id))
+      .reduce((sum, leave) => sum + overlapDays(leave, first, last), 0);
+  }
+
+  function exportCellLeaves(employee, date, leaves) {
+    return reportLeavesForDate(date, leaves)
+      .filter((leave) => Number(leave.employeeId) === Number(employee.id));
+  }
+
+  function renderExportPlanning(leaves) {
+    const days = exportMonthDays();
+    const rows = exportEmployees(leaves);
+
+    if (!rows.length) {
+      return '<div class="pdf-empty">Aucun utilisateur a exporter pour ce mois avec les filtres actuels.</div>';
+    }
 
     return `
-      <section class="pdf-section">
-        <div class="pdf-section-head">
-          <h2>Detail des absences</h2>
-          <p>${leaves.length} ligne(s)</p>
-        </div>
-        <table class="pdf-table">
+      <section class="pdf-sheet">
+        <div class="pdf-month-band">${esc(monthLabel(state.month))}</div>
+        <table class="pdf-planning-table" style="--day-count:${days.length}">
+          <colgroup>
+            <col class="pdf-col-employee">
+            <col class="pdf-col-total">
+            ${days.map(() => '<col class="pdf-col-day">').join("")}
+          </colgroup>
           <thead>
             <tr>
-              <th>Utilisateur</th>
-              <th>Type</th>
-              <th>Periode</th>
-              <th>Dates</th>
-              <th>Jours</th>
-              <th>Statut</th>
-              <th>Notes</th>
+              <th class="pdf-employee-head" rowspan="2">Utilisateur</th>
+              <th class="pdf-total-head" rowspan="2">Total</th>
+              ${days.map((day) => `<th class="pdf-weekday-head ${isWeekend(day) ? "is-weekend" : ""}">${esc(shortWeekday(day))}</th>`).join("")}
+            </tr>
+            <tr>
+              ${days.map((day) => `<th class="pdf-day-head ${isWeekend(day) ? "is-weekend" : ""}">${day.getDate()}</th>`).join("")}
             </tr>
           </thead>
           <tbody>
-            ${leaves.map((leave) => {
-              const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
-              const range = leave.startDate === leave.endDate
-                ? dateLabel(leave.startDate)
-                : `${dateLabel(leave.startDate)} au ${dateLabel(leave.endDate)}`;
+            ${rows.map((employee) => {
+              const total = employeeMonthTotal(employee, leaves);
               return `
                 <tr>
-                  <td><span class="pdf-user"><i style="background:${esc(color)}"></i>${esc(leave.employeeName)}</span></td>
-                  <td>${esc(typeMeta(leave.type).label)}</td>
-                  <td>${esc(periodLabel(leave.period))}</td>
-                  <td>${esc(range)}</td>
-                  <td>${esc(formatDaysCount(overlapDays(leave, first, last)))}</td>
-                  <td>${esc(statusLabel(leave.status))}</td>
-                  <td>${esc(leave.notes || "")}</td>
+                  <th class="pdf-employee-cell">${esc(employee.name)}</th>
+                  <td class="pdf-total-cell">${total ? esc(formatDaysCount(total)) : ""}</td>
+                  ${days.map((day) => {
+                    const date = formatDate(day);
+                    const cellLeaves = exportCellLeaves(employee, date, leaves);
+                    const visible = cellLeaves.slice(0, 2);
+                    const more = cellLeaves.length - visible.length;
+
+                    return `
+                      <td class="pdf-date-cell ${isWeekend(day) ? "is-weekend" : ""} ${cellLeaves.length ? "has-leave" : ""}">
+                        ${visible.map((leave) => {
+                          const meta = typeMeta(leave.type);
+                          const color = normalizeColor(meta.color || "#38bdf8");
+                          const period = periodShortLabel(leave.period);
+                          return `
+                            <span class="pdf-absence-chip ${leave.status === "pending" ? "is-pending" : ""}" style="--absence-color:${esc(color)}">
+                              <b>${esc(leaveTypeCode(leave.type))}</b>${period ? `<small>${esc(period)}</small>` : ""}
+                            </span>
+                          `;
+                        }).join("")}
+                        ${more > 0 ? `<span class="pdf-more">+${more}</span>` : ""}
+                      </td>
+                    `;
+                  }).join("")}
                 </tr>
               `;
             }).join("")}
@@ -436,11 +443,36 @@
     `;
   }
 
+  function renderExportLegend(leaves) {
+    const activeTypes = new Set(leaves.filter((leave) => leave.status !== "refused").map((leave) => leave.type));
+    const types = (state.data?.types || []).filter((type) => activeTypes.has(type.value) || !activeTypes.size);
+
+    return `
+      <section class="pdf-legend">
+        <strong>Légende</strong>
+        ${types.map((type) => {
+          const color = normalizeColor(type.color, "#38bdf8");
+          return `
+            <span>
+              <i style="background:${esc(color)}"></i>
+              <b>${esc(leaveTypeCode(type.value))}</b>
+              ${esc(type.label)}
+            </span>
+          `;
+        }).join("")}
+        <span><em class="pdf-pending-mark"></em>En attente de validation</span>
+      </section>
+    `;
+  }
+
   function exportDocumentHtml() {
     const leaves = monthReportLeaves();
-    const stats = exportStats(leaves);
     const title = `Congés - ${activeSiteName()} - ${monthLabel(state.month)}`;
     const generatedAt = new Date().toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+    const days = exportMonthDays();
+    const period = days.length
+      ? `${dateLabel(formatDate(days[0]))} au ${dateLabel(formatDate(days[days.length - 1]))}`
+      : monthLabel(state.month);
 
     return `<!doctype html>
       <html lang="fr">
@@ -448,67 +480,70 @@
           <meta charset="utf-8">
           <title>${esc(title)}</title>
           <style>
-            @page { size:A4 landscape; margin:10mm; }
+            @page { size:A4 landscape; margin:8mm; }
             * { box-sizing:border-box; }
-            body { margin:0; background:#fff; color:#172033; font-family:Inter, Arial, sans-serif; font-size:11px; }
-            .pdf-page { display:grid; gap:10px; }
-            .pdf-top { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; border-bottom:3px solid #95002e; padding-bottom:8px; }
-            .pdf-kicker { margin:0 0 4px; color:#95002e; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.04em; }
-            h1 { margin:0; color:#172033; font-size:25px; line-height:1; }
-            .pdf-subtitle { margin:5px 0 0; color:#64748b; font-size:11px; font-weight:700; }
-            .pdf-meta { text-align:right; color:#64748b; font-size:10px; font-weight:700; }
-            .pdf-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
-            .pdf-stat { border:1px solid #e2e8f0; border-radius:7px; padding:8px; background:#f8fafc; }
-            .pdf-stat span { display:block; color:#64748b; font-size:9px; font-weight:900; text-transform:uppercase; }
-            .pdf-stat strong { display:block; margin-top:3px; color:#172033; font-size:19px; line-height:1; }
-            .pdf-section { border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; }
-            .pdf-section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid #e2e8f0; background:#f8fafc; padding:7px 9px; }
-            .pdf-section-head h2 { margin:0; color:#172033; font-size:13px; }
-            .pdf-section-head p { margin:0; color:#64748b; font-size:10px; font-weight:800; }
-            .pdf-calendar { display:grid; grid-template-columns:repeat(7,1fr); background:#e2e8f0; gap:1px; }
-            .pdf-weekday { background:#fff; color:#64748b; padding:5px; text-align:center; font-size:9px; font-weight:900; text-transform:uppercase; }
-            .pdf-day { min-height:68px; background:#fff; padding:5px; }
-            .pdf-day.is-other { background:#f8fafc; color:#94a3b8; }
-            .pdf-day.is-selected { outline:2px solid #95002e; outline-offset:-2px; }
-            .pdf-day-number { display:inline-flex; width:18px; height:18px; align-items:center; justify-content:center; border-radius:999px; font-size:10px; font-weight:900; }
-            .pdf-day-list { display:grid; gap:3px; margin-top:4px; }
-            .pdf-day-leave { display:flex; min-width:0; align-items:center; justify-content:space-between; gap:4px; border-left:3px solid var(--leave-color); border-radius:4px; background:#f8fafc; padding:3px 4px; color:#172033; }
-            .pdf-day-leave strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:9px; }
-            .pdf-day-leave em { flex:0 0 auto; color:#64748b; font-size:8px; font-style:normal; font-weight:800; }
-            .pdf-day-more { color:#64748b; font-size:8px; font-weight:900; }
-            .pdf-legend { display:flex; flex-wrap:wrap; gap:5px 12px; color:#334155; font-size:10px; font-weight:800; }
-            .pdf-legend span, .pdf-user { display:inline-flex; align-items:center; gap:5px; }
-            .pdf-legend i, .pdf-user i { width:8px; height:8px; flex:0 0 auto; border-radius:999px; }
-            .pdf-table { width:100%; border-collapse:collapse; }
-            .pdf-table th { background:#f8fafc; color:#64748b; padding:6px; font-size:8px; text-align:left; text-transform:uppercase; }
-            .pdf-table td { border-top:1px solid #e2e8f0; padding:6px; vertical-align:top; }
-            .pdf-table td:nth-child(4), .pdf-table td:nth-child(7) { color:#475569; }
-            .pdf-empty { border:1px dashed #cbd5e1; border-radius:8px; padding:16px; color:#64748b; font-weight:800; text-align:center; }
+            body { margin:0; background:#fff; color:#172033; font-family:Arial, Helvetica, sans-serif; font-size:9px; }
+            .pdf-page { display:grid; gap:7px; }
+            .pdf-top { display:grid; grid-template-columns:42mm minmax(0,1fr) 45mm; align-items:center; gap:8mm; }
+            .pdf-brand { display:flex; align-items:center; min-height:16mm; }
+            .pdf-logo { max-width:35mm; max-height:14mm; object-fit:contain; }
+            .pdf-brand-fallback { display:block; color:#95002e; font-size:15px; font-weight:950; line-height:1; text-transform:uppercase; }
+            h1 { margin:0; color:#1f2937; font-family:Georgia, 'Times New Roman', serif; font-size:25px; font-weight:800; line-height:1.05; text-align:left; }
+            .pdf-meta { text-align:right; color:#64748b; font-size:8px; font-weight:700; line-height:1.35; }
+            .pdf-period { margin:0; color:#254236; font-size:10px; font-weight:800; text-align:center; }
+            .pdf-period strong { color:#16695c; }
+            .pdf-sheet { overflow:hidden; border:1px solid #dfe7e1; border-radius:5px; background:#fff; }
+            .pdf-month-band { margin-left:58mm; background:#16695c; color:#fff; padding:4px 6px; font-size:11px; font-weight:900; text-align:center; text-transform:lowercase; }
+            .pdf-planning-table { width:100%; table-layout:fixed; border-collapse:collapse; }
+            .pdf-col-employee { width:44mm; }
+            .pdf-col-total { width:14mm; }
+            .pdf-col-day { width:calc((100% - 58mm) / var(--day-count)); }
+            .pdf-planning-table th,
+            .pdf-planning-table td { border:1px solid #e6ebe7; padding:0; text-align:center; vertical-align:middle; }
+            .pdf-employee-head { background:#fff8ed; color:#254236; font-size:8px; font-weight:950; text-align:left; text-transform:uppercase; }
+            .pdf-total-head { background:#eaf2ef; color:#254236; font-size:8px; font-weight:950; text-transform:uppercase; }
+            .pdf-weekday-head { height:13px; background:#f8fafc; color:#64748b; font-size:6.4px; font-weight:900; text-transform:lowercase; }
+            .pdf-day-head { height:15px; background:#fff; color:#172033; font-size:8px; font-weight:900; }
+            .pdf-weekday-head.is-weekend,
+            .pdf-day-head.is-weekend,
+            .pdf-date-cell.is-weekend { background:#f6f7f8; color:#94a3b8; }
+            .pdf-employee-cell { height:19px; background:#fff8ed; color:#254236; padding:2px 5px!important; font-size:8.5px; font-weight:850; text-align:left!important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            .pdf-total-cell { background:#f0f6f3; color:#254236; font-size:10px; font-weight:950; }
+            .pdf-date-cell { height:19px; background:#fff; padding:1px!important; }
+            .pdf-date-cell.has-leave { background:#fffdf8; }
+            .pdf-absence-chip { display:flex; min-height:13px; align-items:center; justify-content:center; gap:1px; border:1px solid var(--absence-color); border-radius:2px; background:var(--absence-color); color:#172033; font-size:6.8px; font-weight:950; line-height:1; }
+            .pdf-absence-chip + .pdf-absence-chip { margin-top:1px; }
+            .pdf-absence-chip small { font-size:5.5px; font-weight:950; opacity:.85; }
+            .pdf-absence-chip.is-pending { border-style:dashed; background:#fff; }
+            .pdf-more { display:block; color:#64748b; font-size:6px; font-weight:900; line-height:1; }
+            .pdf-legend { display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; color:#334155; font-size:8px; font-weight:800; }
+            .pdf-legend strong { margin-right:2px; color:#172033; font-size:8px; text-transform:uppercase; }
+            .pdf-legend span { display:inline-flex; align-items:center; gap:4px; }
+            .pdf-legend i { width:8px; height:8px; flex:0 0 auto; border-radius:2px; border:1px solid rgba(15,23,42,.08); }
+            .pdf-legend b { color:#172033; }
+            .pdf-pending-mark { width:11px; height:8px; border:1px dashed #64748b; border-radius:2px; background:#fff; }
+            .pdf-empty { border:1px dashed #cbd5e1; border-radius:5px; padding:16px; color:#64748b; font-weight:800; text-align:center; }
             @media print {
-              .pdf-section { break-inside:avoid; }
-              .pdf-table tr { break-inside:avoid; }
+              .pdf-sheet { break-inside:avoid; }
+            }
+            @supports (background:color-mix(in srgb, red 50%, white)) {
+              .pdf-absence-chip { background:color-mix(in srgb, var(--absence-color) 34%, white); border-color:color-mix(in srgb, var(--absence-color) 65%, white); }
             }
           </style>
         </head>
         <body>
           <main class="pdf-page">
             <header class="pdf-top">
-              <div>
-                <p class="pdf-kicker">Martin Sols CRM</p>
-                <h1>Planning congés</h1>
-                <p class="pdf-subtitle">${esc(activeSiteName())} - ${esc(monthLabel(state.month))}</p>
+              <div class="pdf-brand">
+                <img class="pdf-logo" src="/assets/logo/martin-sols-logo.png" alt="Martin Sols" onload="this.nextElementSibling.style.display='none';" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                <span class="pdf-brand-fallback">Martin Sols</span>
               </div>
+              <h1>Tableau des congés et absences</h1>
               <div class="pdf-meta">Export PDF<br>${esc(generatedAt)}</div>
             </header>
-            <section class="pdf-stats">
-              <div class="pdf-stat"><span>Utilisateurs absents</span><strong>${stats.employees}</strong></div>
-              <div class="pdf-stat"><span>Lignes</span><strong>${stats.entries}</strong></div>
-              <div class="pdf-stat"><span>Jours poses</span><strong>${esc(formatDaysCount(stats.days))}</strong></div>
-              <div class="pdf-stat"><span>A valider</span><strong>${stats.pending}</strong></div>
-            </section>
-            ${renderExportCalendar(leaves)}
+            <p class="pdf-period"><strong>Période :</strong> ${esc(period)} - ${esc(activeSiteName())}</p>
+            ${renderExportPlanning(leaves)}
             ${renderExportLegend(leaves)}
-            ${renderExportRows(leaves)}
           </main>
         </body>
       </html>`;
