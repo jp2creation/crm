@@ -659,7 +659,7 @@ function R({
               children: f,
           });
 }
-function ReservationPeriodLegend() {
+function ReservationAvailabilityLegend() {
     return (0, S.jsxs)(`div`, {
         className: `flex flex-wrap items-center justify-center gap-4 border-t border-surface-200 bg-white px-4 py-3 text-ui-xs font-semibold text-secondary-600 dark:border-surface-700 dark:bg-surface-900 dark:text-secondary-300`,
         children: [
@@ -669,10 +669,10 @@ function ReservationPeriodLegend() {
                     (0, S.jsx)(`i`, {
                         className: `h-4 w-4 rounded-md shadow-sm`,
                         style: {
-                            background: `linear-gradient(135deg,#55cbc5 0%,#10aaa4 100%)`,
+                            background: `linear-gradient(135deg,#16a34a 0%,#0f8f3d 100%)`,
                         },
                     }),
-                    `Matin`,
+                    `Disponible`,
                 ],
             }),
             (0, S.jsxs)(`span`, {
@@ -681,22 +681,10 @@ function ReservationPeriodLegend() {
                     (0, S.jsx)(`i`, {
                         className: `h-4 w-4 rounded-md shadow-sm`,
                         style: {
-	            background: `linear-gradient(135deg,#ff8b7d 0%,#ff5e52 100%)`,
+	            background: `linear-gradient(135deg,#dc2626 0%,#95002e 100%)`,
                         },
                     }),
-                    `Apr\u00e8s-midi`,
-                ],
-            }),
-            (0, S.jsxs)(`span`, {
-                className: `inline-flex items-center gap-2`,
-                children: [
-                    (0, S.jsx)(`i`, {
-                        className: `h-4 w-4 rounded-md shadow-sm`,
-                        style: {
-	            background: `linear-gradient(135deg,#5d7cff 0%,#3f5ee6 100%)`,
-                        },
-                    }),
-                    `Journ\u00e9e compl\u00e8te`,
+                    `R\u00e9serv\u00e9`,
                 ],
             }),
         ],
@@ -1275,7 +1263,7 @@ function ReservationDaySlot({
                     }),
                     (0, S.jsx)(`span`, {
                         className: `reservation-day-slot-status`,
-                        children: u ? `Libre` : `Occup\u00e9`,
+                        children: u ? `Disponible` : `R\u00e9serv\u00e9`,
                     }),
                 ],
             }),
@@ -1697,7 +1685,7 @@ function he({
                     canEditReservation: s,
                     onEditReservation: c,
                 }),
-            (0, S.jsx)(ReservationPeriodLegend, {}),
+            (0, S.jsx)(ReservationAvailabilityLegend, {}),
         ],
     });
 }

@@ -21,6 +21,10 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('dayStartTime', $reservationAsset);
         $this->assertStringContainsString('#16a34a', $reservationAsset);
         $this->assertStringContainsString('#dc2626', $reservationAsset);
+        $this->assertStringContainsString('function ReservationAvailabilityLegend', $reservationAsset);
+        $this->assertStringContainsString('`Disponible`', $reservationAsset);
+        $this->assertStringContainsString('`R\\u00e9serv\\u00e9`', $reservationAsset);
+        $this->assertStringNotContainsString('function ReservationPeriodLegend', $reservationAsset);
         $this->assertStringContainsString('function ReservationMobileDaySlots', $reservationAsset);
         $this->assertStringContainsString('reservation-mobile-day-slots', $reservationAsset);
         $this->assertStringContainsString('reservation-mobile-slot-button', $reservationAsset);
