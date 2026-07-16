@@ -513,34 +513,55 @@
   function visitsHtml(visits) {
     if (!visits.length) return `<div class="tour-empty">Aucune visite ajoutée à ce rapport.</div>`;
     return `
-      <div class="visit-list">
-        ${visits.map((visit) => `
-          <article class="visit-card">
-            <div class="visit-time">
-              <strong>${esc(timeLabel(visit.plannedAt))}</strong>
-              <span>${esc(visit.durationMinutes || 45)} min</span>
-            </div>
-            <div class="visit-main">
-              <div class="visit-title">
-                <strong>${esc(visit.customerName)}</strong>
-                <span class="tour-badge visit-status-${esc(visit.status)}">${esc(visit.statusLabel)}</span>
-              </div>
-              <p>${esc([visit.address, visit.postalCode, visit.city].filter(Boolean).join(" ")) || "Adresse non renseignée"}</p>
-              <div class="visit-meta">
-                <span>${esc(visit.visitTypeLabel)}</span>
-                <span>${esc(visit.priorityLabel)}</span>
-                ${visit.contactName ? `<span>${esc(visit.contactName)}</span>` : ""}
-              </div>
-              ${visit.objective ? `<div class="visit-note"><strong>Objectif</strong>${esc(visit.objective)}</div>` : ""}
-              ${visit.result ? `<div class="visit-note"><strong>Résultat</strong>${esc(visit.result)}</div>` : ""}
-              ${visit.nextAction ? `<div class="visit-next"><strong>Suite</strong>${esc(visit.nextAction)} ${visit.nextActionDate ? "· " + esc(dateLabel(visit.nextActionDate)) : ""}</div>` : ""}
-            </div>
-            <div class="visit-actions">
-              ${canReport() ? `<button type="button" title="Modifier" data-edit-visit="${visit.id}">${icon("edit")}</button>` : ""}
-              ${canReport() ? `<button type="button" title="Supprimer" data-delete-visit="${visit.id}">${icon("trash")}</button>` : ""}
-            </div>
-          </article>
-        `).join("")}
+      <div class="visit-table-wrap">
+        <table class="visit-table">
+          <thead>
+            <tr>
+              <th>Heure</th>
+              <th>Client</th>
+              <th>Contact</th>
+              <th>Adresse</th>
+              <th>Type</th>
+              <th>Priorité</th>
+              <th>Statut</th>
+              <th>Suite</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${visits.map((visit) => `
+              <tr>
+                <td>
+                  <strong>${esc(timeLabel(visit.plannedAt))}</strong>
+                  <small>${esc(visit.durationMinutes || 45)} min</small>
+                </td>
+                <td>
+                  <strong class="visit-client-name">${esc(visit.customerName)}</strong>
+                  ${visit.objective ? `<small>${esc(visit.objective)}</small>` : ""}
+                  ${visit.result ? `<small>Résultat : ${esc(visit.result)}</small>` : ""}
+                </td>
+                <td>
+                  ${visit.contactName ? `<strong>${esc(visit.contactName)}</strong>` : `<span class="tour-muted">Non renseigné</span>`}
+                  ${visit.contactPhone ? `<small>${esc(visit.contactPhone)}</small>` : ""}
+                  ${visit.contactEmail ? `<small>${esc(visit.contactEmail)}</small>` : ""}
+                </td>
+                <td>
+                  <span>${esc([visit.address, visit.postalCode, visit.city].filter(Boolean).join(" ")) || "Adresse non renseignée"}</span>
+                </td>
+                <td><span class="visit-chip">${esc(visit.visitTypeLabel)}</span></td>
+                <td><span class="visit-chip">${esc(visit.priorityLabel)}</span></td>
+                <td><span class="tour-badge visit-status-${esc(visit.status)}">${esc(visit.statusLabel)}</span></td>
+                <td>
+                  ${visit.nextAction ? `<strong>${esc(visit.nextAction)}</strong>${visit.nextActionDate ? `<small>${esc(dateLabel(visit.nextActionDate))}</small>` : ""}` : `<span class="tour-muted">Aucune</span>`}
+                </td>
+                <td class="visit-actions">
+                  ${canReport() ? `<button type="button" title="Modifier" data-edit-visit="${visit.id}">${icon("edit")}</button>` : ""}
+                  ${canReport() ? `<button type="button" title="Supprimer" data-delete-visit="${visit.id}">${icon("trash")}</button>` : ""}
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
       </div>
     `;
   }
@@ -909,19 +930,16 @@
       #${rootId} .tour-progress{height:.45rem;background:#f1f5f9}
       #${rootId} .tour-progress span{display:block;height:100%;background:var(--tour-primary)}
       #${rootId} .tour-detail-actions{padding:1rem;justify-content:flex-start}
-      #${rootId} .visit-list{display:grid;gap:.7rem;padding:1rem}
-      #${rootId} .visit-card{display:grid;grid-template-columns:4.2rem minmax(0,1fr) auto;gap:.8rem;border:1px solid var(--tour-border);border-radius:.5rem;padding:.75rem}
-      #${rootId} .visit-time{display:grid;place-items:center;border-radius:.5rem;background:#f8fafc;align-self:start;min-height:3.7rem}
-      #${rootId} .visit-time strong{font-size:1rem;font-weight:950}
-      #${rootId} .visit-time span{color:var(--tour-muted);font-size:.7rem;font-weight:850}
-      #${rootId} .visit-title{display:flex;justify-content:space-between;gap:.75rem;align-items:flex-start}
-      #${rootId} .visit-title strong{font-size:.96rem;font-weight:950}
-      #${rootId} .visit-main p{margin:.18rem 0;color:var(--tour-muted);font-size:.8rem;font-weight:740}
-      #${rootId} .visit-meta{display:flex;flex-wrap:wrap;gap:.35rem;margin:.45rem 0}
-      #${rootId} .visit-meta span{border-radius:999px;background:#f8fafc;padding:.18rem .5rem;color:var(--tour-muted);font-size:.7rem;font-weight:900}
-      #${rootId} .visit-note,#${rootId} .visit-next{margin-top:.4rem;border-radius:.45rem;background:#f8fafc;padding:.5rem;color:#334155;font-size:.78rem;font-weight:740}
-      #${rootId} .visit-note strong,#${rootId} .visit-next strong{display:block;margin-bottom:.1rem;color:var(--tour-text);font-size:.72rem;text-transform:uppercase}
-      #${rootId} .visit-actions{display:flex;gap:.35rem;align-self:start}
+      #${rootId} .visit-table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+      #${rootId} .visit-table{width:100%;min-width:min(78rem,calc(100vw - 2rem));border-collapse:collapse}
+      #${rootId} .visit-table th{background:#f8fafc;color:var(--tour-muted);font-size:.72rem;font-weight:950;text-align:left;text-transform:uppercase;padding:.82rem .9rem;white-space:nowrap}
+      #${rootId} .visit-table td{border-top:1px solid var(--tour-border);padding:.78rem .9rem;color:var(--tour-text);font-size:.82rem;font-weight:760;vertical-align:top}
+      #${rootId} .visit-table td strong{display:block;color:var(--tour-text);font-size:.84rem;font-weight:950;line-height:1.25}
+      #${rootId} .visit-table td small{display:block;margin-top:.16rem;color:var(--tour-muted);font-size:.72rem;font-weight:760;line-height:1.25}
+      #${rootId} .visit-client-name{font-size:.9rem!important}
+      #${rootId} .visit-chip{display:inline-flex;align-items:center;min-height:1.65rem;border-radius:999px;background:#f8fafc;padding:.18rem .55rem;color:var(--tour-muted);font-size:.72rem;font-weight:900;white-space:nowrap}
+      #${rootId} .tour-muted{color:var(--tour-muted);font-weight:800}
+      #${rootId} .visit-actions{display:flex;gap:.35rem;justify-content:flex-end;white-space:nowrap}
       #${rootId} .visit-actions button{display:grid;place-items:center;width:2rem;height:2rem;border:1px solid var(--tour-border);border-radius:.45rem;background:#fff;color:var(--tour-text);cursor:pointer}
       #${rootId} .tour-report{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;padding:1rem}
       #${rootId} .tour-report>div{border:1px solid var(--tour-border);border-radius:.5rem;background:#f8fafc;padding:.75rem}
@@ -944,9 +962,10 @@
       #${rootId} .tour-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
       #${rootId} .tour-form-wide{grid-column:1/-1}
       .dark #${rootId}{--tour-border:var(--color-surface-700,#334155);--tour-muted:var(--color-secondary-400,#94a3b8);--tour-text:#fff}
-      .dark #${rootId} .tour-card,.dark #${rootId} .tour-stat,.dark #${rootId} .tour-toolbar,.dark #${rootId} .tour-button,.dark #${rootId} input,.dark #${rootId} select,.dark #${rootId} textarea,.dark #${rootId} .tour-row,.dark #${rootId} .visit-card,.dark #${rootId} .visit-actions button,.dark #${rootId} .tour-modal,.dark #${rootId} .tour-modal>header,.dark #${rootId} .tour-modal-close{background:var(--color-surface-900,#0f172a);border-color:var(--tour-border)}
+      .dark #${rootId} .tour-card,.dark #${rootId} .tour-stat,.dark #${rootId} .tour-toolbar,.dark #${rootId} .tour-button,.dark #${rootId} input,.dark #${rootId} select,.dark #${rootId} textarea,.dark #${rootId} .tour-row,.dark #${rootId} .visit-actions button,.dark #${rootId} .tour-modal,.dark #${rootId} .tour-modal>header,.dark #${rootId} .tour-modal-close{background:var(--color-surface-900,#0f172a);border-color:var(--tour-border)}
+      .dark #${rootId} .visit-table th{background:var(--color-surface-800,#1e293b)}
       @media (max-width:1180px){#${rootId} .tour-layout{grid-template-columns:1fr}#${rootId} .tour-toolbar,#${rootId} .tour-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media (max-width:720px){#${rootId} .tour-header{align-items:stretch;flex-direction:column}#${rootId} .tour-actions .tour-button{flex:1}#${rootId} .tour-title h1{font-size:1.55rem}#${rootId} .tour-toolbar,#${rootId} .tour-stats,#${rootId} .tour-report,#${rootId} .tour-form-grid{grid-template-columns:1fr}#${rootId} .tour-calendar{font-size:.86rem}#${rootId} .tour-day{min-height:5.8rem;padding:.38rem}#${rootId} .tour-row{grid-template-columns:3.2rem minmax(0,1fr)}#${rootId} .tour-row .tour-badge{grid-column:2;justify-self:start}#${rootId} .visit-card{grid-template-columns:1fr}#${rootId} .visit-actions{justify-content:flex-start}#${rootId} .tour-modal-backdrop{align-items:end;padding:0}#${rootId} .tour-modal{max-height:94vh;border-radius:.8rem .8rem 0 0}}
+      @media (max-width:720px){#${rootId} .tour-header{align-items:stretch;flex-direction:column}#${rootId} .tour-actions .tour-button{flex:1}#${rootId} .tour-title h1{font-size:1.55rem}#${rootId} .tour-toolbar,#${rootId} .tour-stats,#${rootId} .tour-report,#${rootId} .tour-form-grid{grid-template-columns:1fr}#${rootId} .tour-calendar{font-size:.86rem}#${rootId} .tour-day{min-height:5.8rem;padding:.38rem}#${rootId} .tour-row{grid-template-columns:3.2rem minmax(0,1fr)}#${rootId} .tour-row .tour-badge{grid-column:2;justify-self:start}#${rootId} .visit-table{min-width:58rem}#${rootId} .tour-modal-backdrop{align-items:end;padding:0}#${rootId} .tour-modal{max-height:94vh;border-radius:.8rem .8rem 0 0}}
     `;
     document.head.appendChild(style);
   }

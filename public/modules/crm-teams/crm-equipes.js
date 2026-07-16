@@ -271,6 +271,7 @@
           <thead>
             <tr>
               <th>Membre</th>
+              <th>Rôle</th>
               <th>Prénom</th>
               <th>Nom</th>
               <th>Téléphone</th>
@@ -285,10 +286,11 @@
                     <span class="teams-avatar">${member.photoUrl ? `<img src="${esc(member.photoUrl)}" alt="" onerror="this.remove()" />` : ""}<b>${esc(initials(member))}</b></span>
                     <span>
                       <strong>${esc(member.name || [member.firstName, member.lastName].join(" "))}</strong>
-                      <small>${esc(roleLabel(member.role))}</small>
+                      <small>Compte CRM</small>
                     </span>
                   </div>
                 </td>
+                <td><span class="teams-role-pill">${esc(roleLabel(member.role))}</span></td>
                 <td>${cell(member.firstName)}</td>
                 <td>${cell(member.lastName)}</td>
                 <td>${member.phone ? `<a href="tel:${esc(phoneHref(member.phone))}">${esc(member.phone)}</a>` : `<span class="teams-muted">Non renseigné</span>`}</td>
@@ -298,35 +300,6 @@
           </tbody>
         </table>
       </div>
-      <div class="teams-mobile-list">
-        ${list.map((member) => renderMemberCard(member)).join("")}
-      </div>
-    `;
-  }
-
-  function renderMemberCard(member) {
-    const fullName = String(member.name || [member.firstName, member.lastName].filter(Boolean).join(" ") || "Membre").trim();
-    const phone = member.phone
-      ? `<a class="teams-mobile-action" href="tel:${esc(phoneHref(member.phone))}">${icon("phone")}<span>${esc(member.phone)}</span></a>`
-      : `<span class="teams-mobile-muted">Téléphone non renseigné</span>`;
-    const email = member.email
-      ? `<a class="teams-mobile-action" href="mailto:${esc(member.email)}">${icon("mail")}<span>${esc(member.email)}</span></a>`
-      : `<span class="teams-mobile-muted">Mail non renseigné</span>`;
-
-    return `
-      <article class="teams-person-row">
-        <span class="teams-avatar">${member.photoUrl ? `<img src="${esc(member.photoUrl)}" alt="" onerror="this.remove()" />` : ""}<b>${esc(initials(member))}</b></span>
-        <div class="teams-person-main">
-          <div class="teams-person-title">
-            <strong>${esc(fullName)}</strong>
-            <small>${esc(roleLabel(member.role))}</small>
-          </div>
-          <div class="teams-person-lines">
-            ${phone}
-            ${email}
-          </div>
-        </div>
-      </article>
     `;
   }
 
@@ -410,36 +383,25 @@
       #${rootId} .teams-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--teams-border);padding:.95rem 1rem}
       #${rootId} .teams-card-head h2{margin:0;color:var(--teams-text);font-size:1.08rem;font-weight:950;letter-spacing:0}
       #${rootId} .teams-card-head p{margin:.18rem 0 0;color:var(--teams-muted);font-size:.78rem;font-weight:750}
-      #${rootId} .teams-table-wrap{overflow:auto}
-      #${rootId} .teams-table{width:100%;border-collapse:collapse}
+      #${rootId} .teams-table-wrap{max-width:100%;overflow:auto;-webkit-overflow-scrolling:touch}
+      #${rootId} .teams-table{width:100%;min-width:min(64rem,calc(100vw - 2rem));border-collapse:collapse}
       #${rootId} .teams-table th{background:#f8fafc;color:var(--teams-muted);font-size:.72rem;font-weight:950;text-align:left;text-transform:uppercase;padding:.82rem 1rem;white-space:nowrap}
       #${rootId} .teams-table td{border-top:1px solid var(--teams-border);padding:.8rem 1rem;color:var(--teams-text);font-size:.88rem;font-weight:750;vertical-align:middle}
       #${rootId} .teams-member{display:grid;grid-template-columns:2.6rem minmax(0,1fr);align-items:center;gap:.72rem;min-width:0}
       #${rootId} .teams-member strong{display:block;color:var(--teams-text);font-size:.92rem;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       #${rootId} .teams-member small{display:block;margin-top:.1rem;color:var(--teams-muted);font-size:.72rem;font-weight:800}
+      #${rootId} .teams-role-pill{display:inline-flex;align-items:center;min-height:1.65rem;border-radius:999px;background:color-mix(in srgb,var(--teams-primary) 9%,white);padding:.18rem .58rem;color:var(--teams-primary);font-size:.72rem;font-weight:950;white-space:nowrap}
       #${rootId} .teams-avatar{position:relative;display:grid;place-items:center;width:2.6rem;height:2.6rem;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--teams-primary) 12%,white);color:var(--teams-primary);font-size:.78rem;font-weight:950}
       #${rootId} .teams-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
       #${rootId} .teams-avatar b{position:relative;z-index:1}
       #${rootId} .teams-avatar img + b{display:none}
       #${rootId} .teams-muted{color:var(--teams-muted);font-weight:750}
-      #${rootId} .teams-mobile-list{display:none}
-      #${rootId} .teams-person-row{display:grid;grid-template-columns:2.55rem minmax(0,1fr);gap:.72rem;align-items:center;border-top:1px solid var(--teams-border);padding:.72rem .9rem;background:#fff}
-      #${rootId} .teams-person-row:first-child{border-top:0}
-      #${rootId} .teams-person-main{display:grid;gap:.35rem;min-width:0}
-      #${rootId} .teams-person-title{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem;min-width:0}
-      #${rootId} .teams-person-title strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--teams-text);font-size:.92rem;font-weight:950}
-      #${rootId} .teams-person-title small{flex:0 0 auto;color:var(--teams-muted);font-size:.68rem;font-weight:850}
-      #${rootId} .teams-person-lines{display:grid;gap:.18rem;min-width:0}
-      #${rootId} .teams-mobile-action,#${rootId} .teams-mobile-muted{display:flex;align-items:center;gap:.35rem;min-width:0;color:var(--teams-muted);font-size:.78rem;font-weight:800;text-decoration:none}
-      #${rootId} .teams-mobile-action span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      #${rootId} .teams-mobile-action svg{width:.9rem;height:.9rem;flex:0 0 auto;color:var(--teams-primary)}
       #${rootId} .teams-empty,.teams-loading{display:grid;place-items:center;min-height:9rem;border:1px dashed var(--teams-border);border-radius:.5rem;color:var(--teams-muted);font-size:.88rem;font-weight:850;text-align:center;padding:1rem}
       .dark #${rootId}{--teams-border:var(--color-surface-700,#334155);--teams-muted:var(--color-secondary-400,#94a3b8);--teams-text:#fff}
       .dark #${rootId} .teams-search,.dark #${rootId} .teams-stat,.dark #${rootId} .teams-site,.dark #${rootId} .teams-card{background:var(--color-surface-900,#0f172a);border-color:var(--teams-border)}
-      .dark #${rootId} .teams-person-row{background:var(--color-surface-900,#0f172a)}
       .dark #${rootId} .teams-table th{background:var(--color-surface-800,#1e293b)}
       @media (max-width:1100px){#${rootId} .teams-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-      @media (max-width:720px){#${rootId} .teams-header{align-items:stretch;flex-direction:column}#${rootId} .teams-title h1{font-size:1.55rem}#${rootId} .teams-search{width:100%}#${rootId} .teams-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .teams-stat{grid-template-columns:2.25rem minmax(0,1fr);padding:.7rem}#${rootId} .teams-stat-icon{width:2.25rem;height:2.25rem}#${rootId} .teams-site{min-width:8.6rem}#${rootId} .teams-table-wrap{display:none}#${rootId} .teams-mobile-list{display:block}#${rootId} .teams-person-row{padding:.68rem .78rem}}
+      @media (max-width:720px){#${rootId} .teams-header{align-items:stretch;flex-direction:column}#${rootId} .teams-title h1{font-size:1.55rem}#${rootId} .teams-search{width:100%}#${rootId} .teams-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .teams-stat{grid-template-columns:2.25rem minmax(0,1fr);padding:.7rem}#${rootId} .teams-stat-icon{width:2.25rem;height:2.25rem}#${rootId} .teams-site{min-width:8.6rem}#${rootId} .teams-table{min-width:54rem}}
     `;
     document.head.appendChild(style);
   }
