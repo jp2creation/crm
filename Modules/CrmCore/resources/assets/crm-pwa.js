@@ -8,6 +8,8 @@
   var installPrompt = null;
   var installButtonId = 'crm-pwa-install-button';
   var installStyleId = 'crm-pwa-install-style';
+  var updateReloading = false;
+  var hadServiceWorkerController = false;
 
   function dispatch(name, detail) {
     try {
@@ -27,8 +29,15 @@
       return;
     }
 
-    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    hadServiceWorkerController = Boolean(navigator.serviceWorker.controller);
+
+    navigator.serviceWorker.addEventListener('controllerchange', reloadForUpdatedWorker);
+    navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+
+    navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
       .then(function (registration) {
+        watchRegistration(registration);
+
         if (registration.waiting) {
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
@@ -43,6 +52,61 @@
       .catch(function () {
         // PWA installability is optional; the CRM must continue normally.
       });
+  }
+
+  function watchRegistration(registration) {
+    registration.addEventListener('updatefound', function () {
+      var worker = registration.installing;
+
+      if (!worker) {
+        return;
+      }
+
+      worker.addEventListener('statechange', function () {
+        if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+          worker.postMessage({ type: 'SKIP_WAITING' });
+          dispatch('crm:pwa-update-found');
+        }
+      });
+    });
+  }
+
+  function handleServiceWorkerMessage(event) {
+    if (!event.data || event.data.type !== 'CRM_SW_ACTIVATED') {
+      return;
+    }
+
+    dispatch('crm:pwa-updated', { version: event.data.version || null });
+  }
+
+  function reloadForUpdatedWorker() {
+    if (!hadServiceWorkerController) {
+      hadServiceWorkerController = true;
+      return;
+    }
+
+    if (updateReloading) {
+      return;
+    }
+
+    updateReloading = true;
+    window.setTimeout(function () {
+      window.location.reload();
+    }, 250);
+  }
+
+  function checkForUpdates() {
+    if (!('serviceWorker' in navigator) || !navigator.serviceWorker.controller) {
+      return;
+    }
+
+    navigator.serviceWorker.getRegistration('/')
+      .then(function (registration) {
+        if (registration) {
+          registration.update().catch(function () {});
+        }
+      })
+      .catch(function () {});
   }
 
   function ensureInstallStyle() {
@@ -117,7 +181,18 @@
   function boot() {
     registerServiceWorker();
     renderInstallButton();
+    window.setTimeout(checkForUpdates, 3000);
   }
+
+  window.addEventListener('focus', checkForUpdates);
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      checkForUpdates();
+    }
+  });
+
+  window.setInterval(checkForUpdates, 15 * 60 * 1000);
 
   window.addEventListener('beforeinstallprompt', function (event) {
     event.preventDefault();
@@ -137,7 +212,8 @@
       return Boolean(installPrompt);
     },
     install: promptInstall,
-    refreshInstallButton: renderInstallButton
+    refreshInstallButton: renderInstallButton,
+    checkForUpdates: checkForUpdates
   };
 
   if (document.readyState === 'loading') {

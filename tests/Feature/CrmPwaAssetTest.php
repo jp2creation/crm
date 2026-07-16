@@ -33,8 +33,13 @@ class CrmPwaAssetTest extends TestCase
         $serviceWorker = (string) file_get_contents(public_path('sw.js'));
 
         $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-", $serviceWorker);
+        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v2026071603'", $serviceWorker);
         $this->assertStringContainsString('cache.add(url).catch(() => null)', $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'SKIP_WAITING'", $serviceWorker);
+        $this->assertStringContainsString("event.data.type === 'GET_VERSION'", $serviceWorker);
+        $this->assertStringContainsString("notifyClients('CRM_SW_ACTIVATED')", $serviceWorker);
+        $this->assertStringContainsString("notifyClients('CRM_SW_VERSION')", $serviceWorker);
+        $this->assertStringContainsString("fetch(request, { cache: 'no-store' })", $serviceWorker);
     }
 
     public function test_static_pwa_files_have_apache_headers_for_shared_hosting(): void
@@ -72,6 +77,13 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('beforeinstallprompt', $publicScript);
         $this->assertStringContainsString('promptEvent.prompt()', $publicScript);
         $this->assertStringContainsString('window.MartinSolsPwa', $publicScript);
+        $this->assertStringContainsString("updateViaCache: 'none'", $publicScript);
+        $this->assertStringContainsString("controllerchange", $publicScript);
+        $this->assertStringContainsString("updatefound", $publicScript);
+        $this->assertStringContainsString('hadServiceWorkerController = Boolean(navigator.serviceWorker.controller)', $publicScript);
+        $this->assertStringContainsString('window.location.reload()', $publicScript);
+        $this->assertStringContainsString('checkForUpdates: checkForUpdates', $publicScript);
+        $this->assertStringContainsString("document.visibilityState === 'visible'", $publicScript);
         $this->assertStringContainsString('background:#fff;color:#95002e', $publicScript);
         $this->assertStringContainsString('button.textContent = "Installer"', $publicScript);
         $this->assertStringNotContainsString('left:16px;right:16px;bottom:86px', $publicScript);

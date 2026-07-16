@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'martin-sols-crm-v2026071501';
+const CACHE_VERSION = 'martin-sols-crm-v2026071603';
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
 const OFFLINE_URL = '/offline.html';
 
@@ -39,12 +39,17 @@ self.addEventListener('activate', (event) => {
         .filter((key) => key.startsWith('martin-sols-crm-') && key !== STATIC_CACHE)
         .map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
+      .then(() => notifyClients('CRM_SW_ACTIVATED'))
   );
 });
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+
+  if (event.data && event.data.type === 'GET_VERSION') {
+    notifyClients('CRM_SW_VERSION');
   }
 });
 
@@ -95,7 +100,7 @@ function isFreshAsset(request, url) {
 
 async function networkFirstNavigation(request) {
   try {
-    return await fetch(request);
+    return await fetch(request, { cache: 'no-store' });
   } catch (error) {
     const cache = await caches.open(STATIC_CACHE);
 
@@ -123,7 +128,7 @@ async function networkFirstAsset(request) {
   const cache = await caches.open(STATIC_CACHE);
 
   try {
-    const response = await fetch(request);
+    const response = await fetch(request, { cache: 'no-store' });
 
     if (response && response.ok) {
       cache.put(request, response.clone());
@@ -133,4 +138,12 @@ async function networkFirstAsset(request) {
   } catch (error) {
     return await cache.match(request) || Response.error();
   }
+}
+
+async function notifyClients(type) {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+
+  clients.forEach((client) => {
+    client.postMessage({ type, version: CACHE_VERSION });
+  });
 }
