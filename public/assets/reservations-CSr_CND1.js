@@ -795,12 +795,12 @@ function ReservationTimelineStyles() {
 .reservation-day-pill i{height:.55rem;width:.55rem;border-radius:999px;background:var(--pill-color,#10aaa4);box-shadow:0 0 0 3px var(--pill-ring,rgba(16,170,164,.16))}
 .reservation-day-pill-morning{--pill-color:#10aaa4;--pill-ring:rgba(16,170,164,.16);--pill-bg:#effbf9;--pill-border:#c6efea}
 .reservation-day-pill-afternoon{--pill-color:#ff5e52;--pill-ring:rgba(255,94,82,.16);--pill-bg:#fff4f2;--pill-border:#ffd4ce}
-.reservation-fast-summary{border:1px solid #e4e9f1;border-radius:.95rem;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);padding:.85rem;box-shadow:0 12px 28px rgba(15,23,42,.045)}
-.reservation-fast-summary-title{margin-bottom:.65rem;color:#223957;font-size:.82rem;font-weight:950}
-.reservation-fast-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem}
-.reservation-fast-summary-item{min-width:0;border:1px solid #e7edf5;border-radius:.78rem;background:#fff;padding:.72rem .78rem}
+.reservation-fast-summary{border:1px solid #e4e9f1;border-radius:.82rem;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);padding:.65rem;box-shadow:0 10px 24px rgba(15,23,42,.04)}
+.reservation-fast-summary-title{margin-bottom:.45rem;color:#223957;font-size:.78rem;font-weight:950}
+.reservation-fast-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}
+.reservation-fast-summary-item{min-width:0;border:1px solid #e7edf5;border-radius:.68rem;background:#fff;padding:.52rem .58rem}
 .reservation-fast-summary-item span{display:block;color:#7b8798;font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
-.reservation-fast-summary-item strong{display:block;margin-top:.15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#223957;font-size:.86rem;font-weight:950}
+.reservation-fast-summary-item strong{display:block;margin-top:.12rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#223957;font-size:.82rem;font-weight:950}
 .reservation-day-board{display:none;overflow-x:auto;border:1px solid #e4e9f1;border-radius:1rem;background:#fff;box-shadow:0 18px 44px rgba(15,23,42,.06);overscroll-behavior-x:contain}
 .reservation-day-board-inner{display:grid;min-width:760px;grid-template-columns:112px minmax(620px,1fr);grid-template-rows:54px repeat(2,118px)}
 .reservation-day-corner,.reservation-day-hour-axis,.reservation-day-row-label,.reservation-day-row-track{border-bottom:1px solid #e4e9f1}
@@ -844,10 +844,10 @@ function ReservationTimelineStyles() {
 .reservation-day-board .reservation-timeline-card span{font-size:.62rem!important}
 .reservation-day-board .reservation-timeline-card p{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.78rem!important;line-height:1.15!important}
 .reservation-day-board .reservation-timeline-card p:nth-of-type(n+2){display:none}
-.reservation-mobile-day-slots{display:grid;grid-template-columns:1fr;gap:.8rem;overflow-x:auto;border:1px solid #e4e9f1;border-radius:.95rem;background:#fff;padding:.85rem;box-shadow:0 14px 34px rgba(15,23,42,.06);overscroll-behavior-x:contain}
-.reservation-mobile-slot-column{display:flex;min-width:max-content;align-items:stretch;gap:.48rem}
-.reservation-mobile-slot-title{display:flex;min-height:2.65rem;flex:0 0 8.6rem;align-items:center;justify-content:center;border-radius:.65rem;background:#f7f9fd;color:#223957;text-align:center;font-size:.68rem;font-weight:950;line-height:1.1}
-.reservation-mobile-slot-button{display:flex;min-height:2.65rem;width:100%;flex:0 0 4.7rem;flex-direction:column;align-items:center;justify-content:center;border:1px solid #0f8f3d;border-radius:.55rem;background:linear-gradient(135deg,#128f3f 0%,#0b7f36 100%);color:#fff;padding:.25rem .2rem;text-align:center;box-shadow:0 7px 14px rgba(15,143,61,.16);transition:transform .15s,box-shadow .15s,filter .15s}
+.reservation-mobile-day-slots{display:grid;grid-template-columns:1fr;gap:.7rem;overflow:hidden;border:1px solid #e4e9f1;border-radius:.95rem;background:#fff;padding:.75rem;box-shadow:0 14px 34px rgba(15,23,42,.06)}
+.reservation-mobile-slot-column{display:grid;min-width:0;grid-template-columns:7.2rem repeat(7,minmax(0,1fr));grid-auto-rows:minmax(2.38rem,auto);align-items:stretch;gap:.42rem}
+.reservation-mobile-slot-title{grid-row:1 / span 2;display:flex;min-height:100%;align-items:center;justify-content:center;border-radius:.62rem;background:#f7f9fd;color:#223957;text-align:center;font-size:.66rem;font-weight:950;line-height:1.1}
+.reservation-mobile-slot-button{display:flex;min-height:2.38rem;width:100%;min-width:0;flex-direction:column;align-items:center;justify-content:center;border:1px solid #0f8f3d;border-radius:.52rem;background:linear-gradient(135deg,#128f3f 0%,#0b7f36 100%);color:#fff;padding:.2rem .16rem;text-align:center;box-shadow:0 7px 14px rgba(15,143,61,.16);transition:transform .15s,box-shadow .15s,filter .15s}
 .reservation-mobile-slot-button:active{transform:scale(.985)}
 .reservation-mobile-slot-button:hover{filter:brightness(1.02);box-shadow:0 9px 18px rgba(15,143,61,.2)}
 .reservation-mobile-slot-time{font-size:.86rem;font-weight:950;line-height:1}
@@ -938,9 +938,9 @@ function ReservationTimelineStyles() {
   .reservation-day-meta{font-size:.68rem}
   .reservation-day-pill{padding:.34rem .4rem;font-size:.58rem}
   .reservation-day-pill i{height:.44rem;width:.44rem}
-  .reservation-fast-summary{padding:.7rem}
+  .reservation-fast-summary{padding:.6rem}
   .reservation-fast-summary-grid{grid-template-columns:1fr;gap:.48rem}
-  .reservation-fast-summary-item{padding:.62rem .68rem}
+  .reservation-fast-summary-item{padding:.52rem .6rem}
   .reservation-day-board{border-radius:.75rem}
   .reservation-day-board{display:none}
   .reservation-mobile-day-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;border:1px solid #e4e9f1;border-radius:.85rem;background:#fff;padding:.75rem;box-shadow:0 14px 34px rgba(15,23,42,.06)}
@@ -1907,10 +1907,10 @@ function ge({
                           onClick: p,
                       }),
                       (0, S.jsxs)(`div`, {
-                          className: `card relative max-h-[90vh] w-full max-w-2xl overflow-hidden overflow-y-auto rounded-2xl`,
+                          className: `card relative max-h-[82vh] w-full max-w-lg overflow-hidden overflow-y-auto rounded-xl`,
                           children: [
                               (0, S.jsxs)(`div`, {
-                                  className: `sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-surface-200 bg-white px-6 py-4 dark:border-surface-700 dark:bg-surface-900`,
+                                  className: `sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-surface-200 bg-white px-5 py-3 dark:border-surface-700 dark:bg-surface-900`,
                                   children: [
                                       (0, S.jsxs)(`div`, {
                                           children: [
@@ -1950,7 +1950,7 @@ function ge({
                                   ],
                               }),
                               (0, S.jsx)(`div`, {
-                                  className: `p-6`,
+                                  className: `p-4`,
                                   children: (0, S.jsx)(H, {
                                       form: n,
                                       vehicles: r,
@@ -2002,7 +2002,7 @@ function H({
         children: [
             (0, S.jsx)(_e, { notice: r, className: `mb-4` }),
             (0, S.jsxs)(`form`, {
-                className: `space-y-4`,
+                className: `space-y-3`,
                 onSubmit: m,
                 children: [
                     (0, S.jsxs)(`div`, {
@@ -2050,7 +2050,7 @@ function H({
                             id: `reservation-notes`,
                             value: t.notes,
                             disabled: !s,
-                            rows: 3,
+                            rows: 2,
                             placeholder: `Adresse, materiel, precision chantier...`,
                             onChange: (e) => p({ ...t, notes: e.target.value }),
                         }),
