@@ -141,6 +141,8 @@ var S = n(),
         vehicleId: `1`,
         title: ``,
         contactPhone: ``,
+        userId: null,
+        userName: ``,
         startAt: `2026-07-22T06:00`,
         endAt: `2026-07-22T12:30`,
         notes: ``,
@@ -797,7 +799,7 @@ function ReservationTimelineStyles() {
 .reservation-day-pill-afternoon{--pill-color:#ff5e52;--pill-ring:rgba(255,94,82,.16);--pill-bg:#fff4f2;--pill-border:#ffd4ce}
 .reservation-fast-summary{border:1px solid #e4e9f1;border-radius:.82rem;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);padding:.65rem;box-shadow:0 10px 24px rgba(15,23,42,.04)}
 .reservation-fast-summary-title{margin-bottom:.45rem;color:#223957;font-size:.78rem;font-weight:950}
-.reservation-fast-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.45rem}
+.reservation-fast-summary-grid{display:grid;grid-template-columns:minmax(0,1.35fr) repeat(3,minmax(0,1fr));gap:.45rem}
 .reservation-fast-summary-item{min-width:0;border:1px solid #e7edf5;border-radius:.68rem;background:#fff;padding:.52rem .58rem}
 .reservation-fast-summary-item span{display:block;color:#7b8798;font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
 .reservation-fast-summary-item strong{display:block;margin-top:.12rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#223957;font-size:.82rem;font-weight:950}
@@ -941,6 +943,7 @@ function ReservationTimelineStyles() {
   .reservation-fast-summary{padding:.6rem}
   .reservation-fast-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.42rem}
   .reservation-fast-summary-item:first-child{grid-column:1/-1}
+  .reservation-fast-summary-user{grid-column:1/-1}
   .reservation-fast-summary-item{padding:.52rem .6rem}
   .reservation-day-board{border-radius:.75rem}
   .reservation-day-board{display:none}
@@ -1874,6 +1877,7 @@ function ge({
     mode: t,
     form: n,
     vehicles: r,
+    activeUser: y,
     notice: i,
     loading: o,
     canSubmit: l,
@@ -1951,6 +1955,7 @@ function ge({
                                   children: (0, S.jsx)(H, {
                                       form: n,
                                       vehicles: r,
+                                      activeUser: y,
                                       notice: i,
                                       loading: o,
                                       canSubmit: l,
@@ -1985,7 +1990,8 @@ function _e({ notice: e, className: n }) {
 function H({
     form: t,
     vehicles: n,
-    notice: r,
+    activeUser: r,
+    notice: i,
     loading: o,
     canSubmit: s,
     submitLabel: l,
@@ -1994,10 +2000,11 @@ function H({
 }) {
     let h = n.find((e) => String(e.id) === String(t.vehicleId)),
         y = t.startAt ? de(t.startAt) : `-`,
-        b = t.endAt ? de(t.endAt) : `-`;
+        b = t.endAt ? de(t.endAt) : `-`,
+        x = t.userName || r?.name || `-`;
     return (0, S.jsxs)(S.Fragment, {
         children: [
-            (0, S.jsx)(_e, { notice: r, className: `mb-4` }),
+            (0, S.jsx)(_e, { notice: i, className: `mb-4` }),
             (0, S.jsxs)(`form`, {
                 className: `space-y-3`,
                 onSubmit: m,
@@ -2034,6 +2041,13 @@ function H({
                                         children: [
                                             (0, S.jsx)(`span`, { children: `Fin` }),
                                             (0, S.jsx)(`strong`, { children: b }),
+                                        ],
+                                    }),
+                                    (0, S.jsxs)(`div`, {
+                                        className: `reservation-fast-summary-item reservation-fast-summary-user`,
+                                        children: [
+                                            (0, S.jsx)(`span`, { children: `R\u00e9serv\u00e9 par` }),
+                                            (0, S.jsx)(`strong`, { children: x }),
                                         ],
                                     }),
                                 ],
@@ -2516,6 +2530,8 @@ function W() {
                         ? {
                               startAt: e,
                               endAt: t,
+                              userId: G.id,
+                              userName: G.name,
                               title: ``,
                               contactPhone: ``,
                               notes: ``,
@@ -2613,6 +2629,8 @@ function W() {
                 vehicleId: String(e.vehicleId),
                 title: e.title,
                 contactPhone: e.contactPhone,
+                userId: e.userId,
+                userName: e.userName,
                 startAt: e.startAt,
                 endAt: e.endAt,
                 notes: e.notes,
@@ -2855,6 +2873,7 @@ function W() {
                               mode: H ? `edit` : `create`,
                               form: O,
                               vehicles: J,
+                              activeUser: G,
                               notice: A,
                               loading: L,
                               canSubmit: Oe,
