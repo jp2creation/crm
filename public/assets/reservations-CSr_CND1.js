@@ -939,7 +939,8 @@ function ReservationTimelineStyles() {
   .reservation-day-pill{padding:.34rem .4rem;font-size:.58rem}
   .reservation-day-pill i{height:.44rem;width:.44rem}
   .reservation-fast-summary{padding:.6rem}
-  .reservation-fast-summary-grid{grid-template-columns:1fr;gap:.48rem}
+  .reservation-fast-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.42rem}
+  .reservation-fast-summary-item:first-child{grid-column:1/-1}
   .reservation-fast-summary-item{padding:.52rem .6rem}
   .reservation-day-board{border-radius:.75rem}
   .reservation-day-board{display:none}
@@ -1889,10 +1890,6 @@ function ge({
             };
             return (
                 document.addEventListener(`keydown`, t),
-                window.setTimeout(
-                    () => document.getElementById(`reservation-notes`)?.focus(),
-                    80,
-                ),
                 () => document.removeEventListener(`keydown`, t)
             );
         }, [e, p]),

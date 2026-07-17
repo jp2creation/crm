@@ -62,8 +62,11 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('className: `space-y-3`', $reservationAsset);
         $this->assertStringContainsString('rows: 2', $reservationAsset);
         $this->assertStringContainsString('reservation-fast-summary', $reservationAsset);
+        $this->assertStringContainsString('.reservation-fast-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.42rem}', $reservationAsset);
+        $this->assertStringContainsString('.reservation-fast-summary-item:first-child{grid-column:1/-1}', $reservationAsset);
         $this->assertStringContainsString('R\\u00e9sum\\u00e9 de la r\\u00e9servation', $reservationAsset);
         $this->assertStringNotContainsString('Formulaire Sprinter branche sur le planning CRM.', $reservationAsset);
+        $this->assertStringNotContainsString('document.getElementById(`reservation-notes`)?.focus()', $reservationAsset);
         $this->assertStringNotContainsString('id: `reservation-title`', $reservationAsset);
         $this->assertStringNotContainsString('id: `reservation-phone`', $reservationAsset);
         $this->assertStringNotContainsString('id: `reservation-start`', $reservationAsset);
@@ -71,8 +74,9 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-notes', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071704', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071704', $indexAsset);
+        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071705', $indexAsset);
+        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071705', $indexAsset);
+        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071704', $indexAsset);
         $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071702', $indexAsset);
         $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071603', $indexAsset);
         $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071602', $indexAsset);
