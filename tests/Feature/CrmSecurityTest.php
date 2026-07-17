@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
@@ -40,6 +42,24 @@ class CrmSecurityTest extends TestCase
             'Trop de tentatives.',
             $response->getSession()->get('errors')->first('email'),
         );
+    }
+
+    public function test_login_remember_me_sets_the_laravel_recaller_cookie(): void
+    {
+        RateLimiter::clear('remember@example.test|127.0.0.1');
+
+        $user = User::factory()->create([
+            'email' => 'remember@example.test',
+        ]);
+
+        $this->from('/login')
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'password',
+                'remember' => '1',
+            ])
+            ->assertRedirect('/')
+            ->assertCookie(Auth::guard('web')->getRecallerName());
     }
 
     public function test_csrf_middleware_rejects_missing_token_when_enabled(): void

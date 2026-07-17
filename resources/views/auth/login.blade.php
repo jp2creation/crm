@@ -230,7 +230,7 @@
           </div>
         </div>
 
-        <form method="post" action="{{ route('login') }}">
+        <form method="post" action="{{ route('login') }}" autocomplete="on" data-login-form>
           @csrf
 
           @if ($errors->any())
@@ -244,7 +244,11 @@
               name="email"
               type="email"
               value="{{ old('email') }}"
-              autocomplete="email"
+              autocomplete="username"
+              inputmode="email"
+              autocapitalize="none"
+              spellcheck="false"
+              data-login-email
               required
               autofocus
             />
@@ -261,8 +265,9 @@
             />
           </div>
 
+          <input type="hidden" name="remember" value="0" />
           <label class="remember">
-            <input name="remember" type="checkbox" value="1" />
+            <input name="remember" type="checkbox" value="1" data-login-remember @checked(old('remember', true)) />
             <span>Rester connecté</span>
           </label>
 
@@ -271,5 +276,42 @@
       </section>
     </main>
     @include('partials.pwa-scripts')
+    <script>
+      (() => {
+        const storageKey = 'martin-sols:login:remembered-email';
+        const form = document.querySelector('[data-login-form]');
+        const email = document.querySelector('[data-login-email]');
+        const remember = document.querySelector('[data-login-remember]');
+
+        if (!form || !email || !remember) {
+          return;
+        }
+
+        try {
+          const rememberedEmail = window.localStorage.getItem(storageKey);
+
+          if (rememberedEmail && !email.value) {
+            email.value = rememberedEmail;
+            remember.checked = true;
+          }
+        } catch (error) {
+          // Private browsing modes can block localStorage; the Laravel remember cookie still works.
+        }
+
+        form.addEventListener('submit', () => {
+          try {
+            const normalizedEmail = email.value.trim();
+
+            if (remember.checked && normalizedEmail) {
+              window.localStorage.setItem(storageKey, normalizedEmail);
+            } else {
+              window.localStorage.removeItem(storageKey);
+            }
+          } catch (error) {
+            // Do not block login if localStorage is unavailable.
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

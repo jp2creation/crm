@@ -19,6 +19,25 @@ class ExampleTest extends TestCase
             ->assertOk();
     }
 
+    public function test_login_page_can_remember_the_user_email_without_storing_the_password(): void
+    {
+        $html = $this->get('/login')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('autocomplete="on" data-login-form', $html);
+        $this->assertStringContainsString('autocomplete="username"', $html);
+        $this->assertStringContainsString('autocomplete="current-password"', $html);
+        $this->assertStringContainsString('data-login-email', $html);
+        $this->assertStringContainsString('data-login-remember checked', $html);
+        $this->assertStringContainsString('martin-sols:login:remembered-email', $html);
+        $this->assertStringContainsString('window.localStorage.setItem(storageKey, normalizedEmail)', $html);
+        $this->assertStringContainsString('window.localStorage.removeItem(storageKey)', $html);
+        $this->assertStringContainsString('Rester connect', $html);
+        $this->assertStringNotContainsString('connectÃ', $html);
+        $this->assertStringNotContainsString('localStorage.setItem(storageKey, password', $html);
+    }
+
     public function test_authenticated_user_can_refresh_crm_dashboard_route(): void
     {
         $this->actingAs(User::factory()->make())
