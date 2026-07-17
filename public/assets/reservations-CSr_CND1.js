@@ -135,7 +135,7 @@ var S = n(),
         morningStart: `06:00`,
         morningEnd: `12:30`,
         afternoonStart: `13:00`,
-        afternoonEnd: `19:00`,
+        afternoonEnd: `19:30`,
     },
     ue = {
         vehicleId: `1`,
@@ -265,11 +265,13 @@ function vehicleDaySlots(e, t, n) {
 function vehiclePlannerBounds(e, t) {
     let n = vehicleHours(e, t),
         r = Math.floor(timeMinutes(n.dayStart) / 60) * 60,
-        i = Math.ceil(timeMinutes(n.dayEnd) / 60) * 60;
+        i = timeMinutes(n.dayEnd),
+        a = Math.floor(timeMinutes(n.dayEnd) / 60) * 60;
     i <= r && (i = r + 600);
-    let a = [];
-    for (let e = r; e <= i; e += 60) a.push(e);
-    return a[a.length - 1] !== i && a.push(i), { start: r, end: i, total: i - r, marks: a };
+    a < r && (a = r);
+    let o = [];
+    for (let e = r; e <= a; e += 60) o.push(e);
+    return o.length || o.push(r), { start: r, end: i, total: i - r, marks: o };
 }
 function reservationPeriodTone(e, t) {
     let n = siteHours(t),
@@ -812,6 +814,20 @@ function ReservationTimelineStyles() {
 .reservation-day-cell-button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .reservation-day-cell-button:hover{border-color:#0f8f3d;background:#dcfce7;box-shadow:0 9px 18px rgba(22,163,74,.14)}
 .reservation-day-cell-button.is-selected{z-index:3;border-color:#95002e;background:linear-gradient(135deg,#95002e 0%,#c20b46 100%);color:#fff;box-shadow:0 12px 24px rgba(149,0,46,.22);transform:translateY(-1px)}
+.reservation-day-selection{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-top:.85rem;border:1px solid #e4e9f1;border-radius:.95rem;background:#fff;padding:.8rem .9rem;box-shadow:0 14px 30px rgba(15,23,42,.055)}
+.reservation-day-selection.is-ready{border-color:rgba(149,0,46,.34);box-shadow:0 16px 34px rgba(149,0,46,.09)}
+.reservation-day-selection-copy{min-width:0}
+.reservation-day-selection-copy span{display:block;color:#7b8798;font-size:.66rem;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
+.reservation-day-selection-copy strong{display:block;margin-top:.08rem;color:#223957;font-size:1.05rem;font-weight:950;line-height:1.12}
+.reservation-day-selection-copy p{margin-top:.1rem;color:#64748b;font-size:.74rem;font-weight:700}
+.reservation-day-selection-actions{display:flex;shrink:0;align-items:center;gap:.55rem}
+.reservation-day-selection-actions button{display:inline-flex;min-height:2.55rem;align-items:center;justify-content:center;border-radius:.72rem;padding:0 1rem;font-size:.8rem;font-weight:900;transition:border-color .15s,background .15s,color .15s,box-shadow .15s,opacity .15s}
+.reservation-day-selection-clear{border:1px solid #e4e9f1;background:#fff;color:#526174}
+.reservation-day-selection-clear:not(:disabled):hover{border-color:#cbd5e1;background:#f8fafc;color:#223957}
+.reservation-day-selection-confirm{border:1px solid #d9e1ec;background:#edf1f6;color:#94a3b8}
+.reservation-day-selection-confirm:not(:disabled){border-color:#95002e;background:#95002e;color:#fff;box-shadow:0 12px 24px rgba(149,0,46,.18)}
+.reservation-day-selection-confirm:not(:disabled):hover{background:#7d0027;box-shadow:0 14px 28px rgba(149,0,46,.23)}
+.reservation-day-selection-actions button:disabled{cursor:not-allowed;opacity:.62}
 .reservation-day-board .reservation-event-card{border-color:#dc2626!important;background:linear-gradient(135deg,#dc2626 0%,#95002e 100%)!important;color:#fff!important}
 .reservation-day-board .reservation-event-card span,.reservation-day-board .reservation-event-card p{color:#fff!important}
 .reservation-day-board .reservation-event-card>span:first-child{background-color:#fff!important;box-shadow:0 0 0 3px rgba(255,255,255,.28)!important}
@@ -916,6 +932,11 @@ function ReservationTimelineStyles() {
   .reservation-mobile-slot-button.is-booked{border-color:#dc2626!important;background:linear-gradient(135deg,#dc2626 0%,#95002e 100%)!important;color:#fff!important;box-shadow:0 7px 16px rgba(149,0,46,.2)}
   .reservation-mobile-slot-button.is-booked span{color:#fff!important}
   .reservation-mobile-slot-button.is-selecting{border-color:#95002e!important;background:linear-gradient(135deg,#95002e 0%,#c20b46 100%)!important;color:#fff!important;box-shadow:0 9px 18px rgba(149,0,46,.24)}
+  .reservation-day-selection{align-items:stretch;flex-direction:column;gap:.65rem;margin-top:.7rem;border-radius:.82rem;padding:.75rem}
+  .reservation-day-selection-copy strong{font-size:.98rem}
+  .reservation-day-selection-copy p{font-size:.68rem}
+  .reservation-day-selection-actions{display:grid;grid-template-columns:1fr 1.25fr;gap:.5rem;width:100%}
+  .reservation-day-selection-actions button{min-height:2.5rem;width:100%;padding:0 .65rem;font-size:.76rem}
   .reservation-day-board-inner{min-width:520px;grid-template-columns:64px minmax(456px,1fr);grid-template-rows:36px repeat(2,76px)}
   .reservation-day-hour-axis span{font-size:.54rem;font-weight:850}
   .reservation-day-row-label{gap:.06rem;padding:.36rem .42rem}
@@ -987,13 +1008,12 @@ function reservationSegmentStyle(e, t) {
     return { left: `${i}%`, width: `${a}%` };
 }
 function reservationCellIsSelected(e, t, n, r) {
-    return !!(
-        t &&
-        n &&
-        t.vehicleId === n.id &&
-        t.date === E(r) &&
-        t.startAt === D(e.start)
-    );
+    if (!t || !n || t.vehicleId !== n.id || t.date !== E(r)) return !1;
+    let i = D(e.start),
+        a = D(e.end);
+    return t.ready
+        ? T(i) >= T(t.startAt) && T(a) <= T(t.endAt)
+        : t.startAt === i;
 }
 function reservationRangeIsFree(e, t, n, r) {
     return !!n && !r.some((r) => r.vehicleId === n.id && P(e, t, r.startAt, r.endAt));
@@ -1002,6 +1022,13 @@ function reservationCellPeriod(e) {
     return timeMinutes(String(e).slice(11, 16)) < timeMinutes(vehicleDefaultDayHours.afternoonStart)
         ? `morning`
         : `afternoon`;
+}
+function reservationSelectionLabel(e) {
+    return e?.ready
+        ? `${e.startAt.slice(11, 16)} \u2192 ${e.endAt.slice(11, 16)}`
+        : e?.startAt
+          ? `D\u00e9but ${e.startAt.slice(11, 16)}`
+          : `Choisis une heure de d\u00e9but`;
 }
 function ReservationTimeLines({ bounds: e }) {
     return (0, S.jsx)(S.Fragment, {
@@ -1258,6 +1285,47 @@ function ReservationMobileDaySlots({
                 e.key,
             );
         }),
+    });
+}
+function ReservationDaySelectionPanel({ selection: e, onConfirm: t, onCancel: n }) {
+    let r = !!e?.ready;
+    return (0, S.jsxs)(`div`, {
+        className: `reservation-day-selection ${r ? `is-ready` : ``}`,
+        children: [
+            (0, S.jsxs)(`div`, {
+                className: `reservation-day-selection-copy`,
+                children: [
+                    (0, S.jsx)(`span`, { children: r ? `Cr\u00e9neau pr\u00eat` : `S\u00e9lection rapide` }),
+                    (0, S.jsx)(`strong`, { children: reservationSelectionLabel(e) }),
+                    (0, S.jsx)(`p`, {
+                        children: r
+                            ? `Valide pour ouvrir la fiche de r\u00e9servation.`
+                            : e?.startAt
+                              ? `Clique sur l'heure de fin, puis valide.`
+                              : `Clique sur une heure de d\u00e9but puis une heure de fin.`,
+                    }),
+                ],
+            }),
+            (0, S.jsxs)(`div`, {
+                className: `reservation-day-selection-actions`,
+                children: [
+                    (0, S.jsx)(`button`, {
+                        type: `button`,
+                        className: `reservation-day-selection-clear`,
+                        disabled: !e,
+                        onClick: n,
+                        children: `Effacer`,
+                    }),
+                    (0, S.jsx)(`button`, {
+                        type: `button`,
+                        className: `reservation-day-selection-confirm`,
+                        disabled: !r,
+                        onClick: t,
+                        children: `Valider`,
+                    }),
+                ],
+            }),
+        ],
     });
 }
 function ReservationTimeHeader({ day: e, onSelectDay: t, site: n, showHours: r = !1 }) {
@@ -1635,6 +1703,8 @@ function V({
     site: r,
     onSelectSlot: i,
     selection: selectedRange,
+    onConfirmSelection: confirmSelectedRange,
+    onCancelSelection: cancelSelectedRange,
     canEditReservation: a,
     onEditReservation: o,
 }) {
@@ -1712,6 +1782,11 @@ function V({
                 onSelectSlot: i,
                 selection: selectedRange,
             }),
+            (0, S.jsx)(ReservationDaySelectionPanel, {
+                selection: selectedRange,
+                onConfirm: confirmSelectedRange,
+                onCancel: cancelSelectedRange,
+            }),
         ],
     });
 }
@@ -1725,6 +1800,8 @@ function he({
     onFocusDateChange: a,
     onSelectSlot: o,
     selection: selectedRange,
+    onConfirmSelection: confirmSelectedRange,
+    onCancelSelection: cancelSelectedRange,
     canEditReservation: s,
     onEditReservation: c,
 }) {
@@ -1760,6 +1837,8 @@ function he({
                     site: p,
                     onSelectSlot: o,
                     selection: selectedRange,
+                    onConfirmSelection: confirmSelectedRange,
+                    onCancelSelection: cancelSelectedRange,
                     canEditReservation: s,
                     onEditReservation: c,
                 }),
@@ -2421,6 +2500,13 @@ function W() {
         ke = (0, _.useCallback)(() => {
             (B(!1), j(null), U(null), setDaySelection(null));
         }, []);
+    function confirmDaySelection() {
+        if (!daySelection?.ready) return;
+        openReservationRange(daySelection.startAt, daySelection.endAt);
+    }
+    function cancelDaySelection() {
+        (setDaySelection(null), j(null));
+    }
     function openReservationRange(e, t) {
         if (!e || !t) {
             let n = vehicleDaySlots(le, selectedVehicle, q)[0];
@@ -2490,10 +2576,11 @@ function W() {
                 period: i,
                 startAt: e,
                 endAt: t,
+                ready: !1,
             }),
                 j({
                     type: `success`,
-                    message: `Debut choisi a ${e.slice(11, 16)}. Clique sur la fin du creneau.`,
+                    message: `Debut choisi a ${e.slice(11, 16)}. Clique sur l heure de fin.`,
                 }));
             return;
         }
@@ -2507,10 +2594,11 @@ function W() {
                 period: i,
                 startAt: e,
                 endAt: t,
+                ready: !1,
             }),
                 j({
                     type: `success`,
-                    message: `Debut choisi a ${e.slice(11, 16)}. Clique sur la fin du creneau.`,
+                    message: `Debut choisi a ${e.slice(11, 16)}. Clique sur l heure de fin.`,
                 }));
             return;
         }
@@ -2522,7 +2610,18 @@ function W() {
                 }));
             return;
         }
-        openReservationRange(a, o);
+        (setDaySelection({
+            vehicleId: n.id,
+            date: r,
+            period: i,
+            startAt: a,
+            endAt: o,
+            ready: !0,
+        }),
+            j({
+                type: `success`,
+                message: `Creneau ${a.slice(11, 16)} - ${o.slice(11, 16)} selectionne. Valide pour ouvrir la fiche.`,
+            }));
     }
     function $(e) {
         (j(null),
@@ -2751,6 +2850,8 @@ function W() {
                                           onFocusDateChange: C,
                                           onSelectSlot: Ae,
                                           selection: daySelection,
+                                          onConfirmSelection: confirmDaySelection,
+                                          onCancelSelection: cancelDaySelection,
                                           canEditReservation: Q,
                                           onEditReservation: $,
                                       }),

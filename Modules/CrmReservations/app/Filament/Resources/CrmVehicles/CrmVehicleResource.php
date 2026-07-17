@@ -53,7 +53,7 @@ class CrmVehicleResource extends Resource
             ->type('time')
             ->formatStateUsing(fn ($state): ?string => blank($state) ? null : substr((string) $state, 0, 5))
             ->dehydrateStateUsing(fn ($state): ?string => blank($state) ? null : substr((string) $state, 0, 5))
-            ->helperText('Vide = planning vehicule par defaut : 06:00-19:00.');
+            ->helperText('Vide = planning vehicule par defaut : 06:00-19:30.');
     }
 
     public static function form(Schema $schema): Schema
@@ -97,7 +97,7 @@ class CrmVehicleResource extends Resource
                 IconEntry::make('active')->label('Actif')->boolean(),
                 TextEntry::make('reservation_hours')
                     ->label('Horaires jour')
-                    ->state(fn (?CrmVehicle $record): string => $record?->reservationHoursLabel($record->site) ?? '06:00-19:00'),
+                    ->state(fn (?CrmVehicle $record): string => $record?->reservationHoursLabel($record->site) ?? '06:00-19:30'),
                 TextEntry::make('reservations_count')->label('Reservations')->counts('reservations'),
                 TextEntry::make('description')->label('Description')->columnSpanFull(),
             ])

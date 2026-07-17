@@ -23,13 +23,18 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('morningStart: `06:00`', $reservationAsset);
         $this->assertStringContainsString('morningEnd: `12:30`', $reservationAsset);
         $this->assertStringContainsString('afternoonStart: `13:00`', $reservationAsset);
-        $this->assertStringContainsString('afternoonEnd: `19:00`', $reservationAsset);
+        $this->assertStringContainsString('afternoonEnd: `19:30`', $reservationAsset);
+        $this->assertStringContainsString('Math.floor(timeMinutes(n.dayEnd) / 60) * 60', $reservationAsset);
         $this->assertStringContainsString('function reservationCellIsSelected', $reservationAsset);
+        $this->assertStringContainsString('function ReservationDaySelectionPanel', $reservationAsset);
         $this->assertStringContainsString('function openReservationRange', $reservationAsset);
         $this->assertStringContainsString('setDaySelection', $reservationAsset);
         $this->assertStringContainsString('reservation-day-cell-button', $reservationAsset);
+        $this->assertStringContainsString('reservation-day-selection-confirm', $reservationAsset);
+        $this->assertStringContainsString('reservation-day-selection-clear', $reservationAsset);
         $this->assertStringContainsString('is-selecting', $reservationAsset);
-        $this->assertStringContainsString('Clique sur la fin du creneau', $reservationAsset);
+        $this->assertStringContainsString('Clique sur l heure de fin', $reservationAsset);
+        $this->assertStringContainsString('Valide pour ouvrir la fiche', $reservationAsset);
         $this->assertStringContainsString('#16a34a', $reservationAsset);
         $this->assertStringContainsString('#dc2626', $reservationAsset);
         $this->assertStringContainsString('function ReservationAvailabilityLegend', $reservationAsset);
@@ -46,8 +51,9 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-mobile-slot-button', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071603', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071603', $indexAsset);
+        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071701', $indexAsset);
+        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071701', $indexAsset);
+        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071603', $indexAsset);
         $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071602', $indexAsset);
         $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071404', $indexAsset);
     }

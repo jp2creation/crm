@@ -123,13 +123,13 @@ class CrmReservationApiTest extends TestCase
             ->postJson('/api/reservations?action=create_reservation', [
                 'vehicleId' => $vehicle->id,
                 'startAt' => '2026-08-08T13:00',
-                'endAt' => '2026-08-08T19:00',
+                'endAt' => '2026-08-08T19:30',
                 'title' => 'Apres-midi par defaut',
             ])
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('reservation.startAt', '2026-08-08T13:00')
-            ->assertJsonPath('reservation.endAt', '2026-08-08T19:00');
+            ->assertJsonPath('reservation.endAt', '2026-08-08T19:30');
 
         $this->actingAs($account)
             ->postJson('/api/reservations?action=create_reservation', [
