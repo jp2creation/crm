@@ -37,6 +37,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('is-selecting', $reservationAsset);
         $this->assertStringContainsString('Clique sur l heure de fin', $reservationAsset);
         $this->assertStringContainsString('Valide pour ouvrir la fiche', $reservationAsset);
+        $this->assertStringContainsString('daySelection.startAt === e', $reservationAsset);
+        $this->assertStringContainsString('Debut annule. Choisis une nouvelle heure de depart.', $reservationAsset);
         $this->assertStringNotContainsString('daySelection.period !== i', $reservationAsset);
         $this->assertStringContainsString('#16a34a', $reservationAsset);
         $this->assertStringContainsString('#dc2626', $reservationAsset);

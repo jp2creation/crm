@@ -1304,7 +1304,7 @@ function ReservationDaySelectionPanel({ selection: e, onConfirm: t, onCancel: n 
                         children: r
                             ? `Valide pour ouvrir la fiche de r\u00e9servation.`
                             : e?.startAt
-                              ? `Clique sur l'heure de fin, puis valide.`
+                              ? `Clique sur l'heure de fin, ou reclique sur le d\u00e9part pour annuler.`
                               : `Clique sur une heure de d\u00e9but puis une heure de fin.`,
                     }),
                 ],
@@ -2583,6 +2583,14 @@ function W() {
                 j({
                     type: `success`,
                     message: `Debut choisi a ${e.slice(11, 16)}. Clique sur l heure de fin.`,
+                }));
+            return;
+        }
+        if (daySelection.startAt === e) {
+            (setDaySelection(null),
+                j({
+                    type: `success`,
+                    message: `Debut annule. Choisis une nouvelle heure de depart.`,
                 }));
             return;
         }
