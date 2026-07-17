@@ -25,6 +25,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('afternoonStart: `13:00`', $reservationAsset);
         $this->assertStringContainsString('afternoonEnd: `19:30`', $reservationAsset);
         $this->assertStringContainsString('Math.floor(timeMinutes(n.dayEnd) / 60) * 60', $reservationAsset);
+        $this->assertStringContainsString('timeMinutes(vehicleDefaultDayHours.morningEnd)', $reservationAsset);
+        $this->assertStringContainsString('[...new Set(s)].sort', $reservationAsset);
         $this->assertStringContainsString('function reservationCellIsSelected', $reservationAsset);
         $this->assertStringContainsString('function ReservationDaySelectionPanel', $reservationAsset);
         $this->assertStringContainsString('function openReservationRange', $reservationAsset);
@@ -35,6 +37,7 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('is-selecting', $reservationAsset);
         $this->assertStringContainsString('Clique sur l heure de fin', $reservationAsset);
         $this->assertStringContainsString('Valide pour ouvrir la fiche', $reservationAsset);
+        $this->assertStringNotContainsString('daySelection.period !== i', $reservationAsset);
         $this->assertStringContainsString('#16a34a', $reservationAsset);
         $this->assertStringContainsString('#dc2626', $reservationAsset);
         $this->assertStringContainsString('function ReservationAvailabilityLegend', $reservationAsset);

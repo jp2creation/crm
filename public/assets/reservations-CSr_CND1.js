@@ -266,12 +266,15 @@ function vehiclePlannerBounds(e, t) {
     let n = vehicleHours(e, t),
         r = Math.floor(timeMinutes(n.dayStart) / 60) * 60,
         i = timeMinutes(n.dayEnd),
-        a = Math.floor(timeMinutes(n.dayEnd) / 60) * 60;
+        a = Math.floor(timeMinutes(n.dayEnd) / 60) * 60,
+        o = timeMinutes(vehicleDefaultDayHours.morningEnd);
     i <= r && (i = r + 600);
     a < r && (a = r);
-    let o = [];
-    for (let e = r; e <= a; e += 60) o.push(e);
-    return o.length || o.push(r), { start: r, end: i, total: i - r, marks: o };
+    let s = [];
+    for (let e = r; e <= a; e += 60) s.push(e);
+    o > r && o < i && s.push(o);
+    s = [...new Set(s)].sort((e, t) => e - t);
+    return s.length || s.push(r), { start: r, end: i, total: i - r, marks: s };
 }
 function reservationPeriodTone(e, t) {
     let n = siteHours(t),
@@ -2567,8 +2570,7 @@ function W() {
         if (
             !daySelection ||
             daySelection.vehicleId !== n.id ||
-            daySelection.date !== r ||
-            daySelection.period !== i
+            daySelection.date !== r
         ) {
             (setDaySelection({
                 vehicleId: n.id,
