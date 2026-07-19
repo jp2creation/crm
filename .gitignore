@@ -17,6 +17,7 @@
 /.zed
 /auth.json
 boost.json
+/build
 /node_modules
 /mobile/dist
 /mobile/*.apk

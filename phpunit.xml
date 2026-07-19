@@ -14,7 +14,32 @@
     </testsuites>
     <source>
         <include>
-            <directory>app</directory>
+            <directory>Modules/CrmAdministration/app/Http/Controllers</directory>
+            <directory>Modules/CrmAdministration/app/Services</directory>
+            <directory>Modules/CrmCashControl/app/Http/Controllers</directory>
+            <directory>Modules/CrmCashControl/app/Services</directory>
+            <directory>Modules/CrmCheckRemittances/app/Http/Controllers</directory>
+            <directory>Modules/CrmCheckRemittances/app/Services</directory>
+            <directory>Modules/CrmCore/app/Http/Controllers</directory>
+            <directory>Modules/CrmCore/app/Services</directory>
+            <directory>Modules/CrmDepositRequests/app/Http/Controllers</directory>
+            <directory>Modules/CrmDepositRequests/app/Services</directory>
+            <directory>Modules/CrmDocuments/Http/Controllers</directory>
+            <directory>Modules/CrmDocuments/Services</directory>
+            <directory>Modules/CrmEquipmentRentals/app/Http/Controllers</directory>
+            <directory>Modules/CrmEquipmentRentals/app/Services</directory>
+            <directory>Modules/CrmLeaves/app/Http/Controllers</directory>
+            <directory>Modules/CrmLeaves/app/Services</directory>
+            <directory>Modules/CrmPages/app/Http/Controllers</directory>
+            <directory>Modules/CrmPages/app/Services</directory>
+            <directory>Modules/CrmReservations/app/Http/Controllers</directory>
+            <directory>Modules/CrmReservations/app/Services</directory>
+            <directory>Modules/CrmSalesTours/app/Http/Controllers</directory>
+            <directory>Modules/CrmSalesTours/app/Services</directory>
+            <directory>Modules/CrmTapisRomus/app/Http/Controllers</directory>
+            <directory>Modules/CrmTapisRomus/app/Services</directory>
+            <directory>Modules/CrmTeams/app/Http/Controllers</directory>
+            <directory>Modules/CrmTeams/app/Services</directory>
         </include>
     </source>
     <php>

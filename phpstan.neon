@@ -1,0 +1,42 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+    - vendor/phpstan/phpstan-phpunit/extension.neon
+
+parameters:
+    level: 1
+    paths:
+        - Modules/CrmAdministration/app/Http/Controllers
+        - Modules/CrmAdministration/app/Services
+        - Modules/CrmCashControl/app/Http/Controllers
+        - Modules/CrmCashControl/app/Services
+        - Modules/CrmCheckRemittances/app/Http/Controllers
+        - Modules/CrmCheckRemittances/app/Services
+        - Modules/CrmCore/app/Http/Controllers
+        - Modules/CrmCore/app/Services
+        - Modules/CrmDepositRequests/app/Http/Controllers
+        - Modules/CrmDepositRequests/app/Services
+        - Modules/CrmDocuments/Http/Controllers
+        - Modules/CrmDocuments/Services
+        - Modules/CrmEquipmentRentals/app/Http/Controllers
+        - Modules/CrmEquipmentRentals/app/Services
+        - Modules/CrmLeaves/app/Http/Controllers
+        - Modules/CrmLeaves/app/Services
+        - Modules/CrmPages/app/Http/Controllers
+        - Modules/CrmPages/app/Services
+        - Modules/CrmReservations/app/Http/Controllers
+        - Modules/CrmReservations/app/Services
+        - Modules/CrmSalesTours/app/Http/Controllers
+        - Modules/CrmSalesTours/app/Services
+        - Modules/CrmTapisRomus/app/Http/Controllers
+        - Modules/CrmTapisRomus/app/Services
+        - Modules/CrmTeams/app/Http/Controllers
+        - Modules/CrmTeams/app/Services
+    tmpDir: storage/framework/phpstan
+    parallel:
+        maximumNumberOfProcesses: 4
+    excludePaths:
+        analyse:
+            - bootstrap/cache
+            - public
+            - storage
+            - vendor

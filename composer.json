@@ -20,12 +20,14 @@
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.4",
         "fakerphp/faker": "^1.23",
+        "larastan/larastan": "^3",
         "laravel/boost": "^2.4",
         "laravel/pail": "^1.2.2",
         "laravel/pint": "^1.24",
         "laravel/sail": "^1.41",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
+        "phpstan/phpstan-phpunit": "^2",
         "phpunit/phpunit": "^11.5.50"
     },
     "autoload": {
@@ -69,6 +71,16 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
+        "test:coverage": [
+            "@php -r \"is_dir('build/logs') || mkdir('build/logs', 0777, true);\"",
+            "XDEBUG_MODE=coverage php artisan test --coverage-clover build/logs/clover.xml",
+            "@php scripts/check-coverage.php build/logs/clover.xml 80"
+        ],
+        "quality": [
+            "@composer analyse",
+            "@composer test"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
