@@ -327,8 +327,11 @@ class ReservationService
                 $this->fail('Reservation introuvable', 404);
             }
 
+            $isCreator = (int) $reservation->user_id === (int) $actor->id;
             $canDeleteAny = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.delete_any');
-            $canDeleteOwn = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.delete_own') && (int) $reservation->user_id === (int) $actor->id;
+            $canDeleteOwn = $isCreator || (
+                $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.delete_own') && $isCreator
+            );
 
             if (! $canDeleteAny && ! $canDeleteOwn) {
                 $this->fail('Suppression non autorisee', 403);

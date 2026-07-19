@@ -89,7 +89,9 @@
       '/api/reservations.php?action=bootstrap',
       '/api/equipment-rentals.php?action=bootstrap',
       '/api/controle-caisse.php?action=bootstrap',
+      '/api/demandes-acompte.php?action=bootstrap',
       '/api/conges.php?action=bootstrap',
+      '/api/equipes.php?action=bootstrap',
       '/api/administration.php?action=bootstrap',
     ];
 
@@ -134,6 +136,7 @@
       '.crm-active-site-label{font-size:.72rem;font-weight:800;line-height:1;text-transform:uppercase;color:var(--color-secondary-500,#64748b);white-space:nowrap}',
       '.crm-active-site-select{height:2.2rem;min-width:0;width:100%;max-width:8rem;border:1px solid var(--color-surface-200,#e2e8f0);border-radius:.55rem;background:var(--color-surface-50,#f8fafc);padding:0 1.7rem 0 .65rem;font-size:.78rem;font-weight:800;color:var(--color-secondary-900,#0f172a);outline:none;text-overflow:ellipsis}',
       '.crm-active-site-select:hover,.crm-active-site-select:focus{border-color:rgb(var(--theme-primary,149 0 46) / .55);box-shadow:0 0 0 3px rgb(var(--theme-primary,149 0 46) / .12)}',
+      '.crm-active-site-select:disabled{cursor:wait;opacity:.72}',
       '.dark .crm-active-site-select{border-color:var(--color-surface-700,#334155);background:var(--color-surface-800,#1e293b);color:#fff}',
       '@media (max-width:767px){.crm-active-site-label{display:none}.crm-active-site-switcher{flex:1 1 auto;max-width:7.8rem}.crm-active-site-select{max-width:7.8rem}}',
       '@media (min-width:768px){.crm-active-site-switcher{gap:.45rem;flex:0 0 auto;max-width:none}.crm-active-site-select{height:2.35rem;min-width:9.5rem;max-width:13rem;padding:0 2rem 0 .8rem;font-size:.84rem}}',
@@ -155,7 +158,11 @@
     var host = document.getElementById(rootId);
     var actions = headerActions();
 
-    if (!actions || !state.sites.length) {
+    if (!actions) {
+      return;
+    }
+
+    if (!state.sites.length && !state.loading) {
       if (host) {
         host.remove();
       }
@@ -177,6 +184,14 @@
     }
 
     var select = host.querySelector('select');
+
+    if (!state.sites.length) {
+      select.disabled = true;
+      select.innerHTML = '<option value="">Chargement...</option>';
+      return;
+    }
+
+    select.disabled = false;
     var options = state.sites.map(function (site) {
       return '<option value="' + String(site.id) + '">' + escapeHtml(site.name || site.slug || ('Site #' + site.id)) + '</option>';
     }).join('');
@@ -277,14 +292,15 @@
     normalizeExternalLinks();
     document.addEventListener('click', handleExternalLinkClick, true);
 
-    var observer = new MutationObserver(function () {
+    var attempts = 0;
+    var timer = window.setInterval(function () {
+      attempts += 1;
       renderSwitcher();
-      normalizeExternalLinks();
-    });
+      if (document.getElementById(rootId) || attempts >= 40) {
+        window.clearInterval(timer);
+      }
+    }, 250);
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
+    window.setTimeout(normalizeExternalLinks, 1000);
   });
 })();

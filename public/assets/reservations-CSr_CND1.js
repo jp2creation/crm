@@ -12,8 +12,8 @@ import {
     p as u,
     u as d,
     w as f,
-} from "./index-CqSzWeas.js?v=2026071404";
-import { t as p } from "./dashboard-Chzs1W9w.js?v=2026071404";
+} from "./index-CqSzWeas.js?v=2026071713";
+import { t as p } from "./dashboard-Chzs1W9w.js?v=2026071713";
 import {
     a as m,
     i as h,
@@ -22,7 +22,7 @@ import {
     r as te,
     s as ne,
     t as re,
-} from "./reservations-DvkqhioU.js?v=2026071404";
+} from "./reservations-DvkqhioU.js?v=2026071713";
 var _ = r(o(), 1),
     v = `/api/reservations.php`;
 function y(e) {
@@ -31,10 +31,10 @@ function y(e) {
         mode: `local-fallback`,
         user: g[0],
         users: g,
-        sites: m,
-        modules: ee,
-        vehicles: ne,
-        reservations: re,
+        sites: [],
+        modules: [],
+        vehicles: [],
+        reservations: [],
         permissions: te,
         error: e,
     };
@@ -124,6 +124,11 @@ var S = n(),
     le = new Intl.DateTimeFormat(`fr-FR`, {
         dateStyle: `medium`,
         timeStyle: `short`,
+    }),
+    summaryDateFormat = new Intl.DateTimeFormat(`fr-FR`, {
+        day: `2-digit`,
+        month: `short`,
+        year: `numeric`,
     }),
     C = new Intl.DateTimeFormat(`fr-FR`, {
         weekday: `short`,
@@ -326,6 +331,10 @@ function O(e, t) {
     let n = new Date(e);
     return (n.setDate(e.getDate() + t), n);
 }
+function todayDate() {
+    let e = new Date();
+    return e.setHours(0, 0, 0, 0), e;
+}
 function k(e) {
     let t = new Date(e);
     return (
@@ -354,6 +363,11 @@ function de(e) {
 function M(e) {
     return e.slice(11, 16);
 }
+function reservationSummaryDateTime(e) {
+    return e
+        ? { date: summaryDateFormat.format(T(e)), time: M(e) }
+        : { date: `-`, time: `` };
+}
 function N(e, t) {
     return e.permissions.includes(t);
 }
@@ -361,6 +375,13 @@ function fe(e, t, n) {
     return (
         N(e, `reservations.update_any`) ||
         (N(e, `reservations.update_own`) && n.userId === t.id)
+    );
+}
+function canDeleteReservation(e, t, n) {
+    return (
+        N(e, `reservations.delete_any`) ||
+        n.userId === t.id ||
+        (N(e, `reservations.delete_own`) && n.userId === t.id)
     );
 }
 function P(e, t, n, r) {
@@ -803,6 +824,9 @@ function ReservationTimelineStyles() {
 .reservation-fast-summary-item{min-width:0;border:1px solid #e7edf5;border-radius:.68rem;background:#fff;padding:.52rem .58rem}
 .reservation-fast-summary-item span{display:block;color:#7b8798;font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.02em}
 .reservation-fast-summary-item strong{display:block;margin-top:.12rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#223957;font-size:.82rem;font-weight:950}
+.reservation-fast-summary-datetime{display:flex!important;flex-direction:column;gap:.1rem;overflow:visible!important;text-overflow:clip!important;white-space:normal!important}
+.reservation-fast-summary-datetime .reservation-fast-summary-date{display:block;color:#223957;font-size:.74rem;font-weight:950;line-height:1.05;text-transform:none;letter-spacing:0;white-space:nowrap}
+.reservation-fast-summary-datetime .reservation-fast-summary-time{display:block;color:rgb(var(--theme-primary));font-size:1rem;font-weight:950;line-height:1;text-transform:none;letter-spacing:0;white-space:nowrap}
 .reservation-day-board{display:none;overflow-x:auto;border:1px solid #e4e9f1;border-radius:1rem;background:#fff;box-shadow:0 18px 44px rgba(15,23,42,.06);overscroll-behavior-x:contain}
 .reservation-day-board-inner{display:grid;min-width:760px;grid-template-columns:112px minmax(620px,1fr);grid-template-rows:54px repeat(2,118px)}
 .reservation-day-corner,.reservation-day-hour-axis,.reservation-day-row-label,.reservation-day-row-track{border-bottom:1px solid #e4e9f1}
@@ -1056,6 +1080,15 @@ function reservationSelectionLabel(e) {
           ? `D\u00e9but ${e.startAt.slice(11, 16)}`
           : `Choisis une heure de d\u00e9but`;
 }
+function reservationSelectionCellLabel(e, t) {
+    if (!t) return `Fin ${M(D(e.end))}`;
+    let n = D(e.start),
+        r = D(e.end);
+    if (!t.ready) return t.startAt === n ? `D\u00e9but choisi` : `Fin ${M(D(e.end))}`;
+    if (t.startAt === n) return `D\u00e9but`;
+    if (t.endAt === r) return `Fin choisie`;
+    return `S\u00e9lectionn\u00e9`;
+}
 function ReservationTimeLines({ bounds: e }) {
     return (0, S.jsx)(S.Fragment, {
         children: e.marks.map((t) =>
@@ -1298,7 +1331,7 @@ function ReservationMobileDaySlots({
                                             (0, S.jsx)(`span`, {
                                                 className: `reservation-mobile-slot-label`,
                                                 children: isSelected
-                                                    ? `Debut choisi`
+                                                    ? reservationSelectionCellLabel(e, selectedRange)
                                                     : `Fin ${M(D(e.end))}`,
                                             }),
                                     ],
@@ -1843,7 +1876,10 @@ function he({
                 onViewChange: i,
                 onPrevious: () => a(O(t, -u)),
                 onNext: () => a(O(t, u)),
-                onToday: () => a(new Date()),
+                onToday: () => {
+                    a(todayDate());
+                    i(`day`);
+                },
             }),
             f === `month` &&
                 (0, S.jsx)(B, {
@@ -1881,8 +1917,11 @@ function ge({
     notice: i,
     loading: o,
     canSubmit: l,
+    canDelete: canDelete = !1,
+    deleteLoading: deleteLoading = !1,
     onChange: u,
     onSubmit: f,
+    onDelete: onDelete,
     onClose: p,
 }) {
     let m = t === `edit`;
@@ -1959,11 +1998,14 @@ function ge({
                                       notice: i,
                                       loading: o,
                                       canSubmit: l,
+                                      canDelete: m && canDelete,
+                                      deleteLoading: deleteLoading,
                                       submitLabel: m
-                                          ? `Modifier la reservation`
+                                          ? `Modifier`
                                           : `Enregistrer la reservation`,
                                       onChange: u,
                                       onSubmit: f,
+                                      onDelete: onDelete,
                                   }),
                               }),
                           ],
@@ -1987,6 +2029,35 @@ function _e({ notice: e, className: n }) {
           })
         : null;
 }
+function ReservationModuleLoading() {
+    return (0, S.jsxs)(`div`, {
+        className: `rounded-xl border border-surface-200 bg-white p-5 shadow-sm dark:border-surface-700 dark:bg-surface-900`,
+        children: [
+            (0, S.jsxs)(`div`, {
+                className: `flex items-center gap-3`,
+                children: [
+                    (0, S.jsx)(`span`, {
+                        className: `h-10 w-10 shrink-0 animate-spin rounded-full border-2 border-theme-primary/20 border-t-theme-primary`,
+                        "aria-hidden": !0,
+                    }),
+                    (0, S.jsxs)(`div`, {
+                        className: `min-w-0`,
+                        children: [
+                            (0, S.jsx)(`p`, {
+                                className: `text-label text-secondary-900 dark:text-white`,
+                                children: `Chargement des vehicules`,
+                            }),
+                            (0, S.jsx)(`p`, {
+                                className: `text-body-sm text-secondary-500 dark:text-secondary-400`,
+                                children: `Connexion aux donnees MySQL du site actif...`,
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+        ],
+    });
+}
 function H({
     form: t,
     vehicles: n,
@@ -1994,13 +2065,16 @@ function H({
     notice: i,
     loading: o,
     canSubmit: s,
+    canDelete: canDelete = !1,
+    deleteLoading: deleteLoading = !1,
     submitLabel: l,
     onChange: p,
     onSubmit: m,
+    onDelete: onDelete,
 }) {
     let h = n.find((e) => String(e.id) === String(t.vehicleId)),
-        y = t.startAt ? de(t.startAt) : `-`,
-        b = t.endAt ? de(t.endAt) : `-`,
+        y = reservationSummaryDateTime(t.startAt),
+        b = reservationSummaryDateTime(t.endAt),
         x = t.userName || r?.name || `-`;
     return (0, S.jsxs)(S.Fragment, {
         children: [
@@ -2033,14 +2107,38 @@ function H({
                                         className: `reservation-fast-summary-item`,
                                         children: [
                                             (0, S.jsx)(`span`, { children: `D\u00e9but` }),
-                                            (0, S.jsx)(`strong`, { children: y }),
+                                            (0, S.jsxs)(`strong`, {
+                                                className: `reservation-fast-summary-datetime`,
+                                                children: [
+                                                    (0, S.jsx)(`span`, {
+                                                        className: `reservation-fast-summary-date`,
+                                                        children: y.date,
+                                                    }),
+                                                    (0, S.jsx)(`span`, {
+                                                        className: `reservation-fast-summary-time`,
+                                                        children: y.time,
+                                                    }),
+                                                ],
+                                            }),
                                         ],
                                     }),
                                     (0, S.jsxs)(`div`, {
                                         className: `reservation-fast-summary-item`,
                                         children: [
                                             (0, S.jsx)(`span`, { children: `Fin` }),
-                                            (0, S.jsx)(`strong`, { children: b }),
+                                            (0, S.jsxs)(`strong`, {
+                                                className: `reservation-fast-summary-datetime`,
+                                                children: [
+                                                    (0, S.jsx)(`span`, {
+                                                        className: `reservation-fast-summary-date`,
+                                                        children: b.date,
+                                                    }),
+                                                    (0, S.jsx)(`span`, {
+                                                        className: `reservation-fast-summary-time`,
+                                                        children: b.time,
+                                                    }),
+                                                ],
+                                            }),
                                         ],
                                     }),
                                     (0, S.jsxs)(`div`, {
@@ -2066,12 +2164,35 @@ function H({
                             onChange: (e) => p({ ...t, notes: e.target.value }),
                         }),
                     }),
-                    (0, S.jsxs)(a, {
-                        type: `submit`,
-                        fullWidth: !0,
-                        loading: o,
-                        disabled: !s || n.length === 0,
-                        children: [(0, S.jsx)(c, { icon: d.truck }), l],
+                    (0, S.jsxs)(`div`, {
+                        className: canDelete
+                            ? `reservation-fast-actions grid grid-cols-2 gap-2`
+                            : `reservation-fast-actions grid grid-cols-1 gap-2`,
+                        children: [
+                            (0, S.jsxs)(a, {
+                                type: `submit`,
+                                fullWidth: !0,
+                                loading: o,
+                                disabled: !s || n.length === 0,
+                                children: [(0, S.jsx)(c, { icon: d.truck }), l],
+                            }),
+                            canDelete &&
+                                (0, S.jsxs)(a, {
+                                    type: `button`,
+                                    variant: `ghost`,
+                                    fullWidth: !0,
+                                    loading: deleteLoading,
+                                    onClick: onDelete,
+                                    className: `text-danger-600`,
+                                    children: [
+                                        (0, S.jsx)(c, {
+                                            icon: d.trash,
+                                            className: `h-4 w-4`,
+                                        }),
+                                        `Supprimer`,
+                                    ],
+                                }),
+                        ],
                     }),
                 ],
             }),
@@ -2088,9 +2209,7 @@ function U({
     onEdit: s,
     onDelete: l,
 }) {
-    let u =
-            N(n, `reservations.delete_any`) ||
-            (N(n, `reservations.delete_own`) && e.userId === r.id),
+    let u = canDeleteReservation(n, r, e),
         f = o(e);
     return (0, S.jsxs)(`div`, {
         className: `min-w-[260px] rounded-xl border border-surface-200 p-3 dark:border-surface-700`,
@@ -2377,7 +2496,7 @@ function W() {
         [te, v] = (0, _.useState)(g[0].id),
         [y, b] = (0, _.useState)(`loading`),
         [x, ce] = (0, _.useState)(`month`),
-        [le, C] = (0, _.useState)(() => new Date(`2026-07-22T00:00`)),
+        [le, C] = (0, _.useState)(() => todayDate()),
         [w, E] = (0, _.useState)(re),
         [O, k] = (0, _.useState)(ue),
         [A, j] = (0, _.useState)(null),
@@ -2488,6 +2607,7 @@ function W() {
         ke = (0, _.useCallback)(() => {
             (B(!1), j(null), U(null), setDaySelection(null));
         }, []);
+    let isLoading = y === `loading`;
     function confirmDaySelection() {
         if (!daySelection?.ready) return;
         openReservationRange(daySelection.startAt, daySelection.endAt);
@@ -2789,6 +2909,7 @@ function W() {
         try {
             (y === `api` && (await se(e.id, G.id)),
                 E((t) => t.filter((t) => t.id !== e.id)),
+                H === e.id && (B(!1), U(null), setDaySelection(null)),
                 j({ type: `success`, message: `Reservation supprimee.` }));
         } catch (e) {
             j({
@@ -2808,24 +2929,30 @@ function W() {
             (0, S.jsx)(p, {
                 title: `Reservations vehicules`,
                 subtitle:
-                    y === `api`
+                    isLoading
+                        ? `Chargement du module Sprinter`
+                        : y === `api`
                         ? `Module Sprinter connecte a MySQL`
-                        : `Module Sprinter dans le CRM Martin Sols`,
-                actions: (0, S.jsxs)(S.Fragment, {
-                    children: [
-                        (0, S.jsxs)(a, {
-                            onClick: () => Ae(),
-                            children: [
-                                (0, S.jsx)(c, { icon: d.plus }),
-                                `Nouvelle reservation`,
-                            ],
-                        }),
-                    ],
-                }),
+                        : `Connexion aux donnees reservations indisponible`,
+                actions:
+                    !isLoading &&
+                    (0, S.jsxs)(S.Fragment, {
+                        children: [
+                            (0, S.jsxs)(a, {
+                                onClick: () => Ae(),
+                                children: [
+                                    (0, S.jsx)(c, { icon: d.plus }),
+                                    `Nouvelle reservation`,
+                                ],
+                            }),
+                        ],
+                    }),
             }),
             (0, S.jsx)(ReservationTimelineStyles, {}),
             !z && (0, S.jsx)(_e, { notice: A }),
-            Ee
+            isLoading
+                ? (0, S.jsx)(ReservationModuleLoading, {})
+                : Ee
                 ? (0, S.jsxs)(S.Fragment, {
                       children: [
                           (0, S.jsxs)(`div`, {
@@ -2877,8 +3004,11 @@ function W() {
                               notice: A,
                               loading: L,
                               canSubmit: Oe,
+                              canDelete: De ? canDeleteReservation(K, G, De) : !1,
+                              deleteLoading: De ? W === De.id : !1,
                               onChange: k,
                               onSubmit: Me,
+                              onDelete: De ? () => Ne(De) : void 0,
                               onClose: ke,
                           }),
                       ],

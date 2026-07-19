@@ -3,6 +3,7 @@
 namespace Modules\CrmCore\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -44,13 +45,23 @@ class AuthController extends Controller
 
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
+        $this->stripMobileEmbedFromIntendedUrl($request);
 
         return redirect()->intended(route('crm.home'));
     }
 
     public function logout(Request $request): RedirectResponse
     {
-        Auth::logout();
+        $user = Auth::guard('web')->user();
+        $mobileTokenId = (int) $request->session()->pull('crm_mobile_token_id', 0);
+
+        if ($mobileTokenId > 0 && $user instanceof User) {
+            $user->tokens()->whereKey($mobileTokenId)->delete();
+        }
+
+        Auth::guard('web')->logout();
+        Auth::guard('sanctum')->forgetUser();
+        Auth::guard('web')->forgetUser();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -61,5 +72,41 @@ class AuthController extends Controller
     private function throttleKey(Request $request): string
     {
         return Str::lower((string) $request->input('email')).'|'.$request->ip();
+    }
+
+    private function stripMobileEmbedFromIntendedUrl(Request $request): void
+    {
+        $intended = $request->session()->get('url.intended');
+
+        if (! is_string($intended) || ! str_contains($intended, 'mobile_embed')) {
+            return;
+        }
+
+        $parts = parse_url($intended);
+
+        if (! is_array($parts)) {
+            return;
+        }
+
+        $query = [];
+
+        if (isset($parts['query']) && is_string($parts['query'])) {
+            parse_str($parts['query'], $query);
+        }
+
+        unset($query['mobile_embed'], $query['mobile_site_id']);
+
+        $path = (string) ($parts['path'] ?? '/');
+
+        if ($path === '' || ! str_starts_with($path, '/')) {
+            $path = '/';
+        }
+
+        $queryString = http_build_query($query);
+        $fragment = isset($parts['fragment']) && is_string($parts['fragment']) && $parts['fragment'] !== ''
+            ? '#'.$parts['fragment']
+            : '';
+
+        $request->session()->put('url.intended', $path.($queryString !== '' ? '?'.$queryString : '').$fragment);
     }
 }

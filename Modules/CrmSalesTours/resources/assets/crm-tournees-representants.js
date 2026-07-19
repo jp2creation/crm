@@ -8,6 +8,15 @@
   const routeStyleId = `${styleId}-route`;
   const storageSiteKey = "crm:active-site-id";
   const routeEvent = "crm:sales-tours-route-changed";
+  const reclaimableHostIds = [
+    "crm-leaves-module",
+    "crm-dashboard-module",
+    "crm-documents-module",
+    "crm-teams-module",
+    "crm-cash-control-module",
+    "crm-deposit-requests-module",
+    "crm-check-remittances-module"
+  ];
   const mountedRoots = new WeakSet();
   let mountTimer = null;
   let guardTimer = null;
@@ -71,8 +80,21 @@
   }
 
   function findOutlet() {
-    return Array.from(document.querySelectorAll("main .layout-container.layout-page, main .layout-page, .layout-container.layout-page"))
+    const activeModuleHost = reclaimableHostIds
+      .map((id) => document.getElementById(id))
+      .find(isSafeOutlet);
+
+    return activeModuleHost || Array.from(document.querySelectorAll("main .layout-container.layout-page, main .layout-page, .layout-container.layout-page"))
       .find(isSafeOutlet) || null;
+  }
+
+  function placeHost(outlet, host) {
+    if (outlet.id && reclaimableHostIds.includes(outlet.id)) {
+      outlet.replaceWith(host);
+      return;
+    }
+
+    outlet.replaceChildren(host);
   }
 
   function ensureHost() {
@@ -89,7 +111,7 @@
       host = document.createElement("div");
       host.id = rootId;
       host.textContent = "Chargement du rapport de visite...";
-      outlet.replaceChildren(host);
+      placeHost(outlet, host);
     }
 
     root = host;
@@ -855,7 +877,14 @@
     style.id = routeStyleId;
     style.textContent = `
       html.crm-sales-tours-pending main .layout-container.layout-page,
-      html.crm-sales-tours-pending main .layout-page{opacity:0;pointer-events:none}
+      html.crm-sales-tours-pending main .layout-page,
+      html.crm-sales-tours-pending #crm-leaves-module,
+      html.crm-sales-tours-pending #crm-dashboard-module,
+      html.crm-sales-tours-pending #crm-documents-module,
+      html.crm-sales-tours-pending #crm-teams-module,
+      html.crm-sales-tours-pending #crm-cash-control-module,
+      html.crm-sales-tours-pending #crm-deposit-requests-module,
+      html.crm-sales-tours-pending #crm-check-remittances-module{opacity:0;pointer-events:none}
     `;
     document.head.appendChild(style);
   }

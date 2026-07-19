@@ -1,0 +1,237 @@
+:root {
+    --brand-bordeaux: #a9003f;
+    --brand-jaune: #f7b711;
+
+    --loader-size: 78px;
+    --loader-cycle: 2.3s;
+
+    /* Espaces finaux fidèles au logo */
+    --logo-gap: 6%;
+    --logo-thickness: 24%;
+    --logo-long: 57%;
+}
+
+.brand-morph-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: grid;
+    place-items: center;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease, visibility 160ms ease;
+}
+
+.brand-morph-loader.is-visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.brand-morph-loader__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, .10);
+    backdrop-filter: blur(1.5px);
+}
+
+.brand-morph-loader__stage {
+    position: relative;
+    width: var(--loader-size);
+    height: var(--loader-size);
+}
+
+.brand-morph-loader__symbol {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 50%;
+    animation: logo-orbit var(--loader-cycle) cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+.segment {
+    position: absolute;
+    display: block;
+    border-radius: 7px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .10);
+    will-change: transform, width, height, border-radius, opacity;
+}
+
+/*
+ * FORMATION FINALE :
+ * - logo rectangulaire, non rond
+ * - mêmes espaces entre les barres que le visuel fourni
+ * - centre transparent
+ */
+.segment--top,
+.segment--bottom {
+    width: var(--logo-long);
+    height: var(--logo-thickness);
+    background: var(--brand-bordeaux);
+}
+
+.segment--left,
+.segment--right {
+    width: var(--logo-thickness);
+    height: var(--logo-long);
+    background: var(--brand-jaune);
+}
+
+.segment--top {
+    top: var(--logo-gap);
+    left: var(--logo-gap);
+    animation: morph-top var(--loader-cycle) cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+.segment--right {
+    top: var(--logo-gap);
+    right: var(--logo-gap);
+    animation: morph-right var(--loader-cycle) cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+.segment--bottom {
+    right: var(--logo-gap);
+    bottom: var(--logo-gap);
+    animation: morph-bottom var(--loader-cycle) cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+.segment--left {
+    left: var(--logo-gap);
+    bottom: var(--logo-gap);
+    animation: morph-left var(--loader-cycle) cubic-bezier(.4, 0, .2, 1) infinite;
+}
+
+/* Logo -> capsules -> rotation -> logo fidèle */
+@keyframes logo-orbit {
+    0%, 16% {
+        transform: rotate(0deg) scale(1);
+    }
+
+    34% {
+        transform: rotate(105deg) scale(.86);
+    }
+
+    52% {
+        transform: rotate(215deg) scale(.90);
+    }
+
+    70% {
+        transform: rotate(325deg) scale(.86);
+    }
+
+    84% {
+        transform: rotate(360deg) scale(1.04);
+    }
+
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+@keyframes morph-top {
+    0%, 16%, 100% {
+        width: var(--logo-long);
+        height: var(--logo-thickness);
+        transform: translate(0, 0) scale(1);
+        border-radius: 7px;
+    }
+
+    32%, 70% {
+        width: 22%;
+        height: 22%;
+        transform: translate(63%, 9%) scale(.92);
+        border-radius: 999px;
+    }
+
+    84% {
+        width: 22%;
+        height: 22%;
+        transform: translate(63%, 9%) scale(1.08);
+        border-radius: 999px;
+    }
+}
+
+@keyframes morph-right {
+    0%, 16%, 100% {
+        width: var(--logo-thickness);
+        height: var(--logo-long);
+        transform: translate(0, 0) scale(1);
+        border-radius: 7px;
+    }
+
+    32%, 70% {
+        width: 22%;
+        height: 22%;
+        transform: translate(-9%, 63%) scale(.92);
+        border-radius: 999px;
+    }
+
+    84% {
+        width: 22%;
+        height: 22%;
+        transform: translate(-9%, 63%) scale(1.08);
+        border-radius: 999px;
+    }
+}
+
+@keyframes morph-bottom {
+    0%, 16%, 100% {
+        width: var(--logo-long);
+        height: var(--logo-thickness);
+        transform: translate(0, 0) scale(1);
+        border-radius: 7px;
+    }
+
+    32%, 70% {
+        width: 22%;
+        height: 22%;
+        transform: translate(-63%, -9%) scale(.92);
+        border-radius: 999px;
+    }
+
+    84% {
+        width: 22%;
+        height: 22%;
+        transform: translate(-63%, -9%) scale(1.08);
+        border-radius: 999px;
+    }
+}
+
+@keyframes morph-left {
+    0%, 16%, 100% {
+        width: var(--logo-thickness);
+        height: var(--logo-long);
+        transform: translate(0, 0) scale(1);
+        border-radius: 7px;
+    }
+
+    32%, 70% {
+        width: 22%;
+        height: 22%;
+        transform: translate(9%, -63%) scale(.92);
+        border-radius: 999px;
+    }
+
+    84% {
+        width: 22%;
+        height: 22%;
+        transform: translate(9%, -63%) scale(1.08);
+        border-radius: 999px;
+    }
+}
+
+@media (max-width: 640px) {
+    :root {
+        --loader-size: 66px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-morph-loader__symbol {
+        animation: logo-orbit 1.8s linear infinite;
+    }
+
+    .segment {
+        animation: none;
+    }
+}

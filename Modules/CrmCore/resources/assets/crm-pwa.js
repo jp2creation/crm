@@ -10,6 +10,7 @@
   var installStyleId = 'crm-pwa-install-style';
   var updateReloading = false;
   var hadServiceWorkerController = false;
+  var installAllowedPaths = ['/', '/login', '/dashboard/crm'];
 
   function dispatch(name, detail) {
     try {
@@ -22,6 +23,21 @@
   function isStandalone() {
     return window.matchMedia('(display-mode: standalone)').matches
       || window.navigator.standalone === true;
+  }
+
+  function currentPath() {
+    return window.location.pathname.replace(/\/+$/, '') || '/';
+  }
+
+  function isMobileShell() {
+    return document.body && (
+      document.body.classList.contains('crm-mobile-app')
+      || document.body.classList.contains('crm-mobile-embed')
+    );
+  }
+
+  function isInstallButtonAllowedPath() {
+    return installAllowedPaths.indexOf(currentPath()) !== -1;
   }
 
   function registerServiceWorker() {
@@ -135,7 +151,7 @@
   }
 
   function renderInstallButton() {
-    if (!installPrompt || isStandalone() || !document.body) {
+    if (!installPrompt || isStandalone() || isMobileShell() || !isInstallButtonAllowedPath() || !document.body) {
       removeInstallButton();
       return;
     }
@@ -184,7 +200,12 @@
     window.setTimeout(checkForUpdates, 3000);
   }
 
+  function routeChanged() {
+    renderInstallButton();
+  }
+
   window.addEventListener('focus', checkForUpdates);
+  window.addEventListener('popstate', routeChanged);
 
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
@@ -215,6 +236,17 @@
     refreshInstallButton: renderInstallButton,
     checkForUpdates: checkForUpdates
   };
+
+  ['pushState', 'replaceState'].forEach(function (method) {
+    var original = history[method];
+
+    history[method] = function patchedPwaInstallHistoryState() {
+      var result = original.apply(this, arguments);
+      window.setTimeout(routeChanged, 0);
+
+      return result;
+    };
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot, { once: true });

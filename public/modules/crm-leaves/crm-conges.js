@@ -1,6 +1,10 @@
 (() => {
   const api = "/api/conges.php";
+  const rootId = "crm-leaves-module";
+  const routeEvent = "crm:leaves-route-changed";
   let root = null;
+  let mountTimer = null;
+  let mountAttempts = 0;
   const mountedRoots = new WeakSet();
   const state = {
     data: null,
@@ -1325,25 +1329,54 @@
   }
 
   function boot(rootNode) {
-    if (!rootNode || mountedRoots.has(rootNode)) return;
+    if (!rootNode) return false;
+
+    if (mountedRoots.has(rootNode)) {
+      root = rootNode.shadowRoot || root;
+      return true;
+    }
+
+    if (mountTimer) {
+      window.clearTimeout(mountTimer);
+      mountTimer = null;
+    }
+
     root = rootNode.shadowRoot || rootNode.attachShadow({ mode: "open" });
     mountedRoots.add(rootNode);
     load();
+    return true;
   }
 
   function isLeavesRoute() {
     return window.location.pathname.replace(/\/$/, "") === "/conges";
   }
 
-  function tryBoot() {
-    if (!isLeavesRoute()) return;
-    boot(document.getElementById("crm-leaves-module"));
+  function scheduleBoot(reset = false) {
+    if (reset) mountAttempts = 0;
+    if (mountTimer) window.clearTimeout(mountTimer);
+
+    if (!isLeavesRoute()) {
+      mountTimer = null;
+      return;
+    }
+
+    if (boot(document.getElementById(rootId))) return;
+
+    mountTimer = window.setTimeout(() => {
+      mountTimer = null;
+      if (!isLeavesRoute()) return;
+      if (boot(document.getElementById(rootId))) return;
+
+      mountAttempts += 1;
+      if (mountAttempts < 18) scheduleBoot(false);
+    }, mountAttempts < 6 ? 60 : 150);
   }
 
   const originalPushState = history.pushState;
   history.pushState = function (...args) {
     const result = originalPushState.apply(this, args);
     window.dispatchEvent(new Event("crm:route-changed"));
+    window.dispatchEvent(new Event(routeEvent));
     return result;
   };
 
@@ -1351,21 +1384,20 @@
   history.replaceState = function (...args) {
     const result = originalReplaceState.apply(this, args);
     window.dispatchEvent(new Event("crm:route-changed"));
+    window.dispatchEvent(new Event(routeEvent));
     return result;
   };
 
-  window.addEventListener("popstate", tryBoot);
-  window.addEventListener("crm:route-changed", () => window.setTimeout(tryBoot, 0));
+  window.addEventListener("popstate", () => scheduleBoot(true));
+  window.addEventListener("crm:route-changed", () => scheduleBoot(true));
+  window.addEventListener(routeEvent, () => scheduleBoot(true));
   window.addEventListener("crm:active-site-changed", () => {
     if (!isLeavesRoute() || !root) return;
     state.modal = null;
     state.filters.employeeId = "all";
     load();
   });
-  document.addEventListener("DOMContentLoaded", tryBoot);
+  document.addEventListener("DOMContentLoaded", () => scheduleBoot(true));
 
-  const observer = new MutationObserver(() => tryBoot());
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-
-  tryBoot();
+  scheduleBoot(true);
 })();

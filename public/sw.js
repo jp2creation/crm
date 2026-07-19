@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'martin-sols-crm-v2026071706';
+const CACHE_VERSION = 'martin-sols-crm-v2026071905';
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
 const OFFLINE_URL = '/offline.html';
 
@@ -8,6 +8,9 @@ const PRECACHE_URLS = [
   '/favicon.png',
   '/assets/logo/logo.svg',
   '/assets/logo/martin-sols-logo.png',
+  '/modules/crm-core/brand-morph-loader.css',
+  '/modules/crm-core/brand-morph-loader.js',
+  '/modules/crm-core/brand-morph-loader-app.js',
   '/assets/pwa/apple-touch-icon.png',
   '/assets/pwa/icon-192.png',
   '/assets/pwa/icon-512.png',

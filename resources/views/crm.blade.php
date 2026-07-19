@@ -115,6 +115,7 @@
     <script defer src="{{ \App\Support\CrmAsset::url('modules/crm-pages/crm-pages.js') }}"></script>
     <script type="module" crossorigin src="{{ \App\Support\CrmAsset::url('modules/crm-teams/crm-equipes.js') }}"></script>
     <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/crm-account-settings.js') }}"></script>
+    <link rel="stylesheet" href="{{ \App\Support\CrmAsset::url('modules/crm-core/brand-morph-loader.css') }}">
     <link rel="stylesheet" crossorigin href="{{ \App\Support\CrmAsset::url('assets/index-CVBlw941.css') }}">
     <style>
       .layout-header .header-search-wrap,
@@ -182,7 +183,19 @@
     </style>
   </head>
   <body class="{{ request()->boolean('mobile_embed') ? 'crm-mobile-embed' : '' }}">
+    @include('partials.brand-morph-loader')
+    <script>
+      (function () {
+        var loader = document.getElementById('brand-morph-loader')
+        if (!loader) return
+
+        loader.classList.add('is-visible')
+        loader.setAttribute('aria-hidden', 'false')
+      })()
+    </script>
     <div id="root"></div>
+    <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/brand-morph-loader.js') }}"></script>
+    <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/brand-morph-loader-app.js') }}"></script>
     @unless(request()->boolean('mobile_embed'))
       @include('partials.pwa-scripts')
     @endunless

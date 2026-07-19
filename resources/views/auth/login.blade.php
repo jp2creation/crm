@@ -12,6 +12,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="{{ \App\Support\CrmAsset::url('modules/crm-core/brand-morph-loader.css') }}">
     <title>Connexion - Martin Sols CRM</title>
     <style>
       :root {
@@ -221,6 +222,16 @@
     </style>
   </head>
   <body>
+    @include('partials.brand-morph-loader')
+    <script>
+      (function () {
+        var loader = document.getElementById('brand-morph-loader')
+        if (!loader) return
+
+        loader.classList.add('is-visible')
+        loader.setAttribute('aria-hidden', 'false')
+      })()
+    </script>
     <main>
       <section class="login-card" aria-label="Connexion Martin Sols CRM">
         <div class="brand">
@@ -276,6 +287,8 @@
       </section>
     </main>
     @include('partials.pwa-scripts')
+    <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/brand-morph-loader.js') }}"></script>
+    <script src="{{ \App\Support\CrmAsset::url('modules/crm-core/brand-morph-loader-app.js') }}"></script>
     <script>
       (() => {
         const storageKey = 'martin-sols:login:remembered-email';
