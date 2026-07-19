@@ -41,6 +41,24 @@ flowchart LR
 - Endpoints legacy `.php` conserves pour compatibilite et audites par middleware.
 - Creation admin par commande Artisan `crm:admin`, sans mot de passe stocke dans `.env.example`.
 
+## Experience developpeur
+
+- Standard modulaire : [CRM_MODULE_STANDARD.md](CRM_MODULE_STANDARD.md)
+- Guide de creation d'un module : [MODULE_CREATION_GUIDE.md](MODULE_CREATION_GUIDE.md)
+- Deploiement : [DEPLOYMENT.md](DEPLOYMENT.md)
+- Migration des endpoints legacy : [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md)
+
+Commandes utiles :
+
+```bash
+make install
+make hooks
+make quality
+make deploy-check
+```
+
+`make hooks` active `.githooks/pre-commit`, qui verifie Laravel Pint sur les fichiers PHP stages avant chaque commit.
+
 ## Schema ER simplifie
 
 ```mermaid

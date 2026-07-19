@@ -2,6 +2,8 @@
 
 Ce projet utilise des modules Laravel sous `Modules/Crm*`. Un nouveau module doit rester lisible, testable et deconnecte des autres modules.
 
+Le guide pas a pas de creation d'un module est disponible dans [MODULE_CREATION_GUIDE.md](MODULE_CREATION_GUIDE.md).
+
 ## Structure minimale
 
 - `module.json` avec `name`, `alias`, `priority` et `providers`.

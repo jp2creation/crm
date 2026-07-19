@@ -1,0 +1,203 @@
+# Guide de creation d'un module CRM
+
+Ce guide sert de checklist pour ajouter un nouveau module Laravel dans le CRM Martin Sols sans casser la structure existante.
+
+## 1. Choisir les noms
+
+Chaque module utilise trois noms stables :
+
+- Nom PHP : `CrmExample`
+- Namespace : `Modules\CrmExample`
+- Slug CRM : `example`
+
+Le slug est celui utilise par le menu, les feature flags et le middleware `crm.module`.
+
+## 2. Creer l'arborescence
+
+Structure recommandee :
+
+```text
+Modules/CrmExample/
+  app/
+    Data/
+    Http/
+      Controllers/
+    Providers/
+    Services/
+  database/
+    factories/
+    migrations/
+    seeders/
+  resources/
+    assets/
+    views/
+  routes/
+    web.php
+  tests/
+    Feature/
+    Unit/
+  module.json
+```
+
+Les migrations metier du module restent toujours dans `Modules/CrmExample/database/migrations`. Le dossier racine `database/migrations` est reserve aux migrations Laravel globales et aux packages.
+
+## 3. Declarer `module.json`
+
+Exemple minimal :
+
+```json
+{
+    "name": "CrmExample",
+    "alias": "crmexample",
+    "description": "Module CRM Example",
+    "keywords": [],
+    "priority": 80,
+    "providers": [
+        "Modules\\CrmExample\\Providers\\CrmExampleServiceProvider"
+    ],
+    "files": []
+}
+```
+
+La priorite controle l'ordre de chargement. Les modules de base comme `CrmCore` doivent rester avant les modules metier.
+
+## 4. Creer le provider
+
+Tous les providers CRM doivent etendre `Modules\CrmCore\Providers\CrmModuleServiceProvider`.
+
+```php
+<?php
+
+namespace Modules\CrmExample\Providers;
+
+use Modules\CrmCore\Providers\CrmModuleServiceProvider;
+
+class CrmExampleServiceProvider extends CrmModuleServiceProvider
+{
+    public function boot(): void
+    {
+        $this->bootCrmModule(__DIR__.'/../..');
+    }
+}
+```
+
+`bootCrmModule()` charge automatiquement :
+
+- `routes/web.php`
+- `database/migrations`
+
+## 5. Ajouter les routes
+
+Les pages CRM servent la vue `crm`. Les API doivent utiliser le chemin sans extension `.php`.
+
+```php
+<?php
+
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Support\Facades\Route;
+use Modules\CrmExample\Http\Controllers\ExampleApiController;
+
+$crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
+$crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
+
+Route::view('/example', 'crm')
+    ->middleware(['auth', 'crm.module:example,example.view'])
+    ->name('crm.example');
+
+Route::match(['GET', 'POST', 'OPTIONS'], '/api/example', ExampleApiController::class)
+    ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:example'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.example');
+
+Route::match(['GET', 'POST', 'OPTIONS'], '/api/example.php', ExampleApiController::class)
+    ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:example'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.example.legacy');
+```
+
+Les routes legacy sont temporaires. Elles restent derriere `crm.legacy_php_api` et doivent etre migrees vers l'API REST selon `docs/LEGACY_API_MIGRATION.md`.
+
+## 6. Organiser la logique metier
+
+Repartition attendue :
+
+- `Http/Controllers` : validation d'entree, appel service, reponse JSON ou vue.
+- `Services` : regles metier, transactions, calculs, conflits.
+- `Data` : DTO simples pour normaliser les payloads.
+- `Models` : uniquement les relations, casts, scopes et constantes utiles.
+- `Events` et `Listeners` : communication entre modules sans dependance directe.
+
+Quand une action a un impact metier important, publier un evenement :
+
+```php
+use Modules\CrmCore\Events\CrmDomainEvent;
+
+CrmDomainEvent::dispatch(
+    module: 'example',
+    name: 'created',
+    entity: 'example_item',
+    entityId: $item->id,
+    siteId: $item->site_id,
+    actorId: $user->id,
+    actorName: $user->name,
+    payload: ['label' => $item->label],
+);
+```
+
+## 7. Droits, menu et feature flag
+
+Un module doit etre declare dans les donnees CRM :
+
+- `crm_modules` pour l'activation et le libelle.
+- `crm_permissions` pour les actions fines.
+- `crm_menu_items` pour le menu lateral.
+- `crm_feature_flags` pour l'activation a chaud.
+
+Commande utile :
+
+```bash
+php artisan crm:feature --list
+php artisan crm:feature module:example --disable
+php artisan crm:feature module:example --enable
+```
+
+Les actions sensibles doivent etre protegees par un middleware, une policy, une permission Spatie ou un controle explicite dans le service.
+
+## 8. Assets du module
+
+Placer les sources propres au module dans `resources/assets`, puis publier vers `public/modules` :
+
+```bash
+php artisan crm:publish-module-assets --force
+```
+
+Ne pas modifier directement `public/modules` pour une correction durable.
+
+## 9. Tests attendus
+
+Ajouter au minimum :
+
+- test d'acces page avec et sans droit.
+- test API `bootstrap` ou equivalent.
+- test creation/modification/suppression si le module manipule des donnees.
+- test feature flag si la route principale doit disparaitre quand le module est desactive.
+
+Avant commit :
+
+```bash
+make quality
+make pint
+make build
+```
+
+## 10. Checklist avant pull request
+
+- Provider declare dans `module.json`.
+- `database/migrations` existe dans le module.
+- Aucune migration CRM dans `database/migrations`.
+- Routes API sans `.php` presentes.
+- Routes legacy uniquement si necessaire.
+- Permissions et menu ajoutes.
+- Feature flag `module:<slug>` disponible.
+- Services testes.
+- `make deploy-check` passe.

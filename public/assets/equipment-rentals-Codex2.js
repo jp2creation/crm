@@ -1,4 +1,4 @@
-import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=202607191940";
+import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=202607192230";
 
 var jsx=jsxRuntime();
 var React=wrapModule(reactFactory(),1);
@@ -1344,7 +1344,7 @@ function EquipmentRentalsPage(){
     if(!root)return;
 
     var disposed=false;
-    var API="/api/equipment-rentals.php";
+    var API="/api/equipment-rentals";
     var dateFormatter=new Intl.DateTimeFormat("fr-FR",{dateStyle:"medium",timeStyle:"short"});
     var dayFormatter=new Intl.DateTimeFormat("fr-FR",{weekday:"short",day:"2-digit",month:"2-digit"});
     var monthFormatter=new Intl.DateTimeFormat("fr-FR",{month:"long",year:"numeric"});

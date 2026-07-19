@@ -119,11 +119,23 @@ Pour Sail, mettre `DB_HOST=mysql`, `DB_USERNAME=sail` et `DB_PASSWORD=password` 
 
 ```bash
 php artisan test
-vendor/bin/pint --test app routes database tests
+composer pint
 npm run build
 ```
 
 Des tests cibles existent notamment pour les reservations, les locations de materiel, les conges, le controle caisse, les remises de cheques, les demandes d'acompte, les documents, les rapports de visite, les pages CRM, la PWA et l'authentification mobile.
+
+Le depot fournit aussi un Makefile pour les taches courantes :
+
+```bash
+make install
+make hooks
+make quality
+make build
+make deploy-check
+```
+
+`make hooks` active le hook Git versionne `.githooks/pre-commit`. Ce hook lance Laravel Pint sur les fichiers PHP stages avant commit.
 
 ## Deploiement
 
@@ -134,6 +146,8 @@ Regle importante : les fichiers de `public/assets` sont des sorties compilees. U
 ## Documentation
 
 - Architecture, schema ER et flux principaux : [docs/README.md](docs/README.md)
+- Standard des modules CRM : [docs/CRM_MODULE_STANDARD.md](docs/CRM_MODULE_STANDARD.md)
+- Guide de creation d'un module : [docs/MODULE_CREATION_GUIDE.md](docs/MODULE_CREATION_GUIDE.md)
 - Guide d'utilisation utilisateur : [docs/guide-utilisation-crm-martin-sols.pdf](docs/guide-utilisation-crm-martin-sols.pdf)
 - Plaquette de presentation CRM : [docs/presentation-crm-publicitaire.pdf](docs/presentation-crm-publicitaire.pdf)
 - Historique des changements : [CHANGELOG.md](CHANGELOG.md)

@@ -102,3 +102,26 @@ La feuille de route de retrait des routes `.php` est documentee dans [LEGACY_API
 Les fichiers dans `public/assets` sont des sorties compilees. Toute correction durable doit etre faite dans les sources applicatives puis rebuildee.
 
 Les fichiers dans `public/modules` sont publies depuis `Modules/*/resources/assets`. Apres une modification de module, lancer `php artisan crm:publish-module-assets --force` avant de vider les caches.
+
+## Script de deploiement aide
+
+Le depot fournit `make deploy`, qui appelle `scripts/deploy-planethoster.sh`. Le script construit une archive locale, l'envoie en SSH, cree un backup du dossier distant, extrait la release, met a jour `CRM_ASSET_VERSION`, lance les migrations et reconstruit les caches.
+
+Les secrets ne doivent jamais etre stockes dans le depot. Configurer les variables dans le terminal ou dans un gestionnaire local :
+
+```bash
+export CRM_DEPLOY_HOST=node35-ca.n0c.com
+export CRM_DEPLOY_PORT=5022
+export CRM_DEPLOY_USER=mon_utilisateur
+export CRM_DEPLOY_PATH=/home/mon_utilisateur/crm
+export CRM_DEPLOY_COMPOSER=/home/mon_utilisateur/bin/composer
+
+make deploy-check
+make deploy
+```
+
+Options utiles :
+
+- `CRM_DEPLOY_BUILD=0` pour sauter `npm run build` si les assets sont deja prets.
+- `CRM_DEPLOY_ALLOW_DIRTY=1` pour deployer une copie locale non commitee, uniquement en urgence.
+- `CRM_DEPLOY_TMP_DIR=/home/mon_utilisateur` pour choisir le dossier temporaire distant.
