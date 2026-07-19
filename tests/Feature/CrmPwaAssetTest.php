@@ -34,7 +34,7 @@ class CrmPwaAssetTest extends TestCase
         $serviceWorker = (string) file_get_contents(public_path('sw.js'));
 
         $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-", $serviceWorker);
-        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v2026071905'", $serviceWorker);
+        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v202607191940'", $serviceWorker);
         $this->assertStringContainsString('cache.add(url).catch(() => null)', $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'SKIP_WAITING'", $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'GET_VERSION'", $serviceWorker);
@@ -60,7 +60,7 @@ class CrmPwaAssetTest extends TestCase
 
     public function test_lazy_chunks_import_the_current_entry_asset_version(): void
     {
-        $currentImport = 'index-CqSzWeas.js?v=2026071713';
+        $currentImport = 'index-CqSzWeas.js?v=202607191940';
         $legacyVersions = [
             '2026071404',
             '2026071602',
@@ -75,6 +75,7 @@ class CrmPwaAssetTest extends TestCase
             '2026071710',
             '2026071711',
             '2026071712',
+            '2026071713',
         ];
         $chunksWithCurrentImport = 0;
 
