@@ -78,7 +78,7 @@ class CrmCashControlApiTest extends TestCase
             ->assertJsonPath('day.entryDifference', 0);
 
         $this->actingAs($account)
-            ->postJson('/api/controle-caisse.php?action=create_day', [
+            ->postJson('/api/controle-caisse?action=create_day', [
                 'siteId' => $site->id,
                 'cashDate' => '2026-08-02',
             ])

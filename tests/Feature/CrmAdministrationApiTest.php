@@ -208,6 +208,8 @@ class CrmAdministrationApiTest extends TestCase
 
     public function test_admin_can_read_bootstrap_from_legacy_endpoint(): void
     {
+        config(['crm.legacy_php_api.enabled' => true]);
+
         [$account] = $this->createAdminUser();
 
         $this->actingAs($account)

@@ -214,7 +214,7 @@ class CrmEquipmentRentalApiTest extends TestCase
         [$account, , , $item] = $this->createCrmUser(['equipment_rentals.create', 'equipment_rentals.update_own']);
 
         $rentalId = $this->actingAs($account)
-            ->postJson('/api/equipment-rentals.php?action=create_rental', [
+            ->postJson('/api/equipment-rentals?action=create_rental', [
                 'equipmentItemId' => $item->id,
                 'startAt' => '2026-08-06T08:00',
                 'endAt' => '2026-08-06T09:00',

@@ -240,7 +240,7 @@ class CrmReservationApiTest extends TestCase
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.create', 'reservations.update_own']);
 
         $reservationId = $this->actingAs($account)
-            ->postJson('/api/reservations.php?action=create_reservation', [
+            ->postJson('/api/reservations?action=create_reservation', [
                 'vehicleId' => $vehicle->id,
                 'startAt' => '2026-08-06T08:00',
                 'endAt' => '2026-08-06T09:00',
@@ -288,7 +288,7 @@ class CrmReservationApiTest extends TestCase
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
 
         $reservationId = $this->actingAs($account)
-            ->postJson('/api/reservations.php?action=create_reservation', [
+            ->postJson('/api/reservations?action=create_reservation', [
                 'vehicleId' => $vehicle->id,
                 'startAt' => '2026-08-07T08:00',
                 'endAt' => '2026-08-07T09:00',

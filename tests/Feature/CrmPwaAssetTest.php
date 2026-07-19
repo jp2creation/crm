@@ -94,6 +94,14 @@ class CrmPwaAssetTest extends TestCase
         $this->assertGreaterThanOrEqual(20, $chunksWithCurrentImport);
     }
 
+    public function test_crm_shell_entry_uses_current_api_routes_when_legacy_is_disabled(): void
+    {
+        $asset = (string) file_get_contents(public_path('assets/index-CqSzWeas.js'));
+
+        $this->assertStringContainsString('/api/administration', $asset);
+        $this->assertStringNotContainsString('/api/administration.php', $asset);
+    }
+
     public function test_login_page_loads_the_pwa_boot_script_once(): void
     {
         $html = $this->get('/login')->assertOk()->getContent();
