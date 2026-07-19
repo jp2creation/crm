@@ -1,5 +1,5 @@
 (function () {
-  var API = '/api/pages.php';
+  var API = '/api/pages';
   var root = null;
   var shell = null;
   var bootedRoot = null;

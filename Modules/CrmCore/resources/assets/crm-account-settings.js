@@ -1,6 +1,6 @@
 (function () {
   const ACCOUNT_PATH = '/pages/account-settings';
-  const API_URLS = ['/api/administration', '/api/administration.php'];
+  const API_URLS = ['/api/administration'];
   const DEFAULT_PHOTO = '/assets/logo/logomark.png';
 
   let cachedProfile = null;

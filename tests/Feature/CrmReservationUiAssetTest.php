@@ -17,6 +17,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('Chargement des vehicules', $reservationAsset);
         $this->assertStringContainsString('Connexion aux donnees MySQL du site actif...', $reservationAsset);
         $this->assertStringContainsString('Connexion aux donnees reservations indisponible', $reservationAsset);
+        $this->assertStringContainsString('v = `/api/reservations`', $reservationAsset);
+        $this->assertStringNotContainsString('/api/reservations.php', $reservationAsset);
         $this->assertStringContainsString('sites: []', $reservationAsset);
         $this->assertStringContainsString('vehicles: []', $reservationAsset);
         $this->assertStringContainsString('reservations: []', $reservationAsset);

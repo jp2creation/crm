@@ -1,5 +1,5 @@
 (() => {
-  const api = "/api/conges.php";
+  const api = "/api/conges";
   const rootId = "crm-leaves-module";
   const routeEvent = "crm:leaves-route-changed";
   let root = null;

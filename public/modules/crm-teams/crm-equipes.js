@@ -4,7 +4,7 @@
   const routePath = "/equipes";
   const activeSiteStorageKey = "crm:active-site-id";
   const activeSiteEvent = "crm:active-site-changed";
-  const apiUrls = ["/api/equipes", "/api/equipes.php"];
+  const apiUrls = ["/api/equipes"];
 
   let root = null;
   let mountedPath = "";

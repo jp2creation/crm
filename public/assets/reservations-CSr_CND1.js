@@ -24,7 +24,7 @@ import {
     t as re,
 } from "./reservations-DvkqhioU.js?v=2026071713";
 var _ = r(o(), 1),
-    v = `/api/reservations.php`;
+    v = `/api/reservations`;
 function y(e) {
     return {
         source: `fallback`,

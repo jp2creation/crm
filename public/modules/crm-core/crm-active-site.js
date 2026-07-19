@@ -86,13 +86,13 @@
     state.loading = true;
 
     var urls = [
-      '/api/reservations.php?action=bootstrap',
-      '/api/equipment-rentals.php?action=bootstrap',
-      '/api/controle-caisse.php?action=bootstrap',
-      '/api/demandes-acompte.php?action=bootstrap',
-      '/api/conges.php?action=bootstrap',
-      '/api/equipes.php?action=bootstrap',
-      '/api/administration.php?action=bootstrap',
+      '/api/reservations?action=bootstrap',
+      '/api/equipment-rentals?action=bootstrap',
+      '/api/controle-caisse?action=bootstrap',
+      '/api/demandes-acompte?action=bootstrap',
+      '/api/conges?action=bootstrap',
+      '/api/equipes?action=bootstrap',
+      '/api/administration?action=bootstrap',
     ];
 
     for (var index = 0; index < urls.length; index += 1) {
