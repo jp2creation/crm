@@ -2,9 +2,17 @@
 
 return [
     'legacy_php_api' => [
-        'enabled' => env('CRM_LEGACY_PHP_API_ENABLED', true),
+        'enabled' => env('CRM_LEGACY_PHP_API_ENABLED', env('APP_ENV', 'production') !== 'production'),
         'log_calls' => env('CRM_LEGACY_PHP_API_LOG', true),
         'throttle_per_minute' => (int) env('CRM_LEGACY_PHP_API_THROTTLE_PER_MINUTE', 60),
+    ],
+
+    'security' => [
+        'force_https' => env('CRM_FORCE_HTTPS', env('APP_ENV', 'production') === 'production'),
+        'hsts_enabled' => env('CRM_HSTS_ENABLED', env('APP_ENV', 'production') === 'production'),
+        'hsts_max_age' => (int) env('CRM_HSTS_MAX_AGE', 31536000),
+        'hsts_include_subdomains' => env('CRM_HSTS_INCLUDE_SUBDOMAINS', true),
+        'hsts_preload' => env('CRM_HSTS_PRELOAD', true),
     ],
 
     'api' => [

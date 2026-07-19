@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuditLegacyPhpApi;
 use App\Http\Middleware\CompressResponse;
+use App\Http\Middleware\EnforceHttpsAndHsts;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,6 +12,7 @@ use Modules\CrmCore\Console\Commands\BackupDatabaseCommand;
 use Modules\CrmCore\Console\Commands\MonitorQueueSizeCommand;
 use Modules\CrmCore\Console\Commands\PublishCrmModuleAssetsCommand;
 use Modules\CrmCore\Console\Commands\RefreshDashboardMetricsCommand;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -27,11 +29,15 @@ return Application::configure(basePath: dirname(__DIR__))
         RefreshDashboardMetricsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(EnforceHttpsAndHsts::class);
+
         $middleware->alias([
             'crm.compress' => CompressResponse::class,
             'crm.legacy_php_api' => AuditLegacyPhpApi::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        if (class_exists(Integration::class)) {
+            Integration::handles($exceptions);
+        }
     })->create();

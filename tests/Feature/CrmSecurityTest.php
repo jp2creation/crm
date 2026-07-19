@@ -93,6 +93,41 @@ class CrmSecurityTest extends TestCase
         $this->assertStringContainsString('logoutToCrmLogin', $html);
     }
 
+    public function test_legacy_php_api_can_be_disabled_in_production(): void
+    {
+        config(['crm.legacy_php_api.enabled' => false]);
+
+        $this->getJson('/api/administration.php?action=health')
+            ->assertGone()
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Endpoint legacy desactive. Utilisez la route API sans extension .php.');
+    }
+
+    public function test_https_middleware_redirects_http_when_enabled(): void
+    {
+        config(['crm.security.force_https' => true]);
+
+        $this->get('/login')
+            ->assertStatus(301)
+            ->assertRedirect('https://127.0.0.1:8000/login');
+    }
+
+    public function test_hsts_header_is_sent_on_secure_requests_when_enabled(): void
+    {
+        config([
+            'crm.security.force_https' => false,
+            'crm.security.hsts_enabled' => true,
+            'crm.security.hsts_max_age' => 31536000,
+            'crm.security.hsts_include_subdomains' => true,
+            'crm.security.hsts_preload' => true,
+        ]);
+
+        $this->withHeader('X-Forwarded-Proto', 'https')
+            ->get('/login')
+            ->assertOk()
+            ->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+
     public function test_csrf_middleware_rejects_missing_token_when_enabled(): void
     {
         $middleware = new class($this->app, $this->app['encrypter']) extends VerifyCsrfToken

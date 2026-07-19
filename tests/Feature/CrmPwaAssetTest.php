@@ -113,8 +113,8 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('promptEvent.prompt()', $publicScript);
         $this->assertStringContainsString('window.MartinSolsPwa', $publicScript);
         $this->assertStringContainsString("updateViaCache: 'none'", $publicScript);
-        $this->assertStringContainsString("controllerchange", $publicScript);
-        $this->assertStringContainsString("updatefound", $publicScript);
+        $this->assertStringContainsString('controllerchange', $publicScript);
+        $this->assertStringContainsString('updatefound', $publicScript);
         $this->assertStringContainsString('hadServiceWorkerController = Boolean(navigator.serviceWorker.controller)', $publicScript);
         $this->assertStringContainsString('window.location.reload()', $publicScript);
         $this->assertStringContainsString('checkForUpdates: checkForUpdates', $publicScript);
