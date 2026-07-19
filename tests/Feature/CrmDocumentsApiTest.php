@@ -146,6 +146,35 @@ class CrmDocumentsApiTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_document_observer_deletes_physical_file_on_model_delete(): void
+    {
+        Storage::fake('local');
+
+        $site = CrmSite::query()->create([
+            'name' => 'Palissy Documents',
+            'slug' => 'palissy-documents',
+            'active' => true,
+        ]);
+        $path = 'crm-documents/promo/test-observer.pdf';
+        Storage::disk('local')->put($path, '%PDF observer');
+
+        $document = CrmDocument::query()->create([
+            'site_id' => $site->id,
+            'category' => 'promo',
+            'name' => 'Observer document',
+            'visibility' => 'restricted',
+            'disk' => 'local',
+            'disk_path' => $path,
+            'original_name' => 'observer.pdf',
+            'mime_type' => 'application/pdf',
+            'size' => 13,
+        ]);
+
+        $document->delete();
+
+        Storage::disk('local')->assertMissing($path);
+    }
+
     /**
      * @param  array<int, string>  $permissions
      * @return array{0: User, 1: CrmUser, 2: CrmSite}

@@ -232,6 +232,32 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('reservation.startAt', '2026-08-06T09:00');
     }
 
+    public function test_creator_can_delete_own_reservation_without_delete_permission(): void
+    {
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
+
+        $reservationId = $this->actingAs($account)
+            ->postJson('/api/reservations.php?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-07T08:00',
+                'endAt' => '2026-08-07T09:00',
+                'title' => 'A supprimer',
+            ])
+            ->assertOk()
+            ->json('reservation.id');
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=delete_reservation', [
+                'id' => $reservationId,
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $this->assertDatabaseMissing('crm_reservations', [
+            'id' => $reservationId,
+        ]);
+    }
+
     public function test_updating_unknown_reservation_returns_not_found(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.update']);

@@ -3,7 +3,7 @@
     "alias": "crmcheckremittances",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 100,
     "providers": [
         "Modules\\CrmCheckRemittances\\Providers\\CrmCheckRemittancesServiceProvider"
     ],

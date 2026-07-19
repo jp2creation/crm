@@ -13,6 +13,7 @@ use App\Models\CrmNotificationLog;
 use App\Models\CrmReservation;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
+use App\Models\DashboardMetric;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -83,8 +84,13 @@ class DashboardService
             'checkRemittances' => $checkSiteIds !== [],
         ];
 
-        $reservationChart = $this->reservationChart($reservationSiteIds, $today);
-        [$equipmentAvailable, $equipmentTotal] = $this->equipmentAvailability($equipmentSiteIds, $now);
+        $metrics = $this->preAggregatedMetrics($selectedSiteId, $today);
+        $reservationChart = $reservationSiteIds === []
+            ? $this->reservationChart([], $today)
+            : ($metrics['reservationTrend'] ?? $this->reservationChart($reservationSiteIds, $today));
+        [$equipmentAvailable, $equipmentTotal] = $equipmentSiteIds === []
+            ? [0, 0]
+            : ($metrics['equipmentAvailability'] ?? $this->equipmentAvailability($equipmentSiteIds, $now));
 
         return [
             'ok' => true,
@@ -101,9 +107,15 @@ class DashboardService
             'modules' => $this->moduleRows($actor),
             'access' => $moduleAccess,
             'stats' => [
-                'reservationsToday' => $this->reservationsToday($reservationSiteIds, $today),
-                'monthlyRevenue' => $this->monthlyRevenue($cashSiteIds, $monthStart, $monthEnd),
-                'pendingLeaves' => $this->pendingLeaves($leaveSiteIds),
+                'reservationsToday' => $reservationSiteIds === []
+                    ? 0
+                    : (int) ($metrics['reservationsToday'] ?? $this->reservationsToday($reservationSiteIds, $today)),
+                'monthlyRevenue' => $cashSiteIds === []
+                    ? 0.0
+                    : (float) ($metrics['monthlyRevenue'] ?? $this->monthlyRevenue($cashSiteIds, $monthStart, $monthEnd)),
+                'pendingLeaves' => $leaveSiteIds === []
+                    ? 0
+                    : (int) ($metrics['pendingLeaves'] ?? $this->pendingLeaves($leaveSiteIds)),
                 'equipmentAvailable' => $equipmentAvailable,
                 'equipmentTotal' => $equipmentTotal,
             ],
@@ -112,6 +124,33 @@ class DashboardService
             'currentLeaves' => $this->currentLeaves($leaveSiteIds, $weekStart, $weekEnd),
             'alerts' => $this->alerts($equipmentSiteIds, $cashSiteIds, $checkSiteIds, $now, $monthStart, $monthEnd),
             'notifications' => $this->notifications($leaveSiteIds, $checkSiteIds),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function preAggregatedMetrics(?int $selectedSiteId, CarbonImmutable $today): ?array
+    {
+        if (! $selectedSiteId || ! config('crm.dashboard.metrics_enabled', true)) {
+            return null;
+        }
+
+        $metric = DashboardMetric::currentForSite($selectedSiteId, $today);
+
+        if (! $metric) {
+            return null;
+        }
+
+        return [
+            'reservationsToday' => (int) $metric->reservations_today,
+            'monthlyRevenue' => (float) $metric->monthly_revenue,
+            'pendingLeaves' => (int) $metric->pending_leaves,
+            'equipmentAvailability' => [
+                (int) $metric->equipment_available,
+                (int) $metric->equipment_total,
+            ],
+            'reservationTrend' => $this->normalizedReservationTrend($metric->reservation_trend, $today),
         ];
     }
 
@@ -269,6 +308,35 @@ class DashboardService
     }
 
     /**
+     * @param  array<int, array<string, mixed>>|null  $trend
+     * @return array<int, array{date: string, label: string, total: int}>|null
+     */
+    private function normalizedReservationTrend(?array $trend, CarbonImmutable $today): ?array
+    {
+        if ($trend === null) {
+            return null;
+        }
+
+        $start = $today->subDays(6)->startOfDay();
+        $rowsByDate = collect($trend)
+            ->filter(fn (mixed $row): bool => is_array($row) && isset($row['date']))
+            ->keyBy(fn (array $row): string => (string) $row['date']);
+
+        return collect(range(0, 6))
+            ->map(function (int $offset) use ($start, $rowsByDate): array {
+                $date = $start->addDays($offset);
+                $row = $rowsByDate->get($date->toDateString(), []);
+
+                return [
+                    'date' => $date->toDateString(),
+                    'label' => (string) ($row['label'] ?? $date->translatedFormat('d/m')),
+                    'total' => (int) ($row['total'] ?? 0),
+                ];
+            })
+            ->all();
+    }
+
+    /**
      * @param  array<int, int>  $siteIds
      * @return array<int, array<string, mixed>>
      */
@@ -412,6 +480,25 @@ class DashboardService
             }
         }
 
+        $queueAlert = CrmNotificationLog::query()
+            ->where('channel', 'monitoring')
+            ->where('template_key', 'queue.size.threshold')
+            ->where('created_at', '>=', $now->subHour())
+            ->latest('created_at')
+            ->first();
+
+        if ($queueAlert) {
+            $payload = $queueAlert->payload ?: [];
+
+            $alerts[] = [
+                'type' => 'danger',
+                'label' => 'Queue CRM',
+                'value' => (int) ($payload['jobs'] ?? 0),
+                'detail' => 'Jobs en attente sur '.(string) ($payload['queue'] ?? 'default'),
+                'href' => '/administration',
+            ];
+        }
+
         return $alerts;
     }
 
@@ -485,32 +572,26 @@ class DashboardService
 
     private function leaveTypeLabel(string $type): string
     {
-        return [
-            'conge' => 'Congé',
-            'rtt' => 'RTT',
-            'absence' => 'Absence',
-            'formation' => 'Formation',
-            'maladie' => 'Maladie',
-        ][$type] ?? ucfirst($type);
+        $key = 'crm-leaves.types.'.$type;
+        $label = trans($key, [], 'fr');
+
+        return $label !== $key ? $label : ucfirst($type);
     }
 
     private function leavePeriodLabel(string $period): string
     {
-        return [
-            'full' => 'Journée',
-            'morning' => 'Matin',
-            'afternoon' => 'Après-midi',
-        ][$period] ?? $period;
+        $key = 'crm-leaves.periods.'.$period;
+        $label = trans($key, [], 'fr');
+
+        return $label !== $key ? $label : $period;
     }
 
     private function leaveStatusLabel(string $status): string
     {
-        return [
-            'approved' => 'Validé',
-            'planned' => 'Planifié',
-            'pending' => 'En attente',
-            'refused' => 'Refusé',
-        ][$status] ?? $status;
+        $key = 'crm-leaves.statuses.'.$status;
+        $label = trans($key, [], 'fr');
+
+        return $label !== $key ? $label : $status;
     }
 
     private function fail(string $message, int $status): never

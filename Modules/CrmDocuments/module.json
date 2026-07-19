@@ -3,7 +3,7 @@
     "alias": "crmdocuments",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 80,
     "providers": [
         "Modules\\CrmDocuments\\Providers\\CrmDocumentsServiceProvider"
     ],

@@ -3,7 +3,7 @@
     "alias": "crmadministration",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 20,
     "providers": [
         "Modules\\CrmAdministration\\Providers\\CrmAdministrationServiceProvider"
     ],

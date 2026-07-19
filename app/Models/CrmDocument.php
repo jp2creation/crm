@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Storage;
 
 class CrmDocument extends Model
 {
@@ -34,15 +33,6 @@ class CrmDocument extends Model
             'size' => 'integer',
             'sort_order' => 'integer',
         ];
-    }
-
-    protected static function booted(): void
-    {
-        static::deleted(function (CrmDocument $document): void {
-            if ($document->disk && $document->disk_path) {
-                Storage::disk($document->disk)->delete($document->disk_path);
-            }
-        });
     }
 
     public function site(): BelongsTo

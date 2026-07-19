@@ -65,6 +65,42 @@ class MobileAuthApiTest extends TestCase
 
         $this->flushSession();
 
+        $fullWebSessionUrl = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/mobile/web-session', [
+                'redirectPath' => '/',
+                'siteId' => $crmUser->sites()->first()->id,
+                'embed' => false,
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->json('url');
+
+        $fullWebSessionPath = parse_url((string) $fullWebSessionUrl, PHP_URL_PATH);
+
+        $this->get($fullWebSessionPath)
+            ->assertRedirect('/?mobile_app=1&mobile_site_id='.$crmUser->sites()->first()->id);
+
+        $this->assertTrue(session()->has('crm_mobile_app'));
+
+        $this->flushSession();
+
+        $dashboardWebSessionUrl = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/mobile/web-session', [
+                'redirectPath' => '/dashboard/crm?mobile_app=1',
+                'siteId' => $crmUser->sites()->first()->id,
+                'embed' => false,
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->json('url');
+
+        $dashboardWebSessionPath = parse_url((string) $dashboardWebSessionUrl, PHP_URL_PATH);
+
+        $this->get($dashboardWebSessionPath)
+            ->assertRedirect('/dashboard/crm?mobile_app=1&mobile_site_id='.$crmUser->sites()->first()->id);
+
+        $this->flushSession();
+
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/mobile/logout')
             ->assertOk()
@@ -88,6 +124,73 @@ class MobileAuthApiTest extends TestCase
         ])
             ->assertForbidden()
             ->assertJsonPath('ok', false);
+    }
+
+    public function test_mobile_web_session_logout_revokes_the_launching_mobile_token(): void
+    {
+        [$account, $crmUser] = $this->createMobileCrmUser();
+
+        $token = $this->postJson('/api/mobile/token', [
+            'email' => $account->email,
+            'password' => 'secret-mobile',
+            'device_name' => 'Pixel Test',
+        ])
+            ->assertOk()
+            ->json('token');
+
+        $webSessionUrl = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/mobile/web-session', [
+                'redirectPath' => '/',
+                'siteId' => $crmUser->sites()->first()->id,
+                'embed' => false,
+            ])
+            ->assertOk()
+            ->json('url');
+
+        $webSessionPath = parse_url((string) $webSessionUrl, PHP_URL_PATH);
+
+        $this->get($webSessionPath)
+            ->assertRedirect('/?mobile_app=1&mobile_site_id='.$crmUser->sites()->first()->id);
+
+        $this->assertAuthenticatedAs($account);
+        $this->assertTrue(session()->has('crm_mobile_token_id'));
+        $this->assertTrue(session()->has('crm_mobile_app'));
+
+        $this->post('/logout')
+            ->assertRedirect('/login');
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/mobile/me')
+            ->assertUnauthorized();
+    }
+
+    public function test_mobile_app_session_shows_app_settings_entry_in_crm(): void
+    {
+        [$account] = $this->createMobileCrmUser();
+
+        $this->actingAs($account)
+            ->withSession(['crm_mobile_app' => true])
+            ->get('/')
+            ->assertOk()
+            ->assertSee('data-crm-mobile-settings-toggle', false)
+            ->assertSee('data-crm-mobile-fallback-nav', false);
+
+        $this->flushSession();
+
+        $this->actingAs($account)
+            ->get('/?mobile_app=1')
+            ->assertOk()
+            ->assertSee('data-crm-mobile-settings-toggle', false)
+            ->assertSee('data-crm-mobile-fallback-nav', false);
+
+        $this->flushSession();
+
+        $this->actingAs($account)
+            ->get('/')
+            ->assertOk()
+            ->assertDontSee('data-crm-mobile-settings-toggle', false);
     }
 
     public function test_mobile_tokens_are_revoked_after_password_reset_event(): void

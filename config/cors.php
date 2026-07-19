@@ -2,7 +2,7 @@
 
 $allowedOrigins = array_filter(array_map(
     'trim',
-    explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'https://crm.jp2.fr,capacitor://localhost,ionic://localhost,http://localhost,http://localhost:8100'))
+    explode(',', (string) env('CORS_ALLOWED_ORIGINS', 'https://crm.jp2.fr,https://localhost,capacitor://localhost,ionic://localhost,http://localhost,http://localhost:8100'))
 ));
 
 return [

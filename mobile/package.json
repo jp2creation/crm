@@ -1,7 +1,7 @@
 {
   "name": "martin-sols-crm-mobile",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.10",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -11,13 +11,21 @@
     "cap:add:android": "capacitor add android",
     "cap:add:ios": "capacitor add ios",
     "cap:open:android": "capacitor open android",
-    "cap:open:ios": "capacitor open ios"
+    "cap:open:ios": "capacitor open ios",
+    "apk:debug": "npm run build && capacitor sync android && cd android && sh ./gradlew assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
+    "@capacitor/app": "^8.1.1",
     "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
+    "@capacitor/device": "^8.0.3",
+    "@capacitor/geolocation": "^8.2.0",
     "@capacitor/ios": "^8.4.1",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.3",
     "typescript": "^7.0.2",
     "vite": "^8.1.4"
   }

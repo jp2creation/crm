@@ -3,7 +3,7 @@
     "alias": "crmcore",
     "description": "Services partages du CRM Martin Sols.",
     "keywords": [],
-    "priority": 0,
+    "priority": 10,
     "providers": [
         "Modules\\CrmCore\\Providers\\CrmCoreServiceProvider"
     ],

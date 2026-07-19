@@ -19,6 +19,8 @@ boost.json
 /node_modules
 /mobile/dist
 /mobile/*.apk
+/mobile/android/.gradle-user-home
+/mobile/android/apktool-*
 /mobile/node_modules
 /public/build
 /public/hot

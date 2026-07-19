@@ -8,7 +8,9 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Modules\CrmAdministration\Console\Commands\EnsureCrmAdminCommand;
 use Modules\CrmCashControl\Console\Commands\ArchiveCashReceiptsCommand;
 use Modules\CrmCore\Console\Commands\BackupDatabaseCommand;
+use Modules\CrmCore\Console\Commands\MonitorQueueSizeCommand;
 use Modules\CrmCore\Console\Commands\PublishCrmModuleAssetsCommand;
+use Modules\CrmCore\Console\Commands\RefreshDashboardMetricsCommand;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,7 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ArchiveCashReceiptsCommand::class,
         BackupDatabaseCommand::class,
         EnsureCrmAdminCommand::class,
+        MonitorQueueSizeCommand::class,
         PublishCrmModuleAssetsCommand::class,
+        RefreshDashboardMetricsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

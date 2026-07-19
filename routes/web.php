@@ -9,7 +9,7 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])
-    ->middleware('auth')
+    ->middleware('auth:web')
     ->name('logout');
 
 Route::middleware('auth')->group(function (): void {

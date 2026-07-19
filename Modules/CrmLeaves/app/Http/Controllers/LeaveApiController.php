@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Modules\CrmCore\Http\Requests\CrmApiRequest;
+use Modules\CrmLeaves\Exceptions\LeaveApiException;
 use Modules\CrmLeaves\Services\LeaveService;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Throwable;
@@ -40,6 +41,12 @@ class LeaveApiController extends Controller
                 'delete_leave' => $this->json($leaves->deleteLeave($actor, $body)),
                 default => $this->json(['ok' => false, 'error' => 'Action inconnue'], 404),
             };
+        } catch (LeaveApiException $error) {
+            return $this->json([
+                'ok' => false,
+                'error' => $error->getMessage(),
+                'code' => $error->errorCode,
+            ], $error->getStatusCode());
         } catch (HttpExceptionInterface $error) {
             return $this->json(['ok' => false, 'error' => $error->getMessage()], $error->getStatusCode());
         } catch (Throwable $error) {

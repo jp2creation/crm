@@ -3,7 +3,7 @@
     "alias": "crmsalestours",
     "description": "Gestion des rapports de visite, visites clients et suivi commercial.",
     "keywords": [],
-    "priority": 0,
+    "priority": 120,
     "providers": [
         "Modules\\CrmSalesTours\\Providers\\CrmSalesToursServiceProvider"
     ],

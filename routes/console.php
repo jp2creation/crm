@@ -19,3 +19,11 @@ Schedule::command('backup:run --quiet')
 Schedule::command('cash-control:archive-receipts --quiet')
     ->dailyAt('03:00')
     ->withoutOverlapping();
+
+Schedule::command('crm:monitor-queue-size --quiet')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
+Schedule::command('crm:refresh-dashboard-metrics --quiet')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();

@@ -3,7 +3,7 @@
     "alias": "crmpages",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 30,
     "providers": [
         "Modules\\CrmPages\\Providers\\CrmPagesServiceProvider"
     ],

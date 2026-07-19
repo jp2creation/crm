@@ -3,7 +3,7 @@
     "alias": "crmreservations",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 40,
     "providers": [
         "Modules\\CrmReservations\\Providers\\CrmReservationsServiceProvider"
     ],

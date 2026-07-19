@@ -36,4 +36,14 @@ class CrmLeaveEmployee extends Model
     {
         return $this->hasMany(CrmLeaveEntry::class, 'employee_id');
     }
+
+    public function balances(): HasMany
+    {
+        return $this->hasMany(CrmLeaveBalance::class, 'employee_id');
+    }
+
+    public function leaveTransactions(): HasMany
+    {
+        return $this->hasMany(CrmLeaveTransaction::class, 'employee_id');
+    }
 }

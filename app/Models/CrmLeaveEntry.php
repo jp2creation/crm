@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CrmLeaveEntry extends Model
 {
@@ -15,6 +16,7 @@ class CrmLeaveEntry extends Model
         'end_date',
         'type',
         'period',
+        'duration_days',
         'status',
         'notes',
         'source',
@@ -27,11 +29,22 @@ class CrmLeaveEntry extends Model
         return [
             'start_date' => 'date',
             'end_date' => 'date',
+            'duration_days' => 'float',
         ];
     }
 
     public function employee(): BelongsTo
     {
         return $this->belongsTo(CrmLeaveEmployee::class, 'employee_id');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(CrmLeaveTransaction::class, 'entry_id');
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(CrmLeaveStatusHistory::class, 'entry_id');
     }
 }

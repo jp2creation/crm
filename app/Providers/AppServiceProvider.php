@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Listeners\RevokeUserSanctumTokens;
+use App\Models\CrmDocument;
 use App\Models\User;
+use App\Observers\CrmDocumentObserver;
 use App\Observers\UserTokenObserver;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -52,6 +54,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(PasswordReset::class, RevokeUserSanctumTokens::class);
+        CrmDocument::observe(CrmDocumentObserver::class);
         User::observe(UserTokenObserver::class);
     }
 }

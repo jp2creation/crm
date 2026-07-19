@@ -97,15 +97,21 @@ class MobileAuthController extends Controller
         $data = $request->validate([
             'redirectPath' => ['nullable', 'string', 'max:2048'],
             'siteId' => ['nullable', 'integer'],
+            'embed' => ['nullable', 'boolean'],
         ]);
 
         $token = Str::random(56);
+        $mobileToken = method_exists($user, 'currentAccessToken') ? $user->currentAccessToken() : null;
 
         Cache::put($this->webSessionCacheKey($token), [
             'user_id' => (int) $user->id,
+            'mobile_token_id' => $mobileToken && method_exists($mobileToken, 'getKey')
+                ? (int) $mobileToken->getKey()
+                : null,
             'redirect_path' => $this->safeMobileRedirectPath(
                 (string) ($data['redirectPath'] ?? '/'),
                 isset($data['siteId']) ? (int) $data['siteId'] : null,
+                (bool) ($data['embed'] ?? true),
             ),
         ], now()->addSeconds(90));
 
@@ -128,6 +134,13 @@ class MobileAuthController extends Controller
 
         Auth::guard('web')->login($user, remember: false);
         $request->session()->regenerate();
+
+        $mobileTokenId = (int) ($payload['mobile_token_id'] ?? 0);
+
+        if ($mobileTokenId > 0) {
+            $request->session()->put('crm_mobile_token_id', $mobileTokenId);
+            $request->session()->put('crm_mobile_app', true);
+        }
 
         return redirect()->to((string) ($payload['redirect_path'] ?? '/'));
     }
@@ -275,7 +288,7 @@ class MobileAuthController extends Controller
             ->all();
     }
 
-    private function safeMobileRedirectPath(string $value, ?int $siteId): string
+    private function safeMobileRedirectPath(string $value, ?int $siteId, bool $embed = true): string
     {
         $path = trim($value);
 
@@ -289,19 +302,31 @@ class MobileAuthController extends Controller
 
         $parts = parse_url($path);
         $targetPath = (string) ($parts['path'] ?? '/');
+
+        if ($embed && $targetPath === '/dashboard/crm') {
+            $targetPath = '/';
+        }
+
         $query = [];
 
         if (! empty($parts['query'])) {
             parse_str((string) $parts['query'], $query);
         }
 
-        $query['mobile_embed'] = '1';
+        if ($embed) {
+            $query['mobile_embed'] = '1';
+        } else {
+            $query['mobile_app'] = '1';
+            unset($query['mobile_embed']);
+        }
 
         if ($siteId && $siteId > 0) {
             $query['mobile_site_id'] = (string) $siteId;
         }
 
-        return $targetPath.'?'.http_build_query($query);
+        $queryString = http_build_query($query);
+
+        return $targetPath.($queryString !== '' ? '?'.$queryString : '');
     }
 
     private function webSessionCacheKey(string $token): string

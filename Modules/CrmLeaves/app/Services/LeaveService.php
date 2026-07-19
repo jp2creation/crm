@@ -2,6 +2,9 @@
 
 namespace Modules\CrmLeaves\Services;
 
+use App\Enums\CrmLeavePeriod;
+use App\Enums\CrmLeaveStatus;
+use App\Enums\CrmLeaveType;
 use App\Models\CrmLeaveEmployee;
 use App\Models\CrmLeaveEntry;
 use App\Models\CrmSite;
@@ -13,20 +16,16 @@ use Illuminate\Support\Str;
 use Modules\CrmCore\Queries\ReservationConflictQuery;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
+use Modules\CrmLeaves\Exceptions\LeaveApiException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class LeaveService
 {
-    private const TYPES = ['conge', 'rtt', 'absence', 'formation', 'maladie'];
-
-    private const PERIODS = ['full', 'morning', 'afternoon'];
-
-    private const STATUSES = ['approved', 'planned', 'pending', 'refused'];
-
     public function __construct(
         private readonly ReservationConflictQuery $conflicts,
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
+        private readonly LeaveBalanceService $balances,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -65,6 +64,7 @@ class LeaveService
             ->orderBy('employees.sort_order')
             ->orderBy('employees.name')
             ->get();
+        $year = (int) now(config('crm.display_timezone', config('app.timezone', 'Europe/Paris')))->year;
 
         return [
             'ok' => true,
@@ -81,17 +81,19 @@ class LeaveService
             'selectedSiteId' => $selectedSiteId,
             'employees' => $employees->map(fn (CrmLeaveEmployee $employee): array => $this->employeeRow($employee))->values()->all(),
             'leaves' => $leaves->map(fn (CrmLeaveEntry $entry): array => $this->entryRow($entry))->values()->all(),
+            'balances' => $this->balances->rowsForEmployees($employeeIds, $year),
+            'balanceYear' => $year,
             'types' => [
-                ['value' => 'conge', 'label' => 'Conge', 'color' => '#facc15'],
-                ['value' => 'rtt', 'label' => 'RTT', 'color' => '#38bdf8'],
-                ['value' => 'absence', 'label' => 'Absence', 'color' => '#fb7185'],
-                ['value' => 'formation', 'label' => 'Formation', 'color' => '#a78bfa'],
-                ['value' => 'maladie', 'label' => 'Maladie', 'color' => '#94a3b8'],
+                ['value' => CrmLeaveType::PaidLeave->value, 'label' => CrmLeaveType::PaidLeave->label(), 'color' => '#facc15'],
+                ['value' => CrmLeaveType::Rtt->value, 'label' => CrmLeaveType::Rtt->label(), 'color' => '#38bdf8'],
+                ['value' => CrmLeaveType::Absence->value, 'label' => CrmLeaveType::Absence->label(), 'color' => '#fb7185'],
+                ['value' => CrmLeaveType::Training->value, 'label' => CrmLeaveType::Training->label(), 'color' => '#a78bfa'],
+                ['value' => CrmLeaveType::SickLeave->value, 'label' => CrmLeaveType::SickLeave->label(), 'color' => '#94a3b8'],
             ],
             'periods' => [
-                ['value' => 'full', 'label' => 'Journee'],
-                ['value' => 'morning', 'label' => 'Matin'],
-                ['value' => 'afternoon', 'label' => 'Apres-midi'],
+                ['value' => CrmLeavePeriod::Full->value, 'label' => CrmLeavePeriod::Full->label()],
+                ['value' => CrmLeavePeriod::Morning->value, 'label' => CrmLeavePeriod::Morning->label()],
+                ['value' => CrmLeavePeriod::Afternoon->value, 'label' => CrmLeavePeriod::Afternoon->label()],
             ],
         ];
     }
@@ -120,8 +122,18 @@ class LeaveService
                 $this->fail('Periode trop longue', 400);
             }
 
-            $period = $this->choice((string) ($data['period'] ?? 'full'), self::PERIODS, 'full');
-            $status = $this->choice((string) ($data['status'] ?? 'approved'), self::STATUSES, 'approved');
+            $period = $this->choice((string) ($data['period'] ?? 'full'), CrmLeavePeriod::values(), CrmLeavePeriod::Full->value);
+            $status = $this->choice((string) ($data['status'] ?? 'approved'), CrmLeaveStatus::values(), CrmLeaveStatus::Approved->value);
+
+            if ($period !== CrmLeavePeriod::Full->value && $startDate !== $endDate) {
+                $this->fail('Une demi-journee doit commencer et finir le meme jour', 400, 'invalid_half_day_period');
+            }
+
+            $durationDays = $this->balances->durationDays($startDate, $endDate, $period);
+
+            if ($durationDays <= 0) {
+                $this->fail('Duree de conge invalide', 400, 'invalid_leave_duration');
+            }
 
             $employee = CrmLeaveEmployee::query()
                 ->where('active', true)
@@ -143,6 +155,10 @@ class LeaveService
                 $this->fail('Conge introuvable', 404);
             }
 
+            if ($entry->exists && $entry->status === CrmLeaveStatus::Approved->value && $actor->role !== 'admin') {
+                $this->fail('Un conge valide ne peut etre modifie que par un administrateur', 403, 'approved_leave_locked');
+            }
+
             if ($entry->exists) {
                 $currentEmployee = CrmLeaveEmployee::query()
                     ->lockForUpdate()
@@ -156,16 +172,38 @@ class LeaveService
                 $this->requireSitePermission($actor, $currentSiteId, 'conges.manage');
             }
 
-            if ($status !== 'refused' && $this->conflicts->leaveOverlaps($employeeId, $startDate, $endDate, $period, $id > 0 ? $id : null)) {
-                $this->fail('Un conge existe deja sur cette periode', 409);
+            if ($status !== CrmLeaveStatus::Refused->value && $this->conflicts->leaveOverlaps($employeeId, $startDate, $endDate, $period, $id > 0 ? $id : null)) {
+                $this->fail('Un conge existe deja sur cette periode', 409, 'leave_overlap');
             }
+
+            $type = $this->choice((string) ($data['type'] ?? 'conge'), CrmLeaveType::values(), CrmLeaveType::PaidLeave->value);
+            $year = CarbonImmutable::parse($startDate)->year;
+
+            if (
+                $status === CrmLeaveStatus::Approved->value
+                && (bool) config('crm.leaves.enforce_balances', false)
+                && ! $this->balances->canRequest($employeeId, $type, $year, $durationDays, $entry->exists ? $entry->id : null)
+            ) {
+                $this->fail('Solde insuffisant pour ce conge', 422, 'insufficient_balance');
+            }
+
+            $oldAttributes = $entry->exists ? $entry->only([
+                'employee_id',
+                'start_date',
+                'end_date',
+                'type',
+                'period',
+                'duration_days',
+                'status',
+            ]) : [];
 
             $entry->fill([
                 'employee_id' => $employeeId,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'type' => $this->choice((string) ($data['type'] ?? 'conge'), self::TYPES, 'conge'),
+                'type' => $type,
                 'period' => $period,
+                'duration_days' => $durationDays,
                 'status' => $status,
                 'notes' => trim((string) ($data['notes'] ?? '')),
                 'source' => $entry->exists ? $entry->source : 'crm',
@@ -173,6 +211,7 @@ class LeaveService
                 'updated_by' => $actor->id,
             ]);
             $entry->save();
+            $this->balances->recordSavedEntry($entry, $actor, $oldAttributes);
 
             $this->activity->log(
                 $actor,
@@ -202,6 +241,10 @@ class LeaveService
                 $this->fail('Conge introuvable', 404);
             }
 
+            if ($entry->status === CrmLeaveStatus::Approved->value && $actor->role !== 'admin') {
+                $this->fail('Un conge valide ne peut etre supprime que par un administrateur', 403, 'approved_leave_locked');
+            }
+
             $employee = CrmLeaveEmployee::query()->lockForUpdate()->find((int) $entry->employee_id);
             if (! $employee) {
                 $this->fail('Utilisateur CRM introuvable', 404);
@@ -210,7 +253,19 @@ class LeaveService
             $selectedSiteId = $this->requireEmployeeSiteAccess($actor, $employee, $siteId);
             $this->requireSitePermission($actor, $selectedSiteId, 'conges.manage');
 
+            $snapshot = $entry->only([
+                'id',
+                'employee_id',
+                'start_date',
+                'end_date',
+                'type',
+                'period',
+                'duration_days',
+                'status',
+            ]);
+
             $entry->delete();
+            $this->balances->recordDeletedEntry($snapshot, $actor);
 
             $this->activity->log($actor, 'suppression conge', "Conge #{$id} - {$employee->name}");
 
@@ -485,6 +540,7 @@ class LeaveService
             'endDate' => $entry->end_date?->toDateString(),
             'type' => $entry->type ?: 'conge',
             'period' => $entry->period ?: 'full',
+            'durationDays' => (float) $entry->duration_days,
             'status' => $entry->status ?: 'approved',
             'notes' => $entry->notes ?? '',
             'source' => $entry->source ?? 'crm',
@@ -530,8 +586,12 @@ class LeaveService
         return in_array($value, $allowed, true) ? $value : $default;
     }
 
-    private function fail(string $message, int $status): never
+    private function fail(string $message, int $status, ?string $code = null): never
     {
+        if ($code !== null) {
+            throw new LeaveApiException($message, $status, $code);
+        }
+
         throw new HttpException($status, $message);
     }
 }

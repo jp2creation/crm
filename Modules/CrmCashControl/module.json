@@ -3,7 +3,7 @@
     "alias": "crmcashcontrol",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 90,
     "providers": [
         "Modules\\CrmCashControl\\Providers\\CrmCashControlServiceProvider"
     ],

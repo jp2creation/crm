@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\CrmLeaveBalance;
 use App\Models\CrmLeaveEmployee;
+use App\Models\CrmLeaveEntry;
+use App\Models\CrmLeaveTransaction;
 use App\Models\CrmModule;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
@@ -35,7 +38,9 @@ class CrmLeaveApiTest extends TestCase
             ->assertJsonPath('user.siteIds.0', $site->id)
             ->assertJsonPath('selectedSiteId', $site->id)
             ->assertJsonPath('employees.0.crmUserId', $crmUser->id)
-            ->assertJsonPath('employees.0.name', $crmUser->name);
+            ->assertJsonPath('employees.0.name', $crmUser->name)
+            ->assertJsonPath('types.0.label', 'Congé')
+            ->assertJsonPath('periods.2.label', 'Après-midi');
     }
 
     public function test_leave_bootstrap_uses_users_linked_to_selected_site(): void
@@ -117,7 +122,137 @@ class CrmLeaveApiTest extends TestCase
             ])
             ->assertStatus(409)
             ->assertJsonPath('ok', false)
-            ->assertJsonPath('error', 'Un conge existe deja sur cette periode');
+            ->assertJsonPath('error', 'Un conge existe deja sur cette periode')
+            ->assertJsonPath('code', 'leave_overlap');
+    }
+
+    public function test_leave_creation_calculates_duration_and_records_balance_audit(): void
+    {
+        [$account, $crmUser, , $employee] = $this->createCrmUser(canManage: true);
+
+        $response = $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', [
+                'employeeId' => $employee->id,
+                'startDate' => '2026-08-10',
+                'endDate' => '2026-08-12',
+                'type' => 'conge',
+                'period' => 'full',
+                'status' => 'approved',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $leaveId = (int) $response->json('leave.id');
+        $this->assertSame(3.0, (float) $response->json('leave.durationDays'));
+
+        $balance = CrmLeaveBalance::query()
+            ->where('employee_id', $employee->id)
+            ->where('type', 'conge')
+            ->where('year', 2026)
+            ->firstOrFail();
+
+        $this->assertSame(3.0, $balance->used_days);
+        $this->assertSame(22.0, $balance->remaining_days);
+
+        $transaction = CrmLeaveTransaction::query()
+            ->where('entry_id', $leaveId)
+            ->firstOrFail();
+
+        $this->assertSame(-3.0, $transaction->amount_days);
+        $this->assertSame(22.0, $transaction->balance_after);
+        $this->assertSame($crmUser->id, (int) $transaction->created_by);
+
+        $this->assertDatabaseHas('crm_leave_status_histories', [
+            'entry_id' => $leaveId,
+            'employee_id' => $employee->id,
+            'from_status' => null,
+            'to_status' => 'approved',
+            'changed_by' => $crmUser->id,
+        ]);
+    }
+
+    public function test_half_day_leave_must_stay_on_one_day(): void
+    {
+        [$account, , , $employee] = $this->createCrmUser(canManage: true);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', [
+                'employeeId' => $employee->id,
+                'startDate' => '2026-08-10',
+                'endDate' => '2026-08-11',
+                'type' => 'conge',
+                'period' => 'morning',
+                'status' => 'approved',
+            ])
+            ->assertStatus(400)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('code', 'invalid_half_day_period');
+    }
+
+    public function test_balance_enforcement_can_reject_insufficient_balance(): void
+    {
+        config(['crm.leaves.enforce_balances' => true]);
+
+        [$account, , , $employee] = $this->createCrmUser(canManage: true);
+
+        CrmLeaveBalance::query()->create([
+            'employee_id' => $employee->id,
+            'type' => 'conge',
+            'year' => 2026,
+            'entitled_days' => 0,
+            'carried_over_days' => 0,
+            'used_days' => 0,
+            'pending_days' => 0,
+            'remaining_days' => 0,
+        ]);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', [
+                'employeeId' => $employee->id,
+                'startDate' => '2026-08-10',
+                'endDate' => '2026-08-10',
+                'type' => 'conge',
+                'period' => 'morning',
+                'status' => 'approved',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('code', 'insufficient_balance');
+    }
+
+    public function test_non_admin_cannot_modify_or_delete_approved_leave(): void
+    {
+        [$account, , , $employee] = $this->createCrmUser(canManage: true, role: 'responsable');
+
+        $leave = CrmLeaveEntry::query()->create([
+            'employee_id' => $employee->id,
+            'start_date' => '2026-08-20',
+            'end_date' => '2026-08-20',
+            'type' => 'conge',
+            'period' => 'full',
+            'duration_days' => 1,
+            'status' => 'approved',
+        ]);
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=save_leave', [
+                'id' => $leave->id,
+                'employeeId' => $employee->id,
+                'startDate' => '2026-08-20',
+                'endDate' => '2026-08-20',
+                'type' => 'conge',
+                'period' => 'full',
+                'status' => 'refused',
+            ])
+            ->assertStatus(403)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('code', 'approved_leave_locked');
+
+        $this->actingAs($account)
+            ->postJson('/api/conges?action=delete_leave', ['id' => $leave->id])
+            ->assertStatus(403)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('code', 'approved_leave_locked');
     }
 
     public function test_opposite_half_day_leaves_can_share_same_day(): void
@@ -208,19 +343,26 @@ class CrmLeaveApiTest extends TestCase
             'action' => 'suppression conge',
             'details' => "Conge #{$leaveId} - {$employee->name}",
         ]);
+
+        $this->assertDatabaseHas('crm_leave_status_histories', [
+            'entry_id' => $leaveId,
+            'from_status' => 'approved',
+            'to_status' => 'deleted',
+            'changed_by' => $crmUser->id,
+        ]);
     }
 
     /**
      * @return array{0: User, 1: CrmUser, 2: CrmSite, 3: CrmLeaveEmployee}
      */
-    private function createCrmUser(bool $canManage): array
+    private function createCrmUser(bool $canManage, ?string $role = null): array
     {
         $account = User::factory()->create();
         $site = $this->createSite('Palissy Test');
         $crmUser = CrmUser::query()->create([
             'user_id' => $account->id,
             'name' => 'CRM Test User '.$account->id,
-            'role' => $canManage ? 'admin' : 'user',
+            'role' => $role ?? ($canManage ? 'admin' : 'user'),
             'active' => true,
         ]);
         $employee = CrmLeaveEmployee::query()->create([

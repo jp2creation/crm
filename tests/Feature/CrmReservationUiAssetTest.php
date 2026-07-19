@@ -12,6 +12,24 @@ class CrmReservationUiAssetTest extends TestCase
         $indexAsset = (string) file_get_contents(public_path('assets/index-CqSzWeas.js'));
 
         $this->assertStringContainsString('reservation-day-board', $reservationAsset);
+        $this->assertStringContainsString('function ReservationModuleLoading', $reservationAsset);
+        $this->assertStringContainsString('Chargement du module Sprinter', $reservationAsset);
+        $this->assertStringContainsString('Chargement des vehicules', $reservationAsset);
+        $this->assertStringContainsString('Connexion aux donnees MySQL du site actif...', $reservationAsset);
+        $this->assertStringContainsString('Connexion aux donnees reservations indisponible', $reservationAsset);
+        $this->assertStringContainsString('sites: []', $reservationAsset);
+        $this->assertStringContainsString('vehicles: []', $reservationAsset);
+        $this->assertStringContainsString('reservations: []', $reservationAsset);
+        $this->assertStringNotContainsString('Module Sprinter dans le CRM Martin Sols', $reservationAsset);
+        $this->assertStringNotContainsString('vehicles: ne', $reservationAsset);
+        $this->assertStringNotContainsString('reservations: re', $reservationAsset);
+        $this->assertStringContainsString('function todayDate', $reservationAsset);
+        $this->assertStringContainsString('onToday: () => {', $reservationAsset);
+        $this->assertStringContainsString('a(todayDate())', $reservationAsset);
+        $this->assertStringContainsString('i(`day`)', $reservationAsset);
+        $this->assertStringContainsString('[le, C] = (0, _.useState)(() => todayDate())', $reservationAsset);
+        $this->assertStringNotContainsString('reservation-month-cell-today', $reservationAsset);
+        $this->assertStringNotContainsString('"aria-current": c ? `date` : void 0', $reservationAsset);
         $this->assertStringContainsString('reservation-day-row-track-morning', $reservationAsset);
         $this->assertStringContainsString('reservation-day-row-track-afternoon', $reservationAsset);
         $this->assertStringContainsString('function ReservationDayRow', $reservationAsset);
@@ -28,8 +46,10 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('timeMinutes(vehicleDefaultDayHours.morningEnd)', $reservationAsset);
         $this->assertStringContainsString('[...new Set(s)].sort', $reservationAsset);
         $this->assertStringContainsString('function reservationCellIsSelected', $reservationAsset);
+        $this->assertStringContainsString('function reservationSelectionCellLabel', $reservationAsset);
         $this->assertStringContainsString('function ReservationDaySelectionPanel', $reservationAsset);
         $this->assertStringContainsString('function openReservationRange', $reservationAsset);
+        $this->assertStringContainsString('function canDeleteReservation', $reservationAsset);
         $this->assertStringContainsString('setDaySelection', $reservationAsset);
         $this->assertStringContainsString('reservation-day-cell-button', $reservationAsset);
         $this->assertStringContainsString('reservation-day-selection-confirm', $reservationAsset);
@@ -39,6 +59,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('Valide pour ouvrir la fiche', $reservationAsset);
         $this->assertStringContainsString('daySelection.startAt === e', $reservationAsset);
         $this->assertStringContainsString('Debut annule. Choisis une nouvelle heure de depart.', $reservationAsset);
+        $this->assertStringContainsString('Fin choisie', $reservationAsset);
+        $this->assertStringContainsString('S\\u00e9lectionn\\u00e9', $reservationAsset);
         $this->assertStringNotContainsString('daySelection.period !== i', $reservationAsset);
         $this->assertStringContainsString('#16a34a', $reservationAsset);
         $this->assertStringContainsString('#dc2626', $reservationAsset);
@@ -62,6 +84,13 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('className: `space-y-3`', $reservationAsset);
         $this->assertStringContainsString('rows: 2', $reservationAsset);
         $this->assertStringContainsString('reservation-fast-summary', $reservationAsset);
+        $this->assertStringContainsString('summaryDateFormat = new Intl.DateTimeFormat', $reservationAsset);
+        $this->assertStringContainsString('function reservationSummaryDateTime', $reservationAsset);
+        $this->assertStringContainsString('reservation-fast-summary-datetime', $reservationAsset);
+        $this->assertStringContainsString('reservation-fast-summary-date', $reservationAsset);
+        $this->assertStringContainsString('reservation-fast-summary-time', $reservationAsset);
+        $this->assertStringContainsString('y = reservationSummaryDateTime(t.startAt)', $reservationAsset);
+        $this->assertStringContainsString('b = reservationSummaryDateTime(t.endAt)', $reservationAsset);
         $this->assertStringContainsString('.reservation-fast-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.42rem}', $reservationAsset);
         $this->assertStringContainsString('.reservation-fast-summary-item:first-child{grid-column:1/-1}', $reservationAsset);
         $this->assertStringContainsString('.reservation-fast-summary-user{grid-column:1/-1}', $reservationAsset);
@@ -70,6 +99,10 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('activeUser: G', $reservationAsset);
         $this->assertStringContainsString('userName: G.name', $reservationAsset);
         $this->assertStringContainsString('userName: e.userName', $reservationAsset);
+        $this->assertStringContainsString('reservation-fast-actions grid grid-cols-2 gap-2', $reservationAsset);
+        $this->assertStringContainsString('? `Modifier`', $reservationAsset);
+        $this->assertStringContainsString('`Supprimer`', $reservationAsset);
+        $this->assertStringContainsString('canDelete: De ? canDeleteReservation(K, G, De) : !1', $reservationAsset);
         $this->assertStringNotContainsString('Formulaire Sprinter branche sur le planning CRM.', $reservationAsset);
         $this->assertStringNotContainsString('document.getElementById(`reservation-notes`)?.focus()', $reservationAsset);
         $this->assertStringNotContainsString('id: `reservation-title`', $reservationAsset);
@@ -79,13 +112,24 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-notes', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071706', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071706', $indexAsset);
-        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071705', $indexAsset);
-        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071704', $indexAsset);
-        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071702', $indexAsset);
-        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071603', $indexAsset);
-        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071602', $indexAsset);
-        $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v=2026071404', $indexAsset);
+        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=2026071713', $indexAsset);
+        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=2026071713', $indexAsset);
+        foreach ([
+            '2026071404',
+            '2026071602',
+            '2026071603',
+            '2026071702',
+            '2026071704',
+            '2026071705',
+            '2026071706',
+            '2026071707',
+            '2026071708',
+            '2026071709',
+            '2026071710',
+            '2026071711',
+            '2026071712',
+        ] as $legacyVersion) {
+            $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v='.$legacyVersion, $indexAsset);
+        }
     }
 }

@@ -22,4 +22,19 @@ class CrmLeaveExportUiAssetTest extends TestCase
         $this->assertStringNotContainsString('class="pdf-calendar"', $public);
         $this->assertStringNotContainsString('function renderExportRows', $public);
     }
+
+    public function test_leave_module_mounts_without_a_global_dom_observer(): void
+    {
+        $source = (string) file_get_contents(base_path('Modules/CrmLeaves/resources/assets/crm-conges.js'));
+        $public = (string) file_get_contents(public_path('modules/crm-leaves/crm-conges.js'));
+
+        $this->assertSame($source, $public);
+        $this->assertStringContainsString('const rootId = "crm-leaves-module";', $public);
+        $this->assertStringContainsString('const routeEvent = "crm:leaves-route-changed";', $public);
+        $this->assertStringContainsString('function scheduleBoot(reset = false)', $public);
+        $this->assertStringContainsString('mountAttempts < 18', $public);
+        $this->assertStringContainsString('window.dispatchEvent(new Event(routeEvent))', $public);
+        $this->assertStringNotContainsString('observer.observe(document.documentElement', $public);
+        $this->assertStringNotContainsString('new MutationObserver(() => tryBoot())', $public);
+    }
 }

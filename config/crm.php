@@ -13,6 +13,18 @@ return [
 
     'dashboard' => [
         'cache_seconds' => (int) env('CRM_DASHBOARD_CACHE_SECONDS', 300),
+        'metrics_enabled' => env('CRM_DASHBOARD_METRICS_ENABLED', true),
+    ],
+
+    'leaves' => [
+        'default_entitlement_days' => (float) env('CRM_LEAVE_DEFAULT_ENTITLEMENT_DAYS', 25),
+        'exclude_weekends' => env('CRM_LEAVE_EXCLUDE_WEEKENDS', false),
+        'enforce_balances' => env('CRM_LEAVE_ENFORCE_BALANCES', false),
+    ],
+
+    'queue' => [
+        'alert_threshold' => (int) env('CRM_QUEUE_ALERT_THRESHOLD', 1000),
+        'alert_cooldown_minutes' => (int) env('CRM_QUEUE_ALERT_COOLDOWN_MINUTES', 30),
     ],
 
     'login' => [

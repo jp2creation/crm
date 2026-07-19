@@ -3,7 +3,7 @@
     "alias": "crmdepositrequests",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 110,
     "providers": [
         "Modules\\CrmDepositRequests\\Providers\\CrmDepositRequestsServiceProvider"
     ],

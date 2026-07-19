@@ -3,7 +3,7 @@
     "alias": "crmequipmentrentals",
     "description": "",
     "keywords": [],
-    "priority": 0,
+    "priority": 50,
     "providers": [
         "Modules\\CrmEquipmentRentals\\Providers\\CrmEquipmentRentalsServiceProvider"
     ],

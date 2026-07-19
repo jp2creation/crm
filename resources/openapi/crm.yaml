@@ -1,0 +1,179 @@
+openapi: 3.0.3
+info:
+  title: Martin Sols CRM API
+  version: 1.0.0
+  description: Documentation OpenAPI des endpoints CRM exposes par Laravel.
+servers:
+  - url: https://crm.jp2.fr
+security:
+  - sanctum: []
+tags:
+  - name: Dashboard
+  - name: Documents
+  - name: Mobile
+  - name: Chat
+    description: Aucun endpoint backend Chat n'est expose dans ce depot.
+  - name: News
+    description: Aucun endpoint backend News n'est expose dans ce depot.
+x-crm-audit:
+  chatEndpoint: absent
+  newsEndpoint: absent
+  documentsEndpoint: documented
+paths:
+  /api/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Lire le tableau de bord CRM.
+      parameters:
+        - in: query
+          name: siteId
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: Donnees du tableau de bord.
+        '401':
+          description: Utilisateur CRM requis.
+  /api/documents:
+    get:
+      tags: [Documents]
+      summary: Lire ou verifier le module Documents.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+        - in: query
+          name: category
+          required: true
+          schema:
+            type: string
+            enum: [promo, fiches-techniques, procedures]
+        - in: query
+          name: siteId
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Etat ou donnees du module Documents.
+        '401':
+          description: Utilisateur CRM requis.
+        '403':
+          description: Droits documents insuffisants.
+    post:
+      tags: [Documents]
+      summary: Administrer les dossiers et documents.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [save_directory, delete_directory, save_document, delete_document]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                siteId:
+                  type: integer
+                category:
+                  type: string
+                  enum: [promo, fiches-techniques, procedures]
+                directoryId:
+                  type: integer
+                  nullable: true
+                name:
+                  type: string
+                visibility:
+                  type: string
+                  enum: [public, restricted, private]
+                fileName:
+                  type: string
+                fileDataUrl:
+                  type: string
+      responses:
+        '200':
+          description: Operation documents effectuee.
+        '400':
+          description: Donnees invalides.
+        '403':
+          description: Gestion documents non autorisee.
+        '404':
+          description: Document ou dossier introuvable.
+  /api/documents.php:
+    get:
+      tags: [Documents]
+      summary: Alias legacy de /api/documents.
+      responses:
+        '200':
+          description: Meme reponse que /api/documents.
+    post:
+      tags: [Documents]
+      summary: Alias legacy de /api/documents.
+      responses:
+        '200':
+          description: Meme reponse que /api/documents.
+  /documents/file/{document}:
+    get:
+      tags: [Documents]
+      summary: Telecharger ou previsualiser un document.
+      parameters:
+        - in: path
+          name: document
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Fichier retourne.
+        '403':
+          description: Document prive ou non autorise.
+        '404':
+          description: Fichier manquant.
+  /api/mobile/token:
+    post:
+      tags: [Mobile]
+      summary: Creer un token mobile CRM.
+      responses:
+        '200':
+          description: Token cree.
+        '422':
+          description: Identifiants invalides.
+  /api/mobile/me:
+    get:
+      tags: [Mobile]
+      summary: Lire la session mobile courante.
+      responses:
+        '200':
+          description: Utilisateur mobile courant.
+        '401':
+          description: Token requis.
+  /api/chat:
+    get:
+      tags: [Chat]
+      summary: Endpoint Chat non implemente dans le backend actuel.
+      responses:
+        '404':
+          description: Route non exposee par ce depot.
+  /api/news:
+    get:
+      tags: [News]
+      summary: Endpoint News non implemente dans le backend actuel.
+      responses:
+        '404':
+          description: Route non exposee par ce depot.
+components:
+  securitySchemes:
+    sanctum:
+      type: apiKey
+      in: cookie
+      name: laravel_session
