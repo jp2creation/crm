@@ -8,10 +8,8 @@ use App\Models\CrmCheckRemittance;
 use App\Models\CrmEquipmentItem;
 use App\Models\CrmEquipmentRental;
 use App\Models\CrmLeaveEntry;
-use App\Models\CrmModule;
 use App\Models\CrmNotificationLog;
 use App\Models\CrmReservation;
-use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\DashboardMetric;
 use App\Models\User;
@@ -19,6 +17,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Modules\CrmCore\Support\CrmReferenceCache;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DashboardService
@@ -224,9 +223,10 @@ class DashboardService
         }
 
         return (float) CrmCashReceipt::query()
-            ->whereBetween('occurred_on', [$monthStart->toDateString(), $monthEnd->toDateString()])
-            ->whereHas('day', fn (Builder $query): Builder => $query->whereIn('site_id', $siteIds))
-            ->sum('invoice_total');
+            ->join('crm_cash_register_days as days', 'days.id', '=', 'crm_cash_receipts.cash_register_day_id')
+            ->whereIn('days.site_id', $siteIds)
+            ->whereBetween('crm_cash_receipts.occurred_on', [$monthStart->toDateString(), $monthEnd->toDateString()])
+            ->sum('crm_cash_receipts.invoice_total');
     }
 
     /**
@@ -239,9 +239,12 @@ class DashboardService
         }
 
         return CrmLeaveEntry::query()
-            ->where('status', 'pending')
-            ->whereHas('employee.crmUser.sites', fn (Builder $query): Builder => $query->whereIn('crm_sites.id', $siteIds))
-            ->count();
+            ->join('crm_leave_employees as employees', 'employees.id', '=', 'crm_leave_entries.employee_id')
+            ->join('crm_user_sites as user_sites', 'user_sites.user_id', '=', 'employees.crm_user_id')
+            ->whereIn('user_sites.site_id', $siteIds)
+            ->where('crm_leave_entries.status', 'pending')
+            ->distinct()
+            ->count('crm_leave_entries.id');
     }
 
     /**
@@ -377,11 +380,15 @@ class DashboardService
         }
 
         return CrmLeaveEntry::query()
+            ->select('crm_leave_entries.*')
             ->with(['employee:id,name,color'])
-            ->where('status', '<>', 'refused')
-            ->whereDate('start_date', '<=', $weekEnd->toDateString())
-            ->whereDate('end_date', '>=', $weekStart->toDateString())
-            ->whereHas('employee.crmUser.sites', fn (Builder $query): Builder => $query->whereIn('crm_sites.id', $siteIds))
+            ->join('crm_leave_employees as employees', 'employees.id', '=', 'crm_leave_entries.employee_id')
+            ->join('crm_user_sites as user_sites', 'user_sites.user_id', '=', 'employees.crm_user_id')
+            ->whereIn('user_sites.site_id', $siteIds)
+            ->where('crm_leave_entries.status', '<>', 'refused')
+            ->whereDate('crm_leave_entries.start_date', '<=', $weekEnd->toDateString())
+            ->whereDate('crm_leave_entries.end_date', '>=', $weekStart->toDateString())
+            ->distinct()
             ->orderBy('start_date')
             ->limit(8)
             ->get()
@@ -447,9 +454,10 @@ class DashboardService
             }
 
             $invoiceDiffs = CrmCashReceipt::query()
-                ->whereBetween('occurred_on', [$monthStart->toDateString(), $monthEnd->toDateString()])
-                ->whereHas('day', fn (Builder $query): Builder => $query->whereIn('site_id', $cashSiteIds))
-                ->whereRaw('ABS(invoice_total - (cash_amount + card_amount + check_amount + transfer_amount + control_amount)) > ?', [0.01])
+                ->join('crm_cash_register_days as days', 'days.id', '=', 'crm_cash_receipts.cash_register_day_id')
+                ->whereIn('days.site_id', $cashSiteIds)
+                ->whereBetween('crm_cash_receipts.occurred_on', [$monthStart->toDateString(), $monthEnd->toDateString()])
+                ->whereRaw('ABS(crm_cash_receipts.invoice_total - (crm_cash_receipts.cash_amount + crm_cash_receipts.card_amount + crm_cash_receipts.check_amount + crm_cash_receipts.transfer_amount + crm_cash_receipts.control_amount)) > ?', [0.01])
                 ->count();
 
             if ($invoiceDiffs > 0) {
@@ -533,12 +541,10 @@ class DashboardService
             return [];
         }
 
-        return CrmSite::query()
-            ->active()
+        return collect(CrmReferenceCache::activeSiteRows())
             ->whereIn('id', $siteIds)
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn (CrmSite $site): array => ['id' => (int) $site->id, 'name' => $site->name])
+            ->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)
+            ->map(fn (array $site): array => ['id' => (int) $site['id'], 'name' => $site['name']])
             ->values()
             ->all();
     }
@@ -554,17 +560,19 @@ class DashboardService
             return [];
         }
 
-        return CrmModule::query()
-            ->whereIn('id', $moduleIds)
-            ->where('active', true)
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'route_path'])
-            ->map(fn (CrmModule $module): array => [
-                'id' => (int) $module->id,
-                'name' => $module->name,
-                'slug' => $module->slug,
-                'routePath' => $module->route_path,
+        $moduleIds = array_flip($moduleIds);
+
+        return collect(CrmReferenceCache::activeModuleLookup())
+            ->filter(fn (array $module): bool => isset($moduleIds[(int) $module['id']]))
+            ->sortBy([
+                ['sortOrder', 'asc'],
+                ['name', 'asc'],
+            ])
+            ->map(fn (array $module): array => [
+                'id' => (int) $module['id'],
+                'name' => $module['name'],
+                'slug' => $module['slug'],
+                'routePath' => $module['routePath'],
             ])
             ->values()
             ->all();

@@ -5,13 +5,10 @@ namespace Modules\CrmEquipmentRentals\Services;
 use App\Models\CrmEquipmentCategory;
 use App\Models\CrmEquipmentItem;
 use App\Models\CrmEquipmentRental;
-use App\Models\CrmMenuItem;
-use App\Models\CrmModule;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -590,63 +587,14 @@ class EquipmentRentalService
         ];
     }
 
-    private function siteRow(CrmSite $site): array
-    {
-        return [
-            'id' => $site->id,
-            'name' => $site->name,
-            'slug' => $site->slug,
-            'hours' => $this->siteHours($site),
-        ];
-    }
-
-    private function moduleRow(CrmModule $module): array
-    {
-        return [
-            'id' => $module->id,
-            'name' => $module->name,
-            'slug' => $module->slug,
-            'description' => $module->description ?? '',
-            'active' => (bool) $module->active,
-            'sortOrder' => (int) $module->sort_order,
-        ];
-    }
-
     private function activeSiteRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::ACTIVE_SITE_ROWS, function (): array {
-            return CrmSite::query()
-                ->active()
-                ->orderBy('id')
-                ->get()
-                ->map(fn (CrmSite $site): array => $this->siteRow($site))
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::activeSiteRows();
     }
 
     private function activeModuleRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::ACTIVE_MODULE_ROWS, function (): array {
-            $visibleModuleSlugs = CrmMenuItem::query()
-                ->where('active', true)
-                ->where('item_key', 'like', 'module:%')
-                ->pluck('item_key')
-                ->map(fn (string $key): string => substr($key, 7))
-                ->filter()
-                ->values()
-                ->all();
-
-            return CrmModule::query()
-                ->active()
-                ->whereIn('slug', $visibleModuleSlugs)
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (CrmModule $module): array => $this->moduleRow($module))
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::activeMenuModuleRows();
     }
 
     private function categoryRow(CrmEquipmentCategory $category): array
@@ -662,31 +610,12 @@ class EquipmentRentalService
 
     private function activeCategoryRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::ACTIVE_EQUIPMENT_CATEGORY_ROWS, function (): array {
-            return CrmEquipmentCategory::query()
-                ->active()
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (CrmEquipmentCategory $category): array => $this->categoryRow($category))
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::activeEquipmentCategoryRows();
     }
 
     private function activeEquipmentItemRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::ACTIVE_EQUIPMENT_ITEM_ROWS, function (): array {
-            return CrmEquipmentItem::query()
-                ->active()
-                ->orderBy('site_id')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (CrmEquipmentItem $item): array => $this->itemRow($item))
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::activeEquipmentItemRows();
     }
 
     private function itemRow(CrmEquipmentItem $item): array
@@ -731,19 +660,7 @@ class EquipmentRentalService
 
     private function permissionRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::PERMISSION_ROWS, function (): array {
-            return DB::table('crm_permissions')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (object $permission): array => [
-                    'name' => $permission->name,
-                    'label' => $permission->label,
-                    'group' => $permission->group_label,
-                ])
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::permissionRows();
     }
 
     /**

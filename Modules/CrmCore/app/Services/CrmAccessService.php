@@ -4,9 +4,9 @@ namespace Modules\CrmCore\Services;
 
 use App\Models\CrmModule;
 use App\Models\CrmPermission;
-use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\CrmUserSiteModulePermission;
+use Modules\CrmCore\Support\CrmReferenceCache;
 
 class CrmAccessService
 {
@@ -140,7 +140,7 @@ class CrmAccessService
 
         $contextPermissionIds = $permissionNames === null
             ? null
-            : CrmPermission::query()->whereIn('name', $permissionNames)->pluck('id')->map(fn ($id): int => (int) $id)->all();
+            : CrmReferenceCache::permissionIds($permissionNames);
 
         $contextSiteIds = $this->contextQuery($user)
             ->where('module_id', $module->id)
@@ -199,12 +199,10 @@ class CrmAccessService
         }
 
         if ($user->role === 'admin') {
-            return CrmModule::query()
-                ->where('active', true)
-                ->orderBy('sort_order')
-                ->orderBy('name')
+            return collect(CrmReferenceCache::activeModuleLookup())
                 ->pluck('id')
                 ->map(fn ($id): int => (int) $id)
+                ->values()
                 ->all();
         }
 
@@ -237,9 +235,7 @@ class CrmAccessService
         }
 
         if ($user->role === 'admin') {
-            return CrmPermission::query()
-                ->orderBy('sort_order')
-                ->orderBy('name')
+            return collect(CrmReferenceCache::permissionRows())
                 ->pluck('name')
                 ->all();
         }
@@ -297,27 +293,21 @@ class CrmAccessService
             && $user->permissions->contains('name', $permissionName);
     }
 
-    private function activeModule(string $slug): ?CrmModule
+    private function activeModule(string $slug): ?object
     {
-        return CrmModule::query()
-            ->where('slug', $slug)
-            ->where('active', true)
-            ->first(['id', 'slug', 'active']);
+        $module = CrmReferenceCache::activeModule($slug);
+
+        return $module ? (object) $module : null;
     }
 
     private function permissionId(string $name): ?int
     {
-        $id = CrmPermission::query()->where('name', $name)->value('id');
-
-        return $id ? (int) $id : null;
+        return CrmReferenceCache::permissionId($name);
     }
 
     private function siteExists(int $siteId): bool
     {
-        return CrmSite::query()
-            ->active()
-            ->whereKey($siteId)
-            ->exists();
+        return CrmReferenceCache::activeSiteExists($siteId);
     }
 
     /**
@@ -325,12 +315,7 @@ class CrmAccessService
      */
     private function activeSiteIds(): array
     {
-        return CrmSite::query()
-            ->active()
-            ->orderBy('id')
-            ->pluck('id')
-            ->map(fn ($id): int => (int) $id)
-            ->all();
+        return CrmReferenceCache::activeSiteIds();
     }
 
     private function contextQuery(CrmUser $user)

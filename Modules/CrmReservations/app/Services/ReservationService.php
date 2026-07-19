@@ -2,15 +2,12 @@
 
 namespace Modules\CrmReservations\Services;
 
-use App\Models\CrmMenuItem;
-use App\Models\CrmModule;
 use App\Models\CrmReservation;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -335,13 +332,6 @@ class ReservationService
         }
     }
 
-    private function requireWithinSiteHours(CrmSite $site, string $startAt, string $endAt): void
-    {
-        if (! $site->containsOpeningPeriod($startAt, $endAt)) {
-            $this->fail('Creneau hors horaires du site', 400);
-        }
-    }
-
     private function requireWithinVehicleHours(CrmVehicle $vehicle, CrmSite $site, string $startAt, string $endAt): void
     {
         if (! $vehicle->containsReservationPeriod($startAt, $endAt, $site)) {
@@ -429,33 +419,6 @@ class ReservationService
         ];
     }
 
-    private function siteRow(CrmSite $site): array
-    {
-        return [
-            'id' => $site->id,
-            'name' => $site->name,
-            'slug' => $site->slug,
-            'hours' => [
-                'morningStart' => $this->time5($site->morning_start, '07:30'),
-                'morningEnd' => $this->time5($site->morning_end, '12:00'),
-                'afternoonStart' => $this->time5($site->afternoon_start, '13:30'),
-                'afternoonEnd' => $this->time5($site->afternoon_end, '17:30'),
-            ],
-        ];
-    }
-
-    private function moduleRow(CrmModule $module): array
-    {
-        return [
-            'id' => $module->id,
-            'name' => $module->name,
-            'slug' => $module->slug,
-            'description' => $module->description ?? '',
-            'active' => (bool) $module->active,
-            'sortOrder' => (int) $module->sort_order,
-        ];
-    }
-
     private function vehicleRow(CrmVehicle $vehicle): array
     {
         return [
@@ -489,70 +452,22 @@ class ReservationService
 
     private function activeSiteRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::ACTIVE_SITE_ROWS, function (): array {
-            return CrmSite::query()
-                ->active()
-                ->orderBy('id')
-                ->get()
-                ->map(fn (CrmSite $site): array => $this->siteRow($site))
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::activeSiteRows();
     }
 
     private function activeModuleRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::ACTIVE_MODULE_ROWS, function (): array {
-            $visibleModuleSlugs = CrmMenuItem::query()
-                ->where('active', true)
-                ->where('item_key', 'like', 'module:%')
-                ->pluck('item_key')
-                ->map(fn (string $key): string => substr($key, 7))
-                ->filter()
-                ->values()
-                ->all();
-
-            return CrmModule::query()
-                ->active()
-                ->whereIn('slug', $visibleModuleSlugs)
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (CrmModule $module): array => $this->moduleRow($module))
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::activeMenuModuleRows();
     }
 
     private function activeVehicleRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::ACTIVE_VEHICLE_ROWS, function (): array {
-            return CrmVehicle::query()
-                ->active()
-                ->orderBy('site_id')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (CrmVehicle $vehicle): array => $this->vehicleRow($vehicle))
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::activeVehicleRows();
     }
 
     private function permissionRows(): array
     {
-        return Cache::rememberForever(CrmReferenceCache::PERMISSION_ROWS, function (): array {
-            return DB::table('crm_permissions')
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->get()
-                ->map(fn (object $permission): array => [
-                    'name' => $permission->name,
-                    'label' => $permission->label,
-                    'group' => $permission->group_label,
-                ])
-                ->values()
-                ->all();
-        });
+        return CrmReferenceCache::permissionRows();
     }
 
     private function dispatchReservationEvent(CrmUser $actor, string $name, CrmReservation $reservation): void
