@@ -43,23 +43,27 @@ fi
 
 ssh -p "$CRM_DEPLOY_PORT" "${CRM_DEPLOY_USER}@${CRM_DEPLOY_HOST}" "mkdir -p '${CRM_DEPLOY_TMP_DIR}'"
 
-tar -czf "$LOCAL_ARCHIVE" \
-    --exclude='.git' \
-    --exclude='.env' \
-    --exclude='node_modules' \
-    --exclude='vendor' \
-    --exclude='storage/app/private' \
-    --exclude='storage/app/public' \
-    --exclude='storage/framework/cache' \
-    --exclude='storage/framework/sessions' \
-    --exclude='storage/framework/testing' \
-    --exclude='storage/framework/views' \
-    --exclude='storage/logs' \
-    --exclude='storage/pail' \
-    --exclude='storage/redis' \
-    --exclude='test-results' \
-    --exclude='playwright-report' \
-    .
+if [ "${CRM_DEPLOY_ALLOW_DIRTY:-0}" = "1" ]; then
+    tar -czf "$LOCAL_ARCHIVE" \
+        --exclude='.git' \
+        --exclude='.env' \
+        --exclude='node_modules' \
+        --exclude='vendor' \
+        --exclude='storage/app/private' \
+        --exclude='storage/app/public' \
+        --exclude='storage/framework/cache' \
+        --exclude='storage/framework/sessions' \
+        --exclude='storage/framework/testing' \
+        --exclude='storage/framework/views' \
+        --exclude='storage/logs' \
+        --exclude='storage/pail' \
+        --exclude='storage/redis' \
+        --exclude='test-results' \
+        --exclude='playwright-report' \
+        .
+else
+    git archive --format=tar.gz --output="$LOCAL_ARCHIVE" HEAD
+fi
 
 scp -P "$CRM_DEPLOY_PORT" "$LOCAL_ARCHIVE" "${CRM_DEPLOY_USER}@${CRM_DEPLOY_HOST}:${REMOTE_ARCHIVE}"
 
