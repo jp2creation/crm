@@ -84,6 +84,31 @@ self.addEventListener('fetch', (event) => {
   }
 });
 
+self.addEventListener('push', (event) => {
+  const payload = parsePushPayload(event);
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title || 'Martin Sols CRM', {
+      body: payload.body || '',
+      icon: payload.icon || '/assets/pwa/icon-192.png',
+      badge: payload.badge || '/assets/pwa/maskable-192.png',
+      tag: payload.tag || undefined,
+      renotify: Boolean(payload.tag),
+      data: {
+        url: payload.url || '/'
+      }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const notificationData = event.notification.data || {};
+
+  event.waitUntil(openNotificationUrl(notificationData.url || '/'));
+});
+
 function isPrivateRequest(url) {
   return PRIVATE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix));
 }
@@ -141,6 +166,51 @@ async function networkFirstAsset(request) {
   } catch (error) {
     return await cache.match(request) || Response.error();
   }
+}
+
+function parsePushPayload(event) {
+  if (!event.data) {
+    return {};
+  }
+
+  try {
+    return event.data.json();
+  } catch (error) {
+    return {
+      body: event.data.text()
+    };
+  }
+}
+
+async function openNotificationUrl(targetUrl) {
+  const fallback = new URL('/', self.location.origin);
+  let url;
+
+  try {
+    url = new URL(targetUrl, self.location.origin);
+  } catch (error) {
+    url = fallback;
+  }
+
+  if (url.origin !== self.location.origin) {
+    url = fallback;
+  }
+
+  const path = url.pathname + url.search + url.hash;
+  const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+  const matchingClient = clients.find((client) => {
+    const clientUrl = new URL(client.url);
+
+    return clientUrl.origin === self.location.origin && clientUrl.pathname === url.pathname;
+  });
+
+  if (matchingClient) {
+    matchingClient.postMessage({ type: 'CRM_NOTIFICATION_CLICKED', url: path });
+
+    return matchingClient.focus();
+  }
+
+  return self.clients.openWindow(path);
 }
 
 async function notifyClients(type) {

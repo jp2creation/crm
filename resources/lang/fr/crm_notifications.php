@@ -1,6 +1,16 @@
 <?php
 
 return [
+    'default' => [
+        'greeting' => 'Bonjour,',
+        'action' => 'Ouvrir le CRM',
+    ],
+    'system_alert' => [
+        'subject' => ':title',
+        'greeting' => 'Bonjour,',
+        'body' => ':body',
+        'action' => 'Ouvrir',
+    ],
     'invoice_reminder' => [
         'subject' => 'Rappel facture : :invoice',
         'greeting' => 'Bonjour,',

@@ -1,5 +1,36 @@
 <?php
 
+use App\Models\CrmCashCountLine;
+use App\Models\CrmCashMovement;
+use App\Models\CrmCashReceipt;
+use App\Models\CrmCashReceiptArchive;
+use App\Models\CrmCashRegisterDay;
+use App\Models\CrmCheckRemittance;
+use App\Models\CrmCheckRemittanceLine;
+use App\Models\CrmDepositRequest;
+use App\Models\CrmDocument;
+use App\Models\CrmDocumentDirectory;
+use App\Models\CrmEquipmentCategory;
+use App\Models\CrmEquipmentItem;
+use App\Models\CrmEquipmentRental;
+use App\Models\CrmLeaveBalance;
+use App\Models\CrmLeaveEmployee;
+use App\Models\CrmLeaveEntry;
+use App\Models\CrmLeaveStatusHistory;
+use App\Models\CrmLeaveTransaction;
+use App\Models\CrmMenuGroup;
+use App\Models\CrmMenuItem;
+use App\Models\CrmModule;
+use App\Models\CrmPage;
+use App\Models\CrmPermission;
+use App\Models\CrmReservation;
+use App\Models\CrmSalesTour;
+use App\Models\CrmSalesVisit;
+use App\Models\CrmSite;
+use App\Models\CrmUser;
+use App\Models\CrmUserSiteModulePermission;
+use App\Models\CrmVehicle;
+
 return [
     'legacy_php_api' => [
         'enabled' => env('CRM_LEGACY_PHP_API_ENABLED', env('APP_ENV', 'production') !== 'production'),
@@ -64,6 +95,45 @@ return [
 
     'notifications' => [
         'locale' => env('CRM_NOTIFICATION_LOCALE', env('APP_LOCALE', 'fr')),
+        'channels' => array_values(array_filter(
+            array_map('trim', explode(',', (string) env('CRM_NOTIFICATION_CHANNELS', 'database,mail,pwa'))),
+        )),
+    ],
+
+    'audit' => [
+        'enabled' => env('CRM_AUDIT_ENABLED', true),
+        'models' => [
+            CrmCashCountLine::class,
+            CrmCashMovement::class,
+            CrmCashReceipt::class,
+            CrmCashReceiptArchive::class,
+            CrmCashRegisterDay::class,
+            CrmCheckRemittance::class,
+            CrmCheckRemittanceLine::class,
+            CrmDepositRequest::class,
+            CrmDocument::class,
+            CrmDocumentDirectory::class,
+            CrmEquipmentCategory::class,
+            CrmEquipmentItem::class,
+            CrmEquipmentRental::class,
+            CrmLeaveBalance::class,
+            CrmLeaveEmployee::class,
+            CrmLeaveEntry::class,
+            CrmLeaveStatusHistory::class,
+            CrmLeaveTransaction::class,
+            CrmMenuGroup::class,
+            CrmMenuItem::class,
+            CrmModule::class,
+            CrmPage::class,
+            CrmPermission::class,
+            CrmReservation::class,
+            CrmSalesTour::class,
+            CrmSalesVisit::class,
+            CrmSite::class,
+            CrmUser::class,
+            CrmUserSiteModulePermission::class,
+            CrmVehicle::class,
+        ],
     ],
 
     'admin_password' => [

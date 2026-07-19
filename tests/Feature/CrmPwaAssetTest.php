@@ -41,6 +41,10 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString("notifyClients('CRM_SW_ACTIVATED')", $serviceWorker);
         $this->assertStringContainsString("notifyClients('CRM_SW_VERSION')", $serviceWorker);
         $this->assertStringContainsString("fetch(request, { cache: 'no-store' })", $serviceWorker);
+        $this->assertStringContainsString("self.addEventListener('push'", $serviceWorker);
+        $this->assertStringContainsString("self.registration.showNotification(payload.title || 'Martin Sols CRM'", $serviceWorker);
+        $this->assertStringContainsString("self.addEventListener('notificationclick'", $serviceWorker);
+        $this->assertStringContainsString('CRM_NOTIFICATION_CLICKED', $serviceWorker);
     }
 
     public function test_static_pwa_files_have_apache_headers_for_shared_hosting(): void

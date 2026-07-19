@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Listeners\RevokeUserSanctumTokens;
 use App\Models\CrmDocument;
 use App\Models\User;
+use App\Observers\CrmActivitylogObserver;
 use App\Observers\CrmDocumentObserver;
 use App\Observers\UserTokenObserver;
 use Illuminate\Auth\Events\PasswordReset;
@@ -56,7 +57,21 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(PasswordReset::class, RevokeUserSanctumTokens::class);
+        $this->registerCrmAuditObservers();
         CrmDocument::observe(CrmDocumentObserver::class);
         User::observe(UserTokenObserver::class);
+    }
+
+    private function registerCrmAuditObservers(): void
+    {
+        if (! config('crm.audit.enabled', true)) {
+            return;
+        }
+
+        foreach ((array) config('crm.audit.models', []) as $model) {
+            if (is_string($model) && class_exists($model) && method_exists($model, 'observe')) {
+                $model::observe(CrmActivitylogObserver::class);
+            }
+        }
     }
 }
