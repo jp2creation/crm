@@ -21,4 +21,9 @@ return [
         'subject' => 'Archivage des factures de caisse',
         'body' => ':count facture(s) de caisse ont ete archivees.',
     ],
+    'reservation_deleted' => [
+        'subject' => 'Reservation supprimee : :title',
+        'body' => ':actor a supprime la reservation :reservation (:start -> :end).',
+        'action' => 'Voir les reservations',
+    ],
 ];

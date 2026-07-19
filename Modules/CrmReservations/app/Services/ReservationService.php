@@ -14,12 +14,13 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Modules\CrmCore\Events\CrmDomainEvent;
 use Modules\CrmCore\Queries\ReservationConflictQuery;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
+use Modules\CrmReservations\Data\ReservationPayload;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Throwable;
 
 class ReservationService
 {
@@ -84,19 +85,13 @@ class ReservationService
         $this->requireModule($actor, 'reservations');
 
         return DB::transaction(function () use ($actor, $data): array {
-            $vehicleId = (int) ($data['vehicleId'] ?? $data['vehicle_id'] ?? 0);
-            $startAt = $this->normalizeDateTime((string) ($data['startAt'] ?? $data['start_at'] ?? ''));
-            $endAt = $this->normalizeDateTime((string) ($data['endAt'] ?? $data['end_at'] ?? ''));
-            $title = trim((string) ($data['title'] ?? ''));
-            $contactPhone = trim((string) ($data['contactPhone'] ?? $data['contact_phone'] ?? ''));
-            $notes = trim((string) ($data['notes'] ?? ''));
-
-            $this->validateReservationPayload($vehicleId, $startAt, $endAt, $title, $contactPhone);
+            $payload = ReservationPayload::fromArray($data);
+            $this->requireNotPastStartDate($payload->startAt);
 
             $vehicle = CrmVehicle::query()
                 ->active()
                 ->lockForUpdate()
-                ->find($vehicleId);
+                ->find($payload->vehicleId);
 
             if (! $vehicle) {
                 $this->fail('Vehicule introuvable', 404);
@@ -109,24 +104,24 @@ class ReservationService
             }
 
             $this->requireSitePermission($actor, (int) $site->id, 'reservations.create');
-            $this->requireWithinVehicleHours($vehicle, $site, $startAt, $endAt);
-            $this->requireNoReservationConflict($vehicleId, $startAt, $endAt);
+            $this->requireWithinVehicleHours($vehicle, $site, $payload->startAt, $payload->endAt);
+            $this->requireNoReservationConflict($payload->vehicleId, $payload->startAt, $payload->endAt);
 
             $reservation = CrmReservation::query()->create([
                 'site_id' => $site->id,
-                'vehicle_id' => $vehicleId,
+                'vehicle_id' => $payload->vehicleId,
                 'user_id' => $actor->id,
                 'user_name' => $actor->name,
-                'title' => $title,
-                'contact_phone' => $contactPhone,
-                'start_at' => $startAt,
-                'end_at' => $endAt,
-                'notes' => $notes,
+                'title' => $payload->title,
+                'contact_phone' => $payload->contactPhone,
+                'start_at' => $payload->startAt,
+                'end_at' => $payload->endAt,
+                'notes' => $payload->notes,
             ]);
 
-            $this->log($actor, 'creation reservation', "Reservation #{$reservation->id}");
+            $this->dispatchReservationEvent($actor, 'created', $reservation->refresh());
 
-            return ['ok' => true, 'reservation' => $this->reservationRow($reservation->refresh())];
+            return ['ok' => true, 'reservation' => $this->reservationRow($reservation)];
         });
     }
 
@@ -135,23 +130,12 @@ class ReservationService
         $this->requireModule($actor, 'reservations');
 
         return DB::transaction(function () use ($actor, $data): array {
-            $id = (int) ($data['id'] ?? 0);
-            $vehicleId = (int) ($data['vehicleId'] ?? $data['vehicle_id'] ?? 0);
-            $startAt = $this->normalizeDateTime((string) ($data['startAt'] ?? $data['start_at'] ?? ''));
-            $endAt = $this->normalizeDateTime((string) ($data['endAt'] ?? $data['end_at'] ?? ''));
-            $title = trim((string) ($data['title'] ?? ''));
-            $contactPhone = trim((string) ($data['contactPhone'] ?? $data['contact_phone'] ?? ''));
-            $notes = trim((string) ($data['notes'] ?? ''));
-
-            if ($id <= 0) {
-                $this->fail('Reservation invalide', 400);
-            }
-
-            $this->validateReservationPayload($vehicleId, $startAt, $endAt, $title, $contactPhone);
+            $payload = ReservationPayload::fromArray($data, true);
+            $this->requireNotPastStartDate($payload->startAt);
 
             $reservation = CrmReservation::query()
                 ->lockForUpdate()
-                ->find($id);
+                ->find($payload->id);
 
             if (! $reservation) {
                 $this->fail('Reservation introuvable', 404);
@@ -167,7 +151,7 @@ class ReservationService
             $vehicle = CrmVehicle::query()
                 ->active()
                 ->lockForUpdate()
-                ->find($vehicleId);
+                ->find($payload->vehicleId);
 
             if (! $vehicle) {
                 $this->fail('Vehicule introuvable', 404);
@@ -186,23 +170,23 @@ class ReservationService
                 $this->fail('Site non autorise', 403);
             }
 
-            $this->requireWithinVehicleHours($vehicle, $site, $startAt, $endAt);
-            $this->requireNoReservationConflict($vehicleId, $startAt, $endAt, $id);
+            $this->requireWithinVehicleHours($vehicle, $site, $payload->startAt, $payload->endAt);
+            $this->requireNoReservationConflict($payload->vehicleId, $payload->startAt, $payload->endAt, $payload->id);
 
             $reservation->fill([
                 'site_id' => $site->id,
-                'vehicle_id' => $vehicleId,
-                'title' => $title,
-                'contact_phone' => $contactPhone,
-                'start_at' => $startAt,
-                'end_at' => $endAt,
-                'notes' => $notes,
+                'vehicle_id' => $payload->vehicleId,
+                'title' => $payload->title,
+                'contact_phone' => $payload->contactPhone,
+                'start_at' => $payload->startAt,
+                'end_at' => $payload->endAt,
+                'notes' => $payload->notes,
             ]);
             $reservation->save();
 
-            $this->log($actor, 'modification reservation', "Reservation #{$id}");
+            $this->dispatchReservationEvent($actor, 'updated', $reservation->refresh());
 
-            return ['ok' => true, 'reservation' => $this->reservationRow($reservation->refresh())];
+            return ['ok' => true, 'reservation' => $this->reservationRow($reservation)];
         });
     }
 
@@ -338,27 +322,10 @@ class ReservationService
             }
 
             $reservation->delete();
-            $this->log($actor, 'suppression reservation', "Reservation #{$id}");
+            $this->dispatchReservationEvent($actor, 'deleted', $reservation);
 
             return ['ok' => true];
         });
-    }
-
-    private function validateReservationPayload(int $vehicleId, string $startAt, string $endAt, string $title, string $contactPhone): void
-    {
-        if ($vehicleId <= 0 || strtotime($endAt) <= strtotime($startAt)) {
-            $this->fail('Creneau invalide', 400);
-        }
-
-        $this->requireNotPastStartDate($startAt);
-
-        if (mb_strlen($title) > 190) {
-            $this->fail('Titre trop long', 400);
-        }
-
-        if (mb_strlen($contactPhone) > 40) {
-            $this->fail('Telephone trop long', 400);
-        }
     }
 
     private function requireNotPastStartDate(string $startAt): void
@@ -588,21 +555,26 @@ class ReservationService
         });
     }
 
-    private function normalizeDateTime(string $value): string
+    private function dispatchReservationEvent(CrmUser $actor, string $name, CrmReservation $reservation): void
     {
-        $value = str_replace('T', ' ', trim($value));
-
-        if ($value === '') {
-            $this->fail('Date invalide', 400);
-        }
-
-        try {
-            $date = CarbonImmutable::parse($value);
-        } catch (Throwable) {
-            $this->fail('Date invalide', 400);
-        }
-
-        return $date->format('Y-m-d H:i:s');
+        CrmDomainEvent::dispatch(
+            module: 'reservations',
+            name: $name,
+            entity: 'reservation',
+            entityId: (int) $reservation->id,
+            siteId: (int) $reservation->site_id,
+            actorId: (int) $actor->id,
+            actorName: $actor->name,
+            payload: [
+                'title' => $reservation->title ?? '',
+                'vehicleId' => (int) $reservation->vehicle_id,
+                'userId' => (int) $reservation->user_id,
+                'userName' => $reservation->user_name ?? '',
+                'startAt' => $reservation->start_at?->format('Y-m-d H:i:s') ?? '',
+                'endAt' => $reservation->end_at?->format('Y-m-d H:i:s') ?? '',
+                'actionUrl' => '/reservations',
+            ],
+        );
     }
 
     private function saveDataImage(string $dataUrl, string $folder): ?string

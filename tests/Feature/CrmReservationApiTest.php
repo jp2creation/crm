@@ -10,6 +10,8 @@ use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Modules\CrmCore\Events\CrmDomainEvent;
 use Tests\TestCase;
 
 class CrmReservationApiTest extends TestCase
@@ -159,6 +161,35 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('error', 'Droit insuffisant : reservations.create');
     }
 
+    public function test_reservation_payload_accepts_snake_case_and_dispatches_domain_event(): void
+    {
+        Event::fake([CrmDomainEvent::class]);
+
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
+
+        $reservationId = $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicle_id' => $vehicle->id,
+                'start_at' => '2026-08-10 08:00',
+                'end_at' => '2026-08-10T09:00',
+                'title' => 'DTO snake case',
+                'contact_phone' => '06 00 00 00 00',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('reservation.title', 'DTO snake case')
+            ->assertJsonPath('reservation.startAt', '2026-08-10T08:00')
+            ->json('reservation.id');
+
+        Event::assertDispatched(CrmDomainEvent::class, function (CrmDomainEvent $event) use ($reservationId): bool {
+            return $event->module === 'reservations'
+                && $event->entity === 'reservation'
+                && $event->name === 'created'
+                && (int) $event->entityId === (int) $reservationId
+                && ($event->payload['title'] ?? null) === 'DTO snake case';
+        });
+    }
+
     public function test_overlapping_reservation_is_rejected(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
@@ -232,6 +263,26 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('reservation.startAt', '2026-08-06T09:00');
     }
 
+    public function test_reservation_domain_events_are_logged_centrally(): void
+    {
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
+
+        $reservationId = $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-11T08:00',
+                'endAt' => '2026-08-11T09:00',
+                'title' => 'Journalisee',
+            ])
+            ->assertOk()
+            ->json('reservation.id');
+
+        $this->assertDatabaseHas('crm_logs', [
+            'action' => 'creation reservation',
+            'details' => 'Reservation #'.$reservationId.' - Journalisee',
+        ]);
+    }
+
     public function test_creator_can_delete_own_reservation_without_delete_permission(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
@@ -255,6 +306,52 @@ class CrmReservationApiTest extends TestCase
 
         $this->assertDatabaseMissing('crm_reservations', [
             'id' => $reservationId,
+        ]);
+    }
+
+    public function test_deleting_another_user_reservation_notifies_the_owner(): void
+    {
+        [$ownerAccount, $owner, $site, $vehicle] = $this->createCrmUser(['reservations.create']);
+
+        $reservation = CrmReservation::query()->create([
+            'site_id' => $site->id,
+            'vehicle_id' => $vehicle->id,
+            'user_id' => $owner->id,
+            'user_name' => $owner->name,
+            'title' => 'Suppression responsable',
+            'contact_phone' => '',
+            'start_at' => '2026-08-12 08:00:00',
+            'end_at' => '2026-08-12 09:00:00',
+            'notes' => '',
+        ]);
+
+        $managerAccount = User::factory()->create();
+        $manager = CrmUser::query()->create([
+            'user_id' => $managerAccount->id,
+            'name' => 'Manager Reservations',
+            'role' => 'responsable',
+            'active' => true,
+        ]);
+        $module = CrmModule::query()->where('slug', 'reservations')->firstOrFail();
+        $permission = CrmPermission::query()->updateOrCreate(
+            ['name' => 'reservations.delete_any'],
+            ['label' => 'Supprimer toutes les reservations', 'group_label' => 'Reservations', 'sort_order' => 160],
+        );
+
+        $manager->sites()->syncWithoutDetaching([$site->id => ['is_default' => true]]);
+        $manager->modules()->syncWithoutDetaching([$module->id]);
+        $manager->permissions()->syncWithoutDetaching([$permission->id]);
+
+        $this->actingAs($managerAccount)
+            ->postJson('/api/reservations?action=delete_reservation', ['id' => $reservation->id])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $this->assertDatabaseHas('notification_logs', [
+            'notifiable_type' => User::class,
+            'notifiable_id' => $ownerAccount->id,
+            'template_key' => 'reservation_deleted',
+            'status' => 'sent',
         ]);
     }
 

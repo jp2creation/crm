@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Modules\CrmCore\Support\CrmModuleStandard;
 use Tests\TestCase;
 
 class CrmModuleManifestTest extends TestCase
@@ -35,19 +36,20 @@ class CrmModuleManifestTest extends TestCase
         );
 
         foreach ($modules as $module) {
+            foreach (CrmModuleStandard::requiredManifestKeys() as $key) {
+                $this->assertArrayHasKey($key, $module, $module['name'].' doit declarer '.$key.' dans module.json.');
+            }
+
             $this->assertNotEmpty($module['providers'], $module['name'].' doit declarer au moins un provider.');
             $moduleRoot = dirname((string) $module['path']);
 
-            foreach ($module['providers'] as $provider) {
-                $this->assertTrue(class_exists($provider), $provider.' est introuvable.');
+            foreach (CrmModuleStandard::requiredPathGroups(($module['name'] ?? '') === 'CrmCore') as $paths) {
+                $exists = collect($paths)->contains(fn (string $path): bool => file_exists($moduleRoot.'/'.$path));
+                $this->assertTrue($exists, $module['name'].' doit fournir '.implode(' ou ', $paths).'.');
             }
 
-            $this->assertFileExists($moduleRoot.'/routes/web.php', $module['name'].' doit exposer ses routes web/API dans routes/web.php.');
-
-            if (($module['name'] ?? '') !== 'CrmCore') {
-                $hasServices = is_dir($moduleRoot.'/app/Services') || is_dir($moduleRoot.'/Services');
-
-                $this->assertTrue($hasServices, $module['name'].' doit isoler sa logique dans un dossier Services.');
+            foreach ($module['providers'] as $provider) {
+                $this->assertTrue(class_exists($provider), $provider.' est introuvable.');
             }
         }
 

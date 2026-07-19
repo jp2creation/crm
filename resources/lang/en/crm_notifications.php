@@ -21,4 +21,9 @@ return [
         'subject' => 'Cash receipt archive',
         'body' => ':count cash receipt invoice line(s) were archived.',
     ],
+    'reservation_deleted' => [
+        'subject' => 'Reservation deleted: :title',
+        'body' => ':actor deleted reservation :reservation (:start -> :end).',
+        'action' => 'View reservations',
+    ],
 ];
