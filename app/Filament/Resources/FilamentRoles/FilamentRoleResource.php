@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\FilamentRoles;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Filament\Resources\FilamentRoles\Pages\ManageFilamentRoles;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -22,6 +23,8 @@ use UnitEnum;
 
 class FilamentRoleResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = Role::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedKey;

@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\CrmModule;
+use App\Models\CrmPermission;
+use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -10,7 +13,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
+use Modules\CrmCore\Services\CrmActivityLogger;
+use Modules\CrmCore\Support\CrmReferenceCache;
 use Tests\TestCase;
 
 class CrmSecurityTest extends TestCase
@@ -179,6 +187,123 @@ class CrmSecurityTest extends TestCase
 
         $this->assertSame(17, $limit->maxAttempts);
         $this->assertSame((string) $account->id, $limit->key);
+    }
+
+    public function test_module_pages_require_matching_crm_permissions(): void
+    {
+        $account = User::factory()->create();
+        $crmUser = CrmUser::query()->create([
+            'user_id' => $account->id,
+            'name' => 'Sans Reservation',
+            'role' => 'user',
+            'active' => true,
+        ]);
+
+        $this->actingAs($account)
+            ->get('/reservations')
+            ->assertForbidden();
+
+        $site = CrmSite::query()->create([
+            'name' => 'Palissy Securite',
+            'slug' => 'palissy-securite',
+            'active' => true,
+        ]);
+        $module = CrmModule::query()->create([
+            'name' => 'Reservations',
+            'slug' => 'reservations',
+            'description' => 'Reservations vehicules',
+            'route_path' => '/reservations',
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+        $permission = CrmPermission::query()->create([
+            'name' => 'reservations.view',
+            'label' => 'Voir les reservations',
+            'group_label' => 'Reservations',
+            'sort_order' => 10,
+        ]);
+
+        $crmUser->sites()->sync([$site->id => ['is_default' => true]]);
+        $crmUser->modules()->sync([$module->id]);
+        $crmUser->permissions()->sync([$permission->id]);
+        CrmReferenceCache::forgetSites();
+        CrmReferenceCache::forgetModules();
+        CrmReferenceCache::forgetPermissions();
+
+        $this->actingAs($account)
+            ->get('/reservations')
+            ->assertOk();
+    }
+
+    public function test_filament_resources_explicitly_delegate_to_policy_authorization(): void
+    {
+        $resourceFiles = collect([
+            ...File::allFiles(app_path('Filament/Resources')),
+            ...File::allFiles(base_path('Modules')),
+        ])
+            ->filter(fn ($file): bool => str_ends_with($file->getFilename(), 'Resource.php')
+                && str_contains(str_replace('\\', '/', $file->getPathname()), '/Filament/Resources/'))
+            ->values();
+
+        $this->assertNotEmpty($resourceFiles);
+
+        foreach ($resourceFiles as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+
+            $this->assertStringContainsString('AuthorizesResourceWithPolicy', $contents, $file->getPathname());
+            $this->assertStringContainsString('use AuthorizesResourceWithPolicy;', $contents, $file->getPathname());
+        }
+
+        $crmUserResource = (string) file_get_contents(base_path('Modules/CrmAdministration/app/Filament/Resources/CrmUsers/CrmUserResource.php'));
+
+        $this->assertStringContainsString("Action::make('createLaravelAccount')", $crmUserResource);
+        $this->assertStringContainsString("->authorize('update')", $crmUserResource);
+    }
+
+    public function test_crm_activity_logs_include_sanitized_request_context(): void
+    {
+        $account = User::factory()->create();
+        $crmUser = CrmUser::query()->create([
+            'user_id' => $account->id,
+            'name' => 'Audit Context',
+            'role' => 'admin',
+            'active' => true,
+        ]);
+
+        Route::post('/_tests/crm-activity-log', function (CrmActivityLogger $logger) use ($crmUser) {
+            $logger->log($crmUser, 'test action sensible', 'details test', [
+                'changes' => [
+                    'name' => ['old' => 'Avant', 'new' => 'Apres'],
+                    'api_token' => 'secret-token',
+                ],
+            ]);
+
+            return response()->json(['ok' => true]);
+        })->name('tests.crm-activity-log');
+
+        $this->actingAs($account)
+            ->withHeader('User-Agent', 'CRM Security Test Browser')
+            ->postJson('/_tests/crm-activity-log', [
+                'name' => 'Apres',
+                'password' => 'super-secret',
+                'notes' => str_repeat('x', 520),
+            ])
+            ->assertOk();
+
+        $log = DB::table('crm_logs')->where('action', 'test action sensible')->first();
+
+        $this->assertNotNull($log);
+        $this->assertSame('127.0.0.1', $log->ip);
+        $this->assertSame('CRM Security Test Browser', $log->user_agent);
+
+        $context = json_decode((string) $log->context, true, flags: JSON_THROW_ON_ERROR);
+
+        $this->assertSame('/_tests/crm-activity-log', $context['request']['path']);
+        $this->assertSame('tests.crm-activity-log', $context['request']['route']);
+        $this->assertSame('[filtered]', $context['payload']['password']);
+        $this->assertSame('[filtered]', $context['changes']['api_token']);
+        $this->assertSame('Apres', $context['changes']['name']['new']);
+        $this->assertStringEndsWith('...', $context['payload']['notes']);
     }
 
     public function test_csrf_middleware_rejects_missing_token_when_enabled(): void

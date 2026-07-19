@@ -2,6 +2,7 @@
 
 namespace Modules\CrmEquipmentRentals\Filament\Resources\CrmEquipmentRentals;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmEquipmentRental;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -26,6 +27,8 @@ use UnitEnum;
 
 class CrmEquipmentRentalResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmEquipmentRental::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;

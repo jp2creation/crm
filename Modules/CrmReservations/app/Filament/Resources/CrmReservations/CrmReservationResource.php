@@ -2,6 +2,7 @@
 
 namespace Modules\CrmReservations\Filament\Resources\CrmReservations;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmReservation;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -26,6 +27,8 @@ use UnitEnum;
 
 class CrmReservationResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmReservation::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;

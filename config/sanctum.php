@@ -62,7 +62,14 @@ return [
     |
     */
 
-    'mobile_token_expiration_days' => env('SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS', 365),
+    'mobile_token_expiration_days' => env('SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS', 1),
+
+    'mobile_access_token_expiration_minutes' => (int) env(
+        'SANCTUM_MOBILE_ACCESS_TOKEN_EXPIRATION_MINUTES',
+        ((int) env('SANCTUM_MOBILE_TOKEN_EXPIRATION_DAYS', 1)) * 1440,
+    ),
+
+    'mobile_refresh_token_expiration_days' => (int) env('SANCTUM_MOBILE_REFRESH_TOKEN_EXPIRATION_DAYS', 30),
 
     /*
     |--------------------------------------------------------------------------

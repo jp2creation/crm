@@ -2,6 +2,7 @@
 
 namespace Modules\CrmAdministration\Filament\Resources\CrmModules;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmModule;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -26,6 +27,8 @@ use UnitEnum;
 
 class CrmModuleResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmModule::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;

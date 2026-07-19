@@ -2,6 +2,7 @@
 
 namespace Modules\CrmPages\Filament\Resources\CrmPages;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmPage;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -28,6 +29,8 @@ use UnitEnum;
 
 class CrmPageResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmPage::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;

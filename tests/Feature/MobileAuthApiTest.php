@@ -19,7 +19,7 @@ class MobileAuthApiTest extends TestCase
     {
         [$account, $crmUser] = $this->createMobileCrmUser();
 
-        $token = $this->postJson('/api/mobile/token', [
+        $loginResponse = $this->postJson('/api/mobile/token', [
             'email' => $account->email,
             'password' => 'secret-mobile',
             'device_name' => 'Pixel Test',
@@ -28,7 +28,13 @@ class MobileAuthApiTest extends TestCase
             ->assertJsonPath('ok', true)
             ->assertJsonPath('tokenType', 'Bearer')
             ->assertJsonPath('user.modules.0.slug', 'reservations')
-            ->json('token');
+            ->assertJsonPath('scopes.0', 'crm:mobile')
+            ->assertJsonPath('scopes.1', 'crm:module:reservations');
+
+        $token = $loginResponse->json('token');
+
+        $this->assertIsString($loginResponse->json('refreshToken'));
+        $this->assertDatabaseCount('crm_mobile_refresh_tokens', 1);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->getJson('/api/reservations?action=bootstrap')
@@ -124,6 +130,77 @@ class MobileAuthApiTest extends TestCase
         ])
             ->assertForbidden()
             ->assertJsonPath('ok', false);
+    }
+
+    public function test_mobile_refresh_token_rotates_access_and_refresh_tokens(): void
+    {
+        [$account] = $this->createMobileCrmUser();
+
+        $loginResponse = $this->postJson('/api/mobile/token', [
+            'email' => $account->email,
+            'password' => 'secret-mobile',
+            'device_name' => 'Pixel Test',
+        ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $oldAccessToken = (string) $loginResponse->json('token');
+        $oldRefreshToken = (string) $loginResponse->json('refreshToken');
+
+        $this->assertDatabaseCount('personal_access_tokens', 1);
+        $this->assertDatabaseCount('crm_mobile_refresh_tokens', 1);
+
+        $refreshResponse = $this->postJson('/api/mobile/refresh', [
+            'refreshToken' => $oldRefreshToken,
+        ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('scopes.1', 'crm:module:reservations');
+
+        $newAccessToken = (string) $refreshResponse->json('token');
+        $newRefreshToken = (string) $refreshResponse->json('refreshToken');
+
+        $this->assertNotSame($oldAccessToken, $newAccessToken);
+        $this->assertNotSame($oldRefreshToken, $newRefreshToken);
+        $this->assertDatabaseCount('personal_access_tokens', 1);
+        $this->assertDatabaseCount('crm_mobile_refresh_tokens', 1);
+
+        $this->withHeader('Authorization', 'Bearer '.$oldAccessToken)
+            ->getJson('/api/mobile/me')
+            ->assertUnauthorized();
+
+        $this->withHeader('Authorization', 'Bearer '.$newAccessToken)
+            ->getJson('/api/mobile/me')
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $this->postJson('/api/mobile/refresh', [
+            'refreshToken' => $oldRefreshToken,
+        ])
+            ->assertUnauthorized()
+            ->assertJsonPath('ok', false);
+    }
+
+    public function test_mobile_module_scope_is_required_for_module_api_requests(): void
+    {
+        [$account, $crmUser] = $this->createMobileCrmUser();
+
+        $crmUser->modules()->detach();
+
+        $token = $this->postJson('/api/mobile/token', [
+            'email' => $account->email,
+            'password' => 'secret-mobile',
+            'device_name' => 'Pixel Test',
+        ])
+            ->assertOk()
+            ->assertJsonMissingPath('scopes.1')
+            ->json('token');
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->getJson('/api/reservations?action=bootstrap')
+            ->assertForbidden()
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Scope mobile insuffisant.');
     }
 
     public function test_mobile_web_session_logout_revokes_the_launching_mobile_token(): void

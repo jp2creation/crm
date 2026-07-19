@@ -10,9 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\NewAccessToken;
 use Modules\CrmCore\Http\Requests\MobileTokenRequest;
 
 class MobileAuthService
@@ -53,16 +55,70 @@ class MobileAuthService
 
         RateLimiter::clear($throttleKey);
 
-        $expiresAt = $this->tokenExpiresAt();
-        $token = $user
-            ->createToken((string) $data['device_name'], ['crm:mobile'], $expiresAt)
-            ->plainTextToken;
+        $abilities = $this->mobileAbilities($crmUser);
+        $expiresAt = $this->accessTokenExpiresAt();
+        $accessToken = $user->createToken((string) $data['device_name'], $abilities, $expiresAt);
+        $refresh = $this->storeRefreshToken($request, $user, $accessToken, $abilities, (string) $data['device_name']);
 
         return $this->result([
             'ok' => true,
-            'token' => $token,
+            'token' => $accessToken->plainTextToken,
             'tokenType' => 'Bearer',
             'expiresAt' => $expiresAt?->toIso8601String(),
+            'refreshToken' => $refresh['token'],
+            'refreshExpiresAt' => $refresh['expiresAt']->toIso8601String(),
+            'scopes' => $abilities,
+            'user' => $this->userPayload($crmUser),
+        ]);
+    }
+
+    /**
+     * @return array{data: array<string, mixed>, status: int}
+     */
+    public function refreshToken(Request $request): array
+    {
+        $data = $request->validate([
+            'refreshToken' => ['required_without:refresh_token', 'string', 'min:40', 'max:255'],
+            'refresh_token' => ['required_without:refreshToken', 'string', 'min:40', 'max:255'],
+            'device_name' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $plainRefreshToken = (string) ($data['refreshToken'] ?? $data['refresh_token']);
+        $row = DB::table('crm_mobile_refresh_tokens')
+            ->where('token_hash', hash('sha256', $plainRefreshToken))
+            ->whereNull('revoked_at')
+            ->first();
+
+        if (! $row || Carbon::parse($row->expires_at)->isPast()) {
+            return $this->result(['ok' => false, 'error' => __('crm.mobile.invalid_refresh_token')], 401);
+        }
+
+        $user = User::query()->find((int) $row->user_id);
+        $crmUser = $user instanceof User ? $this->crmUserFor($user) : null;
+
+        if (! $user instanceof User || ! $crmUser || $crmUser->role === 'blocked') {
+            DB::table('crm_mobile_refresh_tokens')->where('id', $row->id)->update(['revoked_at' => now()]);
+
+            return $this->result(['ok' => false, 'error' => __('crm.mobile.account_unavailable')], 403);
+        }
+
+        $abilities = $this->mobileAbilities($crmUser);
+        $expiresAt = $this->accessTokenExpiresAt();
+        $accessToken = $user->createToken((string) ($data['device_name'] ?? $row->device_name), $abilities, $expiresAt);
+        $refresh = $this->rotateRefreshToken($request, $row, $accessToken, $abilities);
+
+        if ($row->personal_access_token_id) {
+            $user->tokens()->whereKey((int) $row->personal_access_token_id)->delete();
+        }
+
+        return $this->result([
+            'ok' => true,
+            'token' => $accessToken->plainTextToken,
+            'tokenType' => 'Bearer',
+            'expiresAt' => $expiresAt?->toIso8601String(),
+            'refreshToken' => $refresh['token'],
+            'refreshExpiresAt' => $refresh['expiresAt']->toIso8601String(),
+            'scopes' => $abilities,
             'user' => $this->userPayload($crmUser),
         ]);
     }
@@ -149,9 +205,17 @@ class MobileAuthService
     {
         $bearerToken = $request->bearerToken();
         $token = $request->user()?->currentAccessToken();
+        $tokenId = $token && method_exists($token, 'getKey') ? (int) $token->getKey() : null;
 
         if ($token && method_exists($token, 'delete')) {
             $token->delete();
+        }
+
+        if ($tokenId) {
+            DB::table('crm_mobile_refresh_tokens')
+                ->where('personal_access_token_id', $tokenId)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
         }
 
         if ($bearerToken && str_contains($bearerToken, '|')) {
@@ -343,11 +407,106 @@ class MobileAuthService
         return 'crm:mobile:web-session:'.$token;
     }
 
-    private function tokenExpiresAt(): ?Carbon
+    /**
+     * @return array{token: string, expiresAt: Carbon}
+     */
+    private function storeRefreshToken(Request $request, User $user, NewAccessToken $accessToken, array $abilities, string $deviceName): array
     {
-        $days = (int) config('sanctum.mobile_token_expiration_days', 365);
+        $refreshToken = Str::random(80);
+        $expiresAt = $this->refreshTokenExpiresAt();
 
-        return $days > 0 ? now()->addDays($days) : null;
+        DB::table('crm_mobile_refresh_tokens')->insert([
+            'user_id' => (int) $user->id,
+            'personal_access_token_id' => (int) $accessToken->accessToken->getKey(),
+            'token_hash' => hash('sha256', $refreshToken),
+            'device_name' => mb_substr($deviceName, 0, 120),
+            'abilities' => json_encode($abilities, JSON_UNESCAPED_UNICODE),
+            'expires_at' => $expiresAt,
+            'ip_address' => $request->ip(),
+            'user_agent' => $this->shortUserAgent($request),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return ['token' => $refreshToken, 'expiresAt' => $expiresAt];
+    }
+
+    /**
+     * @param  array<int, string>  $abilities
+     * @return array{token: string, expiresAt: Carbon}
+     */
+    private function rotateRefreshToken(Request $request, object $row, NewAccessToken $accessToken, array $abilities): array
+    {
+        $refreshToken = Str::random(80);
+        $expiresAt = $this->refreshTokenExpiresAt();
+
+        DB::table('crm_mobile_refresh_tokens')
+            ->where('id', $row->id)
+            ->update([
+                'personal_access_token_id' => (int) $accessToken->accessToken->getKey(),
+                'token_hash' => hash('sha256', $refreshToken),
+                'abilities' => json_encode($abilities, JSON_UNESCAPED_UNICODE),
+                'expires_at' => $expiresAt,
+                'last_used_at' => now(),
+                'ip_address' => $request->ip(),
+                'user_agent' => $this->shortUserAgent($request),
+                'updated_at' => now(),
+            ]);
+
+        return ['token' => $refreshToken, 'expiresAt' => $expiresAt];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function mobileAbilities(CrmUser $crmUser): array
+    {
+        $crmUser->loadMissing('modules:id,slug,active');
+
+        return $crmUser->modules
+            ->where('active', true)
+            ->pluck('slug')
+            ->flatMap(fn (string $slug): array => $this->moduleAbilities($slug))
+            ->prepend('crm:mobile')
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function moduleAbilities(string $slug): array
+    {
+        $abilities = ['crm:module:'.$slug];
+
+        if (str_starts_with($slug, 'documents-')) {
+            $abilities[] = 'crm:module:documents';
+        }
+
+        return $abilities;
+    }
+
+    private function accessTokenExpiresAt(): ?Carbon
+    {
+        $minutes = (int) config('sanctum.mobile_access_token_expiration_minutes', 1440);
+
+        return $minutes > 0 ? now()->addMinutes($minutes) : null;
+    }
+
+    private function refreshTokenExpiresAt(): Carbon
+    {
+        $days = max(1, (int) config('sanctum.mobile_refresh_token_expiration_days', 30));
+
+        return now()->addDays($days);
+    }
+
+    private function shortUserAgent(Request $request): ?string
+    {
+        $userAgent = (string) $request->userAgent();
+
+        return $userAgent !== '' ? mb_substr($userAgent, 0, 512) : null;
     }
 
     private function throttleKey(Request $request): string

@@ -2,6 +2,7 @@
 
 namespace Modules\CrmAdministration\Filament\Resources\CrmPermissions;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmPermission;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -22,6 +23,8 @@ use UnitEnum;
 
 class CrmPermissionResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmPermission::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShieldCheck;

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AdminUsers;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Filament\Resources\AdminUsers\Pages\ManageAdminUsers;
 use App\Models\User;
 use BackedEnum;
@@ -24,6 +25,8 @@ use UnitEnum;
 
 class AdminUserResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedIdentification;

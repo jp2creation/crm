@@ -2,6 +2,7 @@
 
 namespace Modules\CrmAdministration\Filament\Resources\CrmMenuItems;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmMenuItem;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -28,6 +29,8 @@ use UnitEnum;
 
 class CrmMenuItemResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmMenuItem::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBars3;

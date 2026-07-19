@@ -33,7 +33,7 @@ $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
 $crmLoginApiMiddleware = ['throttle:crm-login', 'crm.compress'];
 
 Route::match(['GET', 'OPTIONS'], '/api/dashboard', DashboardApiController::class)
-    ->middleware($crmApiMiddleware)
+    ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:dashboard'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.dashboard');
 
@@ -48,17 +48,22 @@ Route::post('/api/mobile/token', [MobileAuthController::class, 'token'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.token');
 
+Route::post('/api/mobile/refresh', [MobileAuthController::class, 'refresh'])
+    ->middleware($crmLoginApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.refresh');
+
 Route::get('/api/mobile/me', [MobileAuthController::class, 'me'])
-    ->middleware(['auth:sanctum', ...$crmApiMiddleware])
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:mobile'])
     ->name('crm.api.mobile.me');
 
 Route::post('/api/mobile/web-session', [MobileAuthController::class, 'webSession'])
-    ->middleware(['auth:sanctum', ...$crmApiMiddleware])
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:mobile'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.web-session');
 
 Route::post('/api/mobile/logout', [MobileAuthController::class, 'logout'])
-    ->middleware(['auth:sanctum', ...$crmApiMiddleware])
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:mobile'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.logout');
 

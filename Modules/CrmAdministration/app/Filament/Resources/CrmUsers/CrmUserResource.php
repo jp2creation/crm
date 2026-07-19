@@ -2,6 +2,7 @@
 
 namespace Modules\CrmAdministration\Filament\Resources\CrmUsers;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmUser;
 use App\Models\User;
 use BackedEnum;
@@ -34,6 +35,8 @@ use UnitEnum;
 
 class CrmUserResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmUser::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
@@ -183,6 +186,7 @@ class CrmUserResource extends Resource
                     ->label('Compte Laravel')
                     ->icon(Heroicon::OutlinedUserPlus)
                     ->color('primary')
+                    ->authorize('update')
                     ->visible(fn (CrmUser $record): bool => blank($record->user_id))
                     ->modalHeading('Creer un compte Laravel')
                     ->modalDescription(fn (CrmUser $record): string => "Utilisateur CRM : {$record->name}")

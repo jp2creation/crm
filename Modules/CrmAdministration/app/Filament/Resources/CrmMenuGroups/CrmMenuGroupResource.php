@@ -2,6 +2,7 @@
 
 namespace Modules\CrmAdministration\Filament\Resources\CrmMenuGroups;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmMenuGroup;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -25,6 +26,8 @@ use UnitEnum;
 
 class CrmMenuGroupResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmMenuGroup::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedQueueList;

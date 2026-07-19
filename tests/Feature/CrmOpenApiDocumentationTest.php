@@ -30,6 +30,7 @@ class CrmOpenApiDocumentationTest extends TestCase
             '/api/documents.php:',
             '/documents/file/{document}:',
             '/api/mobile/token:',
+            '/api/mobile/refresh:',
             '/api/mobile/me:',
             '/api/mobile/web-session:',
             '/api/mobile/logout:',

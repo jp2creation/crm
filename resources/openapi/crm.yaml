@@ -703,18 +703,44 @@ paths:
   /api/mobile/token:
     post:
       tags: [Mobile]
-      summary: Creer un token mobile CRM.
+      summary: Creer un access token mobile CRM court et un refresh token rotatif.
       requestBody:
         $ref: '#/components/requestBodies/CrmJsonPayload'
       responses:
         '200':
-          description: Token cree.
+          description: Tokens crees avec les scopes CRM du compte.
         '422':
           description: Identifiants invalides.
+  /api/mobile/refresh:
+    post:
+      tags: [Mobile]
+      summary: Renouveler un access token mobile via refresh token.
+      requestBody:
+        description: Payload JSON contenant refreshToken ou refresh_token.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+                device_name:
+                  type: string
+      responses:
+        '200':
+          description: Nouveau token Bearer, refresh token rotatif et scopes.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/mobile/me:
     get:
       tags: [Mobile]
       summary: Lire la session mobile courante.
+      security:
+        - bearer: []
       responses:
         '200':
           description: Utilisateur mobile courant.
@@ -724,6 +750,8 @@ paths:
     post:
       tags: [Mobile]
       summary: Creer une session web depuis un token mobile.
+      security:
+        - bearer: []
       requestBody:
         $ref: '#/components/requestBodies/CrmJsonPayload'
       responses:
@@ -735,6 +763,8 @@ paths:
     post:
       tags: [Mobile]
       summary: Revoquer le token mobile courant.
+      security:
+        - bearer: []
       responses:
         '200':
           $ref: '#/components/responses/CrmOk'
@@ -760,6 +790,10 @@ components:
       type: apiKey
       in: cookie
       name: laravel_session
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum scoped access token
   parameters:
     Action:
       in: query

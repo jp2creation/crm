@@ -8,25 +8,25 @@ $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
 $crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
 
 Route::redirect('/documents', '/documents/promo')
-    ->middleware('auth')
+    ->middleware(['auth', 'crm.module:documents,documents.view,documents.manage'])
     ->name('crm.documents.index');
 
 Route::view('/documents/{category}', 'crm')
-    ->middleware('auth')
+    ->middleware(['auth', 'crm.module:documents,documents.view,documents.manage'])
     ->where('category', 'promo|fiches-techniques|procedures')
     ->name('crm.documents.category');
 
 Route::get('/documents/file/{document}', [DocumentApiController::class, 'download'])
-    ->middleware('auth')
+    ->middleware(['auth', 'crm.module:documents,documents.view,documents.manage'])
     ->whereNumber('document')
     ->name('crm.documents.download');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/documents', DocumentApiController::class)
-    ->middleware($crmApiMiddleware)
+    ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:documents'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.documents');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/documents.php', DocumentApiController::class)
-    ->middleware($crmLegacyApiMiddleware)
+    ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:documents'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.documents.legacy');

@@ -21,6 +21,11 @@ class MobileAuthController extends Controller
         return $this->jsonResult($mobileAuth->issueToken($request));
     }
 
+    public function refresh(Request $request, MobileAuthService $mobileAuth): JsonResponse
+    {
+        return $this->jsonResult($mobileAuth->refreshToken($request));
+    }
+
     public function me(Request $request, MobileAuthService $mobileAuth): JsonResponse
     {
         return $this->jsonResult($mobileAuth->currentUser($request));

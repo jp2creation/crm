@@ -2,6 +2,7 @@
 
 namespace Modules\CrmReservations\Filament\Resources\CrmVehicles;
 
+use App\Filament\Concerns\AuthorizesResourceWithPolicy;
 use App\Models\CrmVehicle;
 use BackedEnum;
 use Filament\Actions\BulkActionGroup;
@@ -32,6 +33,8 @@ use UnitEnum;
 
 class CrmVehicleResource extends Resource
 {
+    use AuthorizesResourceWithPolicy;
+
     protected static ?string $model = CrmVehicle::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTruck;
