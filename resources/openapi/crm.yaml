@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Martin Sols CRM API
-  version: 1.0.0
+  version: 1.1.0
   description: Documentation OpenAPI des endpoints CRM exposes par Laravel.
 servers:
   - url: https://crm.jp2.fr
@@ -9,8 +9,17 @@ security:
   - sanctum: []
 tags:
   - name: Dashboard
+  - name: Administration
+  - name: Reservations
+  - name: Location materiel
+  - name: Conges
+  - name: Comptabilite
   - name: Documents
+  - name: Pages
+  - name: Equipes
+  - name: Commercial
   - name: Mobile
+  - name: Legacy
   - name: Chat
     description: Aucun endpoint backend Chat n'est expose dans ce depot.
   - name: News
@@ -19,22 +28,445 @@ x-crm-audit:
   chatEndpoint: absent
   newsEndpoint: absent
   documentsEndpoint: documented
+  legacyPhpAliases:
+    enabledByEnv: CRM_LEGACY_PHP_API_ENABLED
+    documented: true
+  moduleApis:
+    - /api/dashboard
+    - /api/administration
+    - /api/reservations
+    - /api/equipment-rentals
+    - /api/conges
+    - /api/controle-caisse
+    - /api/demandes-acompte
+    - /api/remise-cheques
+    - /api/documents
+    - /api/pages
+    - /api/equipes
+    - /api/tournees-representants
 paths:
   /api/dashboard:
     get:
       tags: [Dashboard]
       summary: Lire le tableau de bord CRM.
       parameters:
-        - in: query
-          name: siteId
-          schema:
-            type: integer
-          required: false
+        - $ref: '#/components/parameters/Action'
+        - $ref: '#/components/parameters/SiteId'
       responses:
         '200':
-          description: Donnees du tableau de bord.
+          description: Donnees du tableau de bord ou health check.
         '401':
-          description: Utilisateur CRM requis.
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/administration:
+    get:
+      tags: [Administration]
+      summary: Lire les donnees d'administration.
+      parameters:
+        - $ref: '#/components/parameters/Action'
+      responses:
+        '200':
+          description: Profil, bootstrap ou donnees de configuration.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Administration]
+      summary: Modifier les profils, sessions, menus, pages, sites, modules et utilisateurs.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum:
+              - save_profile
+              - delete_session
+              - save_menu_settings
+              - save_page
+              - delete_page
+              - save_site
+              - delete_site
+              - save_module
+              - save_user
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/administration.php:
+    get:
+      tags: [Administration, Legacy]
+      summary: Alias legacy de /api/administration.
+      responses:
+        '200':
+          description: Meme contrat que /api/administration.
+    post:
+      tags: [Administration, Legacy]
+      summary: Alias legacy de /api/administration.
+      responses:
+        '200':
+          description: Meme contrat que /api/administration.
+  /api/reservations:
+    get:
+      tags: [Reservations]
+      summary: Lire l'etat du module reservations vehicules.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+      responses:
+        '200':
+          description: Health check ou planning vehicules.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Reservations]
+      summary: Creer, modifier ou supprimer une reservation ou un vehicule.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum:
+              - create_reservation
+              - update_reservation
+              - delete_reservation
+              - save_vehicle
+              - delete_vehicle
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/reservations.php:
+    get:
+      tags: [Reservations, Legacy]
+      summary: Alias legacy de /api/reservations.
+      responses:
+        '200':
+          description: Meme contrat que /api/reservations.
+    post:
+      tags: [Reservations, Legacy]
+      summary: Alias legacy de /api/reservations.
+      responses:
+        '200':
+          description: Meme contrat que /api/reservations.
+  /api/equipment-rentals:
+    get:
+      tags: [Location materiel]
+      summary: Lire l'etat du module location materiel.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+      responses:
+        '200':
+          description: Health check ou planning materiel.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Location materiel]
+      summary: Creer, modifier ou supprimer une location ou une fiche materiel.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum:
+              - create_rental
+              - update_rental
+              - delete_rental
+              - save_equipment_item
+              - delete_equipment_item
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/equipment-rentals.php:
+    get:
+      tags: [Location materiel, Legacy]
+      summary: Alias legacy de /api/equipment-rentals.
+      responses:
+        '200':
+          description: Meme contrat que /api/equipment-rentals.
+    post:
+      tags: [Location materiel, Legacy]
+      summary: Alias legacy de /api/equipment-rentals.
+      responses:
+        '200':
+          description: Meme contrat que /api/equipment-rentals.
+  /api/conges:
+    get:
+      tags: [Conges]
+      summary: Lire le planning conges.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [bootstrap]
+        - $ref: '#/components/parameters/SiteId'
+      responses:
+        '200':
+          description: Planning des absences du site.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Conges]
+      summary: Creer, modifier ou supprimer un conge.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [save_leave, delete_leave]
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/conges.php:
+    get:
+      tags: [Conges, Legacy]
+      summary: Alias legacy de /api/conges.
+      responses:
+        '200':
+          description: Meme contrat que /api/conges.
+    post:
+      tags: [Conges, Legacy]
+      summary: Alias legacy de /api/conges.
+      responses:
+        '200':
+          description: Meme contrat que /api/conges.
+  /api/controle-caisse:
+    get:
+      tags: [Comptabilite]
+      summary: Lire le controle caisse.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+        - $ref: '#/components/parameters/SiteId'
+      responses:
+        '200':
+          description: Health check ou donnees de caisse.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Comptabilite]
+      summary: Administrer les journees, justificatifs et mouvements de caisse.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum:
+              - create_day
+              - save_day
+              - delete_day
+              - save_receipt
+              - delete_receipt
+              - save_cash_count
+              - save_movement
+              - delete_movement
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/controle-caisse.php:
+    get:
+      tags: [Comptabilite, Legacy]
+      summary: Alias legacy de /api/controle-caisse.
+      responses:
+        '200':
+          description: Meme contrat que /api/controle-caisse.
+    post:
+      tags: [Comptabilite, Legacy]
+      summary: Alias legacy de /api/controle-caisse.
+      responses:
+        '200':
+          description: Meme contrat que /api/controle-caisse.
+  /api/demandes-acompte:
+    get:
+      tags: [Comptabilite]
+      summary: Lire les demandes d'acompte.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+        - in: query
+          name: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Health check ou liste des demandes.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Comptabilite]
+      summary: Creer, valider ou supprimer une demande d'acompte.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [save_request, validate_request, delete_request]
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/demandes-acompte.php:
+    get:
+      tags: [Comptabilite, Legacy]
+      summary: Alias legacy de /api/demandes-acompte.
+      responses:
+        '200':
+          description: Meme contrat que /api/demandes-acompte.
+    post:
+      tags: [Comptabilite, Legacy]
+      summary: Alias legacy de /api/demandes-acompte.
+      responses:
+        '200':
+          description: Meme contrat que /api/demandes-acompte.
+  /api/remise-cheques:
+    get:
+      tags: [Comptabilite]
+      summary: Lire les remises de cheques.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap, show_remittance]
+        - $ref: '#/components/parameters/SiteId'
+      responses:
+        '200':
+          description: Health check, liste ou detail d'une remise.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Comptabilite]
+      summary: Administrer les remises, lignes de cheques et OCR.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum:
+              - save_remittance
+              - delete_remittance
+              - detect_check_ocr
+              - save_check
+              - delete_check
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/remise-cheques.php:
+    get:
+      tags: [Comptabilite, Legacy]
+      summary: Alias legacy de /api/remise-cheques.
+      responses:
+        '200':
+          description: Meme contrat que /api/remise-cheques.
+    post:
+      tags: [Comptabilite, Legacy]
+      summary: Alias legacy de /api/remise-cheques.
+      responses:
+        '200':
+          description: Meme contrat que /api/remise-cheques.
   /api/documents:
     get:
       tags: [Documents]
@@ -48,22 +480,18 @@ paths:
             enum: [health, bootstrap]
         - in: query
           name: category
-          required: true
+          required: false
           schema:
             type: string
             enum: [promo, fiches-techniques, procedures]
-        - in: query
-          name: siteId
-          required: false
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/SiteId'
       responses:
         '200':
           description: Etat ou donnees du module Documents.
         '401':
-          description: Utilisateur CRM requis.
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Droits documents insuffisants.
+          $ref: '#/components/responses/Forbidden'
     post:
       tags: [Documents]
       summary: Administrer les dossiers et documents.
@@ -75,53 +503,29 @@ paths:
             type: string
             enum: [save_directory, delete_directory, save_document, delete_document]
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: integer
-                siteId:
-                  type: integer
-                category:
-                  type: string
-                  enum: [promo, fiches-techniques, procedures]
-                directoryId:
-                  type: integer
-                  nullable: true
-                name:
-                  type: string
-                visibility:
-                  type: string
-                  enum: [public, restricted, private]
-                fileName:
-                  type: string
-                fileDataUrl:
-                  type: string
+        $ref: '#/components/requestBodies/CrmJsonPayload'
       responses:
         '200':
-          description: Operation documents effectuee.
+          $ref: '#/components/responses/CrmOk'
         '400':
-          description: Donnees invalides.
+          $ref: '#/components/responses/BadRequest'
         '403':
-          description: Gestion documents non autorisee.
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Document ou dossier introuvable.
+          $ref: '#/components/responses/NotFound'
   /api/documents.php:
     get:
-      tags: [Documents]
+      tags: [Documents, Legacy]
       summary: Alias legacy de /api/documents.
       responses:
         '200':
-          description: Meme reponse que /api/documents.
+          description: Meme contrat que /api/documents.
     post:
-      tags: [Documents]
+      tags: [Documents, Legacy]
       summary: Alias legacy de /api/documents.
       responses:
         '200':
-          description: Meme reponse que /api/documents.
+          description: Meme contrat que /api/documents.
   /documents/file/{document}:
     get:
       tags: [Documents]
@@ -135,14 +539,173 @@ paths:
       responses:
         '200':
           description: Fichier retourne.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: Document prive ou non autorise.
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: Fichier manquant.
+          $ref: '#/components/responses/NotFound'
+  /api/pages:
+    get:
+      tags: [Pages]
+      summary: Lire les pages CRM administrables.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap, page, pages_bootstrap]
+        - in: query
+          name: slug
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Liste, detail ou bootstrap de gestion des pages.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Pages]
+      summary: Creer, modifier ou supprimer une page CRM.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [save_page, delete_page]
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/pages.php:
+    get:
+      tags: [Pages, Legacy]
+      summary: Alias legacy de /api/pages.
+      responses:
+        '200':
+          description: Meme contrat que /api/pages.
+    post:
+      tags: [Pages, Legacy]
+      summary: Alias legacy de /api/pages.
+      responses:
+        '200':
+          description: Meme contrat que /api/pages.
+  /api/equipes:
+    get:
+      tags: [Equipes]
+      summary: Lire la liste des equipes par site.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+        - $ref: '#/components/parameters/SiteId'
+      responses:
+        '200':
+          description: Health check ou liste des membres.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/equipes.php:
+    get:
+      tags: [Equipes, Legacy]
+      summary: Alias legacy de /api/equipes.
+      responses:
+        '200':
+          description: Meme contrat que /api/equipes.
+    post:
+      tags: [Equipes, Legacy]
+      summary: Alias legacy de /api/equipes.
+      responses:
+        '200':
+          description: Meme contrat que /api/equipes.
+  /api/tournees-representants:
+    get:
+      tags: [Commercial]
+      summary: Lire les rapports de visite et tournees commerciales.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: month
+          schema:
+            type: string
+            example: '2026-07'
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Health check ou donnees commerciales.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Commercial]
+      summary: Administrer les tournees, visites et rapports.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum:
+              - save_tour
+              - delete_tour
+              - save_visit
+              - delete_visit
+              - save_report
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/tournees-representants.php:
+    get:
+      tags: [Commercial, Legacy]
+      summary: Alias legacy de /api/tournees-representants.
+      responses:
+        '200':
+          description: Meme contrat que /api/tournees-representants.
+    post:
+      tags: [Commercial, Legacy]
+      summary: Alias legacy de /api/tournees-representants.
+      responses:
+        '200':
+          description: Meme contrat que /api/tournees-representants.
   /api/mobile/token:
     post:
       tags: [Mobile]
       summary: Creer un token mobile CRM.
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
       responses:
         '200':
           description: Token cree.
@@ -156,7 +719,27 @@ paths:
         '200':
           description: Utilisateur mobile courant.
         '401':
-          description: Token requis.
+          $ref: '#/components/responses/Unauthorized'
+  /api/mobile/web-session:
+    post:
+      tags: [Mobile]
+      summary: Creer une session web depuis un token mobile.
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          description: Jeton de session web cree.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/mobile/logout:
+    post:
+      tags: [Mobile]
+      summary: Revoquer le token mobile courant.
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/chat:
     get:
       tags: [Chat]
@@ -177,3 +760,44 @@ components:
       type: apiKey
       in: cookie
       name: laravel_session
+  parameters:
+    Action:
+      in: query
+      name: action
+      required: false
+      schema:
+        type: string
+      description: Action metier demandee au controleur CRM.
+    SiteId:
+      in: query
+      name: siteId
+      required: false
+      schema:
+        type: integer
+      description: Site CRM actif.
+  requestBodies:
+    CrmJsonPayload:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+  responses:
+    CrmOk:
+      description: Operation CRM effectuee.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              ok:
+                type: boolean
+    BadRequest:
+      description: Donnees invalides.
+    Unauthorized:
+      description: Utilisateur CRM requis.
+    Forbidden:
+      description: Droits insuffisants.
+    NotFound:
+      description: Ressource introuvable.

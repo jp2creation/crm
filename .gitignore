@@ -8,6 +8,7 @@
 .env.production
 .phpactor.json
 .phpunit.result.cache
+/.playwright
 /.fleet
 /.idea
 /.nova
@@ -26,8 +27,11 @@ boost.json
 /public/hot
 /public/storage
 /public/assets/uploads
+/playwright-report
 /storage/*.key
+/storage/debugbar
 /storage/pail
+/test-results
 /vendor
 Homestead.json
 Homestead.yaml

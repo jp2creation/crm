@@ -25,19 +25,27 @@ composer install --no-dev --optimize-autoloader
 ```
 
 4. Construire ou envoyer les assets compiles selon la strategie choisie.
-5. Publier les assets des modules CRM :
+5. Ecrire la revision deployee pour le cache-busting des assets :
+
+```bash
+git rev-parse HEAD > .deployed-revision
+```
+
+Si le serveur ne contient pas le dossier `.git`, renseigner `CRM_ASSET_VERSION` dans `.env` avec le SHA ou le numero de release.
+
+6. Publier les assets des modules CRM :
 
 ```bash
 php artisan crm:publish-module-assets --force
 ```
 
-6. Executer les migrations :
+7. Executer les migrations :
 
 ```bash
 php artisan migrate --force
 ```
 
-7. Regenerer les caches Laravel :
+8. Regenerer les caches Laravel :
 
 ```bash
 php artisan optimize:clear
@@ -45,7 +53,7 @@ php artisan optimize
 php artisan view:cache
 ```
 
-8. Verifier les pages critiques :
+9. Verifier les pages critiques :
 
 - `/login`
 - `/dashboard/crm`
@@ -57,9 +65,9 @@ php artisan view:cache
 - `/remise-cheques`
 - `/documents/promo`
 - `/admin`
-- `/api/conges.php?action=bootstrap`
+- `/api/conges?action=bootstrap`
 
-9. Verifier le scheduler et declencher un backup de controle si besoin :
+10. Verifier le scheduler et declencher un backup de controle si besoin :
 
 ```bash
 php artisan schedule:list

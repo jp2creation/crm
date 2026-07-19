@@ -16,13 +16,40 @@ class CrmOpenApiDocumentationTest extends TestCase
 
         foreach ([
             '/api/dashboard:',
+            '/api/administration:',
+            '/api/reservations:',
+            '/api/equipment-rentals:',
+            '/api/conges:',
+            '/api/controle-caisse:',
+            '/api/demandes-acompte:',
+            '/api/remise-cheques:',
             '/api/documents:',
+            '/api/pages:',
+            '/api/equipes:',
+            '/api/tournees-representants:',
             '/api/documents.php:',
             '/documents/file/{document}:',
             '/api/mobile/token:',
             '/api/mobile/me:',
+            '/api/mobile/web-session:',
+            '/api/mobile/logout:',
         ] as $route) {
             $this->assertStringContainsString($route, $openApi);
+        }
+
+        foreach ([
+            'create_reservation',
+            'delete_reservation',
+            'create_rental',
+            'delete_rental',
+            'save_request',
+            'validate_request',
+            'save_leave',
+            'delete_leave',
+            'save_remittance',
+            'detect_check_ocr',
+        ] as $action) {
+            $this->assertStringContainsString($action, $openApi);
         }
 
         $this->assertStringContainsString('chatEndpoint: absent', $openApi);

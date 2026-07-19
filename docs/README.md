@@ -218,7 +218,7 @@ sequenceDiagram
 
 - Les assets servis depuis `public/assets` sont appeles avec `App\Support\CrmAsset`.
 - Les assets de modules sont publies vers `public/modules` avec `php artisan crm:publish-module-assets --force`.
-- La version d'asset est calculee par `filemtime`, ou forcee par `CRM_ASSET_VERSION`.
+- La version d'asset est forcee par `CRM_ASSET_VERSION`, puis par `.deployed-revision` en deploiement, puis par `filemtime`.
 - Les logs Laravel utilisent le canal `daily`, avec `LOG_DAILY_DAYS=30`.
 - Le canal `horizon` est configure en `daily` sur `storage/logs/horizon.log`.
 - Le cache applicatif utilise le store configure par `CACHE_STORE`.

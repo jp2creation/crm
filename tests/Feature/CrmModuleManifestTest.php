@@ -36,9 +36,18 @@ class CrmModuleManifestTest extends TestCase
 
         foreach ($modules as $module) {
             $this->assertNotEmpty($module['providers'], $module['name'].' doit declarer au moins un provider.');
+            $moduleRoot = dirname((string) $module['path']);
 
             foreach ($module['providers'] as $provider) {
                 $this->assertTrue(class_exists($provider), $provider.' est introuvable.');
+            }
+
+            $this->assertFileExists($moduleRoot.'/routes/web.php', $module['name'].' doit exposer ses routes web/API dans routes/web.php.');
+
+            if (($module['name'] ?? '') !== 'CrmCore') {
+                $hasServices = is_dir($moduleRoot.'/app/Services') || is_dir($moduleRoot.'/Services');
+
+                $this->assertTrue($hasServices, $module['name'].' doit isoler sa logique dans un dossier Services.');
             }
         }
 

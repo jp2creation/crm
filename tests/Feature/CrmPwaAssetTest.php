@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Support\CrmAsset;
 use Tests\TestCase;
 
 class CrmPwaAssetTest extends TestCase
@@ -101,6 +102,39 @@ class CrmPwaAssetTest extends TestCase
         $html = $this->get('/login?mobile_embed=1')->assertOk()->getContent();
 
         $this->assertStringNotContainsString('modules/crm-core/crm-pwa.js', $html);
+    }
+
+    public function test_crm_assets_use_configured_version_before_file_mtime(): void
+    {
+        config(['crm.assets.version' => 'deploy-test']);
+
+        $this->assertStringEndsWith(
+            '/modules/crm-core/crm-pwa.js?v=deploy-test',
+            CrmAsset::url('modules/crm-core/crm-pwa.js'),
+        );
+    }
+
+    public function test_crm_assets_fallback_to_deployed_revision(): void
+    {
+        config(['crm.assets.version' => null]);
+
+        $path = base_path('.deployed-revision');
+        $previous = is_file($path) ? (string) file_get_contents($path) : null;
+
+        file_put_contents($path, "deploy-fallback\n");
+
+        try {
+            $this->assertStringEndsWith(
+                '/modules/crm-core/crm-pwa.js?v=deploy-fallback',
+                CrmAsset::url('modules/crm-core/crm-pwa.js'),
+            );
+        } finally {
+            if ($previous === null) {
+                @unlink($path);
+            } else {
+                file_put_contents($path, $previous);
+            }
+        }
     }
 
     public function test_public_pwa_script_exposes_chrome_install_prompt_handling(): void

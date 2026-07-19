@@ -24,7 +24,7 @@ final class CrmAsset
             return $manifestUrl;
         }
 
-        $version = config('crm.assets.version');
+        $version = self::configuredVersion();
 
         if (! $version && str_ends_with($path, '.js')) {
             $version = self::importVersion($path);
@@ -68,6 +68,25 @@ final class CrmAsset
         $fullPath = public_path($path);
 
         return is_file($fullPath) ? (string) filemtime($fullPath) : null;
+    }
+
+    private static function configuredVersion(): ?string
+    {
+        $version = config('crm.assets.version');
+
+        if (is_scalar($version) && trim((string) $version) !== '') {
+            return trim((string) $version);
+        }
+
+        $revisionPath = base_path('.deployed-revision');
+
+        if (! is_file($revisionPath)) {
+            return null;
+        }
+
+        $revision = trim((string) file_get_contents($revisionPath));
+
+        return $revision !== '' ? $revision : null;
     }
 
     private static function importVersion(string $path): ?string
