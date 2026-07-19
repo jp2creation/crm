@@ -81,6 +81,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'crm' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/crm.log'),
+            'level' => env('CRM_LOG_LEVEL', env('LOG_LEVEL', 'debug')),
+            'days' => env('CRM_LOG_DAILY_DAYS', env('LOG_DAILY_DAYS', 30)),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

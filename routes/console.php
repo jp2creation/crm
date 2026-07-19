@@ -20,6 +20,11 @@ Schedule::command('cash-control:archive-receipts --quiet')
     ->dailyAt('03:00')
     ->withoutOverlapping();
 
+Schedule::command('crm:archive --quiet')
+    ->sundays()
+    ->at('03:15')
+    ->withoutOverlapping();
+
 Schedule::command('crm:monitor-queue-size --quiet')
     ->everyFiveMinutes()
     ->withoutOverlapping();

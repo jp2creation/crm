@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Modules\CrmAdministration\Console\Commands\EnsureCrmAdminCommand;
 use Modules\CrmCashControl\Console\Commands\ArchiveCashReceiptsCommand;
+use Modules\CrmCore\Console\Commands\ArchiveCrmDataCommand;
 use Modules\CrmCore\Console\Commands\BackupDatabaseCommand;
 use Modules\CrmCore\Console\Commands\MonitorQueueSizeCommand;
 use Modules\CrmCore\Console\Commands\PublishCrmModuleAssetsCommand;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withCommands([
         ArchiveCashReceiptsCommand::class,
+        ArchiveCrmDataCommand::class,
         BackupDatabaseCommand::class,
         EnsureCrmAdminCommand::class,
         MonitorQueueSizeCommand::class,

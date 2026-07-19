@@ -44,10 +44,26 @@ return [
         'hsts_max_age' => (int) env('CRM_HSTS_MAX_AGE', 31536000),
         'hsts_include_subdomains' => env('CRM_HSTS_INCLUDE_SUBDOMAINS', true),
         'hsts_preload' => env('CRM_HSTS_PRELOAD', true),
+        'headers_enabled' => env('CRM_SECURITY_HEADERS_ENABLED', true),
+        'frame_options' => env('CRM_SECURITY_FRAME_OPTIONS', 'DENY'),
+        'referrer_policy' => env('CRM_SECURITY_REFERRER_POLICY', 'strict-origin-when-cross-origin'),
+        'permissions_policy' => env('CRM_SECURITY_PERMISSIONS_POLICY', 'camera=(), microphone=(), geolocation=()'),
+        'csp_enabled' => env('CRM_SECURITY_CSP_ENABLED', false),
+        'csp_report_only' => env('CRM_SECURITY_CSP_REPORT_ONLY', true),
+        'csp' => env('CRM_SECURITY_CSP', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.bunny.net; img-src 'self' data: blob:; font-src 'self' data: https://fonts.bunny.net; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"),
     ],
 
     'api' => [
         'throttle_per_minute' => (int) env('CRM_API_THROTTLE_PER_MINUTE', 120),
+        'role_throttle_per_minute' => [
+            'admin' => (int) env('CRM_API_THROTTLE_ADMIN_PER_MINUTE', 200),
+            'responsable' => (int) env('CRM_API_THROTTLE_RESPONSABLE_PER_MINUTE', env('CRM_API_THROTTLE_MANAGER_PER_MINUTE', 100)),
+            'manager' => (int) env('CRM_API_THROTTLE_MANAGER_PER_MINUTE', 100),
+            'user' => (int) env('CRM_API_THROTTLE_USER_PER_MINUTE', 80),
+            'employee' => (int) env('CRM_API_THROTTLE_EMPLOYEE_PER_MINUTE', 60),
+            'blocked' => (int) env('CRM_API_THROTTLE_BLOCKED_PER_MINUTE', 30),
+            'guest' => (int) env('CRM_API_THROTTLE_GUEST_PER_MINUTE', 60),
+        ],
     ],
 
     'dashboard' => [
@@ -80,6 +96,11 @@ return [
         'disk' => env('CRM_BACKUP_DISK', 'local'),
         'path' => env('CRM_BACKUP_PATH', 'backups/database'),
         'keep' => (int) env('CRM_BACKUP_KEEP', 14),
+    ],
+
+    'archive' => [
+        'retention_years' => max(1, (int) env('CRM_ARCHIVE_RETENTION_YEARS', 2)),
+        'batch_size' => max(1, (int) env('CRM_ARCHIVE_BATCH_SIZE', 500)),
     ],
 
     'cash_control' => [

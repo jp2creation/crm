@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -126,6 +127,58 @@ class CrmSecurityTest extends TestCase
             ->get('/login')
             ->assertOk()
             ->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    }
+
+    public function test_security_headers_are_sent_without_forcing_csp_by_default(): void
+    {
+        $response = $this->get('/login')
+            ->assertOk()
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'DENY')
+            ->assertHeader('X-XSS-Protection', '1; mode=block')
+            ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+            ->assertHeader('X-Permitted-Cross-Domain-Policies', 'none')
+            ->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+        $this->assertFalse($response->headers->has('Content-Security-Policy'));
+        $this->assertFalse($response->headers->has('Content-Security-Policy-Report-Only'));
+    }
+
+    public function test_content_security_policy_can_be_enabled_in_report_only_mode(): void
+    {
+        config([
+            'crm.security.csp_enabled' => true,
+            'crm.security.csp_report_only' => true,
+            'crm.security.csp' => "default-src 'self'; frame-ancestors 'none'",
+        ]);
+
+        $this->get('/login')
+            ->assertOk()
+            ->assertHeader('Content-Security-Policy-Report-Only', "default-src 'self'; frame-ancestors 'none'");
+    }
+
+    public function test_crm_api_throttle_limit_uses_authenticated_crm_role(): void
+    {
+        config([
+            'crm.api.throttle_per_minute' => 120,
+            'crm.api.role_throttle_per_minute.responsable' => 17,
+        ]);
+
+        $account = User::factory()->create();
+        CrmUser::query()->create([
+            'user_id' => $account->id,
+            'name' => 'Manager API',
+            'role' => 'responsable',
+            'active' => true,
+        ]);
+
+        $request = Request::create('/api/mobile/me');
+        $request->setUserResolver(fn (): User => $account);
+
+        $limit = RateLimiter::limiter('crm-api')($request);
+
+        $this->assertSame(17, $limit->maxAttempts);
+        $this->assertSame((string) $account->id, $limit->key);
     }
 
     public function test_csrf_middleware_rejects_missing_token_when_enabled(): void

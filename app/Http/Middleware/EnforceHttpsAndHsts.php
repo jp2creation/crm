@@ -23,6 +23,10 @@ class EnforceHttpsAndHsts
             $response->headers->set('Strict-Transport-Security', $this->hstsHeader());
         }
 
+        if ((bool) config('crm.security.headers_enabled', true)) {
+            $this->setSecurityHeaders($response);
+        }
+
         return $response;
     }
 
@@ -49,5 +53,28 @@ class EnforceHttpsAndHsts
         }
 
         return implode('; ', $parts);
+    }
+
+    private function setSecurityHeaders(Response $response): void
+    {
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Frame-Options', (string) config('crm.security.frame_options', 'DENY'));
+        $response->headers->set('X-XSS-Protection', '1; mode=block');
+        $response->headers->set('Referrer-Policy', (string) config('crm.security.referrer_policy', 'strict-origin-when-cross-origin'));
+        $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
+
+        $permissionsPolicy = trim((string) config('crm.security.permissions_policy', ''));
+
+        if ($permissionsPolicy !== '') {
+            $response->headers->set('Permissions-Policy', $permissionsPolicy);
+        }
+
+        if ((bool) config('crm.security.csp_enabled', false)) {
+            $header = (bool) config('crm.security.csp_report_only', true)
+                ? 'Content-Security-Policy-Report-Only'
+                : 'Content-Security-Policy';
+
+            $response->headers->set($header, (string) config('crm.security.csp'));
+        }
     }
 }

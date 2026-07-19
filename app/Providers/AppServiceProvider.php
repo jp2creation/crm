@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('crm-api', function (Request $request): Limit {
-            $maxAttempts = max(1, (int) config('crm.api.throttle_per_minute', 120));
+            $maxAttempts = $this->crmApiThrottleLimit($request);
             $key = $request->user()?->getAuthIdentifier() ?: $request->ip();
 
             return Limit::perMinute($maxAttempts)->by((string) $key);
@@ -73,5 +73,20 @@ class AppServiceProvider extends ServiceProvider
                 $model::observe(CrmActivitylogObserver::class);
             }
         }
+    }
+
+    private function crmApiThrottleLimit(Request $request): int
+    {
+        $role = 'guest';
+        $user = $request->user();
+
+        if ($user instanceof User) {
+            $role = (string) ($user->crmUser()->value('role') ?: 'user');
+        }
+
+        $limits = (array) config('crm.api.role_throttle_per_minute', []);
+        $default = (int) config('crm.api.throttle_per_minute', 120);
+
+        return max(1, (int) ($limits[$role] ?? $default));
     }
 }
