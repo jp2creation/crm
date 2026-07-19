@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\CrmCore\Support\CrmReferenceCache;
@@ -69,6 +70,7 @@ class CrmModule extends Model
             ]);
 
             $menuItem->saveQuietly();
+            static::syncFeatureFlag($module, $oldSlug);
             CrmReferenceCache::forgetModules();
         });
 
@@ -104,6 +106,29 @@ class CrmModule extends Model
         }
 
         return $slug;
+    }
+
+    private static function syncFeatureFlag(CrmModule $module, string $oldSlug): void
+    {
+        if (! Schema::hasTable('crm_feature_flags')) {
+            return;
+        }
+
+        $flag = CrmFeatureFlag::query()
+            ->where('flag_key', 'module:'.$oldSlug)
+            ->first();
+
+        if (! $flag) {
+            $flag = CrmFeatureFlag::firstOrNew(['flag_key' => 'module:'.$module->slug]);
+            $flag->enabled = (bool) $module->active;
+        }
+
+        $flag->fill([
+            'flag_key' => 'module:'.$module->slug,
+            'scope' => 'module',
+            'name' => $module->name,
+            'description' => $module->description,
+        ])->save();
     }
 
     public static function defaultIconKey(string $slug): string

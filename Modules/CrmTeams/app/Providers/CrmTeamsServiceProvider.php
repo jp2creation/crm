@@ -2,13 +2,12 @@
 
 namespace Modules\CrmTeams\Providers;
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\ServiceProvider;
+use Modules\CrmCore\Providers\CrmModuleServiceProvider;
 
-class CrmTeamsServiceProvider extends ServiceProvider
+class CrmTeamsServiceProvider extends CrmModuleServiceProvider
 {
     public function boot(): void
     {
-        Route::middleware('web')->group(__DIR__.'/../../routes/web.php');
+        $this->bootCrmModule(__DIR__.'/../..');
     }
 }

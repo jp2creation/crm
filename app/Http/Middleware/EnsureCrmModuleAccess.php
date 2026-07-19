@@ -7,14 +7,22 @@ use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 use Modules\CrmCore\Services\CrmAccessService;
+use Modules\CrmCore\Services\CrmFeatureFlagService;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureCrmModuleAccess
 {
-    public function __construct(private readonly CrmAccessService $access) {}
+    public function __construct(
+        private readonly CrmAccessService $access,
+        private readonly CrmFeatureFlagService $features,
+    ) {}
 
     public function handle(Request $request, Closure $next, string $moduleSlug, string ...$permissions): Response
     {
+        if (! $this->features->enabledModule($moduleSlug)) {
+            abort(404);
+        }
+
         $user = $request->user();
 
         if (! $user instanceof User) {
@@ -35,6 +43,14 @@ class EnsureCrmModuleAccess
         }
 
         $moduleSlugs = $this->moduleSlugs($actor, $moduleSlug);
+        $moduleSlugs = array_values(array_filter(
+            $moduleSlugs,
+            fn (string $slug): bool => $this->features->enabledModule($slug),
+        ));
+
+        if ($moduleSlugs === []) {
+            abort(404);
+        }
 
         if ($permissions === []) {
             abort_unless($this->hasAnyModule($actor, $moduleSlugs), 403);

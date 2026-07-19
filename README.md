@@ -67,7 +67,8 @@ Les routes legacy en `.php` restent exposees pour compatibilite, par exemple `/a
 
 - `Modules/` : modules Laravel CRM decoupes par domaine metier.
 - `app/Models/` : modeles Eloquent partages.
-- `database/migrations/` : schema Laravel et tables CRM.
+- `database/migrations/` : schema Laravel global et migrations de packages.
+- `Modules/*/database/migrations/` : migrations CRM versionnees par module.
 - `resources/views/` : vues CRM, login, erreurs et shell applicatif.
 - `public/assets/` et `public/modules/` : assets compiles servis en production.
 - `tests/Feature/` et `tests/Unit/` : tests des API CRM, services et securite.

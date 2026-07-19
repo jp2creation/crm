@@ -26,6 +26,7 @@ final class CrmModuleStandard
             'module.json',
             'routes/web.php',
             'app/Providers',
+            'database/migrations',
         ];
 
         if (! $coreModule) {
@@ -44,6 +45,7 @@ final class CrmModuleStandard
             ['module.json'],
             ['routes/web.php'],
             ['app/Providers', 'Providers'],
+            ['database/migrations'],
         ];
 
         if (! $coreModule) {

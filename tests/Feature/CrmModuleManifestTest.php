@@ -60,4 +60,31 @@ class CrmModuleManifestTest extends TestCase
             );
         }
     }
+
+    public function test_crm_migrations_live_inside_module_database_directories(): void
+    {
+        $rootCrmMigrations = collect(glob(database_path('migrations/*.php')) ?: [])
+            ->map(fn (string $path): string => basename($path))
+            ->filter(fn (string $migration): bool => str_contains($migration, 'crm_')
+                || str_contains($migration, 'dashboard_metrics')
+                || str_contains($migration, 'notification_logs'))
+            ->values()
+            ->all();
+
+        $this->assertSame([], $rootCrmMigrations, 'Les migrations CRM doivent vivre dans Modules/*/database/migrations.');
+
+        $moduleMigrationDirs = collect(glob(base_path('Modules/*/database/migrations')) ?: [])
+            ->map(fn (string $path): string => basename(dirname(dirname($path))))
+            ->sort()
+            ->values()
+            ->all();
+
+        $moduleNames = collect(glob(base_path('Modules/*/module.json')) ?: [])
+            ->map(fn (string $path): string => basename(dirname($path)))
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame($moduleNames, $moduleMigrationDirs);
+    }
 }

@@ -10,6 +10,7 @@ use App\Models\CrmSite;
 use App\Models\CrmVehicle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Modules\CrmCore\Services\CrmFeatureFlagService;
 
 final class CrmReferenceCache
 {
@@ -77,6 +78,7 @@ final class CrmReferenceCache
     public static function activeMenuModuleRows(): array
     {
         return Cache::rememberForever(self::ACTIVE_MODULE_ROWS, function (): array {
+            $features = app(CrmFeatureFlagService::class);
             $visibleModuleSlugs = CrmMenuItem::query()
                 ->where('active', true)
                 ->where('item_key', 'like', 'module:%')
@@ -92,6 +94,7 @@ final class CrmReferenceCache
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get()
+                ->filter(fn (CrmModule $module): bool => $features->enabledModule($module->slug))
                 ->map(fn (CrmModule $module): array => [
                     'id' => (int) $module->id,
                     'name' => $module->name,
@@ -111,11 +114,14 @@ final class CrmReferenceCache
     public static function activeModuleLookup(): array
     {
         return Cache::rememberForever(self::ACTIVE_MODULE_LOOKUP, function (): array {
+            $features = app(CrmFeatureFlagService::class);
+
             return CrmModule::query()
                 ->active()
                 ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug', 'route_path', 'sort_order'])
+                ->filter(fn (CrmModule $module): bool => $features->enabledModule($module->slug))
                 ->mapWithKeys(fn (CrmModule $module): array => [
                     $module->slug => [
                         'id' => (int) $module->id,

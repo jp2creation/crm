@@ -262,6 +262,8 @@ php artisan test
 
 Quand le nombre de migrations deviendra trop couteux pour les environnements de test, generer un schema dump avec `php artisan schema:dump` depuis une base propre et versionner le fichier genere.
 
+Les migrations CRM sont versionnees dans `Modules/*/database/migrations`; seules les migrations globales Laravel et les migrations de packages restent dans `database/migrations`.
+
 ## Releases
 
 Les releases doivent etre documentees dans `CHANGELOG.md` puis taguees dans Git.

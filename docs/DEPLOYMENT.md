@@ -45,6 +45,12 @@ php artisan crm:publish-module-assets --force
 php artisan migrate --force
 ```
 
+Les migrations CRM sont chargees depuis `Modules/*/database/migrations`. Avant d'envoyer une release, verifier qu'aucune migration CRM ne reste dans `database/migrations` :
+
+```bash
+php artisan test --filter=CrmModuleManifestTest
+```
+
 8. Regenerer les caches Laravel :
 
 ```bash
@@ -73,6 +79,23 @@ php artisan view:cache
 php artisan schedule:list
 php artisan backup:run
 ```
+
+## Feature flags production
+
+Les modules peuvent etre actives ou desactives sans redeploiement via la table `crm_feature_flags`.
+
+```bash
+php artisan crm:feature --list
+php artisan crm:feature module:locations-materiel --disable
+php artisan crm:feature module:locations-materiel --enable
+php artisan optimize:clear
+```
+
+Les flags de module utilisent la forme `module:<slug>`. Une desactivation retire le module des references actives, du menu et des routes protegees par `crm.module`.
+
+## Migration des endpoints legacy
+
+La feuille de route de retrait des routes `.php` est documentee dans [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md). En production, conserver `CRM_LEGACY_PHP_API_ENABLED=false` sauf fenetre de compatibilite explicitement planifiee.
 
 ## Regle importante
 

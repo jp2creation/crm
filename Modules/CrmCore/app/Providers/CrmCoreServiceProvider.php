@@ -3,16 +3,20 @@
 namespace Modules\CrmCore\Providers;
 
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\ServiceProvider;
 use Modules\CrmCore\Events\CrmDomainEvent;
 use Modules\CrmCore\Listeners\LogCrmDomainEvent;
+use Modules\CrmCore\Services\CrmFeatureFlagService;
 
-class CrmCoreServiceProvider extends ServiceProvider
+class CrmCoreServiceProvider extends CrmModuleServiceProvider
 {
+    public function register(): void
+    {
+        $this->app->singleton(CrmFeatureFlagService::class);
+    }
+
     public function boot(): void
     {
-        Route::middleware('web')->group(__DIR__.'/../../routes/web.php');
+        $this->bootCrmModule(__DIR__.'/../..');
 
         Event::listen(CrmDomainEvent::class, LogCrmDomainEvent::class);
     }
