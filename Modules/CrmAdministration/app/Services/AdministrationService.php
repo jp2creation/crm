@@ -13,6 +13,7 @@ use App\Models\CrmUserSiteModulePermission;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Session;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
@@ -288,6 +289,7 @@ class AdministrationService
             ->where('id', $rawSessionId)
             ->delete();
 
+        $this->deleteStoredSession($rawSessionId);
         $this->log($actor, 'deconnexion appareil', $sessionId);
 
         return ['ok' => true, 'profile' => $this->profilePayload($actor->refresh())];
@@ -1244,6 +1246,11 @@ class AdministrationService
         return $request->hasSession()
             ? (string) $request->session()->getId()
             : '';
+    }
+
+    private function deleteStoredSession(string $sessionId): void
+    {
+        Session::getHandler()->destroy($sessionId);
     }
 
     private function publicSessionId(string $sessionId): string

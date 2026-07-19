@@ -9,6 +9,7 @@ use App\Observers\CrmDocumentObserver;
 use App\Observers\UserTokenObserver;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
@@ -31,6 +32,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+        Model::preventLazyLoading($this->app->isLocal());
 
         RateLimiter::for('crm-legacy-api', function (Request $request): Limit {
             $maxAttempts = max(1, (int) config('crm.legacy_php_api.throttle_per_minute', 60));

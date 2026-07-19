@@ -377,7 +377,7 @@ class DashboardService
         }
 
         return CrmLeaveEntry::query()
-            ->with(['employee.crmUser.sites'])
+            ->with(['employee:id,name,color'])
             ->where('status', '<>', 'refused')
             ->whereDate('start_date', '<=', $weekEnd->toDateString())
             ->whereDate('end_date', '>=', $weekStart->toDateString())

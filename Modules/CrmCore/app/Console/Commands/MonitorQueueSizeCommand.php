@@ -5,7 +5,9 @@ namespace Modules\CrmCore\Console\Commands;
 use App\Models\CrmNotificationLog;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 class MonitorQueueSizeCommand extends Command
 {
@@ -19,6 +21,18 @@ class MonitorQueueSizeCommand extends Command
         $threshold = max(1, (int) ($this->option('threshold') ?: config('crm.queue.alert_threshold', 1000)));
         $connection = (string) config('queue.default', 'sync');
         $queueConfig = config("queue.connections.{$connection}", []);
+        $driver = (string) ($queueConfig['driver'] ?? $connection);
+
+        if ($driver === 'redis') {
+            return $this->monitorRedisQueue($queueConfig, $threshold);
+        }
+
+        if ($driver !== 'database') {
+            $this->info("Connexion de queue non surveillée : {$connection} ({$driver}).");
+
+            return self::SUCCESS;
+        }
+
         $table = (string) ($queueConfig['table'] ?? config('queue.connections.database.table', 'jobs'));
 
         if (! Schema::hasTable($table)) {
@@ -46,6 +60,50 @@ class MonitorQueueSizeCommand extends Command
             $alerts++;
             $this->warn("Queue {$queue} : {$total} jobs en attente (seuil {$threshold}).");
             $this->recordAlert($queue, $total, $threshold);
+        }
+
+        if ($alerts === 0) {
+            $this->info('Queue CRM OK.');
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * @param  array<string, mixed>  $queueConfig
+     */
+    private function monitorRedisQueue(array $queueConfig, int $threshold): int
+    {
+        $redisConnection = (string) ($queueConfig['connection'] ?? 'default');
+        $queues = collect(explode(',', (string) ($queueConfig['queue'] ?? 'default')))
+            ->map(fn (string $queue): string => trim($queue))
+            ->filter()
+            ->values();
+
+        if ($queues->isEmpty()) {
+            $queues = collect(['default']);
+        }
+
+        $alerts = 0;
+
+        try {
+            $redis = Redis::connection($redisConnection);
+
+            foreach ($queues as $queue) {
+                $total = (int) $redis->llen('queues:'.$queue);
+
+                if ($total <= $threshold) {
+                    continue;
+                }
+
+                $alerts++;
+                $this->warn("Queue {$queue} : {$total} jobs en attente (seuil {$threshold}).");
+                $this->recordAlert((string) $queue, $total, $threshold);
+            }
+        } catch (Throwable $exception) {
+            $this->warn('Queue Redis non joignable : '.$exception->getMessage());
+
+            return self::SUCCESS;
         }
 
         if ($alerts === 0) {

@@ -3,6 +3,7 @@
 use App\Http\Middleware\AuditLegacyPhpApi;
 use App\Http\Middleware\CompressResponse;
 use App\Http\Middleware\EnforceHttpsAndHsts;
+use App\Http\Middleware\MirrorAuthenticatedSessionMetadata;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(EnforceHttpsAndHsts::class);
+        $middleware->append(MirrorAuthenticatedSessionMetadata::class);
 
         $middleware->alias([
             'crm.compress' => CompressResponse::class,
