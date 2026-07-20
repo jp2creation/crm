@@ -257,12 +257,15 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString("beginOperation(routeKey, 0, 'Le module met trop de temps a charger.')", $publicAppScript);
         $this->assertStringContainsString("beginOperation(startupKey, 0, 'Le CRM met trop de temps a charger.')", $publicAppScript);
         $this->assertStringContainsString('hasBlockingLoader', $publicAppScript);
-        $this->assertStringContainsString('if (hasLoadingText)', $publicAppScript);
+        $this->assertStringContainsString('isModulePlaceholder', $publicAppScript);
+        $this->assertStringContainsString('if (element.childElementCount > 0) return false', $publicAppScript);
         $this->assertStringContainsString('isSpinnerCandidate', $publicAppScript);
         $this->assertStringContainsString('MutationObserver', $publicAppScript);
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root{opacity:0!important', $publicAppScript);
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root [class~="animate-spin"]', $publicAppScript);
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root [class*="loading"]', $publicAppScript);
+        $this->assertStringNotContainsString('[class*="crm-card"]', $publicAppScript);
+        $this->assertStringNotContainsString('[class*="crm-empty"]', $publicAppScript);
         $this->assertStringContainsString("window.addEventListener('crm:navigation', startRouteMonitor)", $publicAppScript);
         $this->assertStringNotContainsString('patchedBrandLoaderHistoryState', $publicAppScript);
         $this->assertStringContainsString('brand-morph-loader-app-style', $publicAppScript);

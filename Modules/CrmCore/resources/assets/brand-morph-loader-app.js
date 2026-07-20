@@ -140,17 +140,22 @@
         });
     }
 
+    function isModulePlaceholder(element) {
+        const text = (element.textContent || '').trim();
+
+        if (!loadingTextPattern.test(text) || loadingErrorPattern.test(text)) return false;
+        if (element.childElementCount > 0) return false;
+
+        const classes = Array.from(element.classList || []).join(' ');
+        const id = element.id || '';
+
+        return /module-host/.test(classes) || /^crm-.*(?:module|root)$/.test(id);
+    }
+
     function hasBlockingLoader() {
         const root = document.getElementById('root');
 
         if (!root) return false;
-
-        const text = root.textContent || '';
-        const hasLoadingText = loadingTextPattern.test(text) && !loadingErrorPattern.test(text);
-
-        if (hasLoadingText) {
-            return true;
-        }
 
         const candidates = root.querySelectorAll([
             '[class*="loading"]',
@@ -161,15 +166,13 @@
             '[aria-busy="true"]',
             '[class*="module-host"]',
             '[id*="-module"]',
-            '[id^="crm-"][id$="-root"]',
-            '[class*="crm-empty"]',
-            '[class*="crm-card"]'
+            '[id^="crm-"][id$="-root"]'
         ].join(', '));
 
         for (const candidate of candidates) {
             if (loader.contains(candidate) || !isVisible(candidate)) continue;
 
-            if (isSpinnerCandidate(candidate)) {
+            if (isSpinnerCandidate(candidate) || isModulePlaceholder(candidate)) {
                 return true;
             }
         }
