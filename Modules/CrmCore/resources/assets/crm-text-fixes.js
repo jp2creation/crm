@@ -151,7 +151,7 @@
     fixAttributes(document.body);
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function start() {
     run();
 
     var timer = null;
@@ -165,5 +165,11 @@
       subtree: true,
       characterData: true,
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
 })();

@@ -286,7 +286,7 @@
     }
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function start() {
     loadSites();
     renderSwitcher();
     normalizeExternalLinks();
@@ -302,5 +302,11 @@
     }, 250);
 
     window.setTimeout(normalizeExternalLinks, 1000);
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
 })();

@@ -512,7 +512,11 @@
     window.setTimeout(() => scheduleMount({ force: shouldReload() }), 0);
   }
 
-  document.addEventListener("DOMContentLoaded", scheduleMount);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scheduleMount, { once: true });
+  } else {
+    scheduleMount();
+  }
   window.addEventListener("load", scheduleMount);
   window.addEventListener("popstate", handleRouteChange);
   window.addEventListener("crm:navigation", handleRouteChange);

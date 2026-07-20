@@ -1,4 +1,5 @@
 type CrmHostRoute = {
+  adminexOnly?: boolean;
   className: string;
   id: string;
   label: string;
@@ -12,6 +13,13 @@ const hostRoutes: CrmHostRoute[] = [
     id: 'crm-dashboard-module',
     label: 'Chargement du tableau de bord...',
     paths: ['/', '/dashboard/crm'],
+  },
+  {
+    adminexOnly: true,
+    className: '',
+    id: 'crm-adminex-reservations-route',
+    label: '',
+    paths: ['/reservations', '/locations-materiel'],
   },
   {
     className: 'crm-leaves-module-host',
@@ -133,6 +141,11 @@ function ensureHost(): void {
   document.documentElement.classList.toggle('crm-known-module-route', Boolean(route));
 
   if (!route || document.getElementById(route.id)) {
+    return;
+  }
+
+  if (route.adminexOnly) {
+    refreshStaleRouteOnce();
     return;
   }
 

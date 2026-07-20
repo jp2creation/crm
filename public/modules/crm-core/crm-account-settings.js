@@ -1063,7 +1063,11 @@
     }, 80);
   }
 
-  document.addEventListener('DOMContentLoaded', () => scheduleBoot());
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => scheduleBoot(), { once: true });
+  } else {
+    scheduleBoot();
+  }
   document.addEventListener('click', () => scheduleBoot(), true);
   window.addEventListener('popstate', () => scheduleBoot());
 

@@ -41,12 +41,20 @@ class CrmFrontendSourceTest extends TestCase
 
         $shell = (string) file_get_contents(resource_path('frontend/crm/shell.ts'));
         $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
+        $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
 
         $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
+        $this->assertStringContainsString('loadCurrentCrmModuleOverlay', $shell);
+        $this->assertStringContainsString('preloadRemainingCrmModuleOverlays', $shell);
         $this->assertStringContainsString("id: 'crm-sales-tours-module'", $hosts);
         $this->assertStringContainsString("paths: ['/rapport-visite', '/tournees-representants']", $hosts);
+        $this->assertStringContainsString("paths: ['/reservations', '/locations-materiel']", $hosts);
+        $this->assertStringContainsString('adminexOnly: true', $hosts);
         $this->assertStringContainsString("prefix: '/documents/'", $hosts);
         $this->assertStringContainsString('refreshStaleRouteOnce', $hosts);
+        $this->assertStringContainsString('moduleKeysForCurrentPath', $modules);
+        $this->assertStringContainsString('requestIdleCallback', $modules);
+        $this->assertStringContainsString("cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js')", $modules);
     }
 
     public function test_adminex_source_and_dependencies_are_available_for_migration(): void
@@ -79,5 +87,20 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('curl -fsS --max-time 10 "$health_url"', $script);
         $this->assertStringContainsString('php artisan horizon:terminate || true', $script);
         $this->assertStringContainsString('cleanup_old_releases', $script);
+    }
+
+    public function test_dom_ready_sensitive_crm_modules_boot_even_when_loaded_late(): void
+    {
+        foreach ([
+            base_path('Modules/CrmCashControl/resources/assets/crm-controle-caisse.js'),
+            base_path('Modules/CrmCore/resources/assets/crm-account-settings.js'),
+            base_path('Modules/CrmCore/resources/assets/crm-active-site.js'),
+            base_path('Modules/CrmCore/resources/assets/crm-dashboard.js'),
+            base_path('Modules/CrmCore/resources/assets/crm-text-fixes.js'),
+        ] as $assetPath) {
+            $asset = (string) file_get_contents($assetPath);
+
+            $this->assertStringContainsString('document.readyState ===', $asset, $assetPath);
+        }
     }
 }

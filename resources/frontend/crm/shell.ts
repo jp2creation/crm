@@ -9,7 +9,12 @@ import { installMobileEmbedBridge } from './mobile/embed-bridge';
 import { installMobileFallbackNavigation } from './mobile/fallback-nav';
 import { installMobileAppSettings } from './mobile/settings';
 import { installCrmModuleHostGuard } from './modules/hosts';
-import { loadBrandMorphLoader, loadCrmModuleOverlays, loadCrmShellOverlays } from './modules/register';
+import {
+  loadBrandMorphLoader,
+  loadCrmShellOverlays,
+  loadCurrentCrmModuleOverlay,
+  preloadRemainingCrmModuleOverlays,
+} from './modules/register';
 import { installFallbackNavigation } from './router/menu';
 import { applyStoredTheme } from './theme';
 
@@ -42,8 +47,9 @@ window.CrmLoader?.begin?.(shellLoaderKey, {
 try {
   await loadCrmShellOverlays();
   await loadLegacyAdminex();
-  await loadCrmModuleOverlays();
+  await loadCurrentCrmModuleOverlay();
   window.dispatchEvent(new CustomEvent('crm:module-ready', { detail: { key: shellLoaderKey } }));
+  preloadRemainingCrmModuleOverlays();
 } catch (error) {
   window.CrmLoader?.fail?.(shellLoaderKey, error instanceof Error ? error : new Error('Chargement du CRM impossible.'));
   throw error;

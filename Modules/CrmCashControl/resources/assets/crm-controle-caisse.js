@@ -2216,11 +2216,17 @@
     load();
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  function startMountObserver() {
     mount();
     const observer = new MutationObserver(mount);
     observer.observe(document.body, { childList: true, subtree: true });
-  });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", startMountObserver, { once: true });
+  } else {
+    startMountObserver();
+  }
 
   window.addEventListener("crm:active-site-changed", () => {
     if (root && mountedRoots.has(root)) load();
