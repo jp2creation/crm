@@ -21,6 +21,15 @@ Le guide pas a pas de creation d'un module est disponible dans [MODULE_CREATION_
 - Les controleurs API recoivent `Modules\CrmCore\Http\Requests\CrmApiRequest`.
 - Les actions complexes convertissent le payload avec un DTO avant d'appeler le service.
 
+## Autorisations
+
+La separation des droits est decrite dans [CRM_AUTHORIZATION.md](CRM_AUTHORIZATION.md).
+
+- Spatie Permission couvre la plateforme : Filament, Horizon et l'exception admin des pages shell CRM.
+- `CrmAccessService` couvre les droits metier : modules, sites et permissions contextuelles.
+- Les controleurs ne doivent pas porter de decision metier finale. Ils appellent un service ou une Policy.
+- Les exceptions admin doivent utiliser `User::canUsePlatformAdministration()` ou `CrmAccessService`, pas une liste de roles locale.
+
 ## Evenements
 
 Les modules publient les actions importantes via `Modules\CrmCore\Events\CrmDomainEvent`.

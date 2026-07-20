@@ -28,9 +28,7 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
                 return false;
             }
 
-            return $user->hasAnyRole(['admin', 'Admin', 'Super Admin'])
-                || $user->can('filament.access')
-                || $user->can('filament.manage');
+            return $user->canUsePlatformAdministration();
         });
     }
 }

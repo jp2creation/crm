@@ -6,16 +6,6 @@ use App\Models\User;
 
 class FilamentAdminPolicy
 {
-    /**
-     * @var array<int, string>
-     */
-    private const ADMIN_ROLES = ['admin', 'Admin', 'Super Admin'];
-
-    /**
-     * @var array<int, string>
-     */
-    private const OVERRIDE_PERMISSIONS = ['filament.access', 'filament.manage'];
-
     public function viewAny(User $user): bool
     {
         return $this->canUseFilamentAdmin($user);
@@ -88,11 +78,6 @@ class FilamentAdminPolicy
 
     private function canUseFilamentAdmin(User $user): bool
     {
-        if ($user->hasAnyRole(self::ADMIN_ROLES)) {
-            return true;
-        }
-
-        return $user->getAllPermissions()
-            ->contains(fn ($permission): bool => in_array($permission->name, self::OVERRIDE_PERMISSIONS, true));
+        return $user->canUsePlatformAdministration();
     }
 }

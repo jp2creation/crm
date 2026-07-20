@@ -19,6 +19,16 @@ class User extends Authenticatable implements FilamentUser
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
+     * @var array<int, string>
+     */
+    public const PLATFORM_ADMIN_ROLES = ['admin', 'Admin', 'Super Admin'];
+
+    /**
+     * @var array<int, string>
+     */
+    public const PLATFORM_ADMIN_PERMISSIONS = ['filament.access', 'filament.manage'];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -42,7 +52,17 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         return $panel->getId() === 'admin'
-            && $this->hasAnyRole(['admin', 'Admin', 'Super Admin']);
+            && $this->canUsePlatformAdministration();
+    }
+
+    public function canUsePlatformAdministration(): bool
+    {
+        if ($this->hasAnyRole(self::PLATFORM_ADMIN_ROLES)) {
+            return true;
+        }
+
+        return $this->getAllPermissions()
+            ->contains(fn ($permission): bool => in_array($permission->name, self::PLATFORM_ADMIN_PERMISSIONS, true));
     }
 
     public function crmUser(): HasOne

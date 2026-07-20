@@ -153,6 +153,12 @@ Un module doit etre declare dans les donnees CRM :
 - `crm_menu_items` pour le menu lateral.
 - `crm_feature_flags` pour l'activation a chaud.
 
+Les droits suivent la separation documentee dans [CRM_AUTHORIZATION.md](CRM_AUTHORIZATION.md) :
+
+- Spatie Permission est reserve a la plateforme, Filament et Horizon.
+- `CrmAccessService` est l'autorite pour les modules metier, les sites et les permissions CRM.
+- Les services ou les Policies portent les decisions finales. Les controleurs restent minces.
+
 Commande utile :
 
 ```bash
@@ -161,7 +167,7 @@ php artisan crm:feature module:example --disable
 php artisan crm:feature module:example --enable
 ```
 
-Les actions sensibles doivent etre protegees par un middleware, une policy, une permission Spatie ou un controle explicite dans le service.
+Les actions sensibles doivent etre protegees par le middleware `crm.module`, une Policy ou un controle explicite dans le service. Une permission Spatie ne doit pas remplacer une permission CRM pour une action metier contextuelle par site.
 
 ## 8. Assets du module
 

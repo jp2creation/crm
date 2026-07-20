@@ -29,7 +29,8 @@ class EnsureCrmModuleAccess
             abort(401);
         }
 
-        if ($this->canUseAdminPanel($user)) {
+        // Spatie platform admins can reach CRM shell pages; business mutations stay behind services and policies.
+        if ($this->canUsePlatformAdministration($user)) {
             return $next($request);
         }
 
@@ -73,14 +74,9 @@ class EnsureCrmModuleAccess
         return $next($request);
     }
 
-    private function canUseAdminPanel(User $user): bool
+    private function canUsePlatformAdministration(User $user): bool
     {
-        if ($user->hasAnyRole(['admin', 'Admin', 'Super Admin'])) {
-            return true;
-        }
-
-        return $user->getAllPermissions()
-            ->contains(fn ($permission): bool => in_array($permission->name, ['filament.access', 'filament.manage'], true));
+        return $user->canUsePlatformAdministration();
     }
 
     /**

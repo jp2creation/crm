@@ -45,6 +45,7 @@ flowchart LR
 
 - Standard modulaire : [CRM_MODULE_STANDARD.md](CRM_MODULE_STANDARD.md)
 - Guide de creation d'un module : [MODULE_CREATION_GUIDE.md](MODULE_CREATION_GUIDE.md)
+- Autorisations CRM : [CRM_AUTHORIZATION.md](CRM_AUTHORIZATION.md)
 - Deploiement : [DEPLOYMENT.md](DEPLOYMENT.md)
 - Migration des endpoints legacy : [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md)
 

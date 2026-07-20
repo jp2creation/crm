@@ -8,16 +8,6 @@ use Modules\CrmCore\Services\CrmAccessService;
 
 trait AuthorizesCrmSiteAccess
 {
-    /**
-     * @var array<int, string>
-     */
-    private const PLATFORM_ADMIN_ROLES = ['admin', 'Admin', 'Super Admin'];
-
-    /**
-     * @var array<int, string>
-     */
-    private const PLATFORM_ADMIN_PERMISSIONS = ['filament.access', 'filament.manage'];
-
     protected function crmUser(User $user): ?CrmUser
     {
         return $user->crmUser()
@@ -27,9 +17,7 @@ trait AuthorizesCrmSiteAccess
 
     protected function canUseFilamentAdmin(User $user): bool
     {
-        return $user->hasAnyRole(self::PLATFORM_ADMIN_ROLES)
-            || $user->getAllPermissions()
-                ->contains(fn ($permission): bool => in_array($permission->name, self::PLATFORM_ADMIN_PERMISSIONS, true));
+        return $user->canUsePlatformAdministration();
     }
 
     /**

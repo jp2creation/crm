@@ -8,6 +8,7 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,8 +20,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ViewErrorBag;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class CrmSecurityTest extends TestCase
@@ -49,9 +52,11 @@ class CrmSecurityTest extends TestCase
             ->assertRedirect('/login')
             ->assertSessionHasErrors('email');
 
+        $errors = session('errors');
+        $this->assertInstanceOf(ViewErrorBag::class, $errors);
         $this->assertStringContainsString(
             'Trop de tentatives.',
-            $response->getSession()->get('errors')->first('email'),
+            $errors->first('email'),
         );
     }
 
@@ -62,6 +67,8 @@ class CrmSecurityTest extends TestCase
         $user = User::factory()->create([
             'email' => 'remember@example.test',
         ]);
+        $guard = Auth::guard('web');
+        $this->assertInstanceOf(SessionGuard::class, $guard);
 
         $this->from('/login')
             ->post('/login', [
@@ -70,7 +77,7 @@ class CrmSecurityTest extends TestCase
                 'remember' => '1',
             ])
             ->assertRedirect('/')
-            ->assertCookie(Auth::guard('web')->getRecallerName());
+            ->assertCookie($guard->getRecallerName());
     }
 
     public function test_login_does_not_keep_mobile_embed_for_the_regular_pwa(): void
@@ -237,6 +244,18 @@ class CrmSecurityTest extends TestCase
             ->assertOk();
     }
 
+    public function test_spatie_platform_admin_role_bypasses_crm_module_middleware(): void
+    {
+        $account = User::factory()->create();
+
+        Role::query()->create(['name' => 'admin', 'guard_name' => 'web']);
+        $account->assignRole('admin');
+
+        $this->actingAs($account)
+            ->get('/reservations')
+            ->assertOk();
+    }
+
     public function test_filament_resources_explicitly_delegate_to_policy_authorization(): void
     {
         $resourceFiles = collect([
@@ -260,6 +279,24 @@ class CrmSecurityTest extends TestCase
 
         $this->assertStringContainsString("Action::make('createLaravelAccount')", $crmUserResource);
         $this->assertStringContainsString("->authorize('update')", $crmUserResource);
+    }
+
+    public function test_crm_api_controllers_delegate_business_authorization_to_services_or_policies(): void
+    {
+        $controllerFiles = collect(File::allFiles(base_path('Modules')))
+            ->filter(fn ($file): bool => str_contains(str_replace('\\', '/', $file->getPathname()), '/app/Http/Controllers/')
+                && str_ends_with($file->getFilename(), 'Controller.php'))
+            ->values();
+
+        $this->assertNotEmpty($controllerFiles);
+
+        foreach ($controllerFiles as $file) {
+            $contents = (string) file_get_contents($file->getPathname());
+
+            $this->assertStringNotContainsString('CrmAccessService', $contents, $file->getPathname());
+            $this->assertStringNotContainsString('hasAnyRole(', $contents, $file->getPathname());
+            $this->assertStringNotContainsString('->role ===', $contents, $file->getPathname());
+        }
     }
 
     public function test_crm_activity_logs_include_sanitized_request_context(): void

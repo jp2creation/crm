@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -12,15 +13,22 @@ class CrmInfrastructureConfigTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_horizon_gate_is_restricted_to_admin_users(): void
+    public function test_horizon_gate_uses_spatie_platform_access(): void
     {
         $admin = User::factory()->create();
+        $platformManager = User::factory()->create();
         $regular = User::factory()->create();
 
         Role::query()->create(['name' => 'admin', 'guard_name' => 'web']);
+        Permission::query()->create(['name' => 'filament.access', 'guard_name' => 'web']);
         $admin->assignRole('admin');
+        $platformManager->givePermissionTo('filament.access');
 
+        $this->assertTrue($admin->canUsePlatformAdministration());
+        $this->assertTrue($platformManager->canUsePlatformAdministration());
+        $this->assertFalse($regular->canUsePlatformAdministration());
         $this->assertTrue(Gate::forUser($admin)->allows('viewHorizon'));
+        $this->assertTrue(Gate::forUser($platformManager)->allows('viewHorizon'));
         $this->assertFalse(Gate::forUser($regular)->allows('viewHorizon'));
     }
 
