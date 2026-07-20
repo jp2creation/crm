@@ -36,6 +36,13 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
+      - name: Check frontend sources
+        run: |
+          npm run typecheck
+          npm run lint
+          npm run test:unit
+          npm run build
+
       - name: Prepare application
         run: |
           cp .env.example .env
@@ -66,9 +73,6 @@ jobs:
           mkdir -p build/logs
           XDEBUG_MODE=coverage php artisan test --coverage-clover build/logs/clover.xml
           php scripts/check-coverage.php build/logs/clover.xml 80
-
-      - name: Build assets
-        run: npm run build
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium

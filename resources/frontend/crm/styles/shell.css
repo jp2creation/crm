@@ -1,0 +1,472 @@
+/* CRM shell overrides moved from resources/views/crm.blade.php. */
+.layout-header .header-search-wrap,
+.layout-header .header-mobile-panel,
+.layout-header .header-actions-divider,
+.layout-header .ms-auto > div.hidden.sm\:block:has(img[src*='/assets/flags/']),
+.layout-header .ms-auto > button.header-icon-btn.header-icon-btn-mobile {
+  display: none !important;
+}
+
+.layout-header nav.hidden.min-w-0.flex-1.items-center {
+  display: none !important;
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  body:has(aside.translate-x-0) .layout-header {
+    left: var(--sidebar-width, 260px) !important;
+  }
+
+  body:has(aside.translate-x-0) main {
+    margin-left: var(--sidebar-width, 260px) !important;
+    width: calc(100% - var(--sidebar-width, 260px)) !important;
+    max-width: calc(100% - var(--sidebar-width, 260px)) !important;
+  }
+
+  body:has(aside.translate-x-0) .layout-container.layout-page {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  body:has(aside.translate-x-0) .fixed.inset-0[class*='bg-black/50'][class*='z-[1025]'] {
+    display: none !important;
+  }
+}
+
+body.crm-mobile-embed {
+  overflow-x: hidden;
+  background: #f8fafc;
+}
+
+body.crm-mobile-app {
+  overflow-x: hidden;
+  background: #f8fafc;
+  padding-top: max(34px, env(safe-area-inset-top));
+  padding-bottom: max(54px, env(safe-area-inset-bottom));
+}
+
+body.crm-mobile-app .layout-header {
+  top: max(34px, env(safe-area-inset-top)) !important;
+}
+
+body.crm-mobile-app .layout-container.layout-page {
+  padding-bottom: max(1.5rem, 54px) !important;
+}
+
+body.crm-mobile-app.crm-mobile-fallback-nav-active {
+  padding-top: calc(max(34px, env(safe-area-inset-top)) + 64px);
+}
+
+.crm-mobile-fallback-header {
+  position: fixed;
+  inset: max(34px, env(safe-area-inset-top)) 0 auto 0;
+  z-index: 9989;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255 / 0.96);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.crm-mobile-fallback-menu-button,
+.crm-mobile-fallback-close {
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 8px;
+  background: #fff;
+  color: rgb(29 53 79);
+}
+
+.crm-mobile-fallback-menu-button svg,
+.crm-mobile-fallback-close svg {
+  width: 24px;
+  height: 24px;
+}
+
+.crm-mobile-fallback-brand {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.crm-mobile-fallback-brand img {
+  width: min(172px, 52vw);
+  max-height: 42px;
+  object-fit: contain;
+}
+
+.crm-mobile-fallback-drawer[hidden] {
+  display: none !important;
+}
+
+.crm-mobile-fallback-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 9992;
+  display: grid;
+  grid-template-columns: minmax(0, 82vw) 1fr;
+}
+
+.crm-mobile-fallback-backdrop {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  border: 0;
+  background: rgb(15 23 42 / 0.48);
+}
+
+.crm-mobile-fallback-panel {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  min-width: 0;
+  max-width: 380px;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid rgb(226 232 240);
+  background: #fff;
+  box-shadow: 18px 0 42px rgb(15 23 42 / 0.18);
+}
+
+.crm-mobile-fallback-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: calc(max(34px, env(safe-area-inset-top)) + 78px);
+  padding: max(22px, calc(env(safe-area-inset-top) + 18px)) 18px 14px;
+  border-bottom: 1px solid rgb(226 232 240);
+}
+
+.crm-mobile-fallback-panel-header img {
+  width: 168px;
+  max-width: 62vw;
+  object-fit: contain;
+}
+
+.crm-mobile-fallback-nav {
+  flex: 1;
+  overflow: auto;
+  padding: 16px 12px 18px;
+}
+
+.crm-mobile-fallback-group + .crm-mobile-fallback-group {
+  margin-top: 18px;
+}
+
+.crm-mobile-fallback-group-title {
+  margin: 0 0 8px;
+  padding: 0 10px;
+  color: rgb(100 116 139);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.crm-mobile-fallback-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: rgb(29 53 79);
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.crm-mobile-fallback-link.is-active {
+  background: rgb(149 0 46);
+  color: #fff;
+}
+
+.crm-mobile-fallback-initials {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  background: rgb(248 250 252);
+  color: rgb(149 0 46);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.crm-mobile-fallback-link.is-active .crm-mobile-fallback-initials {
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+
+body.crm-mobile-embed:not(.crm-mobile-app) aside,
+body.crm-mobile-embed:not(.crm-mobile-app) .layout-header,
+body.crm-mobile-embed:not(.crm-mobile-app) .fixed.inset-0[class*='bg-black/50'],
+body.crm-mobile-embed:not(.crm-mobile-app) .header-mobile-panel {
+  display: none !important;
+}
+
+body.crm-mobile-embed:not(.crm-mobile-app) main {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  padding-top: 0 !important;
+}
+
+body.crm-mobile-embed:not(.crm-mobile-app) .layout-container.layout-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0.75rem !important;
+}
+
+body.crm-mobile-embed:not(.crm-mobile-app) [class*='ml-[var(--sidebar-width'],
+body.crm-mobile-embed:not(.crm-mobile-app) [class*='lg:ml-[var(--sidebar-width'] {
+  margin-left: 0 !important;
+}
+
+.crm-mobile-app-settings-trigger {
+  position: fixed;
+  right: 14px;
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 14px));
+  z-index: 9990;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-content: center;
+  grid-template-columns: repeat(3, 4px);
+  gap: 3px;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.95);
+  color: rgb(149 0 46);
+  box-shadow: 0 12px 28px rgb(29 53 79 / 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.crm-mobile-app-settings-trigger span {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.crm-mobile-app-settings[hidden] {
+  display: none !important;
+}
+
+.crm-mobile-app-settings {
+  position: fixed;
+  inset: 0;
+  z-index: 9991;
+  display: grid;
+  place-items: end center;
+  padding: 18px 14px max(18px, env(safe-area-inset-bottom));
+}
+
+.crm-mobile-app-settings-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(15 23 42 / 0.38);
+}
+
+.crm-mobile-app-settings-panel {
+  position: relative;
+  width: min(100%, 430px);
+  max-height: min(86dvh, 620px);
+  overflow: auto;
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgb(15 23 42 / 0.24);
+  color: rgb(29 53 79);
+  font-family:
+    'DM Sans',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.crm-mobile-app-settings-header,
+.crm-mobile-app-settings-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.crm-mobile-app-settings-header p {
+  margin: 0 0 5px;
+  color: rgb(93 114 135);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.crm-mobile-app-settings-header h2 {
+  margin: 0;
+  color: rgb(29 53 79);
+  font-size: 1.22rem;
+  line-height: 1.2;
+}
+
+.crm-mobile-app-settings-close {
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 8px;
+  background: rgb(244 244 245);
+  color: rgb(60 84 110);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.crm-mobile-app-settings-switches {
+  display: grid;
+  gap: 10px;
+}
+
+.crm-mobile-app-settings-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 8px;
+  background: rgb(250 250 250);
+  color: rgb(29 53 79);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.crm-mobile-app-settings-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.crm-mobile-app-settings-switch i {
+  position: relative;
+  flex: none;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgb(189 198 207);
+  transition: background-color 0.16s ease;
+}
+
+.crm-mobile-app-settings-switch i::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(15 23 42 / 0.18);
+  transition: transform 0.16s ease;
+}
+
+.crm-mobile-app-settings-switch input:checked + i {
+  background: rgb(149 0 46);
+}
+
+.crm-mobile-app-settings-switch input:checked + i::after {
+  transform: translateX(18px);
+}
+
+.crm-mobile-app-settings-status {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.crm-mobile-app-settings-status div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 8px;
+  background: rgb(250 250 250);
+}
+
+.crm-mobile-app-settings-status span,
+.crm-mobile-app-settings-version {
+  display: block;
+  color: rgb(93 114 135);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.crm-mobile-app-settings-status strong {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+  color: rgb(29 53 79);
+  font-size: 0.86rem;
+  line-height: 1.25;
+}
+
+.crm-mobile-app-settings-error {
+  display: none;
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid rgb(254 202 202);
+  border-radius: 8px;
+  background: rgb(254 242 242);
+  color: rgb(185 28 28);
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.crm-mobile-app-settings-error.is-visible {
+  display: block;
+}
+
+.crm-mobile-app-settings-actions button {
+  min-height: 40px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.crm-mobile-app-settings-secondary {
+  border: 1px solid rgb(226 232 240);
+  background: rgb(244 244 245);
+  color: rgb(60 84 110);
+}
+
+.crm-mobile-app-settings-primary {
+  border: 1px solid transparent;
+  background: rgb(149 0 46);
+  color: #fff;
+}
+
+@media (max-width: 380px) {
+  .crm-mobile-app-settings-status {
+    grid-template-columns: 1fr;
+  }
+}

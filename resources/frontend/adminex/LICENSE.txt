@@ -1,0 +1,69 @@
+Adminex - React Admin Dashboard Template
+============================================
+
+Copyright (c) 2025-2026 DevCraftify
+
+LICENSE TERMS
+-------------
+
+This item is licensed under the Envato Market Regular License or Extended License,
+depending on your purchase. Please review the license terms before using this item.
+
+REGULAR LICENSE
+---------------
+The Regular License grants you a non-exclusive, non-transferable right to use the
+item for a single end product (for yourself or a client). The end product can be
+free or sold to end users.
+
+For more details, visit:
+https://themeforest.net/licenses/standard
+
+EXTENDED LICENSE
+----------------
+The Extended License grants you everything included with the Regular License, plus
+the ability to sell the end product to multiple end users.
+
+For more details, visit:
+https://themeforest.net/licenses/standard
+
+WHAT YOU CAN DO
+---------------
+✓ Use the item for personal or commercial projects
+✓ Modify or customize the item
+✓ Use the item for a single end product for yourself or a client
+✓ Use the item in a product sold to end users (Extended License)
+
+WHAT YOU CANNOT DO
+------------------
+✗ Redistribute the original or modified item as-is
+✗ Resell the item on any marketplace
+✗ Include the item in an open source project
+✗ Use the item in multiple projects without purchasing additional licenses
+✗ Remove or alter licensing information
+
+SUPPORT
+-------
+Support is provided for 6 months from purchase date.
+Extended support available for purchase.
+
+For support, contact: support@devcraftify.com
+
+THIRD-PARTY ASSETS
+------------------
+This item includes third-party assets that are licensed under their own terms.
+Please see CREDITS.md for a complete list of included assets and their licenses.
+
+INCLUDED IMAGES
+---------------
+This item includes AI-generated sample images (blog covers, product images,
+avatars) with no copyright restrictions. You may freely use, modify, and
+redistribute these images in your projects. The images are provided as-is
+and can be replaced with your own images as needed.
+
+---
+
+By purchasing and using this item, you agree to the terms above and the
+Envato Market License Terms.
+
+For questions about licensing, please visit:
+https://themeforest.net/licenses/faq

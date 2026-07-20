@@ -21,7 +21,11 @@ class CrmAccountSettingsTest extends TestCase
         $this->actingAs($account)
             ->get('/pages/account-settings')
             ->assertOk()
-            ->assertSee('crm-account-settings.js');
+            ->assertSee('data-crm-frontend-assets', false);
+
+        $register = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
+
+        $this->assertStringContainsString('crm-account-settings.js', $register);
     }
 
     public function test_profile_api_uses_the_same_identity_as_account_settings(): void

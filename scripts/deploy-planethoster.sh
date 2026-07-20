@@ -30,10 +30,11 @@ REVISION="$(git rev-parse --short HEAD)"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 ARCHIVE_NAME="crm-release-${REVISION}-${TIMESTAMP}.tgz"
 LOCAL_ARCHIVE="$(mktemp -t "${ARCHIVE_NAME}.XXXXXX")"
+LOCAL_ARCHIVE_TAR="$(mktemp -t "${ARCHIVE_NAME}.tar.XXXXXX")"
 REMOTE_ARCHIVE="${CRM_DEPLOY_TMP_DIR}/${ARCHIVE_NAME}"
 
 cleanup() {
-    rm -f "$LOCAL_ARCHIVE"
+    rm -f "$LOCAL_ARCHIVE" "$LOCAL_ARCHIVE_TAR"
 }
 trap cleanup EXIT
 
@@ -62,7 +63,13 @@ if [ "${CRM_DEPLOY_ALLOW_DIRTY:-0}" = "1" ]; then
         --exclude='playwright-report' \
         .
 else
-    git archive --format=tar.gz --output="$LOCAL_ARCHIVE" HEAD
+    git archive --format=tar --output="$LOCAL_ARCHIVE_TAR" HEAD
+
+    if [ "$CRM_DEPLOY_BUILD" != "0" ] && [ -d public/build ]; then
+        tar -rf "$LOCAL_ARCHIVE_TAR" public/build
+    fi
+
+    gzip -c "$LOCAL_ARCHIVE_TAR" > "$LOCAL_ARCHIVE"
 fi
 
 scp -P "$CRM_DEPLOY_PORT" "$LOCAL_ARCHIVE" "${CRM_DEPLOY_USER}@${CRM_DEPLOY_HOST}:${REMOTE_ARCHIVE}"

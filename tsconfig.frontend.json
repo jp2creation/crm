@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "paths": {
+      "@/*": ["resources/frontend/adminex/src/*"],
+      "@crm/*": ["resources/frontend/crm/*"]
+    },
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ES2022",
+    "types": ["vite/client", "vitest/globals"]
+  },
+  "include": ["resources/frontend/crm/**/*.ts", "resources/frontend/crm/**/*.d.ts"]
+}

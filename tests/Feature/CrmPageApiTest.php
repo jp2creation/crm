@@ -89,8 +89,13 @@ class CrmPageApiTest extends TestCase
         $this->actingAs($account)
             ->get('/pages-crm')
             ->assertOk()
-            ->assertSee('CRM_NAV_FALLBACK')
-            ->assertSee('modules/crm-pages/crm-pages.js');
+            ->assertSee('data-crm-frontend-assets', false);
+
+        $register = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
+        $fallbackMenu = (string) file_get_contents(resource_path('frontend/crm/router/menu.ts'));
+
+        $this->assertStringContainsString('crm-pages.js', $register);
+        $this->assertStringContainsString('CRM_NAV_FALLBACK', $fallbackMenu);
     }
 
     public function test_manager_can_create_page_and_menu_item(): void

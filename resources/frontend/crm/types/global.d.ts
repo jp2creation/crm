@@ -1,0 +1,67 @@
+export {};
+
+declare global {
+  interface Window {
+    BrandMorphLoader?: {
+      forceHide: () => void;
+      hide: () => void;
+      show: (delay?: number) => void;
+    };
+    CRM_NAV_FALLBACK?: CrmFallbackNavigation;
+    MartinSolsCrmApi?: CrmApiClient;
+    MartinSolsCrmAssets?: {
+      brandMorphLoaderStylesheet?: string;
+      legacyAdminexScript?: string;
+      legacyAdminexStylesheet?: string;
+      logoUrl?: string;
+    };
+    MartinSolsMobileApp?: {
+      requestLocation: () => void;
+    };
+    __martinSolsCrmFetchCsrf?: boolean;
+    __martinSolsCrmLegacyAdminexLoading?: Promise<void>;
+    __martinSolsCrmModulesLoaded?: boolean;
+  }
+}
+
+export type CrmApiClient = {
+  get: <T = unknown>(url: string, options?: CrmRequestOptions) => Promise<T>;
+  post: <T = unknown>(url: string, body?: CrmRequestOptions['body'], options?: CrmRequestOptions) => Promise<T>;
+  request: <T = unknown>(url: string, options?: CrmRequestOptions) => Promise<T>;
+};
+
+export type CrmFallbackNavigation = {
+  menuGroups: CrmMenuGroup[];
+  menuItems: CrmMenuItem[];
+  modules: CrmModule[];
+};
+
+export type CrmMenuGroup = {
+  active: boolean;
+  menuKey: string;
+  sortOrder: number;
+  title: string;
+};
+
+export type CrmMenuItem = {
+  active: boolean;
+  groupKey: string;
+  iconKey: string;
+  itemKey: string;
+  label: string;
+  sortOrder: number;
+};
+
+export type CrmModule = {
+  active: boolean;
+  menuBadge?: string;
+  name: string;
+  routePath: string;
+  showMenuBadge?: boolean;
+  slug: string;
+  sortOrder: number;
+};
+
+export type CrmRequestOptions = Omit<RequestInit, 'body'> & {
+  body?: BodyInit | Record<string, unknown> | null;
+};
