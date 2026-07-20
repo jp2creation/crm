@@ -62,17 +62,11 @@ jobs:
           php artisan key:generate --ansi
           php artisan migrate --force --ansi
 
-      - name: Lint PHP style
-        run: vendor/bin/pint --test app routes database tests
+      - name: Run quality checks
+        run: composer quality
 
-      - name: Run static analysis
-        run: composer analyse
-
-      - name: Run PHPUnit with coverage
-        run: |
-          mkdir -p build/logs
-          XDEBUG_MODE=coverage php artisan test --coverage-clover build/logs/clover.xml
-          php scripts/check-coverage.php build/logs/clover.xml 80
+      - name: Run coverage threshold
+        run: composer test:coverage
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
