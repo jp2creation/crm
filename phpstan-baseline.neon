@@ -1,0 +1,2743 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Filament/Resources/CrmUsers/CrmUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Filament/Resources/CrmUsers/CrmUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Filament/Resources/CrmUsers/CrmUserResource.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuGroup\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuGroup\:\:\$menu_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuGroup\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuGroup\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$group_key\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$icon_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$item_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$show_menu_badge\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 8
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmPermission\:\:\$group_label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmPermission\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmPermission\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmPermission\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$bio\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$first_name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$last_name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$photo_url\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:first\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\CrmSite\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>is_default" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmAdministration/app/Services/AdministrationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashCountLine\:\:\$current_quantity\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashCountLine\:\:\$denomination\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashCountLine\:\:\$deposit_quantity\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashCountLine\:\:\$previous_quantity\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashMovement\:\:\$amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashMovement\:\:\$cash_register_day_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashMovement\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashMovement\:\:\$occurred_on\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashMovement\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashMovement\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$card_amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$cash_amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$cash_register_day_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$check_amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$control_amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$invoice_total\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$occurred_on\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$transfer_amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$bank_counted\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$card_counted\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$card_sales\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$cash_date\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$cash_sales\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$check_counted\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$check_sales\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$counted_cash\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$invoice_errors_count\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$invoice_total\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$opening_balance\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 10
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$transfer_counted\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$transfer_sales\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashRegisterDay\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\<string, mixed\>, Closure\(App\\Models\\CrmCashMovement\)\: array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\<string, mixed\>, Closure\(App\\Models\\CrmCashReceipt\)\: array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:sum\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model\)\: float\)\|string\|null, Closure\(App\\Models\\CrmCashReceipt\)\: float given\.$#'
+			identifier: argument.type
+			count: 6
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#1 \$day of method Modules\\CrmCashControl\\Services\\CashControlService\:\:recalculateAndSave\(\) expects App\\Models\\CrmCashRegisterDay, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#1 \$day of method Modules\\CrmCashControl\\Services\\CashControlService\:\:syncPaymentTotalsFromReceipts\(\) expects App\\Models\\CrmCashRegisterDay, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#1 \$keyBy of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:keyBy\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: \(numeric\-string&uppercase\-string\)\)\|list\<Closure\|string\>\|string, Closure\(App\\Models\\CrmCashCountLine\)\: \(numeric\-string&uppercase\-string\) given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#1 \$movements of method Modules\\CrmCashControl\\Services\\CashControlService\:\:movementTotal\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\CrmCashMovement\>, Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Parameter \#2 \$lines of method Modules\\CrmCashControl\\Services\\CashControlService\:\:cashCountTotals\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\CrmCashCountLine\>\|null, Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>current_quantity" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>deposit_quantity" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>previous_quantity" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashControlService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$card_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$cash_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$cash_register_day_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$check_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$control_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$created_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$invoice_total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$transfer_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCashReceipt\:\:\$updated_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$cash_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCashControl/app/Services/CashReceiptArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittance\:\:\$check_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittance\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittance\:\:\$reference\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittance\:\:\$remittance_date\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittance\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 8
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittance\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittance\:\:\$total_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittanceLine\:\:\$amount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittanceLine\:\:\$check_remittance_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittanceLine\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittanceLine\:\:\$ocr_confidence\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmCheckRemittanceLine\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array, Closure\(App\\Models\\CrmCheckRemittanceLine\)\: array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:sum\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model\)\: float\)\|string\|null, Closure\(App\\Models\\CrmCheckRemittanceLine\)\: float given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Parameter \#1 \$remittance of method Modules\\CrmCheckRemittances\\Services\\CheckRemittanceService\:\:recalculate\(\) expects App\\Models\\CrmCheckRemittance, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$enabled\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Console/Commands/ManageCrmFeatureFlagCommand.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$flag_key\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Console/Commands/ManageCrmFeatureFlagCommand.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$scope\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Console/Commands/ManageCrmFeatureFlagCommand.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmFeatureFlag\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Console/Commands/ManageCrmFeatureFlagCommand.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\StatefulGuard\:\:forgetUser\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/CrmCore/app/Http/Controllers/AuthController.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 2
+			path: Modules/CrmCore/app/Http/Controllers/AuthController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$end_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Queries/ReservationConflictQuery.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$period\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Queries/ReservationConflictQuery.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$start_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Queries/ReservationConflictQuery.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Queries/ReservationConflictQuery.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmPermission\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 8
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUserSiteModulePermission\:\:\$module_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUserSiteModulePermission\:\:\$permission_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUserSiteModulePermission\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:filter\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\CrmModule\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:contains\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model\|int\|string, Closure\(App\\Models\\CrmPermission\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmAccessService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmActivityLogger.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmActivityLogger.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmActivityLogger.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\:\:withTrashed\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmArchiveService.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$modelConfig$#'
+			identifier: parameter.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmArchiveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$enabled\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmFeatureFlagService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$ends_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmFeatureFlagService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$flag_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmFeatureFlagService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$starts_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmFeatureFlagService.php
+
+		-
+			message: '#^Offset ''enabled'' on array\{enabled\: bool, starts_at\: mixed, ends_at\: mixed\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmFeatureFlagService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmFeatureFlag\>\:\:mapWithKeys\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmFeatureFlagService.php
+
+		-
+			message: '#^Parameter \#2 \$callback of static method Illuminate\\Cache\\Repository\:\:rememberForever\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Services/CrmFeatureFlagService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$end_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$period\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$start_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmNotificationLog\:\:\$payload\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$end_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$start_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$user_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DashboardMetric\:\:\$equipment_available\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DashboardMetric\:\:\$equipment_total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DashboardMetric\:\:\$monthly_revenue\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DashboardMetric\:\:\$pending_leaves\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DashboardMetric\:\:\$reservation_trend\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\DashboardMetric\:\:\$reservations_today\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$color\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmLeaveEntry\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmReservation\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>color" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 4
+			path: Modules/CrmCore/app/Services/DashboardService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuGroup\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$group_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$icon_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$item_key\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$photo_url\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$pivot\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$route_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Contracts\\Auth\\StatefulGuard\:\:forgetUser\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Call to function method_exists\(\) with App\\Models\\User and ''currentAccessToken'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Laravel\\Sanctum\\PersonalAccessToken and ''delete'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Laravel\\Sanctum\\PersonalAccessToken and ''getKey'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<\(int\|string\),Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\CrmMenuItem\>\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmMenuItem\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 2
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:filter\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Services/MobileAuthService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$category_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$color\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$day_price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$deposit_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$half_day_price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$route_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmVehicle\:\:\$color\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmVehicle\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmEquipmentCategory\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmEquipmentItem\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmModule\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmModule\>\:\:mapWithKeys\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmVehicle\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Parameter \#2 \$callback of static method Illuminate\\Cache\\Repository\:\:rememberForever\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 5
+			path: Modules/CrmCore/app/Support/CrmReferenceCache.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$document_number\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$request_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$requester_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$requester_user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 7
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDepositRequest\:\:\$validated_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: Modules/CrmDepositRequests/app/Services/DepositRequestService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDocuments/Http/Controllers/DocumentApiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk_path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDocuments/Http/Controllers/DocumentApiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$mime_type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Http/Controllers/DocumentApiController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$category\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$directory_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk_path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$mime_type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$visibility\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$category\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$parent_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$updated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$visibility\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$category_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$color\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$day_price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$deposit_amount\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$half_day_price\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$equipment_item_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$user_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$carried_over_days\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$employee_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$entitled_days\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$pending_days\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$recalculated_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$remaining_days\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$used_days\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$year\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$duration_days\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$employee_id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$start_date\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>carried_over_days" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>entitled_days" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveBalanceService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEmployee\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEmployee\:\:\$color\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEmployee\:\:\$crm_user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEmployee\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEmployee\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEmployee\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$duration_days\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$employee_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$end_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$period\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$source\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$start_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmLeaveEntry\:\:\$type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$first_name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$last_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$color\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Method Modules\\CrmLeaves\\Services\\LeaveService\:\:color\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>color" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>name" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmLeaves/app/Services/LeaveService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:filter\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|null, Closure\(App\\Models\\CrmModule\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Parameter \#1 \$key of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:contains\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: bool\)\|Illuminate\\Database\\Eloquent\\Model\|int\|string, Closure\(App\\Models\\CrmModule\)\: bool given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmPages/app/Services/PageService.php
+
+		-
+			message: '#^Parameter \#1 \$site of method App\\Models\\CrmVehicle\:\:reservationHoursLabel\(\) expects App\\Models\\CrmSite\|null, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: Modules/CrmReservations/app/Filament/Resources/CrmVehicles/CrmVehicleResource.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Modules\\CrmCore\\Services\\CrmNotificationService\:\:notify\(\) expects App\\Models\\User, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmReservations/app/Listeners/NotifyReservationDeleted.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 6
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$user_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$vehicle_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmVehicle\:\:\$color\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmVehicle\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 1
+			path: Modules/CrmReservations/app/Services/ReservationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$completed_at\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$kilometers\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$objective\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$report_mood\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$report_next_actions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$report_summary\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$representative_user_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 5
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$tour_date\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$address\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$city\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$contact_email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$contact_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$contact_phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$created_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$customer_name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$customer_reference\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$duration_minutes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$next_action\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$next_action_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$objective\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$planned_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$postal_code\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$priority\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$representative_user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$result\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$tour_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmSalesVisit\:\:\$visit_type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$photo_url\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$photo_url\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\CrmUser\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Parameter \#2 \$tour of method Modules\\CrmSalesTours\\Services\\SalesTourService\:\:requireEditableTour\(\) expects App\\Models\\CrmSalesTour, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$first_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$last_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 3
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$phone\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$photo_url\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 2
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$email\.$#'
+			identifier: property.notFound
+			count: 1
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: Modules/CrmTeams/app/Services/TeamService.php
+
+		-
+			message: '#^Call to function method_exists\(\) with Symfony\\Component\\HttpFoundation\\Response and ''getContent'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Http/Middleware/CompressResponse.php
+
+		-
+			message: '#^Negated boolean expression is always false\.$#'
+			identifier: booleanNot.alwaysFalse
+			count: 1
+			path: app/Http/Middleware/EnsureCrmMobileTokenScope.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/EnsureCrmModuleAccess.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmEquipmentCategory.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmEquipmentCategory.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentItem\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmEquipmentItem.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$end_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$equipment_item_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$period_type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$slot\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$start_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$user_name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmEquipmentRental.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\CrmFeatureFlag\:\:flushFeatureCaches\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 2
+			path: app/Models/CrmFeatureFlag.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmFeatureFlag\:\:\$enabled\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$group_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$icon_key\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmMenuItem\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$active\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$description\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$route_path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$slug\.$#'
+			identifier: property.notFound
+			count: 10
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmModule\:\:\$sort_order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\CrmModule\:\:syncFeatureFlag\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 1
+			path: app/Models/CrmModule.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\CrmPage\:\:syncPagesMenuGroupVisibility\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 2
+			path: app/Models/CrmPage.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$end_at\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/CrmReservation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmReservation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$start_at\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/CrmReservation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmReservation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$user_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmReservation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$vehicle_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmReservation.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\CrmUser\>\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/CrmReservation.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\CrmSite\:\:minutes\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 4
+			path: app/Models/CrmSite.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmUser\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/CrmUser.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\CrmVehicle\:\:minutes\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 4
+			path: app/Models/CrmVehicle.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\CrmVehicle\:\:normalizeTime\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 2
+			path: app/Models/CrmVehicle.php
+
+		-
+			message: '#^Unsafe call to private method App\\Models\\CrmVehicle\:\:time5\(\) through static\:\:\.$#'
+			identifier: staticClassAccess.privateMethod
+			count: 3
+			path: app/Models/CrmVehicle.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Http\\Request\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: app/Observers/CrmActivitylogObserver.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Observers/CrmDocumentObserver.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk_path\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Observers/CrmDocumentObserver.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/CrmEquipmentRentalPolicy.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmEquipmentRental\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Policies/CrmEquipmentRentalPolicy.php
+
+		-
+			message: '#^Method App\\Policies\\CrmEquipmentRentalPolicy\:\:crmUser\(\) should return App\\Models\\CrmUser\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/CrmEquipmentRentalPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$crmUser\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Policies/CrmLeaveEntryPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Policies/CrmLeaveEntryPolicy.php
+
+		-
+			message: '#^Method App\\Policies\\CrmLeaveEntryPolicy\:\:crmUser\(\) should return App\\Models\\CrmUser\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/CrmLeaveEntryPolicy.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$site_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/CrmReservationPolicy.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\CrmReservation\:\:\$user_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Policies/CrmReservationPolicy.php
+
+		-
+			message: '#^Method App\\Policies\\CrmReservationPolicy\:\:crmUser\(\) should return App\\Models\\CrmUser\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Policies/CrmReservationPolicy.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: app/Support/CrmAsset.php

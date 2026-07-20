@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string|null $name
+ * @property string|null $original_name
+ * @property int|null $size
+ */
 class CrmDocument extends Model
 {
     protected $table = 'crm_documents';

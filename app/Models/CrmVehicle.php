@@ -11,6 +11,12 @@ use Illuminate\Validation\ValidationException;
 use Modules\CrmCore\Services\UploadedCrmFileCleaner;
 use Modules\CrmCore\Support\CrmReferenceCache;
 
+/**
+ * @property bool $active
+ * @property string|null $day_end_time
+ * @property string|null $day_start_time
+ * @property int|null $site_id
+ */
 class CrmVehicle extends Model
 {
     protected $table = 'crm_vehicles';

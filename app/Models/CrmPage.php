@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * @property bool $active
+ * @property string|null $icon_key
+ * @property bool $show_in_menu
+ * @property string|null $slug
+ * @property int $sort_order
+ * @property string $title
+ */
 class CrmPage extends Model
 {
     protected $table = 'crm_pages';

@@ -12,6 +12,15 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\CrmCore\Support\CrmReferenceCache;
 
+/**
+ * @property bool $active
+ * @property string|null $afternoon_end
+ * @property string|null $afternoon_start
+ * @property string|null $morning_end
+ * @property string|null $morning_start
+ * @property string $name
+ * @property string|null $slug
+ */
 class CrmSite extends Model
 {
     use SoftDeletes;
