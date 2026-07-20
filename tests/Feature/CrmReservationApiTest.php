@@ -11,6 +11,7 @@ use App\Models\CrmVehicle;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Storage;
 use Modules\CrmCore\Events\CrmDomainEvent;
 use Tests\TestCase;
 
@@ -460,12 +461,13 @@ class CrmReservationApiTest extends TestCase
     {
         [$account, , $site] = $this->createCrmUser(['reservations.manage_vehicles']);
 
-        $vehicleId = $this->actingAs($account)
+        $vehicle = $this->actingAs($account)
             ->postJson('/api/reservations?action=save_vehicle', [
                 'siteId' => $site->id,
                 'name' => 'Camion test',
                 'description' => 'Vehicule atelier',
                 'color' => '#123abc',
+                'photoDataUrl' => $this->crmPngDataUrl(),
                 'dayStartTime' => '08:15',
                 'dayEndTime' => '16:45',
             ])
@@ -474,13 +476,23 @@ class CrmReservationApiTest extends TestCase
             ->assertJsonPath('vehicle.name', 'Camion test')
             ->assertJsonPath('vehicle.dayStartTime', '08:15')
             ->assertJsonPath('vehicle.dayEndTime', '16:45')
-            ->json('vehicle.id');
+            ->json('vehicle');
+
+        $vehicleId = (int) $vehicle['id'];
+        $photoPath = substr((string) $vehicle['photoUrl'], strlen('/storage/'));
+
+        $this->assertStringStartsWith('/storage/assets/uploads/vehicles/', $vehicle['photoUrl']);
+        Storage::disk('public')->assertExists($photoPath);
+        Storage::disk('public')->assertExists(str_replace('.webp', '-thumb.webp', $photoPath));
 
         $this->actingAs($account)
             ->postJson('/api/reservations?action=delete_vehicle', ['id' => $vehicleId])
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('id', $vehicleId);
+
+        Storage::disk('public')->assertMissing($photoPath);
+        Storage::disk('public')->assertMissing(str_replace('.webp', '-thumb.webp', $photoPath));
 
         $this->assertDatabaseHas('crm_vehicles', [
             'id' => $vehicleId,

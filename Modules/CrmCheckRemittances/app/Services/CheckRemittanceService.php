@@ -9,10 +9,10 @@ use App\Models\CrmUser;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
+use Modules\CrmCore\Services\CrmImageStorage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class CheckRemittanceService
@@ -27,6 +27,7 @@ class CheckRemittanceService
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
         private readonly CheckImageOcrService $checkOcr,
+        private readonly CrmImageStorage $images,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -241,6 +242,7 @@ class CheckRemittanceService
                     $remittance,
                     $photoDataUrl,
                     (string) ($data['photoName'] ?? $data['originalName'] ?? $data['original_name'] ?? ''),
+                    $check->getAttribute('photo_path'),
                 ));
             }
 
@@ -431,45 +433,28 @@ class CheckRemittanceService
         ];
     }
 
-    private function storePhoto(CrmCheckRemittance $remittance, string $dataUrl, string $originalName): array
+    private function storePhoto(CrmCheckRemittance $remittance, string $dataUrl, string $originalName, ?string $replacePath): array
     {
         if (! preg_match('/^data:(image\/(?:png|jpe?g|webp));base64,/', $dataUrl, $matches)) {
             $this->fail('Photo de cheque invalide', 400);
         }
 
-        $binary = base64_decode(substr($dataUrl, (int) strpos($dataUrl, ',') + 1), true);
-        if ($binary === false || strlen($binary) > 8 * 1024 * 1024) {
-            $this->fail('Photo de cheque trop lourde', 400);
-        }
-
-        $mime = $matches[1];
-        $ext = match ($mime) {
-            'image/png' => 'png',
-            'image/jpeg', 'image/jpg' => 'jpg',
-            'image/webp' => 'webp',
-            default => 'jpg',
-        };
-
         $date = $remittance->remittance_date?->format('Y-m-d') ?: CarbonImmutable::today()->format('Y-m-d');
-        $relativeDir = 'assets/uploads/check-remittances/site-'.$remittance->site_id.'/'.$date;
-        $directory = public_path($relativeDir);
-
-        if (! File::isDirectory($directory) && ! File::makeDirectory($directory, 0755, true, true) && ! File::isDirectory($directory)) {
-            $this->fail('Impossible de stocker la photo', 500);
-        }
-
-        $file = now()->format('YmdHis').'-'.Str::random(10).'.'.$ext;
-        $relativePath = $relativeDir.'/'.$file;
-
-        if (File::put(public_path($relativePath), $binary) === false) {
-            $this->fail('Impossible de stocker la photo', 500);
-        }
+        $stored = $this->images->storeDataUrl(
+            $dataUrl,
+            'check-remittances/site-'.$remittance->site_id.'/'.$date,
+            $replacePath,
+            [
+                'maxBytes' => 8 * 1024 * 1024,
+                'label' => 'Photo de cheque',
+            ],
+        );
 
         return [
-            'photo_path' => '/'.str_replace('\\', '/', $relativePath),
-            'original_name' => $this->safeFileName($originalName, 'cheque.'.$ext),
-            'mime_type' => $mime,
-            'size' => strlen($binary),
+            'photo_path' => $stored['url'],
+            'original_name' => $this->safeFileName($originalName, 'cheque.webp'),
+            'mime_type' => $stored['mime'],
+            'size' => $stored['size'],
         ];
     }
 

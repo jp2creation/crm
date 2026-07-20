@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
+use Modules\CrmCore\Services\CrmImageStorage;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -26,6 +27,7 @@ class AdministrationService
     public function __construct(
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
+        private readonly CrmImageStorage $images,
     ) {}
 
     public function ensureDefaults(): void
@@ -210,7 +212,7 @@ class AdministrationService
         }
 
         if ($photoDataUrl !== '') {
-            $photoUrl = $this->saveDataImage($photoDataUrl, 'profiles') ?: $photoUrl;
+            $photoUrl = $this->images->storeDataUrl($photoDataUrl, 'profiles', $photoUrl)['url'];
         }
 
         $updates = [
@@ -1392,38 +1394,6 @@ class AdministrationService
             ->pluck('id')
             ->map(fn ($id): int => (int) $id)
             ->all();
-    }
-
-    private function saveDataImage(string $dataUrl, string $folder): string
-    {
-        if ($dataUrl === '') {
-            return '';
-        }
-
-        if (! preg_match('/^data:image\/(png|jpeg|webp);base64,(.+)$/', $dataUrl, $matches)) {
-            $this->fail('Photo invalide', 400);
-        }
-
-        $extension = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
-        $binary = base64_decode($matches[2], true);
-
-        if ($binary === false || strlen($binary) > 5 * 1024 * 1024) {
-            $this->fail('Photo invalide ou trop lourde', 400);
-        }
-
-        $safeFolder = trim(preg_replace('/[^a-z0-9_-]+/i', '', $folder) ?: 'profiles', '/');
-        $uploadDir = public_path('assets/uploads/'.$safeFolder);
-
-        if (! is_dir($uploadDir) && ! mkdir($uploadDir, 0755, true) && ! is_dir($uploadDir)) {
-            $this->fail('Dossier upload indisponible', 500);
-        }
-
-        $filename = uniqid('photo_', true).'.'.$extension;
-        if (file_put_contents($uploadDir.'/'.$filename, $binary) === false) {
-            $this->fail('Enregistrement photo impossible', 500);
-        }
-
-        return '/assets/uploads/'.$safeFolder.'/'.$filename;
     }
 
     private function normalizeTime(array $data, string $camelKey, string $snakeKey, string $default): string

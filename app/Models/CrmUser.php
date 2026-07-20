@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\CrmCore\Services\UploadedCrmFileCleaner;
 
 class CrmUser extends Model
 {
@@ -38,6 +39,10 @@ class CrmUser extends Model
                 $user->reservations()->update(['user_name' => $user->name]);
                 $user->equipmentRentals()->update(['user_name' => $user->name]);
             }
+
+            if ($user->wasChanged('photo_url')) {
+                app(UploadedCrmFileCleaner::class)->deletePublicUpload($user->getOriginal('photo_url'));
+            }
         });
 
         static::deleting(function (CrmUser $user): void {
@@ -45,6 +50,10 @@ class CrmUser extends Model
             $user->modules()->detach();
             $user->permissions()->detach();
             $user->siteModulePermissions()->delete();
+        });
+
+        static::deleted(function (CrmUser $user): void {
+            app(UploadedCrmFileCleaner::class)->deletePublicUpload($user->getAttribute('photo_url'));
         });
     }
 

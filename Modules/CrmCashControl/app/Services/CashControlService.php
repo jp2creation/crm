@@ -12,10 +12,11 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
+use Modules\CrmCore\Services\CrmImageStorage;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
@@ -48,6 +49,7 @@ class CashControlService
     public function __construct(
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
+        private readonly CrmImageStorage $images,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -293,6 +295,7 @@ class CashControlService
                     $attachmentDataUrl,
                     (string) ($data['attachmentName'] ?? $data['attachment_name'] ?? ''),
                     $actor,
+                    $movement->getAttribute('justification_path'),
                 );
 
                 $movement->fill($attachment);
@@ -910,10 +913,29 @@ class CashControlService
         ];
     }
 
-    private function storeAttachment(CrmCashRegisterDay $day, string $dataUrl, string $originalName, CrmUser $actor): array
+    private function storeAttachment(CrmCashRegisterDay $day, string $dataUrl, string $originalName, CrmUser $actor, ?string $replacePath): array
     {
         if (! preg_match('/^data:(application\/pdf|image\/(?:png|jpe?g|webp));base64,/', $dataUrl, $matches)) {
             $this->fail('Justificatif invalide', 400);
+        }
+
+        $mime = $matches[1];
+        $date = $day->cash_date?->format('Y-m-d') ?: CarbonImmutable::today()->format('Y-m-d');
+        $folder = 'cash-control/site-'.$day->site_id.'/'.$date;
+
+        if (str_starts_with($mime, 'image/')) {
+            $stored = $this->images->storeDataUrl($dataUrl, $folder, $replacePath, [
+                'maxBytes' => 5 * 1024 * 1024,
+                'label' => 'Justificatif',
+            ]);
+
+            return [
+                'justification_path' => $stored['url'],
+                'original_name' => $this->safeFileName($originalName, 'justificatif.webp'),
+                'mime_type' => $stored['mime'],
+                'size' => $stored['size'],
+                'uploaded_by' => $actor->id,
+            ];
         }
 
         $binary = base64_decode(substr($dataUrl, (int) strpos($dataUrl, ',') + 1), true);
@@ -922,33 +944,17 @@ class CashControlService
             $this->fail('Justificatif trop lourd', 400);
         }
 
-        $mime = $matches[1];
-        $ext = match ($mime) {
-            'application/pdf' => 'pdf',
-            'image/png' => 'png',
-            'image/jpeg', 'image/jpg' => 'jpg',
-            'image/webp' => 'webp',
-            default => 'bin',
-        };
+        $relativePath = 'assets/uploads/'.$folder.'/'.now()->format('YmdHis').'-'.Str::random(10).'.pdf';
 
-        $date = $day->cash_date?->format('Y-m-d') ?: CarbonImmutable::today()->format('Y-m-d');
-        $relativeDir = 'assets/uploads/cash-control/site-'.$day->site_id.'/'.$date;
-        $directory = public_path($relativeDir);
-
-        if (! File::isDirectory($directory) && ! File::makeDirectory($directory, 0755, true, true) && ! File::isDirectory($directory)) {
+        if (! Storage::disk('public')->put($relativePath, $binary, ['visibility' => 'public'])) {
             $this->fail('Impossible de stocker le justificatif', 500);
         }
 
-        $file = now()->format('YmdHis').'-'.Str::random(10).'.'.$ext;
-        $relativePath = $relativeDir.'/'.$file;
-
-        if (File::put(public_path($relativePath), $binary) === false) {
-            $this->fail('Impossible de stocker le justificatif', 500);
-        }
+        $this->images->deletePublicUpload($replacePath);
 
         return [
-            'justification_path' => '/'.str_replace('\\', '/', $relativePath),
-            'original_name' => $this->safeFileName($originalName, 'justificatif.'.$ext),
+            'justification_path' => '/storage/'.str_replace('\\', '/', $relativePath),
+            'original_name' => $this->safeFileName($originalName, 'justificatif.pdf'),
             'mime_type' => $mime,
             'size' => strlen($binary),
             'uploaded_by' => $actor->id,

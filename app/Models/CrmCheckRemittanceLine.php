@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CrmCore\Services\UploadedCrmFileCleaner;
 
 class CrmCheckRemittanceLine extends Model
 {
@@ -37,6 +38,19 @@ class CrmCheckRemittanceLine extends Model
             'ocr_confidence' => 'float',
             'sort_order' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (CrmCheckRemittanceLine $check): void {
+            if ($check->wasChanged('photo_path')) {
+                app(UploadedCrmFileCleaner::class)->deletePublicUpload($check->getOriginal('photo_path'));
+            }
+        });
+
+        static::deleted(function (CrmCheckRemittanceLine $check): void {
+            app(UploadedCrmFileCleaner::class)->deletePublicUpload($check->getAttribute('photo_path'));
+        });
     }
 
     public function remittance(): BelongsTo

@@ -11,6 +11,7 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CrmEquipmentRentalApiTest extends TestCase
@@ -298,7 +299,7 @@ class CrmEquipmentRentalApiTest extends TestCase
     {
         [$account, , $site] = $this->createCrmUser(['equipment_rentals.manage_items']);
 
-        $itemId = $this->actingAs($account)
+        $item = $this->actingAs($account)
             ->postJson('/api/equipment-rentals?action=save_equipment_item', [
                 'siteId' => $site->id,
                 'categoryName' => 'Outillage',
@@ -306,6 +307,7 @@ class CrmEquipmentRentalApiTest extends TestCase
                 'inventoryCode' => 'SCIE-TEST',
                 'description' => 'Materiel atelier',
                 'color' => '#123abc',
+                'photoDataUrl' => $this->crmPngDataUrl(),
                 'halfDayPrice' => '12,5',
                 'dayPrice' => '20',
                 'showDayPrice' => false,
@@ -318,13 +320,23 @@ class CrmEquipmentRentalApiTest extends TestCase
             ->assertJsonPath('equipmentItem.showDayPrice', false)
             ->assertJsonPath('equipmentItem.rentalMode', 'day_only')
             ->assertJsonPath('equipmentCategory.slug', 'outillage')
-            ->json('equipmentItem.id');
+            ->json('equipmentItem');
+
+        $itemId = (int) $item['id'];
+        $photoPath = substr((string) $item['photoUrl'], strlen('/storage/'));
+
+        $this->assertStringStartsWith('/storage/assets/uploads/equipment/', $item['photoUrl']);
+        Storage::disk('public')->assertExists($photoPath);
+        Storage::disk('public')->assertExists(str_replace('.webp', '-thumb.webp', $photoPath));
 
         $this->actingAs($account)
             ->postJson('/api/equipment-rentals?action=delete_equipment_item', ['id' => $itemId])
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('id', $itemId);
+
+        Storage::disk('public')->assertMissing($photoPath);
+        Storage::disk('public')->assertMissing(str_replace('.webp', '-thumb.webp', $photoPath));
 
         $this->assertDatabaseHas('crm_equipment_items', [
             'id' => $itemId,

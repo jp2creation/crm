@@ -11,6 +11,7 @@ use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CrmAdministrationApiTest extends TestCase
@@ -53,7 +54,7 @@ class CrmAdministrationApiTest extends TestCase
                 'lastName' => 'Martin',
                 'email' => 'jp.martin@example.test',
                 'bio' => 'Direction CRM',
-                'photoDataUrl' => 'data:image/png;base64,'.base64_encode('fake png content'),
+                'photoDataUrl' => $this->crmPngDataUrl(),
             ])
             ->assertOk()
             ->assertJsonPath('ok', true)
@@ -62,7 +63,8 @@ class CrmAdministrationApiTest extends TestCase
             ->assertJsonPath('profile.bio', 'Direction CRM')
             ->json('profile');
 
-        $this->assertStringStartsWith('/assets/uploads/profiles/photo_', $profile['photoUrl']);
+        $this->assertStringStartsWith('/storage/assets/uploads/profiles/', $profile['photoUrl']);
+        $this->assertStringEndsWith('.webp', $profile['photoUrl']);
 
         $this->assertDatabaseHas('crm_users', [
             'id' => $crmUser->id,
@@ -79,7 +81,9 @@ class CrmAdministrationApiTest extends TestCase
             'email' => 'jp.martin@example.test',
         ]);
 
-        @unlink(public_path(ltrim($profile['photoUrl'], '/')));
+        $storedPath = substr((string) $profile['photoUrl'], strlen('/storage/'));
+        Storage::disk('public')->delete($storedPath);
+        Storage::disk('public')->delete(str_replace('.webp', '-thumb.webp', $storedPath));
     }
 
     public function test_non_admin_profile_cannot_change_identity(): void

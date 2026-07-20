@@ -165,7 +165,7 @@ class CrmCheckRemittanceApiTest extends TestCase
                 'payerName' => 'Client Photo',
                 'invoiceNumber' => 'F-PHOTO',
                 'amount' => '88,20',
-                'photoDataUrl' => 'data:image/png;base64,'.base64_encode('fake png content'),
+                'photoDataUrl' => $this->crmPngDataUrl(),
                 'photoName' => 'cheque.png',
             ])
             ->assertOk()
@@ -196,7 +196,7 @@ class CrmCheckRemittanceApiTest extends TestCase
             ->postJson('/api/remise-cheques?action=detect_check_ocr', [
                 'siteId' => $site->id,
                 'remittanceId' => $remittanceId,
-                'photoDataUrl' => 'data:image/png;base64,'.base64_encode('fake png content'),
+                'photoDataUrl' => $this->crmPngDataUrl(),
                 'knownPayerNames' => ['Client Photo'],
             ])
             ->assertOk()

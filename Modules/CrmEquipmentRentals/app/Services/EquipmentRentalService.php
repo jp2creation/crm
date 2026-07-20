@@ -10,11 +10,11 @@ use App\Models\CrmUser;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Modules\CrmCore\Queries\ReservationConflictQuery;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
+use Modules\CrmCore\Services\CrmImageStorage;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
@@ -25,6 +25,7 @@ class EquipmentRentalService
         private readonly ReservationConflictQuery $conflicts,
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
+        private readonly CrmImageStorage $images,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -314,7 +315,12 @@ class EquipmentRentalService
             $photoUrl = $item->getAttribute('photo_url') ?: null;
 
             if (trim($photoDataUrl) !== '') {
-                $photoUrl = $this->saveDataImage($photoDataUrl, 'equipment') ?: $photoUrl;
+                $photoUrl = $this->images->storeDataUrl(
+                    $photoDataUrl,
+                    'equipment',
+                    $photoUrl,
+                    ['maxBytes' => 2 * 1024 * 1024],
+                )['url'];
             }
 
             $item->fill([
@@ -688,42 +694,6 @@ class EquipmentRentalService
         }
 
         return $date->format('Y-m-d H:i:s');
-    }
-
-    private function saveDataImage(string $dataUrl, string $folder): ?string
-    {
-        $dataUrl = trim($dataUrl);
-
-        if ($dataUrl === '') {
-            return null;
-        }
-
-        if (! preg_match('/^data:image\/(png|jpe?g|webp);base64,/', $dataUrl, $matches)) {
-            $this->fail('Photo invalide', 400);
-        }
-
-        $binary = base64_decode(substr($dataUrl, (int) strpos($dataUrl, ',') + 1), true);
-
-        if ($binary === false || strlen($binary) > 2 * 1024 * 1024) {
-            $this->fail('Photo trop lourde', 400);
-        }
-
-        $ext = $matches[1] === 'jpeg' ? 'jpg' : $matches[1];
-        $relativeDir = 'assets/uploads/'.$folder;
-        $dir = public_path($relativeDir);
-
-        if (! File::isDirectory($dir) && ! File::makeDirectory($dir, 0755, true, true) && ! File::isDirectory($dir)) {
-            $this->fail('Impossible de stocker la photo', 500);
-        }
-
-        $file = now()->format('YmdHis').'-'.Str::random(10).'.'.$ext;
-        $relativePath = $relativeDir.'/'.$file;
-
-        if (File::put(public_path($relativePath), $binary) === false) {
-            $this->fail('Impossible de stocker la photo', 500);
-        }
-
-        return '/'.str_replace('\\', '/', $relativePath);
     }
 
     private function decimal(mixed $value): float

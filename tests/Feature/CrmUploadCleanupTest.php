@@ -7,6 +7,7 @@ use App\Models\CrmSite;
 use App\Models\CrmVehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CrmUploadCleanupTest extends TestCase
@@ -16,6 +17,7 @@ class CrmUploadCleanupTest extends TestCase
     protected function tearDown(): void
     {
         File::deleteDirectory(public_path('assets/uploads/test-cleanup'));
+        File::deleteDirectory(storage_path('app/public/assets/uploads/test-cleanup'));
 
         parent::tearDown();
     }
@@ -58,6 +60,26 @@ class CrmUploadCleanupTest extends TestCase
         $this->assertFileDoesNotExist($photoPath);
     }
 
+    public function test_storage_upload_and_thumbnail_are_deleted_when_vehicle_is_hidden(): void
+    {
+        [$photoUrl, $photoPath, $thumbnailPath] = $this->fakeStorageUpload('vehicle.webp');
+        $site = $this->site();
+
+        $vehicle = CrmVehicle::query()->create([
+            'site_id' => $site->id,
+            'name' => 'Vehicule storage cleanup',
+            'description' => '',
+            'color' => '#95002e',
+            'photo_url' => $photoUrl,
+            'active' => true,
+        ]);
+
+        $vehicle->forceFill(['active' => false])->save();
+
+        $this->assertFileDoesNotExist($photoPath);
+        $this->assertFileDoesNotExist($thumbnailPath);
+    }
+
     /**
      * @return array{0: string, 1: string}
      */
@@ -70,6 +92,24 @@ class CrmUploadCleanupTest extends TestCase
         File::put($absolutePath, 'test image');
 
         return ['/'.$relativePath, $absolutePath];
+    }
+
+    /**
+     * @return array{0: string, 1: string, 2: string}
+     */
+    private function fakeStorageUpload(string $fileName): array
+    {
+        $relativePath = 'assets/uploads/test-cleanup/'.$fileName;
+        $thumbnailPath = str_replace('.webp', '-thumb.webp', $relativePath);
+
+        Storage::disk('public')->put($relativePath, 'test image');
+        Storage::disk('public')->put($thumbnailPath, 'test thumbnail');
+
+        return [
+            '/storage/'.$relativePath,
+            storage_path('app/public/'.$relativePath),
+            storage_path('app/public/'.$thumbnailPath),
+        ];
     }
 
     private function site(): CrmSite

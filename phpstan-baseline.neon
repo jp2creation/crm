@@ -469,12 +469,6 @@ parameters:
 			path: Modules/CrmCashControl/app/Services/CashControlService.php
 
 		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
-			path: Modules/CrmCashControl/app/Services/CashControlService.php
-
-		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\<string, mixed\>, Closure\(App\\Models\\CrmCashMovement\)\: array\<string, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -717,12 +711,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
-
-		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
 			count: 1
 			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
 
@@ -1735,12 +1723,6 @@ parameters:
 			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
 
 		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
-			path: Modules/CrmEquipmentRentals/app/Services/EquipmentRentalService.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\CrmLeaveBalance\:\:\$carried_over_days\.$#'
 			identifier: property.notFound
 			count: 2
@@ -2091,12 +2073,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmVehicle\:\:\$name\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/CrmReservations/app/Services/ReservationService.php
-
-		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
 			count: 1
 			path: Modules/CrmReservations/app/Services/ReservationService.php
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\CrmCore\Services\UploadedCrmFileCleaner;
 
 class CrmCashMovement extends Model
 {
@@ -35,6 +36,19 @@ class CrmCashMovement extends Model
             'sort_order' => 'integer',
             'size' => 'integer',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (CrmCashMovement $movement): void {
+            if ($movement->wasChanged('justification_path')) {
+                app(UploadedCrmFileCleaner::class)->deletePublicUpload($movement->getOriginal('justification_path'));
+            }
+        });
+
+        static::deleted(function (CrmCashMovement $movement): void {
+            app(UploadedCrmFileCleaner::class)->deletePublicUpload($movement->getAttribute('justification_path'));
+        });
     }
 
     /**
