@@ -55,11 +55,26 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('adminexOnly: true', $hosts);
         $this->assertStringContainsString("prefix: '/documents/'", $hosts);
         $this->assertStringContainsString('refreshStaleRouteOnce', $hosts);
+        $this->assertStringContainsString('clearCrmRuntimeCaches', $hosts);
+        $this->assertStringContainsString("const refreshStoragePrefix = 'crm:route-host-hard-refresh:v2:'", $hosts);
+        $this->assertStringContainsString("url.searchParams.set('_crm_refresh'", $hosts);
+        $this->assertStringContainsString('window.location.replace(refreshedRouteUrl())', $hosts);
         $this->assertStringContainsString('installRootObserver', $hosts);
         $this->assertStringContainsString('new MutationObserver', $hosts);
         $this->assertStringContainsString('moduleKeysForCurrentPath', $modules);
         $this->assertStringContainsString('requestIdleCallback', $modules);
         $this->assertStringContainsString("cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js')", $modules);
+
+        $mobileFallback = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
+        $shellCss = (string) file_get_contents(resource_path('frontend/crm/styles/shell.css'));
+
+        $this->assertStringContainsString("window.matchMedia('(max-width: 767.98px)')", $mobileFallback);
+        $this->assertStringContainsString('shouldUseFallbackNavigation', $mobileFallback);
+        $this->assertStringContainsString("document.body.classList.contains('crm-mobile-app')", $mobileFallback);
+        $this->assertStringContainsString("document.body.classList.contains('crm-mobile-embed')", $mobileFallback);
+        $this->assertStringContainsString('new MutationObserver', $mobileFallback);
+        $this->assertStringNotContainsString("if (!document.body.classList.contains('crm-mobile-app'))", $mobileFallback);
+        $this->assertStringContainsString('body.crm-mobile-fallback-nav-browser', $shellCss);
     }
 
     public function test_adminex_source_and_dependencies_are_available_for_migration(): void

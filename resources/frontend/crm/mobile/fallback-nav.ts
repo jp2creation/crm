@@ -2,6 +2,32 @@ import type { CrmMenuGroup, CrmMenuItem, CrmModule } from '../types/global';
 
 const fallbackId = 'crm-mobile-fallback-nav';
 const drawerId = 'crm-mobile-fallback-drawer';
+let fallbackObserver: MutationObserver | null = null;
+let fallbackObserverTimer: number | null = null;
+
+function mobileMediaQuery(): MediaQueryList | null {
+  return typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 767.98px)') : null;
+}
+
+function isStandaloneDisplay(): boolean {
+  const standaloneQuery = typeof window.matchMedia === 'function'
+    ? window.matchMedia('(display-mode: standalone)')
+    : null;
+
+  return Boolean(
+    mobileMediaQuery()?.matches
+      || standaloneQuery?.matches
+      || (navigator as Navigator & { standalone?: boolean }).standalone,
+  );
+}
+
+function shouldUseFallbackNavigation(): boolean {
+  return Boolean(
+    document.body.classList.contains('crm-mobile-app')
+      || document.body.classList.contains('crm-mobile-embed')
+      || isStandaloneDisplay(),
+  );
+}
 
 function logoUrl(): string {
   return window.MartinSolsCrmAssets?.logoUrl || '/assets/logo/martin-sols-logo.png';
@@ -177,9 +203,15 @@ function removeFallback(): void {
   document.getElementById(fallbackId)?.remove();
   document.getElementById(drawerId)?.remove();
   document.body.classList.remove('crm-mobile-fallback-nav-active');
+  document.body.classList.remove('crm-mobile-fallback-nav-browser');
 }
 
 function ensureFallback(): void {
+  if (!shouldUseFallbackNavigation()) {
+    removeFallback();
+    return;
+  }
+
   if (headerIsVisible()) {
     removeFallback();
     return;
@@ -204,6 +236,7 @@ function ensureFallback(): void {
   );
 
   document.body.classList.add('crm-mobile-fallback-nav-active');
+  document.body.classList.toggle('crm-mobile-fallback-nav-browser', !document.body.classList.contains('crm-mobile-app'));
   document.querySelector('[data-crm-mobile-fallback-open]')?.addEventListener('click', openDrawer);
   document.querySelectorAll('[data-crm-mobile-fallback-close]').forEach((button) => {
     button.addEventListener('click', closeDrawer);
@@ -211,25 +244,55 @@ function ensureFallback(): void {
 }
 
 function scheduleChecks(): void {
+  window.setTimeout(ensureFallback, 0);
+  window.setTimeout(ensureFallback, 240);
   window.setTimeout(ensureFallback, 900);
   window.setTimeout(ensureFallback, 1800);
   window.setTimeout(ensureFallback, 3200);
+  window.setTimeout(ensureFallback, 5200);
 }
 
-export function installMobileFallbackNavigation(): void {
-  if (!document.body.classList.contains('crm-mobile-app')) {
+function installFallbackObserver(): void {
+  if (fallbackObserver) {
     return;
   }
 
+  fallbackObserver = new MutationObserver(() => {
+    if (fallbackObserverTimer) {
+      window.clearTimeout(fallbackObserverTimer);
+    }
+
+    fallbackObserverTimer = window.setTimeout(() => {
+      fallbackObserverTimer = null;
+      ensureFallback();
+    }, 120);
+  });
+
+  fallbackObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+export function installMobileFallbackNavigation(): void {
+  const mobileQuery = mobileMediaQuery();
+
   document.addEventListener('DOMContentLoaded', scheduleChecks, { once: true });
   window.addEventListener('load', scheduleChecks);
+  window.addEventListener('resize', scheduleChecks);
   window.addEventListener('popstate', scheduleChecks);
   window.addEventListener('crm:navigation', () => {
     closeDrawer();
     scheduleChecks();
   });
 
+  if (mobileQuery && typeof mobileQuery.addEventListener === 'function') {
+    mobileQuery.addEventListener('change', scheduleChecks);
+  } else if (mobileQuery && typeof mobileQuery.addListener === 'function') {
+    mobileQuery.addListener(scheduleChecks);
+  }
+
   if (document.readyState !== 'loading') {
+    installFallbackObserver();
     scheduleChecks();
+  } else {
+    document.addEventListener('DOMContentLoaded', installFallbackObserver, { once: true });
   }
 }

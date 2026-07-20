@@ -14,6 +14,9 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $this->assertStringContainsString('var API="/api/equipment-rentals"', $equipmentAsset);
         $this->assertStringNotContainsString('/api/equipment-rentals.php', $equipmentAsset);
         $this->assertStringContainsString('./equipment-rentals-Codex2.js?v=202607192230', $indexAsset);
+        $this->assertStringContainsString('path:`locations-materiel`,element:$(equipy)', $indexAsset);
+        $this->assertStringContainsString('path:`locations-materiel/*`,element:$(equipy)', $indexAsset);
+        $this->assertStringContainsString('path:`location-materiel`,element:(0,z.jsx)(Rr,{to:`/locations-materiel`,replace:!0})', $indexAsset);
         $this->assertStringNotContainsString('./equipment-rentals-Codex2.js?v=202607191940', $indexAsset);
     }
 }

@@ -56,6 +56,12 @@ body.crm-mobile-app.crm-mobile-fallback-nav-active {
   padding-top: calc(max(34px, env(safe-area-inset-top)) + 64px);
 }
 
+body.crm-mobile-fallback-nav-browser {
+  overflow-x: hidden;
+  padding-top: 64px;
+  background: #f8fafc;
+}
+
 .crm-mobile-fallback-header {
   position: fixed;
   inset: max(34px, env(safe-area-inset-top)) 0 auto 0;
@@ -69,6 +75,10 @@ body.crm-mobile-app.crm-mobile-fallback-nav-active {
   background: rgb(255 255 255 / 0.96);
   box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
   backdrop-filter: blur(14px);
+}
+
+body.crm-mobile-fallback-nav-browser .crm-mobile-fallback-header {
+  inset: 0 0 auto 0;
 }
 
 .crm-mobile-fallback-menu-button,
@@ -144,6 +154,11 @@ body.crm-mobile-app.crm-mobile-fallback-nav-active {
   min-height: calc(max(34px, env(safe-area-inset-top)) + 78px);
   padding: max(22px, calc(env(safe-area-inset-top) + 18px)) 18px 14px;
   border-bottom: 1px solid rgb(226 232 240);
+}
+
+body.crm-mobile-fallback-nav-browser .crm-mobile-fallback-panel-header {
+  min-height: 78px;
+  padding: 18px 18px 14px;
 }
 
 .crm-mobile-fallback-panel-header img {

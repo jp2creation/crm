@@ -11,6 +11,11 @@ Route::view('/locations-materiel', 'crm')
     ->middleware(['auth', 'crm.module:locations-materiel,equipment_rentals.view,equipment_rentals.create,equipment_rentals.manage_items'])
     ->name('crm.locations-materiel');
 
+Route::view('/locations-materiel/{rentalPath}', 'crm')
+    ->where('rentalPath', '.*')
+    ->middleware(['auth', 'crm.module:locations-materiel,equipment_rentals.view,equipment_rentals.create,equipment_rentals.manage_items'])
+    ->name('crm.locations-materiel.deep-link');
+
 Route::get('/api/equipment-rentals/bootstrap', EquipmentRentalApiController::class)
     ->defaults('crm_action', 'bootstrap_light')
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:locations-materiel'])

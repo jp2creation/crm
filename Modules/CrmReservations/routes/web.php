@@ -11,6 +11,11 @@ Route::view('/reservations', 'crm')
     ->middleware(['auth', 'crm.module:reservations,reservations.view,reservations.create,reservations.manage_vehicles'])
     ->name('crm.reservations');
 
+Route::view('/reservations/{reservationPath}', 'crm')
+    ->where('reservationPath', '.*')
+    ->middleware(['auth', 'crm.module:reservations,reservations.view,reservations.create,reservations.manage_vehicles'])
+    ->name('crm.reservations.deep-link');
+
 Route::get('/api/reservations/bootstrap', ReservationApiController::class)
     ->defaults('crm_action', 'bootstrap_light')
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])

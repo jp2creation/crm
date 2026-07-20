@@ -73,7 +73,8 @@ const hostRoutes: CrmHostRoute[] = [
   },
 ];
 
-const refreshStoragePrefix = 'crm:route-host-refresh:';
+const refreshStoragePrefix = 'crm:route-host-hard-refresh:v2:';
+const maxRefreshAttempts = 2;
 let rootObserver: MutationObserver | null = null;
 let rootObserverTimer: number | null = null;
 
@@ -96,6 +97,33 @@ function pageLooksLikeAdminex404(): boolean {
   return /\b404\b/.test(text) && /page non trouv|not found/i.test(text);
 }
 
+async function clearCrmRuntimeCaches(): Promise<void> {
+  if (typeof caches !== 'undefined') {
+    const keys = await caches.keys();
+
+    await Promise.all(
+      keys
+        .filter((key) => key.startsWith('martin-sols-crm-'))
+        .map((key) => caches.delete(key)),
+    );
+  }
+
+  if (navigator.serviceWorker) {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+
+    await Promise.all(registrations.map((registration) => registration.update().catch(() => undefined)));
+    navigator.serviceWorker.controller?.postMessage({ type: 'SKIP_WAITING' });
+  }
+}
+
+function refreshedRouteUrl(): string {
+  const url = new URL(window.location.href);
+
+  url.searchParams.set('_crm_refresh', String(Date.now()));
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 function refreshStaleRouteOnce(): boolean {
   if (!pageLooksLikeAdminex404()) {
     return false;
@@ -104,20 +132,22 @@ function refreshStaleRouteOnce(): boolean {
   const key = `${refreshStoragePrefix}${normalizedPath()}`;
 
   try {
-    if (sessionStorage.getItem(key)) {
+    const attempt = Number(sessionStorage.getItem(key) || '0');
+
+    if (attempt >= maxRefreshAttempts) {
       return false;
     }
 
-    sessionStorage.setItem(key, '1');
+    sessionStorage.setItem(key, String(attempt + 1));
   } catch {
     return false;
   }
 
-  navigator.serviceWorker?.getRegistration('/')?.then((registration) => {
-    registration?.update().catch(() => undefined);
-  }).catch(() => undefined);
-
-  window.location.reload();
+  clearCrmRuntimeCaches()
+    .catch(() => undefined)
+    .finally(() => {
+      window.location.replace(refreshedRouteUrl());
+    });
 
   return true;
 }
