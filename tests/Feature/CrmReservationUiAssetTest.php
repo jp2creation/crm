@@ -114,8 +114,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-notes', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=202607191940', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=202607191940', $indexAsset);
+        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=202607200930', $indexAsset);
+        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=202607200930', $indexAsset);
         foreach ([
             '2026071404',
             '2026071602',
@@ -131,7 +131,9 @@ class CrmReservationUiAssetTest extends TestCase
             '2026071711',
             '2026071712',
             '2026071713',
+            '202607191940',
         ] as $legacyVersion) {
+            $this->assertStringNotContainsString('assets/reservations-CSr_CND1.js?v='.$legacyVersion, $indexAsset);
             $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v='.$legacyVersion, $indexAsset);
         }
     }
