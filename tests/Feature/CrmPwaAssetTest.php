@@ -168,10 +168,13 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString("installAllowedPaths = ['/', '/login', '/dashboard/crm']", $publicScript);
         $this->assertStringContainsString('isInstallButtonAllowedPath', $publicScript);
         $this->assertStringContainsString('isMobileShell', $publicScript);
-        $this->assertStringContainsString('patchedPwaInstallHistoryState', $publicScript);
+        $this->assertStringContainsString("window.addEventListener('crm:navigation', routeChanged)", $publicScript);
+        $this->assertStringNotContainsString('patchedPwaInstallHistoryState', $publicScript);
         $this->assertStringContainsString("document.visibilityState === 'visible'", $publicScript);
-        $this->assertStringContainsString('background:#fff;color:#95002e', $publicScript);
-        $this->assertStringContainsString('button.textContent = "Installer"', $publicScript);
+        $this->assertStringContainsString('grid-template-columns:3rem 1px minmax(0,1fr) 1.45rem', $publicScript);
+        $this->assertStringContainsString('crm-pwa-install-icon', $publicScript);
+        $this->assertStringContainsString('Installer l&apos;application', $publicScript);
+        $this->assertStringContainsString('crm-pwa-install-chevron', $publicScript);
         $this->assertStringNotContainsString('left:16px;right:16px;bottom:86px', $publicScript);
     }
 
@@ -197,6 +200,7 @@ class CrmPwaAssetTest extends TestCase
 
         $this->assertSame(1, substr_count($html, 'id="brand-morph-loader"'));
         $this->assertStringContainsString('class="brand-morph-loader"', $html);
+        $this->assertStringContainsString('data-brand-loader-error', $html);
         $this->assertStringContainsString("loader.classList.add('is-visible')", $html);
         $this->assertStringContainsString('modules/crm-core/brand-morph-loader.css', $html);
         $this->assertStringContainsString('modules/crm-core/brand-morph-loader.js', $html);
@@ -219,8 +223,15 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('--logo-thickness: 24%', $publicCss);
         $this->assertStringContainsString('@keyframes morph-top', $publicCss);
         $this->assertStringContainsString('border-radius: 7px', $publicCss);
+        $this->assertStringContainsString('.brand-morph-loader.is-error', $publicCss);
         $this->assertStringContainsString('window.BrandMorphLoader', $publicScript);
-        $this->assertStringContainsString('activeRequests', $publicScript);
+        $this->assertStringContainsString('window.CrmLoader = window.BrandMorphLoader', $publicScript);
+        $this->assertStringContainsString('activeOperations', $publicScript);
+        $this->assertStringContainsString('crmNavigationHistoryState', $publicScript);
+        $this->assertStringContainsString("window.dispatchEvent(new CustomEvent('crm:navigation'", $publicScript);
+        $this->assertStringContainsString("window.addEventListener('crm:module-error'", $publicScript);
+        $this->assertStringContainsString('if (event.defaultPrevented) return', $publicScript);
+        $this->assertStringContainsString('[data-no-loader], [data-ajax], [data-crm-ajax-form]', $publicScript);
         $this->assertStringContainsString('forceHide', $publicScript);
         $this->assertStringContainsString('(display-mode: standalone)', $publicAppScript);
         $this->assertStringContainsString('minimumStartupMs = isStandalone ? 950 : 520', $publicAppScript);
@@ -234,8 +245,28 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root{opacity:0!important', $publicAppScript);
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root [class~="animate-spin"]', $publicAppScript);
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root [class*="loading"]', $publicAppScript);
-        $this->assertStringContainsString('patchedBrandLoaderHistoryState', $publicAppScript);
+        $this->assertStringContainsString("window.addEventListener('crm:navigation', startRouteMonitor)", $publicAppScript);
+        $this->assertStringNotContainsString('patchedBrandLoaderHistoryState', $publicAppScript);
         $this->assertStringContainsString('brand-morph-loader-app-style', $publicAppScript);
         $this->assertStringContainsString('backdrop-filter:none', $publicAppScript);
+    }
+
+    public function test_module_overlays_do_not_patch_browser_history_locally(): void
+    {
+        $allowed = [
+            base_path('Modules/CrmCore/resources/assets/brand-morph-loader.js'),
+        ];
+
+        foreach (glob(base_path('Modules/*/resources/assets/*.js')) ?: [] as $assetPath) {
+            if (in_array($assetPath, $allowed, true)) {
+                continue;
+            }
+
+            $asset = (string) file_get_contents($assetPath);
+
+            $this->assertStringNotContainsString('history[method] =', $asset, $assetPath);
+            $this->assertStringNotContainsString('history.pushState =', $asset, $assetPath);
+            $this->assertStringNotContainsString('history.replaceState =', $asset, $assetPath);
+        }
     }
 }

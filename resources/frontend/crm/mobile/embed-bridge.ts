@@ -1,5 +1,4 @@
 type BridgePayload = Record<string, unknown>;
-type HistoryStateArgs = [data: unknown, unused: string, url?: string | URL | null];
 
 function send(type: string, payload: BridgePayload = {}): void {
   try {
@@ -24,20 +23,6 @@ function notifyNavigation(): void {
   send('crm:navigation', {
     path: currentPath(),
     title: document.title || '',
-  });
-}
-
-function patchHistoryForBridge(): void {
-  (['pushState', 'replaceState'] as const).forEach((method) => {
-    const original = history[method].bind(history);
-
-    history[method] = ((...args: HistoryStateArgs) => {
-      const result = original(...args);
-
-      window.setTimeout(notifyNavigation, 0);
-
-      return result;
-    }) as History[typeof method];
   });
 }
 
@@ -99,6 +84,7 @@ function installMobileMessageBridge(): void {
 }
 
 function installNavigationNotifications(): void {
+  window.addEventListener('crm:navigation', notifyNavigation);
   window.addEventListener('popstate', notifyNavigation);
   window.addEventListener('load', notifyNavigation);
 
@@ -115,7 +101,6 @@ export function installMobileEmbedBridge(): void {
     return;
   }
 
-  patchHistoryForBridge();
   installExternalLinkBridge();
   installMobileMessageBridge();
   installNavigationNotifications();

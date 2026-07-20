@@ -150,16 +150,9 @@
     if (window.__crmCashControlRouteWatcher) return;
     window.__crmCashControlRouteWatcher = true;
 
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = history[method];
-      history[method] = function (...args) {
-        const result = original.apply(this, args);
-        window.dispatchEvent(new Event("crm:cash-route-changed"));
-        return result;
-      };
-    });
-
     window.addEventListener("popstate", () => window.dispatchEvent(new Event("crm:cash-route-changed")));
+    window.addEventListener("crm:navigation", syncRouteIntent);
+    window.addEventListener("crm:route-changed", syncRouteIntent);
     window.addEventListener("crm:cash-route-changed", syncRouteIntent);
   }
 

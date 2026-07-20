@@ -1070,14 +1070,8 @@
   if (!window.__crmAccountSettingsRouteWatcher) {
     window.__crmAccountSettingsRouteWatcher = true;
 
-    ['pushState', 'replaceState'].forEach((method) => {
-      const original = history[method];
-      history[method] = function (...args) {
-        const result = original.apply(this, args);
-        scheduleBoot(true);
-        return result;
-      };
-    });
+    window.addEventListener('crm:navigation', () => scheduleBoot(true));
+    window.addEventListener('crm:route-changed', () => scheduleBoot(true));
   }
 
   const observer = new MutationObserver(() => scheduleBoot());

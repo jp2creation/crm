@@ -70,33 +70,6 @@
     document.documentElement.classList.remove("crm-sales-tours-route", "crm-sales-tours-pending");
   }
 
-  function isSafeOutlet(element) {
-    if (!element) return false;
-    if (element === document.body) return false;
-    if (element.id === "root") return false;
-    if (element.matches("main, #root > div, aside, header, .layout-header")) return false;
-    if (element.closest("aside, header, .layout-header")) return false;
-    return true;
-  }
-
-  function findOutlet() {
-    const activeModuleHost = reclaimableHostIds
-      .map((id) => document.getElementById(id))
-      .find(isSafeOutlet);
-
-    return activeModuleHost || Array.from(document.querySelectorAll("main .layout-container.layout-page, main .layout-page, .layout-container.layout-page"))
-      .find(isSafeOutlet) || null;
-  }
-
-  function placeHost(outlet, host) {
-    if (outlet.id && reclaimableHostIds.includes(outlet.id)) {
-      outlet.replaceWith(host);
-      return;
-    }
-
-    outlet.replaceChildren(host);
-  }
-
   function ensureHost() {
     if (!isRoute()) {
       clearRouteClass();
@@ -105,13 +78,8 @@
 
     let host = document.getElementById(rootId);
     if (!host) {
-      const outlet = findOutlet();
-      if (!isSafeOutlet(outlet)) return false;
-
-      host = document.createElement("div");
-      host.id = rootId;
-      host.textContent = "Chargement du rapport de visite...";
-      placeHost(outlet, host);
+      syncRouteClass();
+      return false;
     }
 
     root = host;
@@ -1002,15 +970,8 @@
   function watchRouteChanges() {
     if (window.__crmSalesToursRouteWatcher) return;
     window.__crmSalesToursRouteWatcher = true;
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = history[method];
-      history[method] = function (...args) {
-        const result = original.apply(this, args);
-        window.dispatchEvent(new Event(routeEvent));
-        return result;
-      };
-    });
     window.addEventListener("popstate", () => window.dispatchEvent(new Event(routeEvent)));
+    window.addEventListener("crm:navigation", () => scheduleMount(true));
     window.addEventListener("crm:route-changed", () => scheduleMount(true));
     window.addEventListener(routeEvent, () => scheduleMount(true));
   }

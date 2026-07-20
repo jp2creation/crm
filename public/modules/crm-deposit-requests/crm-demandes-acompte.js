@@ -487,15 +487,8 @@
   function watchRouteChanges() {
     if (window.__crmDepositRequestsRouteWatcher) return;
     window.__crmDepositRequestsRouteWatcher = true;
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = history[method];
-      history[method] = function (...args) {
-        const result = original.apply(this, args);
-        window.dispatchEvent(new Event("crm:deposit-requests-route-changed"));
-        return result;
-      };
-    });
     window.addEventListener("popstate", () => window.dispatchEvent(new Event("crm:deposit-requests-route-changed")));
+    window.addEventListener("crm:navigation", () => window.setTimeout(boot, 0));
     window.addEventListener("crm:route-changed", () => window.setTimeout(boot, 0));
     window.addEventListener("crm:deposit-requests-route-changed", () => window.setTimeout(boot, 0));
   }

@@ -33,7 +33,9 @@ class CrmLeaveExportUiAssetTest extends TestCase
         $this->assertStringContainsString('const routeEvent = "crm:leaves-route-changed";', $public);
         $this->assertStringContainsString('function scheduleBoot(reset = false)', $public);
         $this->assertStringContainsString('mountAttempts < 18', $public);
-        $this->assertStringContainsString('window.dispatchEvent(new Event(routeEvent))', $public);
+        $this->assertStringContainsString('window.addEventListener("crm:navigation", () => scheduleBoot(true))', $public);
+        $this->assertStringNotContainsString('history.pushState =', $public);
+        $this->assertStringNotContainsString('history.replaceState =', $public);
         $this->assertStringNotContainsString('observer.observe(document.documentElement', $public);
         $this->assertStringNotContainsString('new MutationObserver(() => tryBoot())', $public);
     }

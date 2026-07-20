@@ -16,7 +16,9 @@
     const loadingTextPattern = /(Chargement|Loading)/i;
     const loadingErrorPattern = /(Chargement impossible|Loading failed)/i;
     const styleId = 'brand-morph-loader-app-style';
-    let hideTimer = null;
+    const startupKey = 'crm:startup';
+    const routeKey = 'crm:route';
+    const timers = new Map();
     let rootObserver = null;
     let monitoredUntil = startedAt + maxStartupWait;
 
@@ -24,11 +26,8 @@
         return window.performance ? performance.now() : Date.now();
     }
 
-    function showNow() {
-        ensureAppStyle();
-        clearTimeout(hideTimer);
-        loader.classList.add('is-visible');
-        loader.setAttribute('aria-hidden', 'false');
+    function loaderApi() {
+        return window.CrmLoader || window.BrandMorphLoader || null;
     }
 
     function ensureAppStyle() {
@@ -51,16 +50,68 @@
         document.head.appendChild(style);
     }
 
-    function forceHide() {
-        clearTimeout(hideTimer);
+    function directVisible(visible) {
+        loader.classList.toggle('is-visible', visible);
+        loader.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
 
-        if (window.BrandMorphLoader && typeof window.BrandMorphLoader.forceHide === 'function') {
-            window.BrandMorphLoader.forceHide();
+    function beginOperation(key, timeout, timeoutMessage) {
+        ensureAppStyle();
+
+        const api = loaderApi();
+
+        if (api && typeof api.begin === 'function') {
+            api.begin(key, { delay: 0, timeout, timeoutMessage });
             return;
         }
 
-        loader.classList.remove('is-visible');
-        loader.setAttribute('aria-hidden', 'true');
+        if (api && typeof api.show === 'function') {
+            api.show(0);
+            return;
+        }
+
+        directVisible(true);
+    }
+
+    function endOperation(key) {
+        const api = loaderApi();
+
+        if (api && typeof api.end === 'function') {
+            api.end(key);
+            return;
+        }
+
+        if (api && typeof api.hide === 'function') {
+            api.hide();
+            return;
+        }
+
+        directVisible(false);
+    }
+
+    function failOperation(key, error) {
+        const api = loaderApi();
+
+        if (api && typeof api.fail === 'function') {
+            api.fail(key, error);
+            return;
+        }
+
+        directVisible(true);
+        loader.classList.add('is-error');
+    }
+
+    function setOperationTimer(key, callback, delay) {
+        const existing = timers.get(key);
+
+        if (existing) {
+            window.clearTimeout(existing);
+        }
+
+        timers.set(key, window.setTimeout(() => {
+            timers.delete(key);
+            callback();
+        }, delay));
     }
 
     function appIsReady() {
@@ -95,7 +146,6 @@
         if (!root) return false;
 
         const text = root.textContent || '';
-
         const hasLoadingText = loadingTextPattern.test(text) && !loadingErrorPattern.test(text);
 
         if (hasLoadingText) {
@@ -119,12 +169,6 @@
         for (const candidate of candidates) {
             if (loader.contains(candidate) || !isVisible(candidate)) continue;
 
-            const candidateText = candidate.textContent || '';
-
-            if (hasLoadingText && loadingTextPattern.test(candidateText) && !loadingErrorPattern.test(candidateText)) {
-                return true;
-            }
-
             if (isSpinnerCandidate(candidate)) {
                 return true;
             }
@@ -144,11 +188,7 @@
             if (now() > monitoredUntil || loader.classList.contains('is-visible')) return;
             if (!hasBlockingLoader()) return;
 
-            const transitionStartedAt = now();
-
-            showNow();
-            monitorTransition(transitionStartedAt, maxRouteWait);
-            hideRouteWhenReady(transitionStartedAt);
+            startRouteMonitor();
         });
 
         rootObserver.observe(document.body, {
@@ -161,9 +201,9 @@
     function hideWhenReady() {
         const wait = Math.max(0, minimumStartupMs - (now() - startedAt));
 
-        hideTimer = window.setTimeout(() => {
+        setOperationTimer(startupKey, () => {
             if (now() - startedAt >= maxStartupWait || (appIsReady() && !hasBlockingLoader())) {
-                forceHide();
+                endOperation(startupKey);
                 return;
             }
 
@@ -177,11 +217,11 @@
             ? transitionPollMs
             : Math.max(transitionPollMs, minimumRouteMs - elapsed);
 
-        hideTimer = window.setTimeout(() => {
+        setOperationTimer(routeKey, () => {
             const currentElapsed = now() - routeStartedAt;
 
             if (currentElapsed >= maxRouteWait || (currentElapsed >= minimumRouteMs && !hasBlockingLoader())) {
-                forceHide();
+                endOperation(routeKey);
                 return;
             }
 
@@ -189,41 +229,38 @@
         }, nextDelay);
     }
 
-    function routeSettled() {
+    function startRouteMonitor() {
         const transitionStartedAt = now();
 
-        showNow();
+        beginOperation(routeKey, maxRouteWait, 'Le module met trop de temps a charger.');
         monitorTransition(transitionStartedAt, maxRouteWait);
         hideRouteWhenReady(transitionStartedAt);
     }
 
-    ['pushState', 'replaceState'].forEach((method) => {
-        const original = history[method];
+    function handleImportError(event) {
+        const detail = event && event.detail ? event.detail : {};
 
-        history[method] = function patchedBrandLoaderHistoryState() {
-            const result = original.apply(this, arguments);
-            routeSettled();
+        failOperation(detail.key || routeKey, detail.error || detail.message || 'Chargement du module impossible.');
+    }
 
-            return result;
-        };
-    });
-
-    showNow();
+    ensureAppStyle();
+    beginOperation(startupKey, maxStartupWait, 'Le CRM met trop de temps a charger.');
     observeLoadingMutations();
 
     window.addEventListener('pageshow', () => {
-        showNow();
+        beginOperation(startupKey, maxStartupWait, 'Le CRM met trop de temps a charger.');
         monitorTransition(startedAt, maxStartupWait);
         hideWhenReady();
     });
 
     window.addEventListener('load', () => {
-        showNow();
+        beginOperation(startupKey, maxStartupWait, 'Le CRM met trop de temps a charger.');
         monitorTransition(startedAt, maxStartupWait);
         hideWhenReady();
     });
 
-    window.addEventListener('popstate', routeSettled);
+    window.addEventListener('crm:navigation', startRouteMonitor);
+    window.addEventListener('crm:module-error', handleImportError);
 
     if (document.readyState === 'complete') {
         hideWhenReady();

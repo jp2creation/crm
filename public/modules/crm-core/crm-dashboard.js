@@ -507,31 +507,15 @@
     }, 100);
   }
 
-  function installRouteObserver() {
-    if (window.__crmDashboardRouteObserverInstalled) return;
-
-    window.__crmDashboardRouteObserverInstalled = true;
-
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = window.history[method];
-      window.history[method] = function (...args) {
-        const result = original.apply(this, args);
-        window.dispatchEvent(new Event(routeChangeEvent));
-        window.dispatchEvent(new Event("crm:route-changed"));
-        return result;
-      };
-    });
-  }
-
   function handleRouteChange() {
     if (!isHome()) return;
     window.setTimeout(() => scheduleMount({ force: shouldReload() }), 0);
   }
 
-  installRouteObserver();
   document.addEventListener("DOMContentLoaded", scheduleMount);
   window.addEventListener("load", scheduleMount);
-  window.addEventListener("popstate", () => window.dispatchEvent(new Event(routeChangeEvent)));
+  window.addEventListener("popstate", handleRouteChange);
+  window.addEventListener("crm:navigation", handleRouteChange);
   window.addEventListener("crm:route-changed", handleRouteChange);
   window.addEventListener(routeChangeEvent, handleRouteChange);
   window.addEventListener(activeSiteEvent, () => {

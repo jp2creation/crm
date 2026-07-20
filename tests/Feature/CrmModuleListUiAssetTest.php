@@ -19,8 +19,10 @@ class CrmModuleListUiAssetTest extends TestCase
         $this->assertStringContainsString('<th>Suite</th>', $public);
         $this->assertStringContainsString('class="visit-chip"', $public);
         $this->assertStringContainsString('"crm-leaves-module"', $public);
-        $this->assertStringContainsString('reclaimableHostIds.includes(outlet.id)', $public);
-        $this->assertStringContainsString('outlet.replaceWith(host)', $public);
+        $this->assertStringContainsString('const reclaimableHostIds = [', $public);
+        $this->assertStringContainsString('return false;', $public);
+        $this->assertStringNotContainsString('outlet.replaceWith(host)', $public);
+        $this->assertStringNotContainsString('outlet.replaceChildren(host)', $public);
         $this->assertStringContainsString('html.crm-sales-tours-pending #crm-leaves-module', $public);
         $this->assertStringNotContainsString('class="visit-list"', $public);
         $this->assertStringNotContainsString('class="visit-card"', $public);

@@ -8,5 +8,7 @@
             <span class="segment segment--bottom"></span>
             <span class="segment segment--left"></span>
         </div>
+        <p class="brand-morph-loader__message" data-brand-loader-message>Connexion...</p>
+        <p class="brand-morph-loader__error" data-brand-loader-error></p>
     </div>
 </div>

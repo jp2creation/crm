@@ -2,7 +2,6 @@ import type { CrmMenuGroup, CrmMenuItem, CrmModule } from '../types/global';
 
 const fallbackId = 'crm-mobile-fallback-nav';
 const drawerId = 'crm-mobile-fallback-drawer';
-type HistoryStateArgs = [data: unknown, unused: string, url?: string | URL | null];
 
 function logoUrl(): string {
   return window.MartinSolsCrmAssets?.logoUrl || '/assets/logo/martin-sols-logo.png';
@@ -217,21 +216,6 @@ function scheduleChecks(): void {
   window.setTimeout(ensureFallback, 3200);
 }
 
-function patchHistoryForFallback(): void {
-  (['pushState', 'replaceState'] as const).forEach((method) => {
-    const original = history[method].bind(history);
-
-    history[method] = ((...args: HistoryStateArgs) => {
-      const result = original(...args);
-
-      closeDrawer();
-      scheduleChecks();
-
-      return result;
-    }) as History[typeof method];
-  });
-}
-
 export function installMobileFallbackNavigation(): void {
   if (!document.body.classList.contains('crm-mobile-app')) {
     return;
@@ -240,7 +224,10 @@ export function installMobileFallbackNavigation(): void {
   document.addEventListener('DOMContentLoaded', scheduleChecks, { once: true });
   window.addEventListener('load', scheduleChecks);
   window.addEventListener('popstate', scheduleChecks);
-  patchHistoryForFallback();
+  window.addEventListener('crm:navigation', () => {
+    closeDrawer();
+    scheduleChecks();
+  });
 
   if (document.readyState !== 'loading') {
     scheduleChecks();

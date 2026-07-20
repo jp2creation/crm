@@ -3,34 +3,195 @@
 
     if (!loader) return;
 
+    const activeOperations = new Map();
+    const legacyOperations = [];
     let timer = null;
-    let activeRequests = 0;
+    let sequence = 0;
 
-    function show(delay = 100) {
-        activeRequests += 1;
+    function errorElement() {
+        return loader.querySelector('[data-brand-loader-error]');
+    }
+
+    function setVisible(visible) {
+        loader.classList.toggle('is-visible', visible);
+        loader.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    }
+
+    function clearError() {
+        loader.classList.remove('is-error');
+
+        const error = errorElement();
+        if (error) error.textContent = '';
+    }
+
+    function scheduleVisible(delay = 100) {
         clearTimeout(timer);
 
+        if (delay <= 0) {
+            setVisible(true);
+            return;
+        }
+
         timer = window.setTimeout(() => {
-            loader.classList.add('is-visible');
-            loader.setAttribute('aria-hidden', 'false');
+            setVisible(true);
         }, delay);
     }
 
-    function hide() {
-        activeRequests = Math.max(0, activeRequests - 1);
+    function operationId(key) {
+        return String(key || `crm-loader:${++sequence}`);
+    }
 
-        if (activeRequests > 0) return;
+    function begin(key, options = {}) {
+        const id = operationId(key);
+        const timeout = Number(options.timeout ?? 12000);
+        const delay = Number(options.delay ?? 100);
+        const existing = activeOperations.get(id);
+
+        if (existing && existing.timer) {
+            window.clearTimeout(existing.timer);
+        }
+
+        clearError();
+
+        const operation = {
+            startedAt: Date.now(),
+            timer: null
+        };
+
+        if (timeout > 0) {
+            operation.timer = window.setTimeout(() => {
+                fail(id, options.timeoutMessage || 'Chargement trop long. Rechargez la page si cela continue.');
+            }, timeout);
+        }
+
+        activeOperations.set(id, operation);
+        scheduleVisible(delay);
+
+        return id;
+    }
+
+    function complete(key) {
+        const id = operationId(key);
+        const operation = activeOperations.get(id);
+
+        if (!operation) return;
+
+        if (operation.timer) {
+            window.clearTimeout(operation.timer);
+        }
+
+        activeOperations.delete(id);
+
+        if (activeOperations.size > 0 || loader.classList.contains('is-error')) return;
 
         clearTimeout(timer);
-        loader.classList.remove('is-visible');
-        loader.setAttribute('aria-hidden', 'true');
+        setVisible(false);
+    }
+
+    function show(delay = 100) {
+        const id = `crm-loader:legacy:${++sequence}`;
+
+        legacyOperations.push(id);
+        begin(id, { delay, timeout: 0 });
+
+        return id;
+    }
+
+    function hide(key) {
+        complete(key || legacyOperations.pop());
+    }
+
+    function fail(key, error) {
+        const id = key ? operationId(key) : null;
+        const operation = id ? activeOperations.get(id) : null;
+        const message = error instanceof Error
+            ? error.message
+            : String(error || 'Chargement impossible.');
+
+        if (operation && operation.timer) {
+            window.clearTimeout(operation.timer);
+        }
+
+        if (id) {
+            activeOperations.delete(id);
+        }
+
+        clearTimeout(timer);
+        loader.classList.add('is-error');
+        setVisible(true);
+
+        const element = errorElement();
+        if (element) element.textContent = message;
     }
 
     function forceHide() {
-        activeRequests = 0;
+        for (const operation of activeOperations.values()) {
+            if (operation.timer) {
+                window.clearTimeout(operation.timer);
+            }
+        }
+
+        activeOperations.clear();
+        legacyOperations.length = 0;
         clearTimeout(timer);
-        loader.classList.remove('is-visible');
-        loader.setAttribute('aria-hidden', 'true');
+        clearError();
+        setVisible(false);
+    }
+
+    function track(key, promise, options = {}) {
+        const id = begin(key, options);
+
+        return Promise.resolve(promise)
+            .then((value) => {
+                complete(id);
+                return value;
+            })
+            .catch((error) => {
+                fail(id, error);
+                throw error;
+            });
+    }
+
+    function dispatchNavigation(method, previousHref) {
+        const detail = {
+            method,
+            href: window.location.href,
+            path: window.location.pathname,
+            previousHref
+        };
+
+        try {
+            window.dispatchEvent(new CustomEvent('crm:navigation', { detail }));
+        } catch (error) {
+            window.dispatchEvent(new Event('crm:navigation'));
+        }
+
+        window.dispatchEvent(new Event('crm:route-changed'));
+    }
+
+    function installNavigationBus() {
+        if (window.__crmNavigationInstalled) return;
+
+        window.__crmNavigationInstalled = true;
+
+        ['pushState', 'replaceState'].forEach((method) => {
+            const original = window.history[method];
+
+            window.history[method] = function crmNavigationHistoryState() {
+                const previousHref = window.location.href;
+                const result = original.apply(this, arguments);
+
+                window.setTimeout(() => dispatchNavigation(method, previousHref), 0);
+
+                return result;
+            };
+        });
+
+        window.addEventListener('popstate', () => dispatchNavigation('popstate', null));
+    }
+
+    function eventDetail(event) {
+        return event && typeof event === 'object' && 'detail' in event ? event.detail || {} : {};
     }
 
     document.addEventListener('click', (event) => {
@@ -55,14 +216,63 @@
         if (!ignored) show();
     });
 
-    document.addEventListener('submit', () => show());
+    document.addEventListener('submit', (event) => {
+        if (event.defaultPrevented) return;
 
-    window.addEventListener('pageshow', forceHide);
-    window.addEventListener('load', forceHide);
+        const target = event.target;
+        const form = target instanceof HTMLFormElement
+            ? target
+            : target && typeof target.closest === 'function'
+                ? target.closest('form')
+                : null;
+
+        if (!form) return;
+        if (form.method && form.method.toLowerCase() === 'dialog') return;
+        if (form.matches('[data-no-loader], [data-ajax], [data-crm-ajax-form]')) return;
+        if (form.closest('[data-no-loader]')) return;
+
+        show();
+    });
+
+    window.addEventListener('crm:module-loading', (event) => {
+        const detail = eventDetail(event);
+        begin(detail.key || 'crm:module', {
+            delay: detail.delay ?? 0,
+            timeout: detail.timeout ?? 12000,
+            timeoutMessage: detail.timeoutMessage
+        });
+    });
+
+    window.addEventListener('crm:module-ready', (event) => {
+        complete(eventDetail(event).key || 'crm:module');
+    });
+
+    window.addEventListener('crm:module-error', (event) => {
+        const detail = eventDetail(event);
+        fail(detail.key || 'crm:module', detail.error || detail.message || 'Chargement du module impossible.');
+    });
+
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) forceHide();
+    });
+
+    window.addEventListener('load', () => {
+        if (activeOperations.size === 0) {
+            forceHide();
+        }
+    });
+
+    installNavigationBus();
 
     window.BrandMorphLoader = {
+        begin,
+        end: complete,
+        fail,
         show,
         hide,
-        forceHide
+        forceHide,
+        track
     };
+
+    window.CrmLoader = window.BrandMorphLoader;
 })();

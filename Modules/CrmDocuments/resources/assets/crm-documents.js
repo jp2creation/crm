@@ -3,6 +3,8 @@
   const routePattern = /^\/documents\/(promo|fiches-techniques|procedures)$/;
   const mountedRoots = new WeakSet();
   let root = null;
+  let hostRetryTimer = null;
+  let hostRetryAttempts = 0;
 
   const state = {
     data: null,
@@ -581,15 +583,17 @@
     const explicit = document.querySelector("[data-crm-module-outlet]");
     if (explicit) return explicit;
 
-    const mains = [...document.querySelectorAll("main")];
-    if (mains.length) return mains[mains.length - 1];
+    return null;
+  }
 
-    const layout = document.querySelector(".layout-container.layout-page") || document.querySelector(".layout-page");
-    if (!layout) return null;
+  function scheduleEnsureHost() {
+    if (hostRetryTimer || hostRetryAttempts >= 40) return;
 
-    const candidates = [...layout.querySelectorAll("section,main,[class*='content'],[class*='page']")]
-      .filter((element) => !element.closest("aside") && element !== layout);
-    return candidates[candidates.length - 1] || null;
+    hostRetryAttempts += 1;
+    hostRetryTimer = window.setTimeout(() => {
+      hostRetryTimer = null;
+      ensureHost();
+    }, hostRetryAttempts < 8 ? 80 : 180);
   }
 
   function ensureHost() {
@@ -598,7 +602,10 @@
     let host = document.getElementById("crm-documents-module");
     if (!host) {
       const outlet = findOutlet();
-      if (!outlet) return;
+      if (!outlet) {
+        scheduleEnsureHost();
+        return;
+      }
 
       host = document.createElement("div");
       host.id = "crm-documents-module";
@@ -607,11 +614,12 @@
       if (outlet.id === "crm-documents-module") {
         host = outlet;
       } else {
-        outlet.innerHTML = "";
+        while (outlet.firstChild) outlet.firstChild.remove();
         outlet.appendChild(host);
       }
     }
 
+    hostRetryAttempts = 0;
     root = host;
 
     if (mountedRoots.has(host) && state.category === categoryFromPath()) {
@@ -711,16 +719,8 @@
     if (window.__crmDocumentsRouteWatcher) return;
     window.__crmDocumentsRouteWatcher = true;
 
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = history[method];
-      history[method] = function (...args) {
-        const result = original.apply(this, args);
-        window.dispatchEvent(new Event("crm:documents-route-changed"));
-        return result;
-      };
-    });
-
     window.addEventListener("popstate", () => window.dispatchEvent(new Event("crm:documents-route-changed")));
+    window.addEventListener("crm:navigation", () => window.setTimeout(ensureHost, 0));
     window.addEventListener("crm:route-changed", () => window.setTimeout(ensureHost, 0));
     window.addEventListener("crm:documents-route-changed", () => window.setTimeout(ensureHost, 0));
   }

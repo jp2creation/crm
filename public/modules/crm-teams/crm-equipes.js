@@ -439,16 +439,9 @@
     if (window.__crmTeamsRouteWatcher) return;
     window.__crmTeamsRouteWatcher = true;
 
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = history[method];
-      history[method] = function (...args) {
-        const result = original.apply(this, args);
-        scheduleBoot(true);
-        return result;
-      };
-    });
-
     window.addEventListener("popstate", () => scheduleBoot(true));
+    window.addEventListener("crm:navigation", () => scheduleBoot(true));
+    window.addEventListener("crm:route-changed", () => scheduleBoot(true));
   }
 
   window.addEventListener(activeSiteEvent, () => {

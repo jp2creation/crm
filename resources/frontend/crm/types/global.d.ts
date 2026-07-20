@@ -3,10 +3,15 @@ export {};
 declare global {
   interface Window {
     BrandMorphLoader?: {
+      begin?: (key?: string, options?: CrmLoaderOptions) => string | void;
+      end?: (key?: string) => void;
+      fail?: (key?: string, error?: unknown) => void;
       forceHide: () => void;
-      hide: () => void;
+      hide: (key?: string) => void;
       show: (delay?: number) => void;
+      track?: <T>(key: string, promise: Promise<T>, options?: CrmLoaderOptions) => Promise<T>;
     };
+    CrmLoader?: Window['BrandMorphLoader'];
     CRM_NAV_FALLBACK?: CrmFallbackNavigation;
     MartinSolsCrmApi?: CrmApiClient;
     MartinSolsCrmAssets?: {
@@ -23,6 +28,12 @@ declare global {
     __martinSolsCrmModulesLoaded?: boolean;
   }
 }
+
+export type CrmLoaderOptions = {
+  delay?: number;
+  timeout?: number;
+  timeoutMessage?: string;
+};
 
 export type CrmApiClient = {
   get: <T = unknown>(url: string, options?: CrmRequestOptions) => Promise<T>;

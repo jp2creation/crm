@@ -1372,23 +1372,8 @@
     }, mountAttempts < 6 ? 60 : 150);
   }
 
-  const originalPushState = history.pushState;
-  history.pushState = function (...args) {
-    const result = originalPushState.apply(this, args);
-    window.dispatchEvent(new Event("crm:route-changed"));
-    window.dispatchEvent(new Event(routeEvent));
-    return result;
-  };
-
-  const originalReplaceState = history.replaceState;
-  history.replaceState = function (...args) {
-    const result = originalReplaceState.apply(this, args);
-    window.dispatchEvent(new Event("crm:route-changed"));
-    window.dispatchEvent(new Event(routeEvent));
-    return result;
-  };
-
   window.addEventListener("popstate", () => scheduleBoot(true));
+  window.addEventListener("crm:navigation", () => scheduleBoot(true));
   window.addEventListener("crm:route-changed", () => scheduleBoot(true));
   window.addEventListener(routeEvent, () => scheduleBoot(true));
   window.addEventListener("crm:active-site-changed", () => {

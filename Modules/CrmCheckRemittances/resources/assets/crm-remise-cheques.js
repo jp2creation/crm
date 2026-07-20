@@ -2341,16 +2341,8 @@
     if (window.__crmCheckRemittanceRouteWatcher) return;
     window.__crmCheckRemittanceRouteWatcher = true;
 
-    ["pushState", "replaceState"].forEach((method) => {
-      const original = history[method];
-      history[method] = function (...args) {
-        const result = original.apply(this, args);
-        window.dispatchEvent(new Event("crm:check-remittance-route-changed"));
-        return result;
-      };
-    });
-
     window.addEventListener("popstate", () => window.dispatchEvent(new Event("crm:check-remittance-route-changed")));
+    window.addEventListener("crm:navigation", () => window.setTimeout(syncRoute, 0));
     window.addEventListener("crm:route-changed", () => window.setTimeout(ensureHost, 0));
     window.addEventListener("crm:check-remittance-route-changed", () => window.setTimeout(syncRoute, 0));
   }

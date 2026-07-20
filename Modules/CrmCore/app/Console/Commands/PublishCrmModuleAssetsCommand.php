@@ -18,6 +18,7 @@ class PublishCrmModuleAssetsCommand extends Command
             'crm-leaves' => base_path('Modules/CrmLeaves/resources/assets'),
             'crm-cash-control' => base_path('Modules/CrmCashControl/resources/assets'),
             'crm-check-remittances' => base_path('Modules/CrmCheckRemittances/resources/assets'),
+            'crm-deposit-requests' => base_path('Modules/CrmDepositRequests/resources/assets'),
             'crm-documents' => base_path('Modules/CrmDocuments/resources/assets'),
             'crm-pages' => base_path('Modules/CrmPages/resources/assets'),
             'crm-teams' => base_path('Modules/CrmTeams/resources/assets'),
