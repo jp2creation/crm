@@ -8,6 +8,7 @@ import { revealBrandLoaderElement } from './loader';
 import { installMobileEmbedBridge } from './mobile/embed-bridge';
 import { installMobileFallbackNavigation } from './mobile/fallback-nav';
 import { installMobileAppSettings } from './mobile/settings';
+import { installCrmModuleHostGuard } from './modules/hosts';
 import { loadBrandMorphLoader, loadCrmModuleOverlays, loadCrmShellOverlays } from './modules/register';
 import { installFallbackNavigation } from './router/menu';
 import { applyStoredTheme } from './theme';
@@ -28,12 +29,13 @@ installCrmApiClient();
 installMobileAppSettings();
 installMobileEmbedBridge();
 installMobileFallbackNavigation();
+installCrmModuleHostGuard();
 
 const shellLoaderKey = 'crm:shell';
 
 window.CrmLoader?.begin?.(shellLoaderKey, {
   delay: 0,
-  timeout: 15000,
+  timeout: 0,
   timeoutMessage: 'Le CRM met trop de temps a charger.',
 });
 

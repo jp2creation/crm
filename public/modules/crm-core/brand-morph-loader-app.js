@@ -8,10 +8,10 @@
     const isStandalone =
         (window.matchMedia && window.matchMedia(standaloneQuery).matches) ||
         window.navigator.standalone === true;
-    const maxStartupWait = isStandalone ? 9000 : 7000;
+    const maxStartupWait = isStandalone ? 14000 : 10000;
     const minimumStartupMs = isStandalone ? 950 : 520;
     const minimumRouteMs = isStandalone ? 650 : 420;
-    const maxRouteWait = isStandalone ? 9000 : 7000;
+    const maxRouteWait = isStandalone ? 18000 : 12000;
     const transitionPollMs = 120;
     const loadingTextPattern = /(Chargement|Loading)/i;
     const loadingErrorPattern = /(Chargement impossible|Loading failed)/i;
@@ -232,7 +232,7 @@
     function startRouteMonitor() {
         const transitionStartedAt = now();
 
-        beginOperation(routeKey, maxRouteWait, 'Le module met trop de temps a charger.');
+        beginOperation(routeKey, 0, 'Le module met trop de temps a charger.');
         monitorTransition(transitionStartedAt, maxRouteWait);
         hideRouteWhenReady(transitionStartedAt);
     }
@@ -244,17 +244,17 @@
     }
 
     ensureAppStyle();
-    beginOperation(startupKey, maxStartupWait, 'Le CRM met trop de temps a charger.');
+    beginOperation(startupKey, 0, 'Le CRM met trop de temps a charger.');
     observeLoadingMutations();
 
     window.addEventListener('pageshow', () => {
-        beginOperation(startupKey, maxStartupWait, 'Le CRM met trop de temps a charger.');
+        beginOperation(startupKey, 0, 'Le CRM met trop de temps a charger.');
         monitorTransition(startedAt, maxStartupWait);
         hideWhenReady();
     });
 
     window.addEventListener('load', () => {
-        beginOperation(startupKey, maxStartupWait, 'Le CRM met trop de temps a charger.');
+        beginOperation(startupKey, 0, 'Le CRM met trop de temps a charger.');
         monitorTransition(startedAt, maxStartupWait);
         hideWhenReady();
     });

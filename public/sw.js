@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'martin-sols-crm-v202607200930';
+const CACHE_VERSION = 'martin-sols-crm-v202607201530';
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
 const OFFLINE_URL = '/offline.html';
 

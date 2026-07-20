@@ -35,8 +35,18 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileExists(resource_path('frontend/crm/mobile/embed-bridge.ts'));
         $this->assertFileExists(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $this->assertFileExists(resource_path('frontend/crm/mobile/settings.ts'));
+        $this->assertFileExists(resource_path('frontend/crm/modules/hosts.ts'));
         $this->assertFileExists(resource_path('frontend/crm/router/menu.ts'));
         $this->assertFileExists(resource_path('frontend/crm/styles/shell.css'));
+
+        $shell = (string) file_get_contents(resource_path('frontend/crm/shell.ts'));
+        $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
+
+        $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
+        $this->assertStringContainsString("id: 'crm-sales-tours-module'", $hosts);
+        $this->assertStringContainsString("paths: ['/rapport-visite', '/tournees-representants']", $hosts);
+        $this->assertStringContainsString("prefix: '/documents/'", $hosts);
+        $this->assertStringContainsString('refreshStaleRouteOnce', $hosts);
     }
 
     public function test_adminex_source_and_dependencies_are_available_for_migration(): void

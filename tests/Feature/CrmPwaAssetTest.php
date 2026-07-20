@@ -34,7 +34,7 @@ class CrmPwaAssetTest extends TestCase
         $serviceWorker = (string) file_get_contents(public_path('sw.js'));
 
         $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-", $serviceWorker);
-        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v202607200930'", $serviceWorker);
+        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v202607201530'", $serviceWorker);
         $this->assertStringContainsString('cache.add(url).catch(() => null)', $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'SKIP_WAITING'", $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'GET_VERSION'", $serviceWorker);
@@ -235,9 +235,11 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('forceHide', $publicScript);
         $this->assertStringContainsString('(display-mode: standalone)', $publicAppScript);
         $this->assertStringContainsString('minimumStartupMs = isStandalone ? 950 : 520', $publicAppScript);
-        $this->assertStringContainsString('maxStartupWait = isStandalone ? 9000 : 7000', $publicAppScript);
+        $this->assertStringContainsString('maxStartupWait = isStandalone ? 14000 : 10000', $publicAppScript);
         $this->assertStringContainsString('minimumRouteMs = isStandalone ? 650 : 420', $publicAppScript);
-        $this->assertStringContainsString('maxRouteWait = isStandalone ? 9000 : 7000', $publicAppScript);
+        $this->assertStringContainsString('maxRouteWait = isStandalone ? 18000 : 12000', $publicAppScript);
+        $this->assertStringContainsString("beginOperation(routeKey, 0, 'Le module met trop de temps a charger.')", $publicAppScript);
+        $this->assertStringContainsString("beginOperation(startupKey, 0, 'Le CRM met trop de temps a charger.')", $publicAppScript);
         $this->assertStringContainsString('hasBlockingLoader', $publicAppScript);
         $this->assertStringContainsString('if (hasLoadingText)', $publicAppScript);
         $this->assertStringContainsString('isSpinnerCandidate', $publicAppScript);
