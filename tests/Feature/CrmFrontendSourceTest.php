@@ -92,6 +92,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('curl -fsS --max-time 10 "$health_url"', $script);
         $this->assertStringContainsString('php artisan horizon:terminate || true', $script);
         $this->assertStringContainsString('cleanup_old_releases', $script);
+        $this->assertStringContainsString("--exclude='storage/redis'", $script);
+        $this->assertStringContainsString("--exclude='storage/framework/cache'", $script);
     }
 
     public function test_dom_ready_sensitive_crm_modules_boot_even_when_loaded_late(): void

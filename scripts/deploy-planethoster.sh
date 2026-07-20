@@ -149,7 +149,15 @@ ensure_shared_paths() {
 
     if [ ! -d "${SHARED_DIR}/storage" ]; then
         if [ -d "${CRM_DEPLOY_ROOT}/storage" ] && [ ! -L "${CRM_DEPLOY_ROOT}/storage" ]; then
-            (cd "$CRM_DEPLOY_ROOT" && tar -cf - storage) | (cd "$SHARED_DIR" && tar -xf -)
+            (cd "$CRM_DEPLOY_ROOT" && tar \
+                --exclude='storage/framework/cache' \
+                --exclude='storage/framework/sessions' \
+                --exclude='storage/framework/testing' \
+                --exclude='storage/framework/views' \
+                --exclude='storage/logs' \
+                --exclude='storage/pail' \
+                --exclude='storage/redis' \
+                -cf - storage) | (cd "$SHARED_DIR" && tar -xf -)
         else
             mkdir -p "${SHARED_DIR}/storage"
         fi
