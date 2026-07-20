@@ -152,24 +152,6 @@ function refreshStaleRouteOnce(): boolean {
   return true;
 }
 
-function outletElement(): HTMLElement | null {
-  const explicit = document.querySelector<HTMLElement>('[data-crm-module-outlet]');
-
-  if (explicit) {
-    return explicit;
-  }
-
-  /*
-   * Never use #root as a route host. Adminex owns that React mount node and
-   * mutating it during startup makes React remove nodes it no longer owns.
-   */
-  return (
-    document.querySelector<HTMLElement>('main .layout-container.layout-page')
-    || document.querySelector<HTMLElement>('.layout-container.layout-page')
-    || document.querySelector<HTMLElement>('main')
-  );
-}
-
 function ensureHost(): void {
   const route = routeForCurrentPath();
 
@@ -187,23 +169,6 @@ function ensureHost(): void {
   if (refreshStaleRouteOnce()) {
     return;
   }
-
-  const outlet = outletElement();
-
-  if (!outlet) {
-    return;
-  }
-
-  const host = document.createElement('div');
-
-  host.id = route.id;
-  host.className = route.className;
-  host.dataset.crmModuleOutlet = 'true';
-  host.setAttribute('aria-busy', 'true');
-  host.textContent = route.label;
-
-  outlet.replaceChildren(host);
-  window.dispatchEvent(new Event('crm:route-changed'));
 }
 
 function scheduleEnsureHost(): void {

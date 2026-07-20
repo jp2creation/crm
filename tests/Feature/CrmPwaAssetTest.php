@@ -104,6 +104,8 @@ class CrmPwaAssetTest extends TestCase
 
         $this->assertStringContainsString('/api/administration', $asset);
         $this->assertStringNotContainsString('/api/administration.php', $asset);
+        $this->assertStringContainsString('path:`dashboard/crm`,element:(0,z.jsx)(`div`,{id:`crm-dashboard-module`', $asset);
+        $this->assertStringNotContainsString('path:`dashboard/crm`,element:$(ly)', $asset);
     }
 
     public function test_login_page_loads_the_pwa_boot_script_once(): void

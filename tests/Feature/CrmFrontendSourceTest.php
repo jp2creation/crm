@@ -61,8 +61,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('window.location.replace(refreshedRouteUrl())', $hosts);
         $this->assertStringContainsString('installRootObserver', $hosts);
         $this->assertStringContainsString('new MutationObserver', $hosts);
-        $this->assertStringContainsString('Never use #root as a route host', $hosts);
-        $this->assertStringNotContainsString("|| document.getElementById('root')", $hosts);
+        $this->assertStringNotContainsString('replaceChildren(host)', $hosts);
+        $this->assertStringNotContainsString('document.createElement', $hosts);
         $this->assertStringContainsString('moduleKeysForCurrentPath', $modules);
         $this->assertStringContainsString('requestIdleCallback', $modules);
         $this->assertStringContainsString("cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js')", $modules);
