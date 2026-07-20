@@ -16,6 +16,10 @@ Route::redirect('/dashboard/crm', '/')
     ->middleware('auth')
     ->name('crm.dashboard');
 
+Route::redirect('/dashboard', '/dashboard/crm')
+    ->middleware('auth')
+    ->name('crm.dashboard.legacy');
+
 Route::view('/pages/account-settings', 'crm')
     ->middleware('auth')
     ->name('crm.account-settings');

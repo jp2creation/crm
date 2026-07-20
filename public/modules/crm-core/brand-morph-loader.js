@@ -101,6 +101,12 @@
         complete(key || legacyOperations.pop());
     }
 
+    function completeLegacyOperations() {
+        while (legacyOperations.length > 0) {
+            complete(legacyOperations.pop());
+        }
+    }
+
     function fail(key, error) {
         const id = key ? operationId(key) : null;
         const operation = id ? activeOperations.get(id) : null;
@@ -159,6 +165,8 @@
             path: window.location.pathname,
             previousHref
         };
+
+        completeLegacyOperations();
 
         try {
             window.dispatchEvent(new CustomEvent('crm:navigation', { detail }));
@@ -251,6 +259,8 @@
         const detail = eventDetail(event);
         fail(detail.key || 'crm:module', detail.error || detail.message || 'Chargement du module impossible.');
     });
+
+    window.addEventListener('crm:navigation', completeLegacyOperations);
 
     window.addEventListener('pageshow', (event) => {
         if (event.persisted) forceHide();

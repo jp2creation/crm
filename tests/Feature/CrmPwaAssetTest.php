@@ -249,6 +249,9 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('if (event.defaultPrevented) return', $publicScript);
         $this->assertStringContainsString('[data-no-loader], [data-ajax], [data-crm-ajax-form]', $publicScript);
         $this->assertStringContainsString('forceHide', $publicScript);
+        $this->assertStringContainsString('completeLegacyOperations', $publicScript);
+        $this->assertStringContainsString("window.addEventListener('crm:navigation', completeLegacyOperations)", $publicScript);
+        $this->assertStringContainsString('completeLegacyOperations();', $publicScript);
         $this->assertStringContainsString('(display-mode: standalone)', $publicAppScript);
         $this->assertStringContainsString('minimumStartupMs = isStandalone ? 950 : 520', $publicAppScript);
         $this->assertStringContainsString('maxStartupWait = isStandalone ? 14000 : 10000', $publicAppScript);
