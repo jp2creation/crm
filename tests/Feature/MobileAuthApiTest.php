@@ -9,6 +9,7 @@ use App\Models\CrmUser;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MobileAuthApiTest extends TestCase
@@ -150,6 +151,13 @@ class MobileAuthApiTest extends TestCase
         $this->assertDatabaseCount('personal_access_tokens', 1);
         $this->assertDatabaseCount('crm_mobile_refresh_tokens', 1);
 
+        $initialRefreshRow = DB::table('crm_mobile_refresh_tokens')
+            ->where('token_hash', hash('sha256', $oldRefreshToken))
+            ->first();
+
+        $this->assertNotNull($initialRefreshRow);
+        $this->assertNotNull($initialRefreshRow->family_id);
+
         $refreshResponse = $this->postJson('/api/mobile/refresh', [
             'refreshToken' => $oldRefreshToken,
         ])
@@ -163,7 +171,21 @@ class MobileAuthApiTest extends TestCase
         $this->assertNotSame($oldAccessToken, $newAccessToken);
         $this->assertNotSame($oldRefreshToken, $newRefreshToken);
         $this->assertDatabaseCount('personal_access_tokens', 1);
-        $this->assertDatabaseCount('crm_mobile_refresh_tokens', 1);
+        $this->assertDatabaseCount('crm_mobile_refresh_tokens', 2);
+
+        $rotatedRefreshRow = DB::table('crm_mobile_refresh_tokens')
+            ->where('token_hash', hash('sha256', $oldRefreshToken))
+            ->first();
+        $currentRefreshRow = DB::table('crm_mobile_refresh_tokens')
+            ->where('token_hash', hash('sha256', $newRefreshToken))
+            ->first();
+
+        $this->assertNotNull($rotatedRefreshRow);
+        $this->assertNotNull($currentRefreshRow);
+        $this->assertSame($rotatedRefreshRow->family_id, $currentRefreshRow->family_id);
+        $this->assertNotNull($rotatedRefreshRow->revoked_at);
+        $this->assertSame('rotated', $rotatedRefreshRow->revoked_reason);
+        $this->assertNull($currentRefreshRow->revoked_at);
 
         $this->withHeader('Authorization', 'Bearer '.$oldAccessToken)
             ->getJson('/api/mobile/me')
@@ -179,6 +201,34 @@ class MobileAuthApiTest extends TestCase
         ])
             ->assertUnauthorized()
             ->assertJsonPath('ok', false);
+
+        $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertSame(
+            0,
+            DB::table('crm_mobile_refresh_tokens')
+                ->where('family_id', $currentRefreshRow->family_id)
+                ->whereNull('revoked_at')
+                ->count()
+        );
+        $this->assertDatabaseHas('crm_mobile_refresh_tokens', [
+            'token_hash' => hash('sha256', $newRefreshToken),
+            'revoked_reason' => 'reuse_detected',
+        ]);
+
+        $this->app['auth']->forgetGuards();
+
+        $this->withHeader('Authorization', 'Bearer '.$newAccessToken)
+            ->getJson('/api/mobile/me')
+            ->assertUnauthorized();
+    }
+
+    public function test_mobile_refresh_token_rotation_uses_database_lock(): void
+    {
+        $serviceSource = (string) file_get_contents(base_path('Modules/CrmCore/app/Services/MobileAuthService.php'));
+
+        $this->assertStringContainsString('DB::transaction(function ()', $serviceSource);
+        $this->assertStringContainsString('->lockForUpdate()', $serviceSource);
+        $this->assertStringContainsString('reuse_detected', $serviceSource);
     }
 
     public function test_mobile_module_scope_is_required_for_module_api_requests(): void
@@ -278,13 +328,33 @@ class MobileAuthApiTest extends TestCase
     {
         [$account] = $this->createMobileCrmUser();
 
-        $account->createToken('Pixel Test', ['crm:mobile']);
+        $loginResponse = $this->postJson('/api/mobile/token', [
+            'email' => $account->email,
+            'password' => 'secret-mobile',
+            'device_name' => 'Pixel Test',
+        ])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
 
         $this->assertDatabaseCount('personal_access_tokens', 1);
+        $this->assertDatabaseCount('crm_mobile_refresh_tokens', 1);
 
         event(new PasswordReset($account));
 
         $this->assertDatabaseCount('personal_access_tokens', 0);
+        $this->assertSame(
+            0,
+            DB::table('crm_mobile_refresh_tokens')->whereNull('revoked_at')->count()
+        );
+        $this->assertDatabaseHas('crm_mobile_refresh_tokens', [
+            'revoked_reason' => 'password_reset',
+        ]);
+
+        $this->postJson('/api/mobile/refresh', [
+            'refreshToken' => $loginResponse->json('refreshToken'),
+        ])
+            ->assertUnauthorized()
+            ->assertJsonPath('ok', false);
     }
 
     /**

@@ -84,43 +84,62 @@ class MobileAuthService
         ]);
 
         $plainRefreshToken = (string) ($data['refreshToken'] ?? $data['refresh_token']);
-        $row = DB::table('crm_mobile_refresh_tokens')
-            ->where('token_hash', hash('sha256', $plainRefreshToken))
-            ->whereNull('revoked_at')
-            ->first();
 
-        if (! $row || Carbon::parse($row->expires_at)->isPast()) {
-            return $this->result(['ok' => false, 'error' => __('crm.mobile.invalid_refresh_token')], 401);
-        }
+        return DB::transaction(function () use ($request, $data, $plainRefreshToken): array {
+            $row = DB::table('crm_mobile_refresh_tokens')
+                ->where('token_hash', hash('sha256', $plainRefreshToken))
+                ->lockForUpdate()
+                ->first();
 
-        $user = User::query()->find((int) $row->user_id);
-        $crmUser = $user instanceof User ? $this->crmUserFor($user) : null;
+            if (! $row) {
+                return $this->result(['ok' => false, 'error' => __('crm.mobile.invalid_refresh_token')], 401);
+            }
 
-        if (! $user instanceof User || ! $crmUser || $crmUser->role === 'blocked') {
-            DB::table('crm_mobile_refresh_tokens')->where('id', $row->id)->update(['revoked_at' => now()]);
+            if ($row->revoked_at !== null) {
+                $this->revokeRefreshTokenFamily($row, 'reuse_detected');
 
-            return $this->result(['ok' => false, 'error' => __('crm.mobile.account_unavailable')], 403);
-        }
+                return $this->result(['ok' => false, 'error' => __('crm.mobile.invalid_refresh_token')], 401);
+            }
 
-        $abilities = $this->mobileAbilities($crmUser);
-        $expiresAt = $this->accessTokenExpiresAt();
-        $accessToken = $user->createToken((string) ($data['device_name'] ?? $row->device_name), $abilities, $expiresAt);
-        $refresh = $this->rotateRefreshToken($request, $row, $accessToken, $abilities);
+            if (Carbon::parse($row->expires_at)->isPast()) {
+                $this->revokeRefreshTokenFamily($row, 'expired');
 
-        if ($row->personal_access_token_id) {
-            $user->tokens()->whereKey((int) $row->personal_access_token_id)->delete();
-        }
+                return $this->result(['ok' => false, 'error' => __('crm.mobile.invalid_refresh_token')], 401);
+            }
 
-        return $this->result([
-            'ok' => true,
-            'token' => $accessToken->plainTextToken,
-            'tokenType' => 'Bearer',
-            'expiresAt' => $expiresAt?->toIso8601String(),
-            'refreshToken' => $refresh['token'],
-            'refreshExpiresAt' => $refresh['expiresAt']->toIso8601String(),
-            'scopes' => $abilities,
-            'user' => $this->userPayload($crmUser),
-        ]);
+            $user = User::query()
+                ->whereKey((int) $row->user_id)
+                ->lockForUpdate()
+                ->first();
+            $crmUser = $user instanceof User ? $this->crmUserFor($user) : null;
+
+            if (! $user instanceof User || ! $crmUser || $crmUser->role === 'blocked') {
+                $this->revokeRefreshTokenFamily($row, 'account_unavailable');
+
+                return $this->result(['ok' => false, 'error' => __('crm.mobile.account_unavailable')], 403);
+            }
+
+            $abilities = $this->mobileAbilities($crmUser);
+            $expiresAt = $this->accessTokenExpiresAt();
+            $deviceName = (string) ($data['device_name'] ?? $row->device_name);
+            $accessToken = $user->createToken($deviceName, $abilities, $expiresAt);
+            $refresh = $this->rotateRefreshToken($request, $row, $accessToken, $abilities, $deviceName);
+
+            if ($row->personal_access_token_id) {
+                $user->tokens()->whereKey((int) $row->personal_access_token_id)->delete();
+            }
+
+            return $this->result([
+                'ok' => true,
+                'token' => $accessToken->plainTextToken,
+                'tokenType' => 'Bearer',
+                'expiresAt' => $expiresAt?->toIso8601String(),
+                'refreshToken' => $refresh['token'],
+                'refreshExpiresAt' => $refresh['expiresAt']->toIso8601String(),
+                'scopes' => $abilities,
+                'user' => $this->userPayload($crmUser),
+            ]);
+        }, 3);
     }
 
     /**
@@ -215,7 +234,11 @@ class MobileAuthService
             DB::table('crm_mobile_refresh_tokens')
                 ->where('personal_access_token_id', $tokenId)
                 ->whereNull('revoked_at')
-                ->update(['revoked_at' => now()]);
+                ->update([
+                    'revoked_at' => now(),
+                    'revoked_reason' => 'logout',
+                    'updated_at' => now(),
+                ]);
         }
 
         if ($bearerToken && str_contains($bearerToken, '|')) {
@@ -414,11 +437,13 @@ class MobileAuthService
     {
         $refreshToken = Str::random(80);
         $expiresAt = $this->refreshTokenExpiresAt();
+        $familyId = (string) Str::uuid();
 
         DB::table('crm_mobile_refresh_tokens')->insert([
             'user_id' => (int) $user->id,
             'personal_access_token_id' => (int) $accessToken->accessToken->getKey(),
             'token_hash' => hash('sha256', $refreshToken),
+            'family_id' => $familyId,
             'device_name' => mb_substr($deviceName, 0, 120),
             'abilities' => json_encode($abilities, JSON_UNESCAPED_UNICODE),
             'expires_at' => $expiresAt,
@@ -435,25 +460,79 @@ class MobileAuthService
      * @param  array<int, string>  $abilities
      * @return array{token: string, expiresAt: Carbon}
      */
-    private function rotateRefreshToken(Request $request, object $row, NewAccessToken $accessToken, array $abilities): array
+    private function rotateRefreshToken(Request $request, object $row, NewAccessToken $accessToken, array $abilities, string $deviceName): array
     {
         $refreshToken = Str::random(80);
         $expiresAt = $this->refreshTokenExpiresAt();
+        $familyId = $this->refreshTokenFamilyId($row);
+        $now = now();
 
         DB::table('crm_mobile_refresh_tokens')
             ->where('id', $row->id)
             ->update([
-                'personal_access_token_id' => (int) $accessToken->accessToken->getKey(),
-                'token_hash' => hash('sha256', $refreshToken),
-                'abilities' => json_encode($abilities, JSON_UNESCAPED_UNICODE),
-                'expires_at' => $expiresAt,
-                'last_used_at' => now(),
-                'ip_address' => $request->ip(),
-                'user_agent' => $this->shortUserAgent($request),
+                'family_id' => $familyId,
+                'revoked_at' => $now,
+                'revoked_reason' => 'rotated',
+                'last_used_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+        DB::table('crm_mobile_refresh_tokens')->insert([
+            'user_id' => (int) $row->user_id,
+            'personal_access_token_id' => (int) $accessToken->accessToken->getKey(),
+            'token_hash' => hash('sha256', $refreshToken),
+            'family_id' => $familyId,
+            'device_name' => mb_substr($deviceName, 0, 120),
+            'abilities' => json_encode($abilities, JSON_UNESCAPED_UNICODE),
+            'expires_at' => $expiresAt,
+            'ip_address' => $request->ip(),
+            'user_agent' => $this->shortUserAgent($request),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        return ['token' => $refreshToken, 'expiresAt' => $expiresAt];
+    }
+
+    private function refreshTokenFamilyId(object $row): string
+    {
+        $familyId = (string) ($row->family_id ?? '');
+
+        return $familyId !== '' ? $familyId : (string) Str::uuid();
+    }
+
+    private function revokeRefreshTokenFamily(object $row, string $reason): void
+    {
+        $familyId = (string) ($row->family_id ?? '');
+        $tokensQuery = DB::table('crm_mobile_refresh_tokens');
+
+        if ($familyId !== '') {
+            $tokensQuery->where('family_id', $familyId);
+        } else {
+            $tokensQuery->where('id', $row->id);
+        }
+
+        $accessTokenIds = (clone $tokensQuery)
+            ->whereNotNull('personal_access_token_id')
+            ->pluck('personal_access_token_id')
+            ->map(fn ($id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->values()
+            ->all();
+
+        (clone $tokensQuery)
+            ->whereNull('revoked_at')
+            ->update([
+                'revoked_at' => now(),
+                'revoked_reason' => $reason,
                 'updated_at' => now(),
             ]);
 
-        return ['token' => $refreshToken, 'expiresAt' => $expiresAt];
+        if ($accessTokenIds !== []) {
+            DB::table('personal_access_tokens')
+                ->whereIn('id', $accessTokenIds)
+                ->delete();
+        }
     }
 
     /**
