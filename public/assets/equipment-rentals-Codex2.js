@@ -1,4 +1,4 @@
-import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=202607201900";
+import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=202607201920";
 
 var jsx=jsxRuntime();
 var React=wrapModule(reactFactory(),1);
@@ -1483,6 +1483,7 @@ function EquipmentRentalsPage(){
 
     function activeUser(){
       if(!state.data)return null;
+      if(state.data.user&&state.data.user.id===state.selectedUserId)return state.data.user;
       return state.data.users.find(function(user){return user.id===state.selectedUserId})||state.data.user;
     }
 

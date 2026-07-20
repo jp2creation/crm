@@ -22,6 +22,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('Array.isArray(e.moduleIds) ? e.moduleIds : []', $reservationAsset);
         $this->assertStringContainsString('Array.isArray(e.permissions) ? e.permissions : []', $reservationAsset);
         $this->assertStringNotContainsString('e.moduleIds.includes', $reservationAsset);
+        $this->assertStringContainsString('...n.users.filter(', $reservationAsset);
+        $this->assertStringContainsString('(e) => e.id !== n.user.id', $reservationAsset);
         $this->assertStringContainsString('sites: []', $reservationAsset);
         $this->assertStringContainsString('vehicles: []', $reservationAsset);
         $this->assertStringContainsString('reservations: []', $reservationAsset);
@@ -117,8 +119,8 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-notes', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=202607201900', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=202607201900', $indexAsset);
+        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=202607201920', $indexAsset);
+        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=202607201920', $indexAsset);
         $this->assertStringContainsString('path:`reservations`,element:$(py)', $indexAsset);
         $this->assertStringContainsString('path:`reservations/*`,element:$(py)', $indexAsset);
         $this->assertStringContainsString('path:`reservation`,element:(0,z.jsx)(Rr,{to:`/reservations`,replace:!0})', $indexAsset);

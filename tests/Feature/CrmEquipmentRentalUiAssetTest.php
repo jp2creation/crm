@@ -16,7 +16,8 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $this->assertStringContainsString('Array.isArray(user.moduleIds)?user.moduleIds:[]', $equipmentAsset);
         $this->assertStringContainsString('Array.isArray(user.permissions)?user.permissions:[]', $equipmentAsset);
         $this->assertStringNotContainsString('user.moduleIds.includes', $equipmentAsset);
-        $this->assertStringContainsString('./equipment-rentals-Codex2.js?v=202607201900', $indexAsset);
+        $this->assertStringContainsString('state.data.user&&state.data.user.id===state.selectedUserId', $equipmentAsset);
+        $this->assertStringContainsString('./equipment-rentals-Codex2.js?v=202607201920', $indexAsset);
         $this->assertStringContainsString('path:`locations-materiel`,element:$(equipy)', $indexAsset);
         $this->assertStringContainsString('path:`locations-materiel/*`,element:$(equipy)', $indexAsset);
         $this->assertStringContainsString('path:`location-materiel`,element:(0,z.jsx)(Rr,{to:`/locations-materiel`,replace:!0})', $indexAsset);

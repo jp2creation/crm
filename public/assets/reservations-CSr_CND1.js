@@ -12,8 +12,8 @@ import {
     p as u,
     u as d,
     w as f,
-} from "./index-CqSzWeas.js?v=202607201900";
-import { t as p } from "./dashboard-Chzs1W9w.js?v=202607201900";
+} from "./index-CqSzWeas.js?v=202607201920";
+import { t as p } from "./dashboard-Chzs1W9w.js?v=202607201920";
 import {
     a as m,
     i as h,
@@ -22,7 +22,7 @@ import {
     r as te,
     s as ne,
     t as re,
-} from "./reservations-DvkqhioU.js?v=202607201900";
+} from "./reservations-DvkqhioU.js?v=202607201920";
 var _ = r(o(), 1),
     v = `/api/reservations`;
 function y(e) {
@@ -2517,7 +2517,16 @@ function W() {
                 (r(n.sites),
                     s(n.modules),
                     u(n.vehicles),
-                    h(n.users),
+                    h(
+                        n.user
+                            ? [
+                                  n.user,
+                                  ...n.users.filter(
+                                      (e) => e.id !== n.user.id,
+                                  ),
+                              ]
+                            : n.users,
+                    ),
                     E(n.reservations),
                     v(n.user.id),
                     b(n.source));
