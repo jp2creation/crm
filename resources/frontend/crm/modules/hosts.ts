@@ -74,6 +74,8 @@ const hostRoutes: CrmHostRoute[] = [
 ];
 
 const refreshStoragePrefix = 'crm:route-host-refresh:';
+let rootObserver: MutationObserver | null = null;
+let rootObserverTimer: number | null = null;
 
 function normalizedPath(): string {
   return window.location.pathname.replace(/\/+$/, '') || '/';
@@ -178,10 +180,33 @@ function scheduleEnsureHost(): void {
   window.setTimeout(ensureHost, 1100);
 }
 
+function installRootObserver(): void {
+  if (rootObserver) {
+    return;
+  }
+
+  const target = document.getElementById('root') || document.documentElement;
+
+  rootObserver = new MutationObserver(() => {
+    if (rootObserverTimer) {
+      window.clearTimeout(rootObserverTimer);
+    }
+
+    rootObserverTimer = window.setTimeout(() => {
+      rootObserverTimer = null;
+      ensureHost();
+    }, 80);
+  });
+
+  rootObserver.observe(target, { childList: true, subtree: true });
+}
+
 export function installCrmModuleHostGuard(): void {
   scheduleEnsureHost();
+  installRootObserver();
 
   document.addEventListener('DOMContentLoaded', scheduleEnsureHost, { once: true });
+  document.addEventListener('DOMContentLoaded', installRootObserver, { once: true });
   window.addEventListener('load', scheduleEnsureHost);
   window.addEventListener('popstate', scheduleEnsureHost);
   window.addEventListener('crm:navigation', scheduleEnsureHost);

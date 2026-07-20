@@ -52,6 +52,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('adminexOnly: true', $hosts);
         $this->assertStringContainsString("prefix: '/documents/'", $hosts);
         $this->assertStringContainsString('refreshStaleRouteOnce', $hosts);
+        $this->assertStringContainsString('installRootObserver', $hosts);
+        $this->assertStringContainsString('new MutationObserver', $hosts);
         $this->assertStringContainsString('moduleKeysForCurrentPath', $modules);
         $this->assertStringContainsString('requestIdleCallback', $modules);
         $this->assertStringContainsString("cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js')", $modules);
