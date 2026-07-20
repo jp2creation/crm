@@ -86,7 +86,7 @@ class CrmMysqlSchemaTest extends TestCase
             'created_at' => now(),
         ]);
 
-        DB::table('crm_users')->whereKey($userId)->delete();
+        DB::table('crm_users')->where('id', $userId)->delete();
 
         $this->assertDatabaseMissing('crm_user_sites', ['user_id' => $userId]);
     }
