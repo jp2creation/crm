@@ -21,7 +21,7 @@ class CrmAccountSettingsTest extends TestCase
         $this->actingAs($account)
             ->get('/pages/account-settings')
             ->assertOk()
-            ->assertSee('data-crm-frontend-assets', false);
+            ->assertSee('crm-shell-config', false);
 
         $register = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
 

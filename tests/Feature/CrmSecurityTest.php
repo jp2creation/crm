@@ -106,9 +106,15 @@ class CrmSecurityTest extends TestCase
             ->assertOk()
             ->getContent();
 
-        $this->assertStringContainsString('data-crm-logout-bridge', $html);
-        $this->assertStringContainsString('/auth/login', $html);
-        $this->assertStringContainsString('logoutToCrmLogin', $html);
+        $bridge = (string) file_get_contents(resource_path('frontend/crm/legacy/logout-bridge.ts'));
+
+        $this->assertStringContainsString('id="crm-shell-config"', $html);
+        $this->assertStringContainsString('legacyLogoutPath', $html);
+        $this->assertTrue(str_contains($html, '/auth/login') || str_contains($html, '\\/auth\\/login'));
+        $this->assertStringNotContainsString('data-crm-logout-bridge', $html);
+        $this->assertStringNotContainsString('logoutToCrmLogin', $html);
+        $this->assertStringContainsString('logoutToCrmLogin', $bridge);
+        $this->assertStringContainsString('MartinSolsCrmLogout', $bridge);
     }
 
     public function test_legacy_php_api_can_be_disabled_in_production(): void

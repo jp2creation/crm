@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,19 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\CrmCore\Support\CrmReferenceCache;
 
+/**
+ * @property int $id
+ * @property bool $active
+ * @property string|null $description
+ * @property string|null $menu_badge
+ * @property string $name
+ * @property string|null $route_path
+ * @property bool $show_menu_badge
+ * @property string $slug
+ * @property int $sort_order
+ * @property-read Collection<int, CrmUser> $users
+ * @property-read Collection<int, CrmUserSiteModulePermission> $siteModulePermissions
+ */
 class CrmModule extends Model
 {
     protected $table = 'crm_modules';
@@ -70,7 +84,7 @@ class CrmModule extends Model
             ]);
 
             $menuItem->saveQuietly();
-            static::syncFeatureFlag($module, $oldSlug);
+            self::syncFeatureFlag($module, $oldSlug);
             CrmReferenceCache::forgetModules();
         });
 
@@ -175,11 +189,17 @@ class CrmModule extends Model
             : 'internal';
     }
 
+    /**
+     * @return BelongsToMany<CrmUser, $this>
+     */
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(CrmUser::class, 'crm_user_modules', 'module_id', 'user_id');
     }
 
+    /**
+     * @return HasMany<CrmUserSiteModulePermission, $this>
+     */
     public function siteModulePermissions(): HasMany
     {
         return $this->hasMany(CrmUserSiteModulePermission::class, 'module_id');

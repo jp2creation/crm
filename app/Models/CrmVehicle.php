@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,10 +13,17 @@ use Modules\CrmCore\Services\UploadedCrmFileCleaner;
 use Modules\CrmCore\Support\CrmReferenceCache;
 
 /**
+ * @property int $id
  * @property bool $active
  * @property string|null $day_end_time
  * @property string|null $day_start_time
+ * @property string|null $description
+ * @property string|null $color
+ * @property string $name
+ * @property string|null $photo_url
  * @property int|null $site_id
+ * @property-read CrmSite|null $site
+ * @property-read Collection<int, CrmReservation> $reservations
  */
 class CrmVehicle extends Model
 {
@@ -42,13 +50,13 @@ class CrmVehicle extends Model
     protected static function booted(): void
     {
         static::saving(function (CrmVehicle $vehicle): void {
-            $vehicle->day_start_time = static::normalizeTime($vehicle->day_start_time);
-            $vehicle->day_end_time = static::normalizeTime($vehicle->day_end_time);
+            $vehicle->day_start_time = self::normalizeTime($vehicle->day_start_time);
+            $vehicle->day_end_time = self::normalizeTime($vehicle->day_end_time);
 
             $site = $vehicle->site_id ? CrmSite::query()->find($vehicle->site_id) : null;
             $hours = $vehicle->dailyReservationHours($site);
 
-            if (static::minutes($hours['end'], '19:30') <= static::minutes($hours['start'], '06:00')) {
+            if (self::minutes($hours['end'], '19:30') <= self::minutes($hours['start'], '06:00')) {
                 throw ValidationException::withMessages([
                     'day_end_time' => 'L heure de fermeture du vehicule doit etre apres l heure d ouverture.',
                 ]);
@@ -83,11 +91,17 @@ class CrmVehicle extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<CrmSite, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(CrmSite::class, 'site_id');
     }
 
+    /**
+     * @return HasMany<CrmReservation, $this>
+     */
     public function reservations(): HasMany
     {
         return $this->hasMany(CrmReservation::class, 'vehicle_id');
@@ -104,8 +118,8 @@ class CrmVehicle extends Model
     public function dailyReservationHours(?CrmSite $site = null): array
     {
         return [
-            'start' => static::time5($this->day_start_time, '06:00'),
-            'end' => static::time5($this->day_end_time, '19:30'),
+            'start' => self::time5($this->day_start_time, '06:00'),
+            'end' => self::time5($this->day_end_time, '19:30'),
         ];
     }
 
@@ -128,8 +142,8 @@ class CrmVehicle extends Model
         $hours = $this->dailyReservationHours($site);
         $startMinute = ($start->hour * 60) + $start->minute;
         $endMinute = ($end->hour * 60) + $end->minute;
-        $allowedStart = static::minutes($hours['start'], '06:00');
-        $allowedEnd = static::minutes($hours['end'], '19:30');
+        $allowedStart = self::minutes($hours['start'], '06:00');
+        $allowedEnd = self::minutes($hours['end'], '19:30');
 
         return $endMinute > $startMinute
             && $startMinute >= $allowedStart
@@ -164,7 +178,7 @@ class CrmVehicle extends Model
 
     private static function minutes(?string $time, string $default): int
     {
-        $time = static::time5($time, $default);
+        $time = self::time5($time, $default);
         [$hour, $minute] = array_map('intval', explode(':', $time));
 
         return ($hour * 60) + $minute;

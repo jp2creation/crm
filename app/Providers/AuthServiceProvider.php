@@ -16,9 +16,11 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
+use App\Policies\CrmEquipmentItemPolicy;
 use App\Policies\CrmEquipmentRentalPolicy;
 use App\Policies\CrmLeaveEntryPolicy;
 use App\Policies\CrmReservationPolicy;
+use App\Policies\CrmVehiclePolicy;
 use App\Policies\FilamentAdminPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Spatie\Permission\Models\Role;
@@ -32,7 +34,7 @@ class AuthServiceProvider extends ServiceProvider
         User::class => FilamentAdminPolicy::class,
         Role::class => FilamentAdminPolicy::class,
         CrmEquipmentCategory::class => FilamentAdminPolicy::class,
-        CrmEquipmentItem::class => FilamentAdminPolicy::class,
+        CrmEquipmentItem::class => CrmEquipmentItemPolicy::class,
         CrmEquipmentRental::class => CrmEquipmentRentalPolicy::class,
         CrmLeaveEntry::class => CrmLeaveEntryPolicy::class,
         CrmMenuGroup::class => FilamentAdminPolicy::class,
@@ -43,7 +45,7 @@ class AuthServiceProvider extends ServiceProvider
         CrmReservation::class => CrmReservationPolicy::class,
         CrmSite::class => FilamentAdminPolicy::class,
         CrmUser::class => FilamentAdminPolicy::class,
-        CrmVehicle::class => FilamentAdminPolicy::class,
+        CrmVehicle::class => CrmVehiclePolicy::class,
     ];
 
     public function boot(): void

@@ -301,27 +301,30 @@ class MobileAuthApiTest extends TestCase
             ->withSession(['crm_mobile_app' => true])
             ->get('/')
             ->assertOk()
-            ->assertSee('data-crm-mobile-settings-toggle', false)
-            ->assertSee('crm-mobile-app', false);
+            ->assertSee('crm-mobile-app', false)
+            ->assertSee('"app":true', false);
 
         $this->flushSession();
 
         $this->actingAs($account)
             ->get('/?mobile_app=1')
             ->assertOk()
-            ->assertSee('data-crm-mobile-settings-toggle', false)
-            ->assertSee('crm-mobile-app', false);
+            ->assertSee('crm-mobile-app', false)
+            ->assertSee('"app":true', false);
 
         $this->flushSession();
 
         $this->actingAs($account)
             ->get('/')
             ->assertOk()
-            ->assertDontSee('data-crm-mobile-settings-toggle', false);
+            ->assertDontSee('crm-mobile-app', false)
+            ->assertSee('"app":false', false);
 
         $fallbackNav = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
+        $settings = (string) file_get_contents(resource_path('frontend/crm/mobile/settings.ts'));
 
         $this->assertStringContainsString('crm-mobile-fallback-nav', $fallbackNav);
+        $this->assertStringContainsString('data-crm-mobile-settings-toggle', $settings);
     }
 
     public function test_mobile_tokens_are_revoked_after_password_reset_event(): void

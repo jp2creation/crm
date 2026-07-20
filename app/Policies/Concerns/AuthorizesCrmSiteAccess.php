@@ -10,9 +10,11 @@ trait AuthorizesCrmSiteAccess
 {
     protected function crmUser(User $user): ?CrmUser
     {
-        return $user->crmUser()
+        $crmUser = $user->crmUser()
             ->with(['modules:id,slug,active', 'permissions:id,name,label,sort_order', 'sites:id'])
             ->first();
+
+        return $crmUser instanceof CrmUser ? $crmUser : null;
     }
 
     protected function canUseFilamentAdmin(User $user): bool

@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   laravel:
     name: Laravel PHP ${{ matrix.php }}
@@ -36,6 +40,12 @@ jobs:
       - name: Install Node dependencies
         run: npm ci
 
+      - name: Audit PHP dependencies
+        run: composer audit
+
+      - name: Audit Node dependencies
+        run: npm audit --audit-level=moderate
+
       - name: Check frontend sources
         run: |
           npm run typecheck
@@ -62,8 +72,10 @@ jobs:
           php artisan key:generate --ansi
           php artisan migrate --force --ansi
 
-      - name: Run quality checks
-        run: composer quality
+      - name: Run PHP style and static analysis
+        run: |
+          composer pint
+          composer analyse
 
       - name: Verify cached CRM security config
         run: |

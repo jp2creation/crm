@@ -3,6 +3,7 @@
 namespace Modules\CrmReservations\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -20,7 +21,10 @@ class ReservationApiController extends Controller
         }
 
         try {
-            $action = $request->action();
+            $routeAction = $request->route('crm_action');
+            $action = is_string($routeAction)
+                ? $routeAction
+                : $request->action($request->isMethod('GET') ? 'reservations' : 'bootstrap');
 
             if ($action === 'health') {
                 return $this->json(['ok' => true, 'mode' => 'mysql']);
@@ -34,16 +38,23 @@ class ReservationApiController extends Controller
 
             $actor = $reservations->actorForUser($user);
             $body = $request->body();
+            $filters = $this->filters($request, $body);
 
             return match ($action) {
-                'bootstrap' => $this->json($reservations->bootstrap($actor)),
-                'create_reservation' => $this->json($reservations->createReservation($actor, $body)),
-                'update_reservation' => $this->json($reservations->updateReservation($actor, $body)),
-                'save_vehicle' => $this->json($reservations->saveVehicle($actor, $body)),
-                'delete_vehicle' => $this->json($reservations->deleteVehicle($actor, $body)),
-                'delete_reservation' => $this->json($reservations->deleteReservation($actor, $body)),
+                'bootstrap_light' => $this->json($reservations->bootstrap($actor, includeReservations: false)),
+                'bootstrap' => $this->json($reservations->bootstrap($actor, filters: $filters)),
+                'reservations' => $this->json($reservations->reservations($actor, $filters)),
+                'users' => $this->json($reservations->users($actor, $filters)),
+                'vehicles' => $this->json($reservations->vehicles($actor, $filters)),
+                'create_reservation' => $this->json($reservations->createReservation($user, $actor, $body)),
+                'update_reservation' => $this->json($reservations->updateReservation($user, $actor, $body)),
+                'save_vehicle' => $this->json($reservations->saveVehicle($user, $actor, $body)),
+                'delete_vehicle' => $this->json($reservations->deleteVehicle($user, $actor, $body)),
+                'delete_reservation' => $this->json($reservations->deleteReservation($user, $actor, $body)),
                 default => $this->json(['ok' => false, 'error' => 'Action inconnue'], 404),
             };
+        } catch (AuthorizationException $error) {
+            return $this->json(['ok' => false, 'error' => $error->getMessage()], 403);
         } catch (HttpExceptionInterface $error) {
             return $this->json(['ok' => false, 'error' => $error->getMessage()], $error->getStatusCode());
         } catch (ValidationException $error) {
@@ -63,5 +74,13 @@ class ReservationApiController extends Controller
         return response()
             ->json($data, $status, [], JSON_UNESCAPED_UNICODE)
             ->withHeaders($this->crmApiHeaders());
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function filters(CrmApiRequest $request, array $body): array
+    {
+        return [...$request->query->all(), ...$body];
     }
 }

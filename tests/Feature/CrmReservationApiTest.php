@@ -125,6 +125,92 @@ class CrmReservationApiTest extends TestCase
         $this->assertFalse($users->contains('id', $inactiveUser->id));
     }
 
+    public function test_split_reservation_read_endpoints_are_windowed(): void
+    {
+        [$account, $crmUser, $site, $vehicle] = $this->createCrmUser(['reservations.view']);
+
+        CrmReservation::query()->create([
+            'site_id' => $site->id,
+            'vehicle_id' => $vehicle->id,
+            'user_id' => $crmUser->id,
+            'user_name' => $crmUser->name,
+            'title' => 'Dans juillet',
+            'contact_phone' => '',
+            'start_at' => '2026-07-15 08:00:00',
+            'end_at' => '2026-07-15 09:00:00',
+            'notes' => '',
+        ]);
+
+        CrmReservation::query()->create([
+            'site_id' => $site->id,
+            'vehicle_id' => $vehicle->id,
+            'user_id' => $crmUser->id,
+            'user_name' => $crmUser->name,
+            'title' => 'Hors fenetre',
+            'contact_phone' => '',
+            'start_at' => '2027-02-15 08:00:00',
+            'end_at' => '2027-02-15 09:00:00',
+            'notes' => '',
+        ]);
+
+        $this->actingAs($account)
+            ->getJson('/api/reservations/bootstrap')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('vehicles.0.name', 'Sprinter Test')
+            ->assertJsonMissingPath('reservations');
+
+        $reservations = $this->actingAs($account)
+            ->getJson('/api/reservations?from=2026-07-01&to=2026-07-31')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('window.from', '2026-07-01T00:00')
+            ->json('reservations');
+
+        $this->assertCount(1, $reservations);
+        $this->assertSame('Dans juillet', $reservations[0]['title']);
+
+        $this->actingAs($account)
+            ->getJson('/api/reservations?from=2026-01-01&to=2026-12-31')
+            ->assertStatus(422)
+            ->assertJsonPath('error', 'Fenetre de dates trop large');
+    }
+
+    public function test_reservation_users_and_vehicles_endpoints_support_cursor_pagination(): void
+    {
+        [$account, , $site, $vehicle] = $this->createCrmUser(['reservations.view']);
+
+        CrmVehicle::query()->create([
+            'site_id' => $site->id,
+            'name' => 'Boxer Test',
+            'description' => 'Second vehicule',
+            'color' => '#95002e',
+            'active' => true,
+        ]);
+
+        $vehiclesPage = $this->actingAs($account)
+            ->getJson('/api/reservations/vehicles?limit=1')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('pagination.hasMore', true)
+            ->json();
+
+        $this->assertSame($vehicle->id, $vehiclesPage['vehicles'][0]['id']);
+        $this->assertSame($vehicle->id, $vehiclesPage['pagination']['nextCursor']);
+
+        $this->actingAs($account)
+            ->getJson('/api/reservations/vehicles?limit=1&cursor='.$vehiclesPage['pagination']['nextCursor'])
+            ->assertOk()
+            ->assertJsonPath('vehicles.0.name', 'Boxer Test')
+            ->assertJsonPath('pagination.hasMore', false);
+
+        $this->actingAs($account)
+            ->getJson('/api/reservations/users?limit=1')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('users.0.name', 'CRM Reservation User '.$account->id);
+    }
+
     public function test_vehicle_day_hours_are_exposed_and_enforced(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.view', 'reservations.create']);

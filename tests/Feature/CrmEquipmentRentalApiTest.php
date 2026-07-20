@@ -206,6 +206,109 @@ class CrmEquipmentRentalApiTest extends TestCase
         $this->assertFalse($users->contains('id', $inactiveUser->id));
     }
 
+    public function test_split_equipment_read_endpoints_are_windowed(): void
+    {
+        [$account, $crmUser, $site, $item] = $this->createCrmUser(['equipment_rentals.view']);
+
+        CrmEquipmentRental::query()->create([
+            'site_id' => $site->id,
+            'equipment_item_id' => $item->id,
+            'user_id' => $crmUser->id,
+            'user_name' => $crmUser->name,
+            'period_type' => 'half_day',
+            'slot' => 'morning',
+            'status' => 'reserved',
+            'title' => 'Location juillet',
+            'contact_phone' => '',
+            'start_at' => '2026-07-15 08:00:00',
+            'end_at' => '2026-07-15 12:00:00',
+            'notes' => '',
+        ]);
+
+        CrmEquipmentRental::query()->create([
+            'site_id' => $site->id,
+            'equipment_item_id' => $item->id,
+            'user_id' => $crmUser->id,
+            'user_name' => $crmUser->name,
+            'period_type' => 'half_day',
+            'slot' => 'morning',
+            'status' => 'reserved',
+            'title' => 'Location hors fenetre',
+            'contact_phone' => '',
+            'start_at' => '2027-02-15 08:00:00',
+            'end_at' => '2027-02-15 12:00:00',
+            'notes' => '',
+        ]);
+
+        $this->actingAs($account)
+            ->getJson('/api/equipment-rentals/bootstrap')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('equipmentItems.0.name', 'Ponceuse Test')
+            ->assertJsonMissingPath('equipmentRentals');
+
+        $rentals = $this->actingAs($account)
+            ->getJson('/api/equipment-rentals?from=2026-07-01&to=2026-07-31')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('window.from', '2026-07-01T00:00')
+            ->json('equipmentRentals');
+
+        $this->assertCount(1, $rentals);
+        $this->assertSame('Location juillet', $rentals[0]['title']);
+
+        $this->actingAs($account)
+            ->getJson('/api/equipment-rentals?from=2026-01-01&to=2026-12-31')
+            ->assertStatus(422)
+            ->assertJsonPath('error', 'Fenetre de dates trop large');
+    }
+
+    public function test_equipment_users_and_items_endpoints_support_cursor_pagination(): void
+    {
+        [$account, , $site, $item] = $this->createCrmUser(['equipment_rentals.view']);
+
+        CrmEquipmentItem::query()->create([
+            'site_id' => $site->id,
+            'category_id' => $item->category_id,
+            'name' => 'Bordureuse Test',
+            'inventory_code' => 'BOR-TEST',
+            'description' => 'Second materiel',
+            'color' => '#95002e',
+            'half_day_price' => 35,
+            'day_price' => 60,
+            'deposit_amount' => 250,
+            'active' => true,
+            'sort_order' => 20,
+        ]);
+
+        $itemsPage = $this->actingAs($account)
+            ->getJson('/api/equipment-rentals/items?limit=1')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('pagination.hasMore', true)
+            ->json();
+
+        $this->assertSame($item->id, $itemsPage['equipmentItems'][0]['id']);
+        $this->assertSame($item->id, $itemsPage['pagination']['nextCursor']);
+
+        $this->actingAs($account)
+            ->getJson('/api/equipment-rentals/items?limit=1&cursor='.$itemsPage['pagination']['nextCursor'])
+            ->assertOk()
+            ->assertJsonPath('equipmentItems.0.name', 'Bordureuse Test')
+            ->assertJsonPath('pagination.hasMore', false);
+
+        $this->actingAs($account)
+            ->getJson('/api/equipment-rentals/users?limit=1')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('users.0.name', 'CRM Equipment User '.$account->id);
+
+        $this->actingAs($account)
+            ->getJson('/api/equipment-rentals/categories')
+            ->assertOk()
+            ->assertJsonPath('equipmentCategories.0.slug', 'poncage-test');
+    }
+
     public function test_create_permission_is_required_to_create_rental(): void
     {
         [$account, , , $item] = $this->createCrmUser(['equipment_rentals.view']);
@@ -293,6 +396,55 @@ class CrmEquipmentRentalApiTest extends TestCase
             ->assertJsonPath('ok', true)
             ->assertJsonPath('equipmentRental.title', 'Modifie')
             ->assertJsonPath('equipmentRental.startAt', '2026-08-06T09:00');
+    }
+
+    public function test_creator_without_delete_own_cannot_delete_rental(): void
+    {
+        [$account, , , $item] = $this->createCrmUser(['equipment_rentals.create']);
+
+        $rentalId = $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=create_rental', [
+                'equipmentItemId' => $item->id,
+                'startAt' => '2026-08-06T10:30',
+                'endAt' => '2026-08-06T11:30',
+                'title' => 'Sans droit suppression',
+            ])
+            ->assertOk()
+            ->json('equipmentRental.id');
+
+        $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=delete_rental', ['id' => $rentalId])
+            ->assertStatus(403)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Suppression non autorisee');
+
+        $this->assertDatabaseHas('crm_equipment_rentals', [
+            'id' => $rentalId,
+        ]);
+    }
+
+    public function test_creator_with_delete_own_can_delete_rental(): void
+    {
+        [$account, , , $item] = $this->createCrmUser(['equipment_rentals.create', 'equipment_rentals.delete_own']);
+
+        $rentalId = $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=create_rental', [
+                'equipmentItemId' => $item->id,
+                'startAt' => '2026-08-06T13:30',
+                'endAt' => '2026-08-06T14:30',
+                'title' => 'Avec droit suppression',
+            ])
+            ->assertOk()
+            ->json('equipmentRental.id');
+
+        $this->actingAs($account)
+            ->postJson('/api/equipment-rentals?action=delete_rental', ['id' => $rentalId])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
+
+        $this->assertDatabaseMissing('crm_equipment_rentals', [
+            'id' => $rentalId,
+        ]);
     }
 
     public function test_manager_can_save_and_hide_equipment_item(): void

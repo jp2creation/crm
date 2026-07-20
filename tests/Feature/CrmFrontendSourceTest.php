@@ -11,17 +11,27 @@ class CrmFrontendSourceTest extends TestCase
         $blade = (string) file_get_contents(resource_path('views/crm.blade.php'));
 
         $this->assertStringContainsString("@vite(config('crm_frontend.vite_entries'))", $blade);
-        $this->assertStringContainsString('data-crm-frontend-assets', $blade);
+        $this->assertStringContainsString('id="crm-shell-config"', $blade);
+        $this->assertStringContainsString('<div id="root"></div>', $blade);
         $this->assertStringContainsString('meta name="csrf-token"', $blade);
         $this->assertStringNotContainsString('data-crm-api-csrf', $blade);
+        $this->assertStringNotContainsString('data-crm-frontend-assets', $blade);
+        $this->assertStringNotContainsString('data-crm-logout-bridge', $blade);
+        $this->assertStringNotContainsString('logoutToCrmLogin', $blade);
+        $this->assertStringNotContainsString('history[method] =', $blade);
+        $this->assertStringNotContainsString('partials.brand-morph-loader', $blade);
         $this->assertStringNotContainsString("CrmAsset::url('modules/crm-core/crm-dashboard.js')", $blade);
         $this->assertStringNotContainsString("CrmAsset::url('modules/crm-leaves/crm-conges.js')", $blade);
+        $this->assertStringNotContainsString('crm-mobile-app-settings-trigger', $blade);
         $this->assertStringNotContainsString('data-crm-mobile-app-settings', $blade);
         $this->assertStringNotContainsString('data-crm-mobile-fallback-nav', $blade);
         $this->assertStringNotContainsString('window.CRM_NAV_FALLBACK =', $blade);
 
         $this->assertFileExists(resource_path('frontend/crm/shell.ts'));
         $this->assertFileExists(resource_path('frontend/crm/api/client.ts'));
+        $this->assertFileExists(resource_path('frontend/crm/config.ts'));
+        $this->assertFileExists(resource_path('frontend/crm/legacy/logout-bridge.ts'));
+        $this->assertFileExists(resource_path('frontend/crm/loader.ts'));
         $this->assertFileExists(resource_path('frontend/crm/mobile/embed-bridge.ts'));
         $this->assertFileExists(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $this->assertFileExists(resource_path('frontend/crm/mobile/settings.ts'));

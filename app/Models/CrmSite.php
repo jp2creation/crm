@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\CrmCore\Support\CrmReferenceCache;
 
 /**
+ * @property int $id
  * @property bool $active
  * @property string|null $afternoon_end
  * @property string|null $afternoon_start
@@ -20,6 +22,14 @@ use Modules\CrmCore\Support\CrmReferenceCache;
  * @property string|null $morning_start
  * @property string $name
  * @property string|null $slug
+ * @property-read object{is_default?: mixed}|null $pivot
+ * @property-read Collection<int, CrmVehicle> $vehicles
+ * @property-read Collection<int, CrmReservation> $reservations
+ * @property-read Collection<int, CrmEquipmentItem> $equipmentItems
+ * @property-read Collection<int, CrmEquipmentRental> $equipmentRentals
+ * @property-read Collection<int, CrmCashRegisterDay> $cashRegisterDays
+ * @property-read Collection<int, CrmUser> $users
+ * @property-read Collection<int, CrmUserSiteModulePermission> $siteModulePermissions
  */
 class CrmSite extends Model
 {
@@ -107,37 +117,58 @@ class CrmSite extends Model
         return $slug;
     }
 
+    /**
+     * @return HasMany<CrmVehicle, $this>
+     */
     public function vehicles(): HasMany
     {
         return $this->hasMany(CrmVehicle::class, 'site_id');
     }
 
+    /**
+     * @return HasMany<CrmReservation, $this>
+     */
     public function reservations(): HasMany
     {
         return $this->hasMany(CrmReservation::class, 'site_id');
     }
 
+    /**
+     * @return HasMany<CrmEquipmentItem, $this>
+     */
     public function equipmentItems(): HasMany
     {
         return $this->hasMany(CrmEquipmentItem::class, 'site_id');
     }
 
+    /**
+     * @return HasMany<CrmEquipmentRental, $this>
+     */
     public function equipmentRentals(): HasMany
     {
         return $this->hasMany(CrmEquipmentRental::class, 'site_id');
     }
 
+    /**
+     * @return HasMany<CrmCashRegisterDay, $this>
+     */
     public function cashRegisterDays(): HasMany
     {
         return $this->hasMany(CrmCashRegisterDay::class, 'site_id');
     }
 
+    /**
+     * @return BelongsToMany<CrmUser, $this>
+     */
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(CrmUser::class, 'crm_user_sites', 'site_id', 'user_id')
             ->withPivot('is_default');
     }
 
+    /**
+     * @return HasMany<CrmUserSiteModulePermission, $this>
+     */
     public function siteModulePermissions(): HasMany
     {
         return $this->hasMany(CrmUserSiteModulePermission::class, 'site_id');
@@ -174,10 +205,10 @@ class CrmSite extends Model
         $end = $endAt instanceof Carbon ? $endAt : Carbon::parse($endAt);
         $startMinute = ($start->hour * 60) + $start->minute;
         $endMinute = ($end->hour * 60) + $end->minute;
-        $morningStart = static::minutes($this->morning_start, '07:30');
-        $morningEnd = static::minutes($this->morning_end, '12:00');
-        $afternoonStart = static::minutes($this->afternoon_start, '13:30');
-        $afternoonEnd = static::minutes($this->afternoon_end, '17:30');
+        $morningStart = self::minutes($this->morning_start, '07:30');
+        $morningEnd = self::minutes($this->morning_end, '12:00');
+        $afternoonStart = self::minutes($this->afternoon_start, '13:30');
+        $afternoonEnd = self::minutes($this->afternoon_end, '17:30');
 
         $startAllowed = ($startMinute >= $morningStart && $startMinute < $morningEnd)
             || ($startMinute >= $afternoonStart && $startMinute < $afternoonEnd);

@@ -1,14 +1,24 @@
 import './styles/shell.css';
 import { installCrmApiClient } from './api/client';
 import { installCsrfFetch } from './api/csrf';
+import { installCrmShellGlobals, readCrmShellConfig } from './config';
 import { installLegacyStylesheets, loadLegacyAdminex } from './legacy/adminex';
+import { installLegacyLogoutBridge } from './legacy/logout-bridge';
+import { revealBrandLoaderElement } from './loader';
 import { installMobileEmbedBridge } from './mobile/embed-bridge';
 import { installMobileFallbackNavigation } from './mobile/fallback-nav';
 import { installMobileAppSettings } from './mobile/settings';
 import { loadBrandMorphLoader, loadCrmModuleOverlays, loadCrmShellOverlays } from './modules/register';
 import { installFallbackNavigation } from './router/menu';
+import { applyStoredTheme } from './theme';
 
+const crmShellConfig = readCrmShellConfig();
+
+applyStoredTheme(crmShellConfig.themeStorageKey);
+installCrmShellGlobals(crmShellConfig);
 installLegacyStylesheets();
+revealBrandLoaderElement();
+installLegacyLogoutBridge(crmShellConfig);
 installFallbackNavigation();
 
 await loadBrandMorphLoader();

@@ -9,22 +9,26 @@ use App\Models\CrmVehicle;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
-use Modules\CrmCore\Events\CrmDomainEvent;
-use Modules\CrmCore\Queries\ReservationConflictQuery;
+use Illuminate\Support\Facades\Gate;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Services\CrmImageStorage;
 use Modules\CrmCore\Support\CrmReferenceCache;
+use Modules\CrmReservations\Actions\CreateReservationAction;
+use Modules\CrmReservations\Actions\DeleteReservationAction;
+use Modules\CrmReservations\Actions\UpdateReservationAction;
 use Modules\CrmReservations\Data\ReservationPayload;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ReservationService
 {
     public function __construct(
-        private readonly ReservationConflictQuery $conflicts,
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
         private readonly CrmImageStorage $images,
+        private readonly CreateReservationAction $createReservationAction,
+        private readonly UpdateReservationAction $updateReservationAction,
+        private readonly DeleteReservationAction $deleteReservationAction,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -42,7 +46,10 @@ class ReservationService
         return $actor;
     }
 
-    public function bootstrap(CrmUser $actor): array
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function bootstrap(CrmUser $actor, bool $includeReservations = true, array $filters = []): array
     {
         $this->requireModule($actor, 'reservations');
 
@@ -51,148 +58,163 @@ class ReservationService
             $this->fail('Aucun site autorise pour les reservations', 403);
         }
 
-        $reservations = CrmReservation::query()
-            ->with(['site:id,name', 'user:id,name', 'vehicle:id,name'])
-            ->whereIn('site_id', $allowedSiteIds)
-            ->orderBy('start_at')
-            ->orderBy('id')
-            ->get();
-
-        $users = CrmUser::query()
-            ->select(['id', 'name'])
-            ->where('active', true)
-            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $allowedSiteIds))
-            ->orderBy('name')
-            ->get();
-
-        return [
+        $payload = [
             'ok' => true,
             'mode' => 'mysql',
             'user' => $this->actorRow($actor),
             'sites' => collect($this->activeSiteRows())->whereIn('id', $allowedSiteIds)->values()->all(),
             'modules' => $this->activeModuleRows(),
             'vehicles' => collect($this->activeVehicleRows())->whereIn('siteId', $allowedSiteIds)->values()->all(),
-            'reservations' => $reservations->map(fn (CrmReservation $reservation): array => $this->reservationRow($reservation))->values()->all(),
             'permissions' => $this->permissionRows(),
-            'users' => $users->map(fn (CrmUser $user): array => $this->userRow($user))->values()->all(),
+            'users' => $this->userRowsForSites($allowedSiteIds),
+        ];
+
+        if ($includeReservations) {
+            $calendar = $this->reservations($actor, $filters);
+            $payload['reservations'] = $calendar['reservations'];
+            $payload['window'] = $calendar['window'];
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function reservations(CrmUser $actor, array $filters = []): array
+    {
+        $this->requireModule($actor, 'reservations');
+
+        [$from, $to] = $this->dateWindow($filters);
+        $siteIds = $this->filteredSiteIds($actor, $filters);
+        $vehicleId = (int) ($filters['vehicleId'] ?? $filters['vehicle_id'] ?? 0);
+
+        $reservations = CrmReservation::query()
+            ->with(['site:id,name', 'user:id,name', 'vehicle:id,name'])
+            ->whereIn('site_id', $siteIds)
+            ->when($vehicleId > 0, fn ($query) => $query->where('vehicle_id', $vehicleId))
+            ->where('end_at', '>=', $from)
+            ->where('start_at', '<=', $to)
+            ->orderBy('start_at')
+            ->orderBy('id')
+            ->get();
+
+        return [
+            'ok' => true,
+            'mode' => 'mysql',
+            'window' => [
+                'from' => $from->format('Y-m-d\TH:i'),
+                'to' => $to->format('Y-m-d\TH:i'),
+            ],
+            'reservations' => $reservations
+                ->map(fn (CrmReservation $reservation): array => $this->reservationRow($reservation))
+                ->values()
+                ->all(),
         ];
     }
 
-    public function createReservation(CrmUser $actor, array $data): array
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function users(CrmUser $actor, array $filters = []): array
     {
         $this->requireModule($actor, 'reservations');
 
-        return DB::transaction(function () use ($actor, $data): array {
-            $payload = ReservationPayload::fromArray($data);
-            $this->requireNotPastStartDate($payload->startAt);
+        $siteIds = $this->filteredSiteIds($actor, $filters);
+        $limit = $this->limit($filters, 250, 500);
+        $cursor = max(0, (int) ($filters['cursor'] ?? 0));
 
-            $vehicle = CrmVehicle::query()
-                ->active()
-                ->lockForUpdate()
-                ->find($payload->vehicleId);
+        $users = CrmUser::query()
+            ->select(['id', 'name'])
+            ->where('active', true)
+            ->where('id', '>', $cursor)
+            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $siteIds))
+            ->orderBy('id')
+            ->limit($limit + 1)
+            ->get();
 
-            if (! $vehicle) {
-                $this->fail('Vehicule introuvable', 404);
-            }
+        $hasMore = $users->count() > $limit;
+        $rows = $users->take($limit)->values();
 
-            $site = CrmSite::query()->find((int) $vehicle->site_id);
-
-            if (! $site) {
-                $this->fail('Site introuvable', 404);
-            }
-
-            $this->requireSitePermission($actor, (int) $site->id, 'reservations.create');
-            $this->requireWithinVehicleHours($vehicle, $site, $payload->startAt, $payload->endAt);
-            $this->requireNoReservationConflict($payload->vehicleId, $payload->startAt, $payload->endAt);
-
-            $reservation = CrmReservation::query()->create([
-                'site_id' => $site->id,
-                'vehicle_id' => $payload->vehicleId,
-                'user_id' => $actor->id,
-                'user_name' => $actor->name,
-                'title' => $payload->title,
-                'contact_phone' => $payload->contactPhone,
-                'start_at' => $payload->startAt,
-                'end_at' => $payload->endAt,
-                'notes' => $payload->notes,
-            ]);
-
-            $this->dispatchReservationEvent($actor, 'created', $reservation->refresh());
-
-            return ['ok' => true, 'reservation' => $this->reservationRow($reservation)];
-        });
+        return [
+            'ok' => true,
+            'mode' => 'mysql',
+            'users' => $rows->map(fn (CrmUser $user): array => $this->userRow($user))->all(),
+            'pagination' => [
+                'hasMore' => $hasMore,
+                'nextCursor' => $hasMore ? $rows->last()?->id : null,
+            ],
+        ];
     }
 
-    public function updateReservation(CrmUser $actor, array $data): array
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function vehicles(CrmUser $actor, array $filters = []): array
     {
         $this->requireModule($actor, 'reservations');
 
-        return DB::transaction(function () use ($actor, $data): array {
-            $payload = ReservationPayload::fromArray($data, true);
-            $this->requireNotPastStartDate($payload->startAt);
+        $siteIds = $this->filteredSiteIds($actor, $filters);
+        $limit = $this->limit($filters, 250, 500);
+        $cursor = max(0, (int) ($filters['cursor'] ?? 0));
 
-            $reservation = CrmReservation::query()
-                ->lockForUpdate()
-                ->find($payload->id);
+        $vehicles = CrmVehicle::query()
+            ->active()
+            ->whereIn('site_id', $siteIds)
+            ->where('id', '>', $cursor)
+            ->orderBy('id')
+            ->limit($limit + 1)
+            ->get();
 
-            if (! $reservation) {
-                $this->fail('Reservation introuvable', 404);
-            }
+        $hasMore = $vehicles->count() > $limit;
+        $rows = $vehicles->take($limit)->values();
 
-            $canUpdateAny = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.update_any');
-            $canUpdateOwn = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.update_own') && (int) $reservation->user_id === (int) $actor->id;
-
-            if (! $canUpdateAny && ! $canUpdateOwn) {
-                $this->fail('Modification non autorisee', 403);
-            }
-
-            $vehicle = CrmVehicle::query()
-                ->active()
-                ->lockForUpdate()
-                ->find($payload->vehicleId);
-
-            if (! $vehicle) {
-                $this->fail('Vehicule introuvable', 404);
-            }
-
-            $site = CrmSite::query()->find((int) $vehicle->site_id);
-
-            if (! $site) {
-                $this->fail('Site introuvable', 404);
-            }
-
-            $canUpdateAnyOnNewSite = $this->canOnSite($actor, (int) $site->id, 'reservations.update_any');
-            $canUpdateOwnOnNewSite = $this->canOnSite($actor, (int) $site->id, 'reservations.update_own') && (int) $reservation->user_id === (int) $actor->id;
-
-            if (! $canUpdateAnyOnNewSite && ! $canUpdateOwnOnNewSite) {
-                $this->fail('Site non autorise', 403);
-            }
-
-            $this->requireWithinVehicleHours($vehicle, $site, $payload->startAt, $payload->endAt);
-            $this->requireNoReservationConflict($payload->vehicleId, $payload->startAt, $payload->endAt, $payload->id);
-
-            $reservation->fill([
-                'site_id' => $site->id,
-                'vehicle_id' => $payload->vehicleId,
-                'title' => $payload->title,
-                'contact_phone' => $payload->contactPhone,
-                'start_at' => $payload->startAt,
-                'end_at' => $payload->endAt,
-                'notes' => $payload->notes,
-            ]);
-            $reservation->save();
-
-            $this->dispatchReservationEvent($actor, 'updated', $reservation->refresh());
-
-            return ['ok' => true, 'reservation' => $this->reservationRow($reservation)];
-        });
+        return [
+            'ok' => true,
+            'mode' => 'mysql',
+            'vehicles' => $rows->map(fn (CrmVehicle $vehicle): array => $this->vehicleRow($vehicle))->all(),
+            'pagination' => [
+                'hasMore' => $hasMore,
+                'nextCursor' => $hasMore ? $rows->last()?->id : null,
+            ],
+        ];
     }
 
-    public function saveVehicle(CrmUser $actor, array $data): array
+    public function createReservation(User $account, CrmUser $actor, array $data): array
     {
         $this->requireModule($actor, 'reservations');
 
-        return DB::transaction(function () use ($actor, $data): array {
+        $payload = ReservationPayload::fromArray($data);
+        $site = $this->siteForVehicle($payload->vehicleId);
+
+        Gate::forUser($account)->authorize('createForSite', [CrmReservation::class, (int) $site->id]);
+
+        $reservation = $this->createReservationAction->execute($actor, $payload);
+
+        return ['ok' => true, 'reservation' => $this->reservationRow($reservation)];
+    }
+
+    public function updateReservation(User $account, CrmUser $actor, array $data): array
+    {
+        $this->requireModule($actor, 'reservations');
+
+        $payload = ReservationPayload::fromArray($data, true);
+        $reservation = $this->reservationForPolicy((int) $payload->id);
+        $site = $this->siteForVehicle($payload->vehicleId);
+
+        Gate::forUser($account)->authorize('update', $reservation);
+        Gate::forUser($account)->authorize('updateForSite', [$reservation, (int) $site->id]);
+
+        $reservation = $this->updateReservationAction->execute($actor, $payload);
+
+        return ['ok' => true, 'reservation' => $this->reservationRow($reservation)];
+    }
+
+    public function saveVehicle(User $account, CrmUser $actor, array $data): array
+    {
+        $this->requireModule($actor, 'reservations');
+
+        return DB::transaction(function () use ($account, $actor, $data): array {
             $id = max(0, (int) ($data['id'] ?? 0));
             $siteId = (int) ($data['siteId'] ?? $data['site_id'] ?? 0);
             $name = trim((string) ($data['name'] ?? ''));
@@ -201,8 +223,6 @@ class ReservationService
             $photoDataUrl = (string) ($data['photoDataUrl'] ?? $data['photo_data_url'] ?? '');
             $dayStartTime = $this->nullableTime5($data['dayStartTime'] ?? $data['day_start_time'] ?? null);
             $dayEndTime = $this->nullableTime5($data['dayEndTime'] ?? $data['day_end_time'] ?? null);
-
-            $this->requireSitePermission($actor, $siteId, 'reservations.manage_vehicles');
 
             if ($name === '' || mb_strlen($name) > 160) {
                 $this->fail('Nom de vehicule invalide', 400);
@@ -216,16 +236,6 @@ class ReservationService
                 $this->fail('Horaires du vehicule invalides', 400);
             }
 
-            $duplicateExists = CrmVehicle::query()
-                ->where('name', $name)
-                ->when($id > 0, fn ($query) => $query->whereKeyNot($id))
-                ->lockForUpdate()
-                ->exists();
-
-            if ($duplicateExists) {
-                $this->fail('Un vehicule porte deja ce nom', 409);
-            }
-
             $vehicle = $id > 0
                 ? CrmVehicle::query()->lockForUpdate()->find($id)
                 : new CrmVehicle;
@@ -235,7 +245,20 @@ class ReservationService
             }
 
             if ($id > 0) {
-                $this->requireSitePermission($actor, (int) $vehicle->site_id, 'reservations.manage_vehicles');
+                Gate::forUser($account)->authorize('update', $vehicle);
+                Gate::forUser($account)->authorize('updateForSite', [$vehicle, $siteId]);
+            } else {
+                Gate::forUser($account)->authorize('createForSite', [CrmVehicle::class, $siteId]);
+            }
+
+            $duplicateExists = CrmVehicle::query()
+                ->where('name', $name)
+                ->when($id > 0, fn ($query) => $query->whereKeyNot($id))
+                ->lockForUpdate()
+                ->exists();
+
+            if ($duplicateExists) {
+                $this->fail('Un vehicule porte deja ce nom', 409);
             }
 
             $photoUrl = $vehicle->getAttribute('photo_url') ?: null;
@@ -267,11 +290,11 @@ class ReservationService
         });
     }
 
-    public function deleteVehicle(CrmUser $actor, array $data): array
+    public function deleteVehicle(User $account, CrmUser $actor, array $data): array
     {
         $this->requireModule($actor, 'reservations');
 
-        return DB::transaction(function () use ($actor, $data): array {
+        return DB::transaction(function () use ($account, $actor, $data): array {
             $id = (int) ($data['id'] ?? 0);
 
             if ($id <= 0) {
@@ -286,7 +309,8 @@ class ReservationService
                 $this->fail('Vehicule introuvable', 404);
             }
 
-            $this->requireSitePermission($actor, (int) $vehicle->site_id, 'reservations.manage_vehicles');
+            Gate::forUser($account)->authorize('delete', $vehicle);
+
             $vehicle->forceFill(['active' => false])->save();
 
             $this->log($actor, 'masquage vehicule', "Vehicule #{$id}");
@@ -295,60 +319,23 @@ class ReservationService
         });
     }
 
-    public function deleteReservation(CrmUser $actor, array $data): array
+    public function deleteReservation(User $account, CrmUser $actor, array $data): array
     {
         $this->requireModule($actor, 'reservations');
 
-        return DB::transaction(function () use ($actor, $data): array {
-            $id = (int) ($data['id'] ?? 0);
+        $id = (int) ($data['id'] ?? 0);
 
-            if ($id <= 0) {
-                $this->fail('Reservation invalide', 400);
-            }
-
-            $reservation = CrmReservation::query()
-                ->lockForUpdate()
-                ->find($id);
-
-            if (! $reservation) {
-                $this->fail('Reservation introuvable', 404);
-            }
-
-            $isCreator = (int) $reservation->user_id === (int) $actor->id;
-            $canDeleteAny = $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.delete_any');
-            $canDeleteOwn = $isCreator
-                && $this->canOnSite($actor, (int) $reservation->site_id, 'reservations.delete_own');
-
-            if (! $canDeleteAny && ! $canDeleteOwn) {
-                $this->fail('Suppression non autorisee', 403);
-            }
-
-            $reservation->delete();
-            $this->dispatchReservationEvent($actor, 'deleted', $reservation);
-
-            return ['ok' => true];
-        });
-    }
-
-    private function requireNotPastStartDate(string $startAt): void
-    {
-        if (CarbonImmutable::parse($startAt)->startOfDay()->lt(CarbonImmutable::now()->startOfDay())) {
-            $this->fail('Impossible de reserver dans le passe', 422);
+        if ($id <= 0) {
+            $this->fail('Reservation invalide', 400);
         }
-    }
 
-    private function requireWithinVehicleHours(CrmVehicle $vehicle, CrmSite $site, string $startAt, string $endAt): void
-    {
-        if (! $vehicle->containsReservationPeriod($startAt, $endAt, $site)) {
-            $this->fail('Creneau hors horaires du vehicule', 400);
-        }
-    }
+        $reservation = $this->reservationForPolicy($id);
 
-    private function requireNoReservationConflict(int $vehicleId, string $startAt, string $endAt, ?int $ignoreId = null): void
-    {
-        if ($this->conflicts->vehicleOverlaps($vehicleId, $startAt, $endAt, $ignoreId)) {
-            $this->fail('Le vehicule est deja reserve sur ce creneau', 409);
-        }
+        Gate::forUser($account)->authorize('delete', $reservation);
+
+        $this->deleteReservationAction->execute($actor, $id);
+
+        return ['ok' => true];
     }
 
     private function requireModule(CrmUser $actor, string $slug): void
@@ -363,16 +350,34 @@ class ReservationService
         return $this->access->hasModule($actor, $slug);
     }
 
-    private function requireSitePermission(CrmUser $actor, int $siteId, string $permission): void
+    private function reservationForPolicy(int $id): CrmReservation
     {
-        if (! $this->canOnSite($actor, $siteId, $permission)) {
-            $this->fail('Droit insuffisant : '.$permission, 403);
+        $reservation = CrmReservation::query()->find($id);
+
+        if (! $reservation) {
+            $this->fail('Reservation introuvable', 404);
         }
+
+        return $reservation;
     }
 
-    private function canOnSite(CrmUser $actor, int $siteId, string $permission): bool
+    private function siteForVehicle(int $vehicleId): CrmSite
     {
-        return $this->access->canOnSite($actor, $siteId, 'reservations', $permission);
+        $vehicle = CrmVehicle::query()
+            ->active()
+            ->find($vehicleId);
+
+        if (! $vehicle) {
+            $this->fail('Vehicule introuvable', 404);
+        }
+
+        $site = CrmSite::query()->find((int) $vehicle->site_id);
+
+        if (! $site) {
+            $this->fail('Site introuvable', 404);
+        }
+
+        return $site;
     }
 
     private function actorRow(CrmUser $actor): array
@@ -402,6 +407,101 @@ class ReservationService
     private function siteIds(CrmUser $user): array
     {
         return $this->access->siteIdsForModule($user, 'reservations', $this->reservationPermissionNames());
+    }
+
+    /**
+     * @param  array<int, int>  $siteIds
+     * @return array<int, array{id: int, name: string}>
+     */
+    private function userRowsForSites(array $siteIds): array
+    {
+        return CrmUser::query()
+            ->select(['id', 'name'])
+            ->where('active', true)
+            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $siteIds))
+            ->orderBy('name')
+            ->get()
+            ->map(fn (CrmUser $user): array => $this->userRow($user))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<int, int>
+     */
+    private function filteredSiteIds(CrmUser $actor, array $filters): array
+    {
+        $allowedSiteIds = $this->siteIds($actor);
+
+        if ($allowedSiteIds === []) {
+            $this->fail('Aucun site autorise pour les reservations', 403);
+        }
+
+        $requestedSiteId = (int) ($filters['siteId'] ?? $filters['site_id'] ?? 0);
+
+        if ($requestedSiteId <= 0) {
+            return $allowedSiteIds;
+        }
+
+        if (! in_array($requestedSiteId, $allowedSiteIds, true)) {
+            $this->fail('Site non autorise', 403);
+        }
+
+        return [$requestedSiteId];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
+    private function dateWindow(array $filters): array
+    {
+        $from = $this->optionalDateBoundary($filters['from'] ?? null, true)
+            ?? CarbonImmutable::now()->startOfMonth()->subDays(7);
+        $to = $this->optionalDateBoundary($filters['to'] ?? null, false)
+            ?? CarbonImmutable::now()->endOfMonth()->addDays(7);
+
+        if ($from->gt($to)) {
+            $this->fail('Fenetre de dates invalide', 422);
+        }
+
+        if ($from->diffInDays($to, true) > 120) {
+            $this->fail('Fenetre de dates trop large', 422);
+        }
+
+        return [$from, $to];
+    }
+
+    private function optionalDateBoundary(mixed $value, bool $startOfDay): ?CarbonImmutable
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        try {
+            $date = CarbonImmutable::parse($value);
+        } catch (\Throwable) {
+            $this->fail('Date de planning invalide', 422);
+        }
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return $startOfDay ? $date->startOfDay() : $date->endOfDay();
+        }
+
+        return $date;
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function limit(array $filters, int $default, int $max): int
+    {
+        $limit = (int) ($filters['limit'] ?? $default);
+
+        return max(1, min($limit, $max));
     }
 
     /**
@@ -469,28 +569,6 @@ class ReservationService
     private function permissionRows(): array
     {
         return CrmReferenceCache::permissionRows();
-    }
-
-    private function dispatchReservationEvent(CrmUser $actor, string $name, CrmReservation $reservation): void
-    {
-        CrmDomainEvent::dispatch(
-            module: 'reservations',
-            name: $name,
-            entity: 'reservation',
-            entityId: (int) $reservation->id,
-            siteId: (int) $reservation->site_id,
-            actorId: (int) $actor->id,
-            actorName: $actor->name,
-            payload: [
-                'title' => $reservation->title ?? '',
-                'vehicleId' => (int) $reservation->vehicle_id,
-                'userId' => (int) $reservation->user_id,
-                'userName' => $reservation->user_name ?? '',
-                'startAt' => $reservation->start_at?->format('Y-m-d H:i:s') ?? '',
-                'endAt' => $reservation->end_at?->format('Y-m-d H:i:s') ?? '',
-                'actionUrl' => '/reservations',
-            ],
-        );
     }
 
     private function color(string $value): string

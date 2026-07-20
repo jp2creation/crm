@@ -3,10 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Modules\CrmCore\Services\CrmFeatureFlagService;
 use Modules\CrmCore\Support\CrmReferenceCache;
 
+/**
+ * @property int $id
+ * @property string|null $description
+ * @property bool $enabled
+ * @property Carbon|null $ends_at
+ * @property string $flag_key
+ * @property string $name
+ * @property array<string, mixed>|null $payload
+ * @property string $scope
+ * @property Carbon|null $starts_at
+ */
 class CrmFeatureFlag extends Model
 {
     protected $table = 'crm_feature_flags';
@@ -35,11 +47,11 @@ class CrmFeatureFlag extends Model
     protected static function booted(): void
     {
         static::saved(function (): void {
-            static::flushFeatureCaches();
+            self::flushFeatureCaches();
         });
 
         static::deleted(function (): void {
-            static::flushFeatureCaches();
+            self::flushFeatureCaches();
         });
     }
 

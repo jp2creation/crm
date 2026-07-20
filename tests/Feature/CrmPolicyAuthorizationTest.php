@@ -140,6 +140,70 @@ class CrmPolicyAuthorizationTest extends TestCase
         $this->assertFalse($gate->allows('delete', $otherRental));
     }
 
+    public function test_vehicle_policy_requires_manage_permission_for_mutations(): void
+    {
+        [$viewerAccount, , $site] = $this->createCrmActor('reservations', ['reservations.view']);
+        [$managerAccount] = $this->createCrmActor('reservations', ['reservations.view', 'reservations.manage_vehicles'], $site);
+
+        $vehicle = CrmVehicle::query()->create([
+            'site_id' => $site->id,
+            'name' => 'Vehicule Policy',
+            'description' => 'Vehicule test',
+            'color' => '#95002e',
+            'active' => true,
+        ]);
+
+        $viewerGate = Gate::forUser($viewerAccount);
+        $managerGate = Gate::forUser($managerAccount);
+
+        $this->assertTrue($viewerGate->allows('view', $vehicle));
+        $this->assertFalse($viewerGate->allows('createForSite', [CrmVehicle::class, $site->id]));
+        $this->assertFalse($viewerGate->allows('update', $vehicle));
+        $this->assertFalse($viewerGate->allows('delete', $vehicle));
+
+        $this->assertTrue($managerGate->allows('createForSite', [CrmVehicle::class, $site->id]));
+        $this->assertTrue($managerGate->allows('update', $vehicle));
+        $this->assertTrue($managerGate->allows('delete', $vehicle));
+    }
+
+    public function test_equipment_item_policy_requires_manage_permission_for_mutations(): void
+    {
+        [$viewerAccount, , $site] = $this->createCrmActor('locations-materiel', ['equipment_rentals.view']);
+        [$managerAccount] = $this->createCrmActor('locations-materiel', ['equipment_rentals.view', 'equipment_rentals.manage_items'], $site);
+
+        $category = CrmEquipmentCategory::query()->create([
+            'name' => 'Materiel Policy',
+            'slug' => 'materiel-policy',
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+        $item = CrmEquipmentItem::query()->create([
+            'site_id' => $site->id,
+            'category_id' => $category->id,
+            'name' => 'Materiel Policy',
+            'inventory_code' => 'ITEM-POLICY',
+            'description' => 'Materiel test',
+            'color' => '#95002e',
+            'half_day_price' => 45,
+            'day_price' => 80,
+            'deposit_amount' => 300,
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+
+        $viewerGate = Gate::forUser($viewerAccount);
+        $managerGate = Gate::forUser($managerAccount);
+
+        $this->assertTrue($viewerGate->allows('view', $item));
+        $this->assertFalse($viewerGate->allows('createForSite', [CrmEquipmentItem::class, $site->id]));
+        $this->assertFalse($viewerGate->allows('update', $item));
+        $this->assertFalse($viewerGate->allows('delete', $item));
+
+        $this->assertTrue($managerGate->allows('createForSite', [CrmEquipmentItem::class, $site->id]));
+        $this->assertTrue($managerGate->allows('update', $item));
+        $this->assertTrue($managerGate->allows('delete', $item));
+    }
+
     public function test_leave_policy_requires_manage_permission_for_mutations(): void
     {
         [$viewerAccount, $viewerCrmUser, $site] = $this->createCrmActor('conges', ['conges.view']);

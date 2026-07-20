@@ -20,6 +20,8 @@ declare global {
       legacyAdminexStylesheet?: string;
       logoUrl?: string;
     };
+    MartinSolsCrmConfig?: CrmShellConfig;
+    MartinSolsCrmLogout?: () => void;
     MartinSolsMobileApp?: {
       requestLocation: () => void;
     };
@@ -75,4 +77,26 @@ export type CrmModule = {
 
 export type CrmRequestOptions = Omit<RequestInit, 'body'> & {
   body?: BodyInit | Record<string, unknown> | null;
+};
+
+export type CrmShellConfig = {
+  assets: {
+    brandMorphLoaderStylesheet: string;
+    legacyAdminexScript: string;
+    legacyAdminexStylesheet: string;
+    logoUrl: string;
+  };
+  csrfToken: string;
+  locale: string;
+  logout: {
+    legacyLogoutPath: string;
+    loginUrl: string;
+    logoutUrl: string;
+  };
+  mobile: {
+    app: boolean;
+    embed: boolean;
+    siteId: number | null;
+  };
+  themeStorageKey: string;
 };

@@ -10,22 +10,27 @@ use App\Models\CrmUser;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
-use Modules\CrmCore\Queries\ReservationConflictQuery;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Services\CrmImageStorage;
 use Modules\CrmCore\Support\CrmReferenceCache;
+use Modules\CrmEquipmentRentals\Actions\CreateEquipmentRentalAction;
+use Modules\CrmEquipmentRentals\Actions\DeleteEquipmentRentalAction;
+use Modules\CrmEquipmentRentals\Actions\UpdateEquipmentRentalAction;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class EquipmentRentalService
 {
     public function __construct(
-        private readonly ReservationConflictQuery $conflicts,
         private readonly CrmActivityLogger $activity,
         private readonly CrmAccessService $access,
         private readonly CrmImageStorage $images,
+        private readonly CreateEquipmentRentalAction $createRentalAction,
+        private readonly UpdateEquipmentRentalAction $updateRentalAction,
+        private readonly DeleteEquipmentRentalAction $deleteRentalAction,
     ) {}
 
     public function actorForUser(User $user): CrmUser
@@ -43,7 +48,10 @@ class EquipmentRentalService
         return $actor;
     }
 
-    public function bootstrap(CrmUser $actor): array
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function bootstrap(CrmUser $actor, bool $includeRentals = true, array $filters = []): array
     {
         $this->requireModule($actor);
 
@@ -52,21 +60,7 @@ class EquipmentRentalService
             $this->fail('Aucun site autorise pour la location materiel', 403);
         }
 
-        $rentals = CrmEquipmentRental::query()
-            ->with(['equipmentItem:id,name', 'site:id,name', 'user:id,name'])
-            ->whereIn('site_id', $allowedSiteIds)
-            ->orderBy('start_at')
-            ->orderBy('id')
-            ->get();
-
-        $users = CrmUser::query()
-            ->select(['id', 'name'])
-            ->where('active', true)
-            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $allowedSiteIds))
-            ->orderBy('name')
-            ->get();
-
-        return [
+        $payload = [
             'ok' => true,
             'mode' => 'mysql',
             'user' => $this->actorRow($actor),
@@ -74,143 +68,192 @@ class EquipmentRentalService
             'modules' => $this->activeModuleRows(),
             'equipmentCategories' => $this->activeCategoryRows(),
             'equipmentItems' => collect($this->activeEquipmentItemRows())->whereIn('siteId', $allowedSiteIds)->values()->all(),
-            'equipmentRentals' => $rentals->map(fn (CrmEquipmentRental $rental): array => $this->rentalRow($rental))->values()->all(),
             'permissions' => $this->permissionRows(),
-            'users' => $users->map(fn (CrmUser $user): array => $this->userRow($user))->values()->all(),
+            'users' => $this->userRowsForSites($allowedSiteIds),
+        ];
+
+        if ($includeRentals) {
+            $calendar = $this->rentals($actor, $filters);
+            $payload['equipmentRentals'] = $calendar['equipmentRentals'];
+            $payload['window'] = $calendar['window'];
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function rentals(CrmUser $actor, array $filters = []): array
+    {
+        $this->requireModule($actor);
+
+        [$from, $to] = $this->dateWindow($filters);
+        $siteIds = $this->filteredSiteIds($actor, $filters);
+        $equipmentItemId = (int) ($filters['equipmentItemId'] ?? $filters['equipment_item_id'] ?? 0);
+
+        $rentals = CrmEquipmentRental::query()
+            ->with(['equipmentItem:id,name', 'site:id,name', 'user:id,name'])
+            ->whereIn('site_id', $siteIds)
+            ->when($equipmentItemId > 0, fn ($query) => $query->where('equipment_item_id', $equipmentItemId))
+            ->where('end_at', '>=', $from)
+            ->where('start_at', '<=', $to)
+            ->orderBy('start_at')
+            ->orderBy('id')
+            ->get();
+
+        return [
+            'ok' => true,
+            'mode' => 'mysql',
+            'window' => [
+                'from' => $from->format('Y-m-d\TH:i'),
+                'to' => $to->format('Y-m-d\TH:i'),
+            ],
+            'equipmentRentals' => $rentals
+                ->map(fn (CrmEquipmentRental $rental): array => $this->rentalRow($rental))
+                ->values()
+                ->all(),
         ];
     }
 
-    public function createRental(CrmUser $actor, array $data): array
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function users(CrmUser $actor, array $filters = []): array
     {
         $this->requireModule($actor);
 
-        return DB::transaction(function () use ($actor, $data): array {
-            [$item, $site, $periodType, $slot, $status, $title, $contactPhone, $startAt, $endAt, $notes] = $this->rentalPayload($data);
+        $siteIds = $this->filteredSiteIds($actor, $filters);
+        $limit = $this->limit($filters, 250, 500);
+        $cursor = max(0, (int) ($filters['cursor'] ?? 0));
 
-            $this->requireSitePermission($actor, (int) $site->id, 'equipment_rentals.create');
+        $users = CrmUser::query()
+            ->select(['id', 'name'])
+            ->where('active', true)
+            ->where('id', '>', $cursor)
+            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $siteIds))
+            ->orderBy('id')
+            ->limit($limit + 1)
+            ->get();
 
-            if ($status !== CrmEquipmentRental::STATUS_CANCELLED) {
-                $this->requireNoRentalConflict((int) $item->id, $startAt, $endAt);
-            }
+        $hasMore = $users->count() > $limit;
+        $rows = $users->take($limit)->values();
 
-            $rental = CrmEquipmentRental::query()->create([
-                'site_id' => $site->id,
-                'equipment_item_id' => $item->id,
-                'user_id' => $actor->id,
-                'user_name' => $actor->name,
-                'period_type' => $periodType,
-                'slot' => $slot,
-                'status' => $status,
-                'title' => $title,
-                'contact_phone' => $contactPhone,
-                'start_at' => $startAt,
-                'end_at' => $endAt,
-                'notes' => $notes,
-            ]);
-
-            $this->log($actor, 'creation location materiel', "Location materiel #{$rental->id}");
-
-            return ['ok' => true, 'equipmentRental' => $this->rentalRow($rental->refresh())];
-        });
+        return [
+            'ok' => true,
+            'mode' => 'mysql',
+            'users' => $rows->map(fn (CrmUser $user): array => $this->userRow($user))->all(),
+            'pagination' => [
+                'hasMore' => $hasMore,
+                'nextCursor' => $hasMore ? $rows->last()?->id : null,
+            ],
+        ];
     }
 
-    public function updateRental(CrmUser $actor, array $data): array
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    public function equipmentItems(CrmUser $actor, array $filters = []): array
     {
         $this->requireModule($actor);
 
-        return DB::transaction(function () use ($actor, $data): array {
-            $id = (int) ($data['id'] ?? 0);
+        $siteIds = $this->filteredSiteIds($actor, $filters);
+        $limit = $this->limit($filters, 250, 500);
+        $cursor = max(0, (int) ($filters['cursor'] ?? 0));
+        $categoryId = (int) ($filters['categoryId'] ?? $filters['category_id'] ?? 0);
 
-            if ($id <= 0) {
-                $this->fail('Location invalide', 400);
-            }
+        $items = CrmEquipmentItem::query()
+            ->active()
+            ->whereIn('site_id', $siteIds)
+            ->where('id', '>', $cursor)
+            ->when($categoryId > 0, fn ($query) => $query->where('category_id', $categoryId))
+            ->orderBy('id')
+            ->limit($limit + 1)
+            ->get();
 
-            $rental = CrmEquipmentRental::query()
-                ->lockForUpdate()
-                ->find($id);
+        $hasMore = $items->count() > $limit;
+        $rows = $items->take($limit)->values();
 
-            if (! $rental) {
-                $this->fail('Location introuvable', 404);
-            }
-
-            $canUpdateAny = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.update_any');
-            $canUpdateOwn = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.update_own') && (int) $rental->user_id === (int) $actor->id;
-
-            if (! $canUpdateAny && ! $canUpdateOwn) {
-                $this->fail('Modification non autorisee', 403);
-            }
-
-            [$item, $site, $periodType, $slot, $status, $title, $contactPhone, $startAt, $endAt, $notes] = $this->rentalPayload($data);
-
-            $canUpdateAnyOnNewSite = $this->canOnSite($actor, (int) $site->id, 'equipment_rentals.update_any');
-            $canUpdateOwnOnNewSite = $this->canOnSite($actor, (int) $site->id, 'equipment_rentals.update_own') && (int) $rental->user_id === (int) $actor->id;
-
-            if (! $canUpdateAnyOnNewSite && ! $canUpdateOwnOnNewSite) {
-                $this->fail('Site non autorise', 403);
-            }
-
-            if ($status !== CrmEquipmentRental::STATUS_CANCELLED) {
-                $this->requireNoRentalConflict((int) $item->id, $startAt, $endAt, $id);
-            }
-
-            $rental->fill([
-                'site_id' => $site->id,
-                'equipment_item_id' => $item->id,
-                'period_type' => $periodType,
-                'slot' => $slot,
-                'status' => $status,
-                'title' => $title,
-                'contact_phone' => $contactPhone,
-                'start_at' => $startAt,
-                'end_at' => $endAt,
-                'notes' => $notes,
-            ]);
-            $rental->save();
-
-            $this->log($actor, 'modification location materiel', "Location materiel #{$id}");
-
-            return ['ok' => true, 'equipmentRental' => $this->rentalRow($rental->refresh())];
-        });
+        return [
+            'ok' => true,
+            'mode' => 'mysql',
+            'equipmentItems' => $rows->map(fn (CrmEquipmentItem $item): array => $this->itemRow($item))->all(),
+            'pagination' => [
+                'hasMore' => $hasMore,
+                'nextCursor' => $hasMore ? $rows->last()?->id : null,
+            ],
+        ];
     }
 
-    public function deleteRental(CrmUser $actor, array $data): array
+    public function equipmentCategories(CrmUser $actor): array
     {
         $this->requireModule($actor);
 
-        return DB::transaction(function () use ($actor, $data): array {
-            $id = (int) ($data['id'] ?? 0);
-
-            if ($id <= 0) {
-                $this->fail('Location invalide', 400);
-            }
-
-            $rental = CrmEquipmentRental::query()
-                ->lockForUpdate()
-                ->find($id);
-
-            if (! $rental) {
-                $this->fail('Location introuvable', 404);
-            }
-
-            $canDeleteAny = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.delete_any');
-            $canDeleteOwn = $this->canOnSite($actor, (int) $rental->site_id, 'equipment_rentals.delete_own') && (int) $rental->user_id === (int) $actor->id;
-
-            if (! $canDeleteAny && ! $canDeleteOwn) {
-                $this->fail('Suppression non autorisee', 403);
-            }
-
-            $rental->delete();
-            $this->log($actor, 'suppression location materiel', "Location materiel #{$id}");
-
-            return ['ok' => true];
-        });
+        return [
+            'ok' => true,
+            'mode' => 'mysql',
+            'equipmentCategories' => $this->activeCategoryRows(),
+        ];
     }
 
-    public function saveEquipmentItem(CrmUser $actor, array $data): array
+    public function createRental(User $account, CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
 
-        return DB::transaction(function () use ($actor, $data): array {
+        $payload = $this->rentalPayloadMap($data);
+
+        Gate::forUser($account)->authorize('createForSite', [CrmEquipmentRental::class, (int) $payload['site']->id]);
+
+        $rental = $this->createRentalAction->execute($actor, $payload);
+
+        return ['ok' => true, 'equipmentRental' => $this->rentalRow($rental)];
+    }
+
+    public function updateRental(User $account, CrmUser $actor, array $data): array
+    {
+        $this->requireModule($actor);
+
+        $id = (int) ($data['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->fail('Location invalide', 400);
+        }
+
+        $rental = $this->rentalForPolicy($id);
+        $payload = $this->rentalPayloadMap($data);
+
+        Gate::forUser($account)->authorize('update', $rental);
+        Gate::forUser($account)->authorize('updateForSite', [$rental, (int) $payload['site']->id]);
+
+        $rental = $this->updateRentalAction->execute($actor, $id, $payload);
+
+        return ['ok' => true, 'equipmentRental' => $this->rentalRow($rental)];
+    }
+
+    public function deleteRental(User $account, CrmUser $actor, array $data): array
+    {
+        $this->requireModule($actor);
+
+        $id = (int) ($data['id'] ?? 0);
+
+        if ($id <= 0) {
+            $this->fail('Location invalide', 400);
+        }
+
+        $rental = $this->rentalForPolicy($id);
+
+        Gate::forUser($account)->authorize('delete', $rental);
+
+        $this->deleteRentalAction->execute($actor, $id);
+
+        return ['ok' => true];
+    }
+
+    public function saveEquipmentItem(User $account, CrmUser $actor, array $data): array
+    {
+        $this->requireModule($actor);
+
+        return DB::transaction(function () use ($account, $actor, $data): array {
             $id = max(0, (int) ($data['id'] ?? 0));
             $siteId = (int) ($data['siteId'] ?? $data['site_id'] ?? 0);
             $categoryId = (int) ($data['categoryId'] ?? $data['category_id'] ?? 0);
@@ -227,8 +270,6 @@ class EquipmentRentalService
             $depositAmount = $this->decimal($data['depositAmount'] ?? $data['deposit_amount'] ?? 0);
             $sortOrder = (int) ($data['sortOrder'] ?? $data['sort_order'] ?? 100);
 
-            $this->requireSitePermission($actor, $siteId, 'equipment_rentals.manage_items');
-
             if ($name === '' || mb_strlen($name) > 160) {
                 $this->fail('Nom du materiel invalide', 400);
             }
@@ -243,6 +284,21 @@ class EquipmentRentalService
 
             if ($halfDayPrice < 0 || $dayPrice < 0 || $depositAmount < 0) {
                 $this->fail('Les montants ne peuvent pas etre negatifs', 400);
+            }
+
+            $item = $id > 0
+                ? CrmEquipmentItem::query()->lockForUpdate()->find($id)
+                : new CrmEquipmentItem;
+
+            if ($id > 0 && ! $item) {
+                $this->fail('Materiel introuvable', 404);
+            }
+
+            if ($id > 0) {
+                Gate::forUser($account)->authorize('update', $item);
+                Gate::forUser($account)->authorize('updateForSite', [$item, $siteId]);
+            } else {
+                Gate::forUser($account)->authorize('createForSite', [CrmEquipmentItem::class, $siteId]);
             }
 
             $savedCategory = null;
@@ -300,18 +356,6 @@ class EquipmentRentalService
                 }
             }
 
-            $item = $id > 0
-                ? CrmEquipmentItem::query()->lockForUpdate()->find($id)
-                : new CrmEquipmentItem;
-
-            if ($id > 0 && ! $item) {
-                $this->fail('Materiel introuvable', 404);
-            }
-
-            if ($id > 0) {
-                $this->requireSitePermission($actor, (int) $item->site_id, 'equipment_rentals.manage_items');
-            }
-
             $photoUrl = $item->getAttribute('photo_url') ?: null;
 
             if (trim($photoDataUrl) !== '') {
@@ -351,11 +395,11 @@ class EquipmentRentalService
         });
     }
 
-    public function deleteEquipmentItem(CrmUser $actor, array $data): array
+    public function deleteEquipmentItem(User $account, CrmUser $actor, array $data): array
     {
         $this->requireModule($actor);
 
-        return DB::transaction(function () use ($actor, $data): array {
+        return DB::transaction(function () use ($account, $actor, $data): array {
             $id = (int) ($data['id'] ?? 0);
 
             if ($id <= 0) {
@@ -370,7 +414,8 @@ class EquipmentRentalService
                 $this->fail('Materiel introuvable', 404);
             }
 
-            $this->requireSitePermission($actor, (int) $item->site_id, 'equipment_rentals.manage_items');
+            Gate::forUser($account)->authorize('delete', $item);
+
             $item->forceFill(['active' => false])->save();
 
             $this->log($actor, 'masquage materiel', "Materiel #{$id}");
@@ -514,13 +559,6 @@ class EquipmentRentalService
         }
     }
 
-    private function requireNoRentalConflict(int $itemId, string $startAt, string $endAt, ?int $ignoreId = null): void
-    {
-        if ($this->conflicts->equipmentOverlaps($itemId, $startAt, $endAt, $ignoreId)) {
-            $this->fail('Ce materiel est deja loue sur ce creneau', 409);
-        }
-    }
-
     private function requireModule(CrmUser $actor): void
     {
         if (! $this->hasModule($actor)) {
@@ -533,16 +571,36 @@ class EquipmentRentalService
         return $this->access->hasModule($actor, 'locations-materiel');
     }
 
-    private function requireSitePermission(CrmUser $actor, int $siteId, string $permission): void
+    private function rentalForPolicy(int $id): CrmEquipmentRental
     {
-        if (! $this->canOnSite($actor, $siteId, $permission)) {
-            $this->fail('Droit insuffisant : '.$permission, 403);
+        $rental = CrmEquipmentRental::query()->find($id);
+
+        if (! $rental) {
+            $this->fail('Location introuvable', 404);
         }
+
+        return $rental;
     }
 
-    private function canOnSite(CrmUser $actor, int $siteId, string $permission): bool
+    /**
+     * @return array{item: CrmEquipmentItem, site: CrmSite, periodType: string, slot: string, status: string, title: string, contactPhone: string, startAt: string, endAt: string, notes: string}
+     */
+    private function rentalPayloadMap(array $data): array
     {
-        return $this->access->canOnSite($actor, $siteId, 'locations-materiel', $permission);
+        [$item, $site, $periodType, $slot, $status, $title, $contactPhone, $startAt, $endAt, $notes] = $this->rentalPayload($data);
+
+        return [
+            'item' => $item,
+            'site' => $site,
+            'periodType' => $periodType,
+            'slot' => $slot,
+            'status' => $status,
+            'title' => $title,
+            'contactPhone' => $contactPhone,
+            'startAt' => $startAt,
+            'endAt' => $endAt,
+            'notes' => $notes,
+        ];
     }
 
     private function actorRow(CrmUser $actor): array
@@ -572,6 +630,101 @@ class EquipmentRentalService
     private function siteIds(CrmUser $user): array
     {
         return $this->access->siteIdsForModule($user, 'locations-materiel', $this->equipmentPermissionNames());
+    }
+
+    /**
+     * @param  array<int, int>  $siteIds
+     * @return array<int, array{id: int, name: string}>
+     */
+    private function userRowsForSites(array $siteIds): array
+    {
+        return CrmUser::query()
+            ->select(['id', 'name'])
+            ->where('active', true)
+            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $siteIds))
+            ->orderBy('name')
+            ->get()
+            ->map(fn (CrmUser $user): array => $this->userRow($user))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array<int, int>
+     */
+    private function filteredSiteIds(CrmUser $actor, array $filters): array
+    {
+        $allowedSiteIds = $this->siteIds($actor);
+
+        if ($allowedSiteIds === []) {
+            $this->fail('Aucun site autorise pour la location materiel', 403);
+        }
+
+        $requestedSiteId = (int) ($filters['siteId'] ?? $filters['site_id'] ?? 0);
+
+        if ($requestedSiteId <= 0) {
+            return $allowedSiteIds;
+        }
+
+        if (! in_array($requestedSiteId, $allowedSiteIds, true)) {
+            $this->fail('Site non autorise', 403);
+        }
+
+        return [$requestedSiteId];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     * @return array{0: CarbonImmutable, 1: CarbonImmutable}
+     */
+    private function dateWindow(array $filters): array
+    {
+        $from = $this->optionalDateBoundary($filters['from'] ?? null, true)
+            ?? CarbonImmutable::now()->startOfMonth()->subDays(7);
+        $to = $this->optionalDateBoundary($filters['to'] ?? null, false)
+            ?? CarbonImmutable::now()->endOfMonth()->addDays(7);
+
+        if ($from->gt($to)) {
+            $this->fail('Fenetre de dates invalide', 422);
+        }
+
+        if ($from->diffInDays($to, true) > 120) {
+            $this->fail('Fenetre de dates trop large', 422);
+        }
+
+        return [$from, $to];
+    }
+
+    private function optionalDateBoundary(mixed $value, bool $startOfDay): ?CarbonImmutable
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        try {
+            $date = CarbonImmutable::parse($value);
+        } catch (Throwable) {
+            $this->fail('Date de planning invalide', 422);
+        }
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return $startOfDay ? $date->startOfDay() : $date->endOfDay();
+        }
+
+        return $date;
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function limit(array $filters, int $default, int $max): int
+    {
+        $limit = (int) ($filters['limit'] ?? $default);
+
+        return max(1, min($limit, $max));
     }
 
     /**

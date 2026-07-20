@@ -4,8 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @property int $id
+ * @property int|null $site_id
+ * @property int|null $vehicle_id
+ * @property int|null $user_id
+ * @property string|null $user_name
+ * @property string|null $title
+ * @property string|null $contact_phone
+ * @property Carbon|null $start_at
+ * @property Carbon|null $end_at
+ * @property string|null $notes
+ * @property-read CrmSite|null $site
+ * @property-read CrmVehicle|null $vehicle
+ * @property-read CrmUser|null $user
+ */
 class CrmReservation extends Model
 {
     protected $table = 'crm_reservations';
@@ -95,16 +111,25 @@ class CrmReservation extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<CrmSite, $this>
+     */
     public function site(): BelongsTo
     {
         return $this->belongsTo(CrmSite::class, 'site_id');
     }
 
+    /**
+     * @return BelongsTo<CrmVehicle, $this>
+     */
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(CrmVehicle::class, 'vehicle_id');
     }
 
+    /**
+     * @return BelongsTo<CrmUser, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(CrmUser::class, 'user_id');

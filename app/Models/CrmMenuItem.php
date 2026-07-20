@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Modules\CrmCore\Support\CrmReferenceCache;
 
+/**
+ * @property int $id
+ * @property bool $active
+ * @property string $group_key
+ * @property string $icon_key
+ * @property string $item_key
+ * @property string $label
+ * @property int $sort_order
+ * @property-read CrmMenuGroup|null $group
+ */
 class CrmMenuItem extends Model
 {
     protected $table = 'crm_menu_items';
@@ -38,6 +48,9 @@ class CrmMenuItem extends Model
         });
     }
 
+    /**
+     * @return BelongsTo<CrmMenuGroup, $this>
+     */
     public function group(): BelongsTo
     {
         return $this->belongsTo(CrmMenuGroup::class, 'group_key', 'menu_key');

@@ -118,21 +118,47 @@ paths:
   /api/reservations:
     get:
       tags: [Reservations]
-      summary: Lire l'etat du module reservations vehicules.
+      summary: Lire les reservations vehicules du calendrier visible.
+      description: Sans action, retourne les reservations dans une fenetre de dates limitee. L'ancien action=bootstrap reste disponible pour compatibilite.
       parameters:
         - in: query
           name: action
-          required: true
+          required: false
           schema:
             type: string
-            enum: [health, bootstrap]
+            enum: [health, bootstrap, reservations]
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2026-07-01'
+          description: Debut de la fenetre calendrier.
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2026-08-31'
+          description: Fin de la fenetre calendrier. La fenetre maximale est limitee a 120 jours.
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: vehicleId
+          required: false
+          schema:
+            type: integer
+          description: Filtre optionnel sur un vehicule.
       responses:
         '200':
-          description: Health check ou planning vehicules.
+          description: Health check, bootstrap legacy ou reservations filtrees.
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/BadRequest'
     post:
       tags: [Reservations]
       summary: Creer, modifier ou supprimer une reservation ou un vehicule.
@@ -161,6 +187,65 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/reservations/bootstrap:
+    get:
+      tags: [Reservations]
+      summary: Charger le bootstrap leger du module reservations.
+      description: Retourne utilisateur, sites, modules, permissions, utilisateurs minimaux et vehicules, sans charger toutes les reservations.
+      responses:
+        '200':
+          description: Donnees de reference du module reservations.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/reservations/users:
+    get:
+      tags: [Reservations]
+      summary: Lister les utilisateurs CRM visibles par site pour les reservations.
+      parameters:
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: cursor
+          schema:
+            type: integer
+          description: Dernier identifiant lu pour la pagination par curseur.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 250
+            maximum: 500
+      responses:
+        '200':
+          description: Liste paginee d'utilisateurs sous forme id + name.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/reservations/vehicles:
+    get:
+      tags: [Reservations]
+      summary: Lister les vehicules visibles par site.
+      parameters:
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: cursor
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 250
+            maximum: 500
+      responses:
+        '200':
+          description: Liste paginee des vehicules.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/reservations.php:
     get:
       tags: [Reservations, Legacy]
@@ -177,21 +262,47 @@ paths:
   /api/equipment-rentals:
     get:
       tags: [Location materiel]
-      summary: Lire l'etat du module location materiel.
+      summary: Lire les locations materiel du calendrier visible.
+      description: Sans action, retourne les locations dans une fenetre de dates limitee. L'ancien action=bootstrap reste disponible pour compatibilite.
       parameters:
         - in: query
           name: action
-          required: true
+          required: false
           schema:
             type: string
-            enum: [health, bootstrap]
+            enum: [health, bootstrap, rentals]
+        - in: query
+          name: from
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2026-07-01'
+          description: Debut de la fenetre calendrier.
+        - in: query
+          name: to
+          required: false
+          schema:
+            type: string
+            format: date
+          example: '2026-08-31'
+          description: Fin de la fenetre calendrier. La fenetre maximale est limitee a 120 jours.
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: equipmentItemId
+          required: false
+          schema:
+            type: integer
+          description: Filtre optionnel sur un materiel.
       responses:
         '200':
-          description: Health check ou planning materiel.
+          description: Health check, bootstrap legacy ou locations filtrees.
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/BadRequest'
     post:
       tags: [Location materiel]
       summary: Creer, modifier ou supprimer une location ou une fiche materiel.
@@ -220,6 +331,81 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/equipment-rentals/bootstrap:
+    get:
+      tags: [Location materiel]
+      summary: Charger le bootstrap leger du module location materiel.
+      description: Retourne utilisateur, sites, modules, permissions, utilisateurs minimaux, categories et materiels, sans charger toutes les locations.
+      responses:
+        '200':
+          description: Donnees de reference du module location materiel.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/equipment-rentals/users:
+    get:
+      tags: [Location materiel]
+      summary: Lister les utilisateurs CRM visibles par site pour les locations.
+      parameters:
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: cursor
+          schema:
+            type: integer
+          description: Dernier identifiant lu pour la pagination par curseur.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 250
+            maximum: 500
+      responses:
+        '200':
+          description: Liste paginee d'utilisateurs sous forme id + name.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/equipment-rentals/items:
+    get:
+      tags: [Location materiel]
+      summary: Lister les materiels visibles par site.
+      parameters:
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: categoryId
+          schema:
+            type: integer
+          description: Filtre optionnel sur une categorie.
+        - in: query
+          name: cursor
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 250
+            maximum: 500
+      responses:
+        '200':
+          description: Liste paginee des materiels.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/equipment-rentals/categories:
+    get:
+      tags: [Location materiel]
+      summary: Lister les categories actives de materiel.
+      responses:
+        '200':
+          description: Liste des categories actives.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/equipment-rentals.php:
     get:
       tags: [Location materiel, Legacy]

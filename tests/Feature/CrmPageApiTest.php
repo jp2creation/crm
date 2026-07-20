@@ -89,7 +89,7 @@ class CrmPageApiTest extends TestCase
         $this->actingAs($account)
             ->get('/pages-crm')
             ->assertOk()
-            ->assertSee('data-crm-frontend-assets', false);
+            ->assertSee('crm-shell-config', false);
 
         $register = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
         $fallbackMenu = (string) file_get_contents(resource_path('frontend/crm/router/menu.ts'));

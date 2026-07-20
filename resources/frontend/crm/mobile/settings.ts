@@ -39,7 +39,80 @@ function dispatchLocation(settings: MobileSettings, lastLocation: MobileLocation
   );
 }
 
+function mountSettingsMarkup(): void {
+  if (!document.body.classList.contains('crm-mobile-app')) {
+    return;
+  }
+
+  if (document.querySelector('[data-crm-mobile-settings]')) {
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+
+  wrapper.innerHTML = `
+    <button class="crm-mobile-app-settings-trigger" type="button" data-crm-mobile-settings-toggle aria-label="Paramètres de l'app">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="crm-mobile-app-settings" data-crm-mobile-settings hidden>
+      <button class="crm-mobile-app-settings-backdrop" type="button" data-crm-mobile-settings-close aria-label="Fermer"></button>
+      <section class="crm-mobile-app-settings-panel" role="dialog" aria-modal="true" aria-label="Paramètres de l'app">
+        <div class="crm-mobile-app-settings-header">
+          <div>
+            <p>Application</p>
+            <h2>Paramètres</h2>
+          </div>
+          <button class="crm-mobile-app-settings-close" type="button" data-crm-mobile-settings-close aria-label="Fermer">&times;</button>
+        </div>
+
+        <div class="crm-mobile-app-settings-switches">
+          <label class="crm-mobile-app-settings-switch">
+            <span>Localisation</span>
+            <input data-crm-mobile-location-enabled type="checkbox">
+            <i aria-hidden="true"></i>
+          </label>
+          <label class="crm-mobile-app-settings-switch">
+            <span>Haute précision</span>
+            <input data-crm-mobile-location-accuracy type="checkbox">
+            <i aria-hidden="true"></i>
+          </label>
+        </div>
+
+        <div class="crm-mobile-app-settings-status">
+          <div>
+            <span>Réseau</span>
+            <strong data-crm-mobile-network-status>En ligne</strong>
+          </div>
+          <div>
+            <span>Localisation</span>
+            <strong data-crm-mobile-location-status>Désactivée</strong>
+          </div>
+          <div>
+            <span>Version</span>
+            <strong>App mobile</strong>
+          </div>
+          <div>
+            <span>WebView</span>
+            <strong data-crm-mobile-platform>Android</strong>
+          </div>
+        </div>
+
+        <p class="crm-mobile-app-settings-error" data-crm-mobile-settings-error></p>
+
+        <div class="crm-mobile-app-settings-actions">
+          <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-test-location>Tester localisation</button>
+          <button class="crm-mobile-app-settings-primary" type="button" data-crm-mobile-settings-close>Fermer</button>
+        </div>
+      </section>
+    </div>
+  `;
+
+  document.body.append(...Array.from(wrapper.childNodes));
+}
+
 export function installMobileAppSettings(): void {
+  mountSettingsMarkup();
+
   const modal = document.querySelector<HTMLElement>('[data-crm-mobile-settings]');
   const toggle = document.querySelector<HTMLButtonElement>('[data-crm-mobile-settings-toggle]');
   const closeButtons = document.querySelectorAll<HTMLButtonElement>('[data-crm-mobile-settings-close]');
