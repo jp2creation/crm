@@ -60,7 +60,7 @@ class CrmPwaAssetTest extends TestCase
 
     public function test_lazy_chunks_import_the_current_entry_asset_version(): void
     {
-        $currentImport = 'index-CqSzWeas.js?v=202607191940';
+        $currentImport = 'index-CqSzWeas.js?v=202607201900';
         $legacyVersions = [
             '2026071404',
             '2026071602',
@@ -76,6 +76,10 @@ class CrmPwaAssetTest extends TestCase
             '2026071711',
             '2026071712',
             '2026071713',
+            '202607191940',
+            '202607192230',
+            '202607200930',
+            '1783861909',
         ];
         $chunksWithCurrentImport = 0;
 
@@ -124,6 +128,16 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringEndsWith(
             '/modules/crm-core/crm-pwa.js?v=deploy-test',
             CrmAsset::url('modules/crm-core/crm-pwa.js'),
+        );
+    }
+
+    public function test_legacy_public_js_entry_uses_its_lazy_import_version(): void
+    {
+        config(['crm.assets.version' => 'deploy-test']);
+
+        $this->assertStringEndsWith(
+            '/assets/index-CqSzWeas.js?v=202607201900',
+            CrmAsset::url('assets/index-CqSzWeas.js'),
         );
     }
 

@@ -12,8 +12,8 @@ import {
     p as u,
     u as d,
     w as f,
-} from "./index-CqSzWeas.js?v=202607191940";
-import { t as p } from "./dashboard-Chzs1W9w.js?v=202607191940";
+} from "./index-CqSzWeas.js?v=202607201900";
+import { t as p } from "./dashboard-Chzs1W9w.js?v=202607201900";
 import {
     a as m,
     i as h,
@@ -22,7 +22,7 @@ import {
     r as te,
     s as ne,
     t as re,
-} from "./reservations-DvkqhioU.js?v=202607191940";
+} from "./reservations-DvkqhioU.js?v=202607201900";
 var _ = r(o(), 1),
     v = `/api/reservations`;
 function y(e) {
@@ -426,14 +426,16 @@ function vehicleAvailableNow(e, t) {
 function pe(e, t) {
     if (!e) return h[0];
     let n = t.find((e) => e.slug === `reservations`),
-        r = !n || e.moduleIds.includes(n.id),
-        i = ce(e.role, e.permissions, r),
-        a = h.find((e) => e.key === i) ?? h[0];
+        r = Array.isArray(e.moduleIds) ? e.moduleIds : [],
+        i = Array.isArray(e.permissions) ? e.permissions : [],
+        a = !n || r.length === 0 || r.includes(n.id),
+        o = ce(e.role, i, a),
+        s = h.find((e) => e.key === o) ?? h[0];
     return {
-        ...a,
+        ...s,
         label: e.name,
-        description: `${a.label} - ${a.description}`,
-        permissions: e.permissions,
+        description: `${s.label} - ${s.description}`,
+        permissions: i,
     };
 }
 function I({ label: e, value: t, hint: n, icon: r }) {

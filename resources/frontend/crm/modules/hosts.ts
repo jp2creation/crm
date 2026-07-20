@@ -159,11 +159,14 @@ function outletElement(): HTMLElement | null {
     return explicit;
   }
 
+  /*
+   * Never use #root as a route host. Adminex owns that React mount node and
+   * mutating it during startup makes React remove nodes it no longer owns.
+   */
   return (
     document.querySelector<HTMLElement>('main .layout-container.layout-page')
     || document.querySelector<HTMLElement>('.layout-container.layout-page')
     || document.querySelector<HTMLElement>('main')
-    || document.getElementById('root')
   );
 }
 

@@ -24,7 +24,8 @@ final class CrmAsset
             return $manifestUrl;
         }
 
-        $version = self::configuredVersion();
+        $usesBundledImports = str_starts_with($path, 'assets/') && str_ends_with($path, '.js');
+        $version = $usesBundledImports ? self::importVersion($path) : self::configuredVersion();
 
         if (! $version && str_ends_with($path, '.js')) {
             $version = self::importVersion($path);

@@ -1,4 +1,4 @@
-import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=202607192230";
+import{I as jsxRuntime,K as wrapModule,W as reactFactory}from"./index-CqSzWeas.js?v=202607201900";
 
 var jsx=jsxRuntime();
 var React=wrapModule(reactFactory(),1);
@@ -1588,10 +1588,12 @@ function EquipmentRentalsPage(){
       var user=activeUser();
       if(!user||!state.data)return{blocked:true,permissions:[]};
       var module=state.data.modules.find(function(item){return item.slug==="locations-materiel"});
-      var moduleAllowed=!module||user.moduleIds.includes(module.id);
+      var moduleIds=Array.isArray(user.moduleIds)?user.moduleIds:[];
+      var permissions=Array.isArray(user.permissions)?user.permissions:[];
+      var moduleAllowed=!module||moduleIds.length===0||moduleIds.includes(module.id);
       return{
-        blocked:!moduleAllowed||!user.permissions.includes("equipment_rentals.view"),
-        permissions:user.permissions
+        blocked:!moduleAllowed||!permissions.includes("equipment_rentals.view"),
+        permissions:permissions
       };
     }
 
