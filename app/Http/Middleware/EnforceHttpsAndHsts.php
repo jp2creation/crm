@@ -13,13 +13,13 @@ class EnforceHttpsAndHsts
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ((bool) config('crm.security.force_https', false) && ! $this->isSecure($request)) {
+        if ((bool) config('crm.security.force_https', false) && ! $request->secure()) {
             return redirect()->away('https://'.$request->getHttpHost().$request->getRequestUri(), 301);
         }
 
         $response = $next($request);
 
-        if ((bool) config('crm.security.hsts_enabled', false) && $this->isSecure($request)) {
+        if ((bool) config('crm.security.hsts_enabled', false) && $request->secure()) {
             $response->headers->set('Strict-Transport-Security', $this->hstsHeader());
         }
 
@@ -28,16 +28,6 @@ class EnforceHttpsAndHsts
         }
 
         return $response;
-    }
-
-    private function isSecure(Request $request): bool
-    {
-        $forwardedProto = strtolower((string) $request->headers->get('X-Forwarded-Proto'));
-        $forwardedSsl = strtolower((string) $request->headers->get('X-Forwarded-Ssl'));
-
-        return $request->secure()
-            || $forwardedProto === 'https'
-            || $forwardedSsl === 'on';
     }
 
     private function hstsHeader(): string

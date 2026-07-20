@@ -140,14 +140,15 @@ class CrmSecurityTest extends TestCase
             'crm.security.hsts_preload' => true,
         ]);
 
-        $this->withHeader('X-Forwarded-Proto', 'https')
-            ->get('/login')
+        $this->get('https://127.0.0.1:8000/login')
             ->assertOk()
             ->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     }
 
-    public function test_security_headers_are_sent_without_forcing_csp_by_default(): void
+    public function test_security_headers_are_sent_when_csp_is_disabled(): void
     {
+        config(['crm.security.csp_enabled' => false]);
+
         $response = $this->get('/login')
             ->assertOk()
             ->assertHeader('X-Content-Type-Options', 'nosniff')
@@ -172,6 +173,53 @@ class CrmSecurityTest extends TestCase
         $this->get('/login')
             ->assertOk()
             ->assertHeader('Content-Security-Policy-Report-Only', "default-src 'self'; frame-ancestors 'none'");
+    }
+
+    public function test_cors_is_delegated_to_laravel_configuration(): void
+    {
+        config(['cors.allowed_origins' => ['https://crm.jp2.fr', 'capacitor://localhost']]);
+
+        $this->withHeader('Origin', 'https://crm.jp2.fr')
+            ->getJson('/api/reservations?action=health')
+            ->assertOk()
+            ->assertHeader('Access-Control-Allow-Origin', 'https://crm.jp2.fr');
+
+        $blocked = $this->withHeader('Origin', 'https://evil.example')
+            ->getJson('/api/reservations?action=health')
+            ->assertOk();
+
+        $this->assertFalse($blocked->headers->has('Access-Control-Allow-Origin'));
+
+        foreach ([
+            app_path('Http/Controllers/Controller.php'),
+            app_path('Http/Middleware/AuditLegacyPhpApi.php'),
+            base_path('Modules/CrmCore/app/Http/Requests/CrmApiRequest.php'),
+        ] as $file) {
+            $this->assertStringNotContainsString('Access-Control-Allow-Origin', (string) file_get_contents($file));
+        }
+    }
+
+    public function test_https_proxy_and_host_trust_are_delegated_to_laravel(): void
+    {
+        $bootstrap = (string) file_get_contents(base_path('bootstrap/app.php'));
+        $middleware = (string) file_get_contents(app_path('Http/Middleware/EnforceHttpsAndHsts.php'));
+
+        $this->assertStringContainsString('trustProxies', $bootstrap);
+        $this->assertStringContainsString('trustHosts', $bootstrap);
+        $this->assertStringContainsString('$request->secure()', $middleware);
+        $this->assertStringNotContainsString('X-Forwarded-Proto', $middleware);
+        $this->assertStringNotContainsString('X-Forwarded-Ssl', $middleware);
+    }
+
+    public function test_default_csp_policy_is_report_only_ready_without_unsafe_eval(): void
+    {
+        $crmConfig = (string) file_get_contents(config_path('crm.php'));
+        $envExample = (string) file_get_contents(base_path('.env.example'));
+
+        $this->assertStringContainsString("'csp_report_only' => env('CRM_SECURITY_CSP_REPORT_ONLY', true)", $crmConfig);
+        $this->assertStringContainsString('CRM_SECURITY_CSP_ENABLED=true', $envExample);
+        $this->assertStringNotContainsString("'unsafe-eval'", $crmConfig);
+        $this->assertStringNotContainsString("'unsafe-eval'", $envExample);
     }
 
     public function test_crm_api_throttle_limit_uses_authenticated_crm_role(): void

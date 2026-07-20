@@ -30,6 +30,25 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\CrmUserSiteModulePermission;
 use App\Models\CrmVehicle;
+use Illuminate\Http\Request;
+
+$trustedProxies = array_values(array_filter(array_map(
+    'trim',
+    explode(',', (string) env('CRM_TRUSTED_PROXIES', ''))
+)));
+
+$trustedHosts = array_values(array_filter(array_map(
+    static function (string $host): string {
+        $host = trim($host);
+
+        if ($host === '' || str_starts_with($host, '^')) {
+            return $host;
+        }
+
+        return '^'.str_replace('\*', '.*', preg_quote($host, '#')).'$';
+    },
+    explode(',', (string) env('CRM_TRUSTED_HOSTS', ''))
+)));
 
 return [
     'legacy_php_api' => [
@@ -48,9 +67,18 @@ return [
         'frame_options' => env('CRM_SECURITY_FRAME_OPTIONS', 'DENY'),
         'referrer_policy' => env('CRM_SECURITY_REFERRER_POLICY', 'strict-origin-when-cross-origin'),
         'permissions_policy' => env('CRM_SECURITY_PERMISSIONS_POLICY', 'camera=(), microphone=(), geolocation=()'),
-        'csp_enabled' => env('CRM_SECURITY_CSP_ENABLED', false),
+        'csp_enabled' => env('CRM_SECURITY_CSP_ENABLED', env('APP_ENV', 'production') === 'production'),
         'csp_report_only' => env('CRM_SECURITY_CSP_REPORT_ONLY', true),
-        'csp' => env('CRM_SECURITY_CSP', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.bunny.net; img-src 'self' data: blob:; font-src 'self' data: https://fonts.bunny.net; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"),
+        'csp' => env('CRM_SECURITY_CSP', "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.bunny.net; img-src 'self' data: blob:; font-src 'self' data: https://fonts.bunny.net; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"),
+        'trusted_proxies' => $trustedProxies,
+        'trusted_proxy_headers' => Request::HEADER_X_FORWARDED_FOR
+            | Request::HEADER_X_FORWARDED_HOST
+            | Request::HEADER_X_FORWARDED_PORT
+            | Request::HEADER_X_FORWARDED_PROTO
+            | Request::HEADER_X_FORWARDED_PREFIX
+            | Request::HEADER_X_FORWARDED_AWS_ELB,
+        'trusted_hosts' => $trustedHosts,
+        'trusted_host_subdomains' => env('CRM_TRUSTED_HOST_SUBDOMAINS', true),
     ],
 
     'api' => [

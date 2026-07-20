@@ -21,8 +21,7 @@ class AuditLegacyPhpApi
                 ->json([
                     'ok' => false,
                     'error' => 'Endpoint legacy desactive. Utilisez la route API sans extension .php.',
-                ], 410, [], JSON_UNESCAPED_UNICODE)
-                ->withHeaders($this->corsHeaders($request));
+                ], 410, [], JSON_UNESCAPED_UNICODE);
         }
 
         if ((bool) config('crm.legacy_php_api.log_calls', true)) {
@@ -45,19 +44,6 @@ class AuditLegacyPhpApi
             'user_id' => $request->user()?->getAuthIdentifier(),
             'user_agent' => $request->userAgent(),
             'referer' => $request->headers->get('referer'),
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function corsHeaders(Request $request): array
-    {
-        return [
-            'Access-Control-Allow-Origin' => $request->headers->get('Origin', '*'),
-            'Access-Control-Allow-Headers' => 'Accept, Authorization, Content-Type, X-CSRF-TOKEN, X-Requested-With, X-XSRF-TOKEN',
-            'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-            'Vary' => 'Origin',
         ];
     }
 }

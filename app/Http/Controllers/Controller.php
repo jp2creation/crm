@@ -24,11 +24,6 @@ abstract class Controller
      */
     protected function crmApiHeaders(): array
     {
-        return [
-            'Access-Control-Allow-Origin' => request()->headers->get('Origin', '*'),
-            'Access-Control-Allow-Headers' => 'Accept, Authorization, Content-Type, X-CSRF-TOKEN, X-Requested-With, X-XSRF-TOKEN',
-            'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-            'Vary' => 'Origin',
-        ];
+        return [];
     }
 }

@@ -80,12 +80,6 @@ class CrmApiRequest extends FormRequest
                     'ok' => false,
                     'error' => $validator->errors()->first(),
                 ], 422, [], JSON_UNESCAPED_UNICODE)
-                ->withHeaders([
-                    'Access-Control-Allow-Origin' => $this->headers->get('Origin', '*'),
-                    'Access-Control-Allow-Headers' => 'Accept, Authorization, Content-Type, X-CSRF-TOKEN, X-Requested-With, X-XSRF-TOKEN',
-                    'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-                    'Vary' => 'Origin',
-                ])
         );
     }
 }
