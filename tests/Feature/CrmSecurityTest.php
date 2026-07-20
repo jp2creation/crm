@@ -202,10 +202,22 @@ class CrmSecurityTest extends TestCase
     public function test_https_proxy_and_host_trust_are_delegated_to_laravel(): void
     {
         $bootstrap = (string) file_get_contents(base_path('bootstrap/app.php'));
+        $trustedHosts = (string) file_get_contents(app_path('Http/Middleware/TrustCrmHosts.php'));
+        $trustedProxies = (string) file_get_contents(app_path('Http/Middleware/TrustCrmProxies.php'));
         $middleware = (string) file_get_contents(app_path('Http/Middleware/EnforceHttpsAndHsts.php'));
 
-        $this->assertStringContainsString('trustProxies', $bootstrap);
         $this->assertStringContainsString('trustHosts', $bootstrap);
+        $this->assertStringContainsString('replace(LaravelTrustHosts::class, TrustCrmHosts::class)', $bootstrap);
+        $this->assertStringContainsString('replace(LaravelTrustProxies::class, TrustCrmProxies::class)', $bootstrap);
+        $this->assertStringContainsString('TrustCrmHosts::class', $bootstrap);
+        $this->assertStringContainsString('TrustCrmProxies::class', $bootstrap);
+        $this->assertStringContainsString("config('crm.security.trusted_hosts'", $trustedHosts);
+        $this->assertStringContainsString("config('crm.security.trusted_host_subdomains'", $trustedHosts);
+        $this->assertStringContainsString("config('crm.security.trusted_proxies')", $trustedProxies);
+        $this->assertStringContainsString("config('crm.security.trusted_proxy_headers')", $trustedProxies);
+        $this->assertStringNotContainsString("env('CRM_TRUSTED_PROXIES'", $bootstrap);
+        $this->assertStringNotContainsString("env('CRM_TRUSTED_HOSTS'", $bootstrap);
+        $this->assertStringNotContainsString("env('CRM_TRUSTED_HOST_SUBDOMAINS'", $bootstrap);
         $this->assertStringContainsString('$request->secure()', $middleware);
         $this->assertStringNotContainsString('X-Forwarded-Proto', $middleware);
         $this->assertStringNotContainsString('X-Forwarded-Ssl', $middleware);

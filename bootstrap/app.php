@@ -6,10 +6,13 @@ use App\Http\Middleware\EnforceHttpsAndHsts;
 use App\Http\Middleware\EnsureCrmMobileTokenScope;
 use App\Http\Middleware\EnsureCrmModuleAccess;
 use App\Http\Middleware\MirrorAuthenticatedSessionMetadata;
+use App\Http\Middleware\TrustCrmHosts;
+use App\Http\Middleware\TrustCrmProxies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Http\Middleware\TrustHosts as LaravelTrustHosts;
+use Illuminate\Http\Middleware\TrustProxies as LaravelTrustProxies;
 use Modules\CrmAdministration\Console\Commands\EnsureCrmAdminCommand;
 use Modules\CrmCashControl\Console\Commands\ArchiveCashReceiptsCommand;
 use Modules\CrmCore\Console\Commands\ArchiveCrmDataCommand;
@@ -37,36 +40,9 @@ return Application::configure(basePath: dirname(__DIR__))
         RefreshDashboardMetricsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
-        $trustedProxies = array_values(array_filter(array_map(
-            'trim',
-            explode(',', (string) env('CRM_TRUSTED_PROXIES', ''))
-        )));
-        $trustedHosts = array_values(array_filter(array_map(
-            static function (string $host): string {
-                $host = trim($host);
-
-                if ($host === '' || str_starts_with($host, '^')) {
-                    return $host;
-                }
-
-                return '^'.str_replace('\*', '.*', preg_quote($host, '#')).'$';
-            },
-            explode(',', (string) env('CRM_TRUSTED_HOSTS', ''))
-        )));
-
-        $middleware->trustProxies(
-            at: $trustedProxies !== [] ? $trustedProxies : null,
-            headers: HttpRequest::HEADER_X_FORWARDED_FOR
-                | HttpRequest::HEADER_X_FORWARDED_HOST
-                | HttpRequest::HEADER_X_FORWARDED_PORT
-                | HttpRequest::HEADER_X_FORWARDED_PROTO
-                | HttpRequest::HEADER_X_FORWARDED_PREFIX
-                | HttpRequest::HEADER_X_FORWARDED_AWS_ELB
-        );
-        $middleware->trustHosts(
-            at: $trustedHosts !== [] ? $trustedHosts : null,
-            subdomains: (bool) env('CRM_TRUSTED_HOST_SUBDOMAINS', true)
-        );
+        $middleware->trustHosts();
+        $middleware->replace(LaravelTrustHosts::class, TrustCrmHosts::class);
+        $middleware->replace(LaravelTrustProxies::class, TrustCrmProxies::class);
         $middleware->append(EnforceHttpsAndHsts::class);
         $middleware->append(MirrorAuthenticatedSessionMetadata::class);
 

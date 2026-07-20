@@ -65,6 +65,12 @@ jobs:
       - name: Run quality checks
         run: composer quality
 
+      - name: Verify cached CRM security config
+        run: |
+          php artisan optimize
+          php artisan config:show crm
+          php artisan test --filter=CrmSecurityTest
+
       - name: Run coverage threshold
         run: composer test:coverage
 
