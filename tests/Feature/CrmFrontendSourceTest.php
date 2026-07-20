@@ -46,6 +46,9 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
         $this->assertStringContainsString('loadCurrentCrmModuleOverlay', $shell);
         $this->assertStringContainsString('preloadRemainingCrmModuleOverlays', $shell);
+        $this->assertStringContainsString('Promise.all([', $shell);
+        $this->assertStringContainsString('loadLegacyAdminex(),', $shell);
+        $this->assertStringContainsString('loadCurrentCrmModuleOverlay(),', $shell);
         $this->assertStringContainsString("id: 'crm-sales-tours-module'", $hosts);
         $this->assertStringContainsString("paths: ['/rapport-visite', '/tournees-representants']", $hosts);
         $this->assertStringContainsString("paths: ['/reservations', '/locations-materiel']", $hosts);

@@ -46,8 +46,10 @@ window.CrmLoader?.begin?.(shellLoaderKey, {
 
 try {
   await loadCrmShellOverlays();
-  await loadLegacyAdminex();
-  await loadCurrentCrmModuleOverlay();
+  await Promise.all([
+    loadLegacyAdminex(),
+    loadCurrentCrmModuleOverlay(),
+  ]);
   window.dispatchEvent(new CustomEvent('crm:module-ready', { detail: { key: shellLoaderKey } }));
   preloadRemainingCrmModuleOverlays();
 } catch (error) {
