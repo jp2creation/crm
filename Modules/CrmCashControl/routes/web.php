@@ -13,10 +13,13 @@ Route::view('/controle-caisse', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/controle-caisse', CashControlApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:controle-caisse'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.controle-caisse');
+
+Route::match(['GET', 'POST'], '/api/mobile/controle-caisse', CashControlApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:controle-caisse'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.controle-caisse');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/controle-caisse.php', CashControlApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:controle-caisse'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.controle-caisse.legacy');

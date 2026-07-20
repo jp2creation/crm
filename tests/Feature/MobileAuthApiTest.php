@@ -37,7 +37,7 @@ class MobileAuthApiTest extends TestCase
         $this->assertDatabaseCount('crm_mobile_refresh_tokens', 1);
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->getJson('/api/reservations?action=bootstrap')
+            ->getJson('/api/mobile/reservations?action=bootstrap')
             ->assertOk()
             ->assertJsonPath('ok', true)
             ->assertJsonPath('user.name', $crmUser->name);
@@ -197,7 +197,7 @@ class MobileAuthApiTest extends TestCase
             ->json('token');
 
         $this->withHeader('Authorization', 'Bearer '.$token)
-            ->getJson('/api/reservations?action=bootstrap')
+            ->getJson('/api/mobile/reservations?action=bootstrap')
             ->assertForbidden()
             ->assertJsonPath('ok', false)
             ->assertJsonPath('error', 'Scope mobile insuffisant.');

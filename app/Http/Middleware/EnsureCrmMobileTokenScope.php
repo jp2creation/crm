@@ -14,6 +14,10 @@ class EnsureCrmMobileTokenScope
     public function handle(Request $request, Closure $next, string ...$abilities): Response
     {
         if (! $request->bearerToken()) {
+            if ($request->is('api/mobile/*')) {
+                return $this->json('Bearer Token mobile requis.', 401);
+            }
+
             return $next($request);
         }
 

@@ -13,10 +13,13 @@ Route::view('/conges', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges', LeaveApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:conges'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.conges');
+
+Route::match(['GET', 'POST'], '/api/mobile/conges', LeaveApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:conges'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.conges');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges.php', LeaveApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:conges'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.conges.legacy');

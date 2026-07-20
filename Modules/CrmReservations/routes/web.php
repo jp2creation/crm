@@ -13,10 +13,13 @@ Route::view('/reservations', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations', ReservationApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.reservations');
+
+Route::match(['GET', 'POST'], '/api/mobile/reservations', ReservationApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.reservations');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations.php', ReservationApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.reservations.legacy');

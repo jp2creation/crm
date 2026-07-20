@@ -187,6 +187,58 @@
         window.MartinSolsCrmLogout = logoutToCrmLogin
       })()
     </script>
+    <script data-crm-api-csrf>
+      (function () {
+        var csrfToken = @json(csrf_token())
+        var originalFetch = window.fetch
+
+        if (!csrfToken || typeof originalFetch !== 'function' || window.__martinSolsCrmFetchCsrf) {
+          return
+        }
+
+        window.__martinSolsCrmFetchCsrf = true
+
+        function requestMethod(input, init) {
+          return String((init && init.method) || (input && input.method) || 'GET').toUpperCase()
+        }
+
+        function isMutation(method) {
+          return ['GET', 'HEAD', 'OPTIONS'].indexOf(method) === -1
+        }
+
+        function isSameOrigin(input) {
+          try {
+            var value = input && input.url ? input.url : input
+            return new URL(value, window.location.href).origin === window.location.origin
+          } catch (e) {
+            return false
+          }
+        }
+
+        window.fetch = function (input, init) {
+          var method = requestMethod(input, init)
+
+          if (!isMutation(method) || !isSameOrigin(input)) {
+            return originalFetch.call(this, input, init)
+          }
+
+          var nextInit = init ? Object.assign({}, init) : {}
+          var headers = new Headers(nextInit.headers || (input && input.headers) || undefined)
+
+          if (!headers.has('X-CSRF-TOKEN') && !headers.has('X-XSRF-TOKEN')) {
+            headers.set('X-CSRF-TOKEN', csrfToken)
+          }
+
+          if (!headers.has('X-Requested-With')) {
+            headers.set('X-Requested-With', 'XMLHttpRequest')
+          }
+
+          nextInit.headers = headers
+
+          return originalFetch.call(this, input, nextInit)
+        }
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

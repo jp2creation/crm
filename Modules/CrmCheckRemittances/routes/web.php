@@ -18,10 +18,13 @@ Route::view('/remise-cheques/{remittance}', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/remise-cheques', CheckRemittanceApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:remise-cheques'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.remise-cheques');
+
+Route::match(['GET', 'POST'], '/api/mobile/remise-cheques', CheckRemittanceApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:remise-cheques'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.remise-cheques');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/remise-cheques.php', CheckRemittanceApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:remise-cheques'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.remise-cheques.legacy');

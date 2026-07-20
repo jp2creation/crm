@@ -13,10 +13,13 @@ Route::view('/locations-materiel', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals', EquipmentRentalApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:locations-materiel'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipment-rentals');
+
+Route::match(['GET', 'POST'], '/api/mobile/equipment-rentals', EquipmentRentalApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:locations-materiel'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.equipment-rentals');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals.php', EquipmentRentalApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:locations-materiel'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipment-rentals.legacy');

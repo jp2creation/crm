@@ -13,10 +13,13 @@ Route::view('/demandes-acompte', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/demandes-acompte', DepositRequestApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:demandes-acompte'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.deposit-requests');
+
+Route::match(['GET', 'POST'], '/api/mobile/demandes-acompte', DepositRequestApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:demandes-acompte'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.demandes-acompte');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/demandes-acompte.php', DepositRequestApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:demandes-acompte'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.deposit-requests.legacy');

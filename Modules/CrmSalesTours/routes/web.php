@@ -17,10 +17,13 @@ Route::view('/tournees-representants', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/tournees-representants', SalesTourApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:tournees-representants'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.sales-tours');
+
+Route::match(['GET', 'POST'], '/api/mobile/tournees-representants', SalesTourApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:tournees-representants'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.tournees-representants');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/tournees-representants.php', SalesTourApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:tournees-representants'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.sales-tours.legacy');

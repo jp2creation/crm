@@ -6,7 +6,9 @@ use App\Models\CrmModule;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
+use App\Models\CrmVehicle;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -322,5 +324,158 @@ class CrmSecurityTest extends TestCase
         $this->expectException(TokenMismatchException::class);
 
         $middleware->handle($request, fn (): Response => new Response('ok'));
+    }
+
+    public function test_session_api_mutation_requires_csrf_token(): void
+    {
+        [$account, , , $vehicle] = $this->createReservationCrmUser(['reservations.create']);
+        $this->enforceCsrfDuringFeatureTest();
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-18T08:00',
+                'endAt' => '2026-08-18T08:30',
+                'title' => 'Sans CSRF',
+            ])
+            ->assertStatus(419);
+
+        $this->assertDatabaseMissing('crm_reservations', [
+            'title' => 'Sans CSRF',
+        ]);
+    }
+
+    public function test_session_api_mutation_accepts_valid_csrf_token(): void
+    {
+        [$account, , , $vehicle] = $this->createReservationCrmUser(['reservations.create']);
+        $this->enforceCsrfDuringFeatureTest();
+
+        $this->actingAs($account)
+            ->withSession(['_token' => 'crm-csrf-token'])
+            ->withHeader('X-CSRF-TOKEN', 'crm-csrf-token')
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-18T08:00',
+                'endAt' => '2026-08-18T08:30',
+                'title' => 'Avec CSRF',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('reservation.title', 'Avec CSRF');
+    }
+
+    public function test_mobile_bearer_api_mutation_does_not_require_csrf(): void
+    {
+        [$account, , , $vehicle] = $this->createReservationCrmUser(['reservations.create']);
+
+        $token = $account->createToken('Mobile Security Test', [
+            'crm:mobile',
+            'crm:module:reservations',
+        ])->plainTextToken;
+
+        $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/mobile/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-19T08:00',
+                'endAt' => '2026-08-19T08:30',
+                'title' => 'Mobile sans CSRF',
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('reservation.title', 'Mobile sans CSRF');
+    }
+
+    public function test_mobile_api_rejects_session_without_bearer_token(): void
+    {
+        [$account, , , $vehicle] = $this->createReservationCrmUser(['reservations.create']);
+
+        $this->actingAs($account)
+            ->postJson('/api/mobile/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-20T08:00',
+                'endAt' => '2026-08-20T08:30',
+                'title' => 'Session sur mobile',
+            ])
+            ->assertUnauthorized()
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Bearer Token mobile requis.');
+    }
+
+    private function enforceCsrfDuringFeatureTest(): void
+    {
+        $this->app->bind(ValidateCsrfToken::class, fn ($app): ValidateCsrfToken => new class($app, $app['encrypter']) extends ValidateCsrfToken
+        {
+            protected function runningUnitTests(): bool
+            {
+                return false;
+            }
+        });
+
+        $this->app->bind(VerifyCsrfToken::class, fn ($app): VerifyCsrfToken => new class($app, $app['encrypter']) extends VerifyCsrfToken
+        {
+            protected function runningUnitTests(): bool
+            {
+                return false;
+            }
+        });
+    }
+
+    /**
+     * @param  array<int, string>  $permissions
+     * @return array{0: User, 1: CrmUser, 2: CrmSite, 3: CrmVehicle}
+     */
+    private function createReservationCrmUser(array $permissions): array
+    {
+        $account = User::factory()->create();
+        $crmUser = CrmUser::query()->create([
+            'user_id' => $account->id,
+            'name' => 'Security Reservation User '.$account->id,
+            'role' => 'user',
+            'active' => true,
+        ]);
+
+        $site = CrmSite::query()->create([
+            'name' => 'Palissy Securite API',
+            'slug' => 'palissy-securite-api',
+            'active' => true,
+            'morning_start' => '07:30:00',
+            'morning_end' => '12:00:00',
+            'afternoon_start' => '13:30:00',
+            'afternoon_end' => '17:30:00',
+        ]);
+
+        $vehicle = CrmVehicle::query()->create([
+            'site_id' => $site->id,
+            'name' => 'Sprinter Securite',
+            'description' => 'Vehicule test securite',
+            'color' => '#95002e',
+            'active' => true,
+        ]);
+
+        $module = CrmModule::query()->create([
+            'name' => 'Reservations',
+            'slug' => 'reservations',
+            'description' => 'Reservations vehicules',
+            'route_path' => '/reservations',
+            'active' => true,
+            'sort_order' => 10,
+        ]);
+
+        $permissionIds = [];
+
+        foreach ($permissions as $index => $permission) {
+            $permissionIds[] = CrmPermission::query()->create([
+                'name' => $permission,
+                'label' => $permission,
+                'group_label' => 'Reservations',
+                'sort_order' => 100 + $index,
+            ])->id;
+        }
+
+        $crmUser->sites()->sync([$site->id => ['is_default' => true]]);
+        $crmUser->modules()->sync([$module->id]);
+        $crmUser->permissions()->sync($permissionIds);
+
+        return [$account, $crmUser, $site, $vehicle];
     }
 }

@@ -14,10 +14,13 @@ Route::view('/administration/{section?}', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration', AdministrationApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:administration'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.administration');
+
+Route::match(['GET', 'POST'], '/api/mobile/administration', AdministrationApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:administration'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.administration');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration.php', AdministrationApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:administration'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.administration.legacy');

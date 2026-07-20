@@ -23,10 +23,13 @@ Route::get('/documents/file/{document}', [DocumentApiController::class, 'downloa
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/documents', DocumentApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:documents'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.documents');
+
+Route::match(['GET', 'POST'], '/api/mobile/documents', DocumentApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:documents'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.documents');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/documents.php', DocumentApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:documents'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.documents.legacy');

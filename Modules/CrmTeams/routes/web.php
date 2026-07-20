@@ -13,10 +13,13 @@ Route::view('/equipes', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipes', TeamApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:equipes'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipes');
+
+Route::match(['GET', 'POST'], '/api/mobile/equipes', TeamApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:equipes'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.equipes');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipes.php', TeamApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:equipes'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipes.legacy');

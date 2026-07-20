@@ -18,10 +18,13 @@ Route::view('/pages-crm/{slug}', 'crm')
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages', PageApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:pages-crm'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.pages');
+
+Route::match(['GET', 'POST'], '/api/mobile/pages', PageApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:pages-crm'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.pages');
 
 Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages.php', PageApiController::class)
     ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:pages-crm'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.pages.legacy');

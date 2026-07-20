@@ -34,8 +34,12 @@ $crmLoginApiMiddleware = ['throttle:crm-login', 'crm.compress'];
 
 Route::match(['GET', 'OPTIONS'], '/api/dashboard', DashboardApiController::class)
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:dashboard'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.dashboard');
+
+Route::get('/api/mobile/dashboard', DashboardApiController::class)
+    ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:dashboard'])
+    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->name('crm.api.mobile.dashboard');
 
 Route::options('/api/mobile/{path}', [MobileAuthController::class, 'options'])
     ->middleware('crm.compress')
