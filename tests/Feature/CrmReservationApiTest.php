@@ -283,7 +283,7 @@ class CrmReservationApiTest extends TestCase
         ]);
     }
 
-    public function test_creator_can_delete_own_reservation_without_delete_permission(): void
+    public function test_creator_without_delete_own_cannot_delete_reservation(): void
     {
         [$account, , , $vehicle] = $this->createCrmUser(['reservations.create']);
 
@@ -293,6 +293,33 @@ class CrmReservationApiTest extends TestCase
                 'startAt' => '2026-08-07T08:00',
                 'endAt' => '2026-08-07T09:00',
                 'title' => 'A supprimer',
+            ])
+            ->assertOk()
+            ->json('reservation.id');
+
+        $this->actingAs($account)
+            ->postJson('/api/reservations?action=delete_reservation', [
+                'id' => $reservationId,
+            ])
+            ->assertStatus(403)
+            ->assertJsonPath('ok', false)
+            ->assertJsonPath('error', 'Suppression non autorisee');
+
+        $this->assertDatabaseHas('crm_reservations', [
+            'id' => $reservationId,
+        ]);
+    }
+
+    public function test_creator_with_delete_own_can_delete_reservation(): void
+    {
+        [$account, , , $vehicle] = $this->createCrmUser(['reservations.create', 'reservations.delete_own']);
+
+        $reservationId = $this->actingAs($account)
+            ->postJson('/api/reservations?action=create_reservation', [
+                'vehicleId' => $vehicle->id,
+                'startAt' => '2026-08-07T10:00',
+                'endAt' => '2026-08-07T11:00',
+                'title' => 'A supprimer avec droit',
             ])
             ->assertOk()
             ->json('reservation.id');
