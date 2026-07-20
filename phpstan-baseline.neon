@@ -2101,12 +2101,6 @@ parameters:
 			path: Modules/CrmReservations/app/Services/ReservationService.php
 
 		-
-			message: '#^Right side of && is always false\.$#'
-			identifier: booleanAnd.rightAlwaysFalse
-			count: 1
-			path: Modules/CrmReservations/app/Services/ReservationService.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\CrmSalesTour\:\:\$completed_at\.$#'
 			identifier: property.notFound
 			count: 3
