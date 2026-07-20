@@ -96,6 +96,17 @@ return [
         'disk' => env('CRM_BACKUP_DISK', 'local'),
         'path' => env('CRM_BACKUP_PATH', 'backups/database'),
         'keep' => (int) env('CRM_BACKUP_KEEP', 14),
+        'keep_weekly' => (int) env('CRM_BACKUP_KEEP_WEEKLY', 8),
+        'keep_monthly' => (int) env('CRM_BACKUP_KEEP_MONTHLY', 12),
+        'dump_binary' => env('CRM_BACKUP_DUMP_BINARY'),
+        'dump_options' => array_values(array_filter(
+            array_map('trim', explode(',', (string) env('CRM_BACKUP_DUMP_OPTIONS', ''))),
+        )),
+        'gzip_level' => (int) env('CRM_BACKUP_GZIP_LEVEL', 6),
+        'timeout_seconds' => (int) env('CRM_BACKUP_TIMEOUT_SECONDS', 0),
+        'verify' => env('CRM_BACKUP_VERIFY', true),
+        'encrypt' => env('CRM_BACKUP_ENCRYPT', false),
+        'encryption_key' => env('CRM_BACKUP_ENCRYPTION_KEY'),
     ],
 
     'archive' => [

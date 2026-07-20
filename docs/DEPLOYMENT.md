@@ -57,8 +57,24 @@ Verifier le scheduler et declencher un backup de controle si besoin :
 
 ```bash
 php artisan schedule:list
-php artisan backup:run
+php artisan backup:run --verify
 ```
+
+En production MySQL/MariaDB, la commande `backup:run` attend `mariadb-dump` ou `mysqldump`.
+Configurer `CRM_BACKUP_DUMP_BINARY` si le binaire n'est pas dans le `PATH`.
+Pour sortir les sauvegardes du serveur, utiliser un disque Laravel externe :
+
+```dotenv
+CRM_BACKUP_DISK=s3
+CRM_BACKUP_PATH=crm/database
+CRM_BACKUP_KEEP=14
+CRM_BACKUP_KEEP_WEEKLY=8
+CRM_BACKUP_KEEP_MONTHLY=12
+CRM_BACKUP_ENCRYPT=true
+CRM_BACKUP_ENCRYPTION_KEY="cle-longue-hors-git"
+```
+
+Planifier un test mensuel de restauration sur une base temporaire : recuperer la derniere archive, la dechiffrer si besoin, la decompresser, l'importer dans une base isolee, puis valider les migrations et les parcours critiques. Une sauvegarde non restauree n'est pas encore une vraie sauvegarde.
 
 ## Feature flags production
 

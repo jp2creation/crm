@@ -12,7 +12,7 @@ Schedule::command('sanctum:prune-expired --hours=24')
     ->dailyAt('02:15')
     ->withoutOverlapping();
 
-Schedule::command('backup:run --quiet')
+Schedule::command('backup:run --verify --quiet')
     ->dailyAt('02:30')
     ->withoutOverlapping();
 

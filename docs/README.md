@@ -243,7 +243,9 @@ sequenceDiagram
 - Les categories materiel actives sont mises en cache et invalidees lors des modifications.
 - Les routes API CRM utilisent `CRM_API_THROTTLE_PER_MINUTE`; login web et token mobile utilisent `CRM_LOGIN_THROTTLE_PER_MINUTE`.
 - Les reponses JSON API peuvent etre compressees en gzip via `CRM_RESPONSE_COMPRESSION_ENABLED`.
-- Les sauvegardes SQL locales sont ecrites par `backup:run` dans `CRM_BACKUP_PATH` sur `CRM_BACKUP_DISK`.
+- Les sauvegardes SQL sont ecrites par `backup:run` en flux gzip, sans charger le dump complet en memoire PHP.
+- En MySQL/MariaDB, `backup:run` utilise `mariadb-dump` ou `mysqldump`; en SQLite local, un export PHP streamable reste disponible pour les tests.
+- Les sauvegardes peuvent etre envoyees vers un disque externe Laravel, par exemple S3, via `CRM_BACKUP_DISK`.
 - Le developpement local peut utiliser Sail via `docker-compose.yml`.
 - La CI GitHub lance Pint, le build Vite et les tests sur PHP 8.3.
 
@@ -258,10 +260,30 @@ Le scheduler Laravel doit etre execute toutes les minutes par cron :
 Taches actuellement planifiees :
 
 - `sanctum:prune-expired --hours=24`, chaque jour a `02:15`.
-- `backup:run --quiet`, chaque jour a `02:30`.
+- `backup:run --verify --quiet`, chaque jour a `02:30`.
 
 Les sauvegardes locales par defaut sont conservees dans `storage/app/private/backups/database`.
-Pour un stockage externe, configurer un disque S3 puis passer `CRM_BACKUP_DISK=s3` et un chemin dedie.
+La retention conserve par defaut 14 sauvegardes quotidiennes, 8 hebdomadaires et 12 mensuelles :
+
+```dotenv
+CRM_BACKUP_KEEP=14
+CRM_BACKUP_KEEP_WEEKLY=8
+CRM_BACKUP_KEEP_MONTHLY=12
+CRM_BACKUP_TIMEOUT_SECONDS=0
+```
+
+Pour un stockage externe, configurer un disque S3 puis passer `CRM_BACKUP_DISK=s3` et un chemin dedie. Le fichier est compresse localement en flux, puis envoye au disque de destination via stream.
+
+Pour chiffrer les archives :
+
+```dotenv
+CRM_BACKUP_ENCRYPT=true
+CRM_BACKUP_ENCRYPTION_KEY="une-cle-longue-stockee-hors-git"
+```
+
+Le chiffrement utilise Sodium `secretstream` et produit des fichiers `.sql.gz.enc`. La verification `--verify` controle l'archive gzip avant chiffrement et envoi. Si une sauvegarde echoue, une alerte est enregistree dans `notification_logs` avec `template_key=backup.database.failed`.
+
+Un test mensuel de restauration doit etre fait sur une base isolee, jamais sur la production. Le flux recommande est : telecharger la derniere archive externe, la dechiffrer si besoin, la decompresser, restaurer dans une base temporaire, puis verifier que `php artisan migrate:status` et quelques parcours critiques CRM passent sur cette base.
 
 ## Deploiement
 
