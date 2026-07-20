@@ -220,20 +220,16 @@ npm run cap:open:ios
 
 ## Preparation production
 
-Sur le serveur, apres envoi du code versionne :
+La procedure de production doit passer par le deploiement atomique documente dans [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Le document root du domaine doit pointer vers `current/public`, tandis que `.env` et `storage` restent dans `shared/`.
+
+Depuis le poste de deploiement :
 
 ```bash
-composer install --no-dev --optimize-autoloader
-npm install
-npm run build
-php artisan crm:publish-module-assets --force
-php artisan migrate --force
-php artisan storage:link
-php artisan optimize:clear
-php artisan optimize
+make deploy-check
+make deploy
 ```
 
-Si les dependances Node sont construites ailleurs, envoyer les assets compiles au lieu d'executer `npm install` sur le serveur.
+Le script construit les assets localement, prepare une nouvelle release sur le serveur, lance Composer et les migrations hors ligne, bascule `current`, verifie `/up`, puis termine Horizon pour que les workers reprennent le nouveau code.
 
 Verifier ensuite :
 

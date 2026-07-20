@@ -14,36 +14,38 @@ composer audit
 npm audit --audit-level=moderate
 ```
 
-## Mise en production
+## Mise en production atomique
 
-1. Sauvegarder la base de donnees et les fichiers uploads.
-2. Envoyer le code versionne sur le serveur.
-3. Installer les dependances PHP sans dev :
+Le serveur doit utiliser une racine de deploiement stable avec trois dossiers :
 
-```bash
-composer install --no-dev --optimize-autoloader
+```text
+crm/
+|-- current -> releases/20260720093000-abc123
+|-- releases/
+|   |-- 20260720093000-abc123/
+|   `-- 20260719080000-def456/
+`-- shared/
+    |-- .env
+    `-- storage/
 ```
 
-4. Construire ou envoyer les assets compiles selon la strategie choisie.
-5. Ecrire la revision deployee pour le cache-busting des assets :
+Le document root du domaine doit pointer vers `crm/current/public`. Les fichiers persistants restent dans `shared/.env` et `shared/storage`, puis chaque release les reference avec des symlinks.
 
-```bash
-git rev-parse HEAD > .deployed-revision
-```
+Le flux de production est :
 
-Si le serveur ne contient pas le dossier `.git`, renseigner `CRM_ASSET_VERSION` dans `.env` avec le SHA ou le numero de release.
+1. Construire l'archive depuis le depot local.
+2. Creer `releases/<timestamp>-<sha>` sur le serveur.
+3. Extraire l'archive dans cette nouvelle release, sans toucher a `current`.
+4. Relier `.env` et `storage` depuis `shared`.
+5. Installer Composer dans la release inactive.
+6. Lancer `php artisan optimize:clear`, `migrate --force`, `storage:link --force`, `crm:publish-module-assets --force`, `optimize` et `view:cache`.
+7. Basculer atomiquement `current` vers la nouvelle release.
+8. Verifier automatiquement `/up`.
+9. En cas d'echec HTTP, revenir automatiquement au symlink precedent.
+10. Lancer `php artisan horizon:terminate` et `queue:restart`.
+11. Supprimer les anciennes releases au-dela de la retention.
 
-6. Publier les assets des modules CRM :
-
-```bash
-php artisan crm:publish-module-assets --force
-```
-
-7. Executer les migrations :
-
-```bash
-php artisan migrate --force
-```
+Les migrations doivent rester compatibles avec l'ancienne version deja servie, car elles sont executees avant le basculement du symlink. Ne pas supprimer ou renommer brutalement une colonne utilisee par la release precedente sans deploiement en deux temps.
 
 Les migrations CRM sont chargees depuis `Modules/*/database/migrations`. Avant d'envoyer une release, verifier qu'aucune migration CRM ne reste dans `database/migrations` :
 
@@ -51,29 +53,7 @@ Les migrations CRM sont chargees depuis `Modules/*/database/migrations`. Avant d
 php artisan test --filter=CrmModuleManifestTest
 ```
 
-8. Regenerer les caches Laravel :
-
-```bash
-php artisan optimize:clear
-php artisan optimize
-php artisan view:cache
-```
-
-9. Verifier les pages critiques :
-
-- `/login`
-- `/dashboard/crm`
-- `/conges`
-- `/reservations`
-- `/locations-materiel`
-- `/rapport-visite`
-- `/controle-caisse`
-- `/remise-cheques`
-- `/documents/promo`
-- `/admin`
-- `/api/conges?action=bootstrap`
-
-10. Verifier le scheduler et declencher un backup de controle si besoin :
+Verifier le scheduler et declencher un backup de controle si besoin :
 
 ```bash
 php artisan schedule:list
@@ -105,7 +85,7 @@ Les fichiers dans `public/modules` sont publies depuis `Modules/*/resources/asse
 
 ## Script de deploiement aide
 
-Le depot fournit `make deploy`, qui appelle `scripts/deploy-planethoster.sh`. Le script construit une archive locale, l'envoie en SSH, cree un backup du dossier distant, extrait la release, met a jour `CRM_ASSET_VERSION`, lance les migrations et reconstruit les caches.
+Le depot fournit `make deploy`, qui appelle `scripts/deploy-planethoster.sh`. Le script construit une archive locale, l'envoie en SSH, prepare une nouvelle release, met a jour `CRM_ASSET_VERSION`, lance les migrations et les caches hors ligne, bascule `current`, verifie `/up`, puis termine Horizon pour forcer les workers a reprendre le nouveau code.
 
 Les secrets ne doivent jamais etre stockes dans le depot. Configurer les variables dans le terminal ou dans un gestionnaire local :
 
@@ -115,6 +95,7 @@ export CRM_DEPLOY_PORT=5022
 export CRM_DEPLOY_USER=mon_utilisateur
 export CRM_DEPLOY_PATH=/home/mon_utilisateur/crm
 export CRM_DEPLOY_COMPOSER=/home/mon_utilisateur/bin/composer
+export CRM_DEPLOY_HEALTH_URL=https://crm.example.test/up
 
 make deploy-check
 make deploy
@@ -125,3 +106,9 @@ Options utiles :
 - `CRM_DEPLOY_BUILD=0` pour sauter `npm run build` si les assets sont deja prets.
 - `CRM_DEPLOY_ALLOW_DIRTY=1` pour deployer une copie locale non commitee, uniquement en urgence.
 - `CRM_DEPLOY_TMP_DIR=/home/mon_utilisateur` pour choisir le dossier temporaire distant.
+- `CRM_DEPLOY_ROOT=/home/mon_utilisateur/crm` pour utiliser le nouveau nom explicite au lieu de `CRM_DEPLOY_PATH`.
+- `CRM_DEPLOY_HEALTH_URL=https://crm.example.test/up` pour fixer l'URL de verification. Sans cette variable, le script utilise `APP_URL` dans `shared/.env` et ajoute `/up`.
+- `CRM_DEPLOY_KEEP_RELEASES=3` pour garder les trois dernieres releases.
+- `CRM_DEPLOY_SKIP_HEALTHCHECK=1` uniquement en urgence si le serveur ne peut pas joindre son propre domaine.
+
+Pour une premiere migration depuis l'ancien deploiement non atomique, creer `shared/.env` et `shared/storage` avant le premier `make deploy`, puis configurer le document root du domaine vers `current/public`. Le script peut copier `.env` et `storage` depuis l'ancien dossier si ces elements existent dans `CRM_DEPLOY_PATH`, mais cette transition doit etre faite dans une fenetre controlee.

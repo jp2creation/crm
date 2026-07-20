@@ -51,5 +51,13 @@ class CrmFrontendSourceTest extends TestCase
 
         $this->assertStringContainsString('tar -rf "$LOCAL_ARCHIVE_TAR" public/build', $script);
         $this->assertStringContainsString('gzip -c "$LOCAL_ARCHIVE_TAR" > "$LOCAL_ARCHIVE"', $script);
+        $this->assertStringContainsString('RELEASES_DIR="${CRM_DEPLOY_ROOT}/releases"', $script);
+        $this->assertStringContainsString('SHARED_DIR="${CRM_DEPLOY_ROOT}/shared"', $script);
+        $this->assertStringContainsString('CURRENT_LINK="${CRM_DEPLOY_ROOT}/current"', $script);
+        $this->assertStringContainsString('mv -Tf "$NEXT_LINK" "$CURRENT_LINK"', $script);
+        $this->assertStringContainsString('rollback_current', $script);
+        $this->assertStringContainsString('curl -fsS --max-time 10 "$health_url"', $script);
+        $this->assertStringContainsString('php artisan horizon:terminate || true', $script);
+        $this->assertStringContainsString('cleanup_old_releases', $script);
     }
 }

@@ -252,7 +252,7 @@ sequenceDiagram
 Le scheduler Laravel doit etre execute toutes les minutes par cron :
 
 ```cron
-* * * * * cd /home/jpfronpi/crm && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /home/jpfronpi/crm/current && php artisan schedule:run >> /dev/null 2>&1
 ```
 
 Taches actuellement planifiees :
