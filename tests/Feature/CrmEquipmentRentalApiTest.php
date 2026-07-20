@@ -148,6 +148,63 @@ class CrmEquipmentRentalApiTest extends TestCase
             ->assertJsonPath('user.siteIds.0', $site->id);
     }
 
+    public function test_equipment_bootstrap_returns_minimal_users_for_allowed_sites(): void
+    {
+        [$account, , $site] = $this->createCrmUser(['equipment_rentals.view']);
+
+        $module = CrmModule::query()->where('slug', 'locations-materiel')->firstOrFail();
+        $permission = CrmPermission::query()->where('name', 'equipment_rentals.view')->firstOrFail();
+
+        $sameSiteUser = CrmUser::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'name' => 'Aline Meme Site',
+            'role' => 'responsable',
+            'active' => true,
+        ]);
+        $sameSiteUser->sites()->syncWithoutDetaching([$site->id => ['is_default' => true]]);
+        $sameSiteUser->modules()->syncWithoutDetaching([$module->id]);
+        $sameSiteUser->permissions()->syncWithoutDetaching([$permission->id]);
+
+        $otherSite = CrmSite::query()->create([
+            'name' => 'Autre Site Materiel',
+            'slug' => 'autre-site-materiel',
+            'active' => true,
+            'morning_start' => '07:30:00',
+            'morning_end' => '12:00:00',
+            'afternoon_start' => '13:30:00',
+            'afternoon_end' => '17:30:00',
+        ]);
+        $otherSiteUser = CrmUser::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'name' => 'Bernard Hors Site',
+            'role' => 'responsable',
+            'active' => true,
+        ]);
+        $otherSiteUser->sites()->syncWithoutDetaching([$otherSite->id => ['is_default' => true]]);
+
+        $inactiveUser = CrmUser::query()->create([
+            'user_id' => User::factory()->create()->id,
+            'name' => 'Claude Inactif',
+            'role' => 'responsable',
+            'active' => false,
+        ]);
+        $inactiveUser->sites()->syncWithoutDetaching([$site->id => ['is_default' => false]]);
+
+        $users = collect($this->actingAs($account)
+            ->getJson('/api/equipment-rentals?action=bootstrap')
+            ->assertOk()
+            ->json('users'));
+
+        $sameSiteRow = $users->firstWhere('id', $sameSiteUser->id);
+
+        $this->assertNotNull($sameSiteRow);
+        $this->assertIsArray($sameSiteRow);
+        $this->assertSame(['id', 'name'], array_keys($sameSiteRow));
+        $this->assertSame('Aline Meme Site', $sameSiteRow['name']);
+        $this->assertFalse($users->contains('id', $otherSiteUser->id));
+        $this->assertFalse($users->contains('id', $inactiveUser->id));
+    }
+
     public function test_create_permission_is_required_to_create_rental(): void
     {
         [$account, , , $item] = $this->createCrmUser(['equipment_rentals.view']);

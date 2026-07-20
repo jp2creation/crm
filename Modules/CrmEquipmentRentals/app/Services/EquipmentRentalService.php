@@ -59,9 +59,10 @@ class EquipmentRentalService
             ->get();
 
         $users = CrmUser::query()
-            ->with(['modules:id', 'permissions:id,name,sort_order', 'sites:id'])
+            ->select(['id', 'name'])
             ->where('active', true)
-            ->orderBy('id')
+            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $allowedSiteIds))
+            ->orderBy('name')
             ->get();
 
         return [
@@ -556,10 +557,6 @@ class EquipmentRentalService
         return [
             'id' => $user->id,
             'name' => $user->name,
-            'role' => $user->role,
-            'siteIds' => $this->siteIds($user),
-            'moduleIds' => $this->access->moduleIds($user),
-            'permissions' => $this->access->permissionNames($user),
         ];
     }
 
