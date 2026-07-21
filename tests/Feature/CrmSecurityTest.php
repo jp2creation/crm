@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\BlockedLegacyPhpApiController;
+use App\Http\Middleware\BlockLegacyPhpApiPaths;
 use App\Models\CrmModule;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
@@ -25,6 +26,7 @@ use Illuminate\Support\ViewErrorBag;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
 class CrmSecurityTest extends TestCase
@@ -125,6 +127,20 @@ class CrmSecurityTest extends TestCase
 
         $this->postJson('/api/administration.php?action=save_site', ['name' => 'Palissy'])
             ->assertNotFound();
+    }
+
+    public function test_legacy_php_api_blocker_checks_raw_server_uri(): void
+    {
+        $request = Request::create(
+            '/api/administration',
+            'GET',
+            ['action' => 'bootstrap'],
+        );
+        $request->server->set('REQUEST_URI', '/api/administration.php?action=bootstrap');
+
+        $this->expectException(NotFoundHttpException::class);
+
+        app(BlockLegacyPhpApiPaths::class)->handle($request, fn (): Response => new Response('ok'));
     }
 
     public function test_laravel_router_does_not_register_legacy_php_api_routes(): void
