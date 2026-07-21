@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\CrmCore\Services\UploadedCrmFileCleaner;
+use Modules\CrmCore\Support\CrmReferenceCache;
 
 /**
  * @property int $id
@@ -66,6 +67,8 @@ class CrmUser extends Model
             if ($user->wasChanged('photo_url')) {
                 app(UploadedCrmFileCleaner::class)->deletePublicUpload($user->getOriginal('photo_url'));
             }
+
+            CrmReferenceCache::forgetUsers();
         });
 
         static::deleting(function (CrmUser $user): void {
@@ -77,6 +80,7 @@ class CrmUser extends Model
 
         static::deleted(function (CrmUser $user): void {
             app(UploadedCrmFileCleaner::class)->deletePublicUpload($user->getAttribute('photo_url'));
+            CrmReferenceCache::forgetUsers();
         });
     }
 

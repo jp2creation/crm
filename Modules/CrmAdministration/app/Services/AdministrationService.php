@@ -139,6 +139,11 @@ class AdministrationService
             $siteIds = $this->ensureDefaultSites();
             $this->ensureDefaultUsers($siteIds);
             $this->ensureDefaultProfilePhotos();
+
+            CrmReferenceCache::forgetSites();
+            CrmReferenceCache::forgetModules();
+            CrmReferenceCache::forgetPermissions();
+            CrmReferenceCache::forgetUsers();
         });
     }
 
@@ -731,6 +736,7 @@ class AdministrationService
             $user->modules()->sync($moduleIds);
             $user->permissions()->sync($permissionIds);
             $this->syncAccessRules($user, $accessRules);
+            CrmReferenceCache::forgetUsers();
 
             $this->log($actor, $id > 0 ? 'modification utilisateur' : 'creation utilisateur', $name);
 
@@ -827,14 +833,20 @@ class AdministrationService
                 $user->permissions()->syncWithoutDetaching($permissionIds);
             }
         }
+
+        CrmReferenceCache::forgetUsers();
     }
 
     private function ensureDefaultProfilePhotos(): void
     {
-        CrmUser::query()
+        $updated = CrmUser::query()
             ->whereNull('photo_url')
             ->orWhere('photo_url', '')
             ->update(['photo_url' => self::DEFAULT_PROFILE_PHOTO]);
+
+        if ($updated > 0) {
+            CrmReferenceCache::forgetUsers();
+        }
     }
 
     private function ensureMenuItem(array $item): void

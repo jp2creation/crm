@@ -19,6 +19,8 @@ final class CrmReferenceCache
 
     public const PERMISSION_ID_LOOKUP = \Modules\CrmCore\Support\CrmReferenceCache::PERMISSION_ID_LOOKUP;
 
+    public const ACTIVE_USER_ROWS = \Modules\CrmCore\Support\CrmReferenceCache::ACTIVE_USER_ROWS;
+
     public const ACTIVE_VEHICLE_ROWS = \Modules\CrmCore\Support\CrmReferenceCache::ACTIVE_VEHICLE_ROWS;
 
     public const ACTIVE_EQUIPMENT_CATEGORY_ROWS = \Modules\CrmCore\Support\CrmReferenceCache::ACTIVE_EQUIPMENT_CATEGORY_ROWS;
@@ -75,6 +77,11 @@ final class CrmReferenceCache
         return \Modules\CrmCore\Support\CrmReferenceCache::permissionIds($names);
     }
 
+    public static function activeUserRows(): array
+    {
+        return \Modules\CrmCore\Support\CrmReferenceCache::activeUserRows();
+    }
+
     public static function activeVehicleRows(): array
     {
         return \Modules\CrmCore\Support\CrmReferenceCache::activeVehicleRows();
@@ -103,6 +110,11 @@ final class CrmReferenceCache
     public static function forgetPermissions(): void
     {
         \Modules\CrmCore\Support\CrmReferenceCache::forgetPermissions();
+    }
+
+    public static function forgetUsers(): void
+    {
+        \Modules\CrmCore\Support\CrmReferenceCache::forgetUsers();
     }
 
     public static function forgetVehicles(): void

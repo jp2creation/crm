@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Observers\CrmActivitylogObserver;
 use App\Observers\CrmDocumentObserver;
 use App\Observers\UserTokenObserver;
+use Illuminate\Auth\Events\Failed as LoginFailed;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Telescope\TelescopeApplicationServiceProvider;
+use Modules\CrmCore\Listeners\RecordFailedLoginAlert;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,7 +27,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (
+            $this->app->environment('local')
+            && class_exists(TelescopeApplicationServiceProvider::class)
+        ) {
+            $this->app->register(TelescopeServiceProvider::class);
+        }
     }
 
     /**
@@ -50,6 +58,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(PasswordReset::class, RevokeUserSanctumTokens::class);
+        Event::listen(LoginFailed::class, RecordFailedLoginAlert::class);
         $this->registerCrmAuditObservers();
         CrmDocument::observe(CrmDocumentObserver::class);
         User::observe(UserTokenObserver::class);

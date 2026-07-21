@@ -535,12 +535,6 @@ parameters:
 			path: Modules/CrmCore/app/Services/DashboardService.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\CrmNotificationLog\:\:\$payload\.$#'
-			identifier: property.notFound
-			count: 1
-			path: Modules/CrmCore/app/Services/DashboardService.php
-
-		-
 			message: '#^Access to an undefined property App\\Models\\DashboardMetric\:\:\$equipment_available\.$#'
 			identifier: property.notFound
 			count: 1
@@ -1481,12 +1475,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: Modules/CrmSalesTours/app/Services/SalesTourService.php
-
-		-
-			message: '#^Using nullsafe property access "\?\-\>email" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 1
-			path: Modules/CrmTeams/app/Services/TeamService.php
 
 		-
 			message: '#^Call to function method_exists\(\) with Symfony\\Component\\HttpFoundation\\Response and ''getContent'' will always evaluate to true\.$#'

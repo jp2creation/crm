@@ -488,15 +488,17 @@ class DashboardService
             }
         }
 
+        $monitoringWindow = max(1, (int) config('crm.monitoring.dashboard_alert_minutes', 60));
+
         $queueAlert = CrmNotificationLog::query()
             ->where('channel', 'monitoring')
             ->where('template_key', 'queue.size.threshold')
-            ->where('created_at', '>=', $now->subHour())
+            ->where('created_at', '>=', $now->subMinutes($monitoringWindow))
             ->latest('created_at')
             ->first();
 
         if ($queueAlert) {
-            $payload = $queueAlert->payload ?: [];
+            $payload = $this->notificationPayload($queueAlert);
 
             $alerts[] = [
                 'type' => 'danger',
@@ -507,7 +509,53 @@ class DashboardService
             ];
         }
 
+        $backupAlert = CrmNotificationLog::query()
+            ->where('channel', 'monitoring')
+            ->where('template_key', 'backup.database.failed')
+            ->where('created_at', '>=', $now->subMinutes($monitoringWindow))
+            ->latest('created_at')
+            ->first();
+
+        if ($backupAlert) {
+            $alerts[] = [
+                'type' => 'danger',
+                'label' => 'Sauvegarde CRM',
+                'value' => 1,
+                'detail' => 'Derniere sauvegarde echouee',
+                'href' => '/administration',
+            ];
+        }
+
+        $loginAlert = CrmNotificationLog::query()
+            ->where('channel', 'monitoring')
+            ->where('template_key', 'auth.login.failed')
+            ->where('created_at', '>=', $now->subMinutes($monitoringWindow))
+            ->latest('created_at')
+            ->first();
+
+        if ($loginAlert) {
+            $payload = $this->notificationPayload($loginAlert);
+
+            $alerts[] = [
+                'type' => 'warning',
+                'label' => 'Connexions echouees',
+                'value' => (int) ($payload['attempts'] ?? 0),
+                'detail' => 'Tentatives suspectes detectees',
+                'href' => '/administration',
+            ];
+        }
+
         return $alerts;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function notificationPayload(CrmNotificationLog $log): array
+    {
+        $payload = $log->getAttribute('payload');
+
+        return is_array($payload) ? $payload : [];
     }
 
     /**

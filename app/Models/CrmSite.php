@@ -93,10 +93,12 @@ class CrmSite extends Model
 
         static::saved(function (): void {
             CrmReferenceCache::forgetSites();
+            CrmReferenceCache::forgetUsers();
         });
 
         static::deleted(function (): void {
             CrmReferenceCache::forgetSites();
+            CrmReferenceCache::forgetUsers();
         });
     }
 

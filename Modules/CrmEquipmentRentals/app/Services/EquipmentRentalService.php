@@ -638,15 +638,23 @@ class EquipmentRentalService
      */
     private function userRowsForSites(array $siteIds): array
     {
-        return CrmUser::query()
-            ->select(['id', 'name'])
-            ->where('active', true)
-            ->whereHas('sites', fn ($query) => $query->whereIn('crm_sites.id', $siteIds))
-            ->orderBy('name')
-            ->get()
-            ->map(fn (CrmUser $user): array => $this->userRow($user))
-            ->values()
-            ->all();
+        $siteLookup = array_fill_keys(array_map('intval', $siteIds), true);
+        $rows = [];
+
+        foreach (CrmReferenceCache::activeUserRows() as $user) {
+            foreach ($user['siteIds'] as $siteId) {
+                if (isset($siteLookup[$siteId])) {
+                    $rows[] = [
+                        'id' => $user['id'],
+                        'name' => $user['name'],
+                    ];
+
+                    break;
+                }
+            }
+        }
+
+        return $rows;
     }
 
     /**

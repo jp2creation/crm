@@ -60,6 +60,35 @@ php artisan schedule:list
 php artisan backup:run --verify
 ```
 
+## Monitoring et alertes
+
+Le monitoring applicatif se fait sur deux niveaux :
+
+- `laravel/telescope` est installe pour le developpement local uniquement. Activer au besoin `TELESCOPE_ENABLED=true` en local, puis ouvrir `/telescope`. Ne pas l'activer en production.
+- `sentry/sentry-laravel` est integre au gestionnaire d'exceptions Laravel. En production, renseigner au minimum :
+
+```dotenv
+SENTRY_LARAVEL_DSN=https://...
+SENTRY_ENVIRONMENT=production
+SENTRY_RELEASE=<sha-ou-version>
+SENTRY_SEND_DEFAULT_PII=false
+TELESCOPE_ENABLED=false
+CRM_FAILED_LOGIN_ALERT_THRESHOLD=5
+CRM_FAILED_LOGIN_ALERT_WINDOW_MINUTES=15
+CRM_FAILED_LOGIN_ALERT_COOLDOWN_MINUTES=30
+CRM_MONITORING_DASHBOARD_ALERT_MINUTES=60
+```
+
+Les alertes internes sont tracees dans `notification_logs` avec `channel=monitoring`.
+Elles couvrent actuellement :
+
+- `backup.database.failed` lorsqu'une sauvegarde echoue ;
+- `queue.size.threshold` lorsque la queue depasse le seuil configure ;
+- `auth.login.failed` lorsqu'une adresse/IP depasse le seuil de connexions echouees.
+
+Le dashboard affiche les alertes monitoring recentes selon `CRM_MONITORING_DASHBOARD_ALERT_MINUTES`.
+Les donnees sensibles des tentatives de connexion ne sont pas stockees en clair : le mot de passe est ignore et l'e-mail est conserve sous forme de hash avec un indice masque.
+
 En production MySQL/MariaDB, la commande `backup:run` attend `mariadb-dump` ou `mysqldump`.
 Configurer `CRM_BACKUP_DUMP_BINARY` si le binaire n'est pas dans le `PATH`.
 Pour sortir les sauvegardes du serveur, utiliser un disque Laravel externe :
@@ -93,6 +122,14 @@ Les flags de module utilisent la forme `module:<slug>`. Une desactivation retire
 
 Le retrait des routes API `.php` est documente dans [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md). En production, ces endpoints ne sont plus routes par Laravel : les clients doivent appeler les routes REST sans extension.
 
+Avant la date de desactivation definitive annoncee aux integrateurs, verifier les tentatives restantes qui atteignent Laravel :
+
+```bash
+php artisan crm:audit-legacy-php-api --days=30 --deactivation-date=2026-08-31
+```
+
+Si la commande retourne des hits, contacter les integrateurs concernes via les IP/User-Agent affiches et migrer leurs appels vers `/api/<module>` sans extension. Ajouter `--fail-on-hits` dans un controle manuel ou CI pour bloquer un retrait definitif tant que des appels legacy existent.
+
 ## Regle importante
 
 Les fichiers dans `public/assets` sont generes ou publies depuis `resources/frontend/static/assets`. Toute correction durable doit etre faite dans les sources applicatives puis publiee avec `php artisan crm:publish-static-assets --force --clean`. Le snapshot `legacy-adminex-*` est transitoire : il conserve Reservations et Location materiel pendant leur migration vers `resources/frontend/adminex` ou `resources/frontend/crm`, et ne doit pas redevenir une zone de developpement.
@@ -106,7 +143,7 @@ Le depot fournit `make deploy`, qui appelle `scripts/deploy-planethoster.sh`. Le
 Les secrets ne doivent jamais etre stockes dans le depot. Configurer les variables dans le terminal ou dans un gestionnaire local :
 
 ```bash
-export CRM_DEPLOY_HOST=node35-ca.n0c.com
+export CRM_DEPLOY_HOST=ssh.example.test
 export CRM_DEPLOY_PORT=5022
 export CRM_DEPLOY_USER=mon_utilisateur
 export CRM_DEPLOY_PATH=/home/mon_utilisateur/crm

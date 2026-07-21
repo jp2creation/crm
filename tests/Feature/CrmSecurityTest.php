@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Controllers\BlockedLegacyPhpApiController;
 use App\Http\Middleware\BlockLegacyPhpApiPaths;
 use App\Models\CrmModule;
+use App\Models\CrmNotificationLog;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
 use App\Models\CrmUser;
@@ -17,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\RateLimiter;
@@ -60,6 +62,49 @@ class CrmSecurityTest extends TestCase
             'Trop de tentatives.',
             $errors->first('email'),
         );
+    }
+
+    public function test_repeated_failed_logins_record_a_sanitized_monitoring_alert(): void
+    {
+        Cache::flush();
+        RateLimiter::clear('watcher@example.test|127.0.0.1');
+
+        config([
+            'crm.monitoring.failed_login_threshold' => 2,
+            'crm.monitoring.failed_login_window_minutes' => 15,
+            'crm.monitoring.failed_login_cooldown_minutes' => 30,
+        ]);
+
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $this->postLoginWithCsrf([
+                'email' => 'watcher@example.test',
+                'password' => 'mauvais-mot-de-passe',
+            ])
+                ->assertRedirect('/login')
+                ->assertSessionHasErrors('email');
+        }
+
+        $logs = CrmNotificationLog::query()
+            ->where('channel', 'monitoring')
+            ->where('template_key', 'auth.login.failed')
+            ->get();
+
+        $this->assertCount(1, $logs);
+
+        $log = $logs->first();
+        $this->assertInstanceOf(CrmNotificationLog::class, $log);
+
+        $payload = $log->getAttribute('payload');
+        $this->assertIsArray($payload);
+
+        $payloadJson = json_encode($payload, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(2, $payload['attempts']);
+        $this->assertSame(2, $payload['threshold']);
+        $this->assertSame('127.0.0.1', $payload['ip']);
+        $this->assertSame(hash('sha256', 'watcher@example.test'), $payload['emailHash']);
+        $this->assertStringNotContainsString('watcher@example.test', $payloadJson);
+        $this->assertStringNotContainsString('mauvais-mot-de-passe', $payloadJson);
     }
 
     public function test_login_remember_me_sets_the_laravel_recaller_cookie(): void
@@ -124,6 +169,67 @@ class CrmSecurityTest extends TestCase
 
         $this->postJson('/api/administration.php?action=save_site', ['name' => 'Palissy'])
             ->assertNotFound();
+    }
+
+    public function test_legacy_php_api_attempts_are_recorded_for_production_audit(): void
+    {
+        $this->withHeader('User-Agent', 'Legacy Integrator/1.0')
+            ->withHeader('Referer', 'https://integrateur.example.test/app')
+            ->get('/api/conges.php?action=bootstrap&token=secret-token')
+            ->assertNotFound();
+
+        $log = DB::table('crm_logs')
+            ->where('action', BlockLegacyPhpApiPaths::LOG_ACTION)
+            ->first();
+
+        $this->assertNotNull($log);
+        $this->assertSame('GET /api/conges.php', $log->details);
+        $this->assertSame('127.0.0.1', $log->ip);
+        $this->assertSame('Legacy Integrator/1.0', $log->user_agent);
+
+        $context = json_decode((string) $log->context, true, flags: JSON_THROW_ON_ERROR);
+
+        $this->assertSame('/api/conges.php', $context['request']['path']);
+        $this->assertSame('/api/conges.php', $context['request']['matchedPath']);
+        $this->assertSame('bootstrap', $context['request']['query']['action']);
+        $this->assertSame('[filtered]', $context['request']['query']['token']);
+        $this->assertSame('request_path', $context['legacy']['reason']);
+    }
+
+    public function test_legacy_php_api_audit_command_is_green_without_hits(): void
+    {
+        $this->artisan('crm:audit-legacy-php-api', ['--days' => 7])
+            ->expectsOutputToContain('Aucune tentative legacy /api/*.php')
+            ->assertSuccessful();
+    }
+
+    public function test_legacy_php_api_audit_command_reports_hits_and_can_fail_ci(): void
+    {
+        DB::table('crm_logs')->insert([
+            'user_id' => null,
+            'user_name' => null,
+            'action' => BlockLegacyPhpApiPaths::LOG_ACTION,
+            'details' => 'GET /api/conges.php',
+            'created_at' => now()->subHour(),
+            'ip' => '203.0.113.42',
+            'user_agent' => 'Legacy Integrator/1.0',
+            'context' => '{}',
+        ]);
+
+        $this->artisan('crm:audit-legacy-php-api', [
+            '--days' => 7,
+            '--deactivation-date' => '2026-08-31',
+        ])
+            ->expectsOutputToContain('1 tentative(s) legacy /api/*.php')
+            ->expectsOutputToContain('GET /api/conges.php')
+            ->expectsOutputToContain('2026-08-31')
+            ->assertSuccessful();
+
+        $this->artisan('crm:audit-legacy-php-api', [
+            '--days' => 7,
+            '--fail-on-hits' => true,
+        ])
+            ->assertFailed();
     }
 
     public function test_legacy_php_api_blocker_checks_raw_server_uri(): void
@@ -362,6 +468,18 @@ class CrmSecurityTest extends TestCase
         $this->assertStringContainsString('CRM_SECURITY_CSP_ENABLED=true', $envExample);
         $this->assertStringNotContainsString("'unsafe-eval'", $crmConfig);
         $this->assertStringNotContainsString("'unsafe-eval'", $envExample);
+    }
+
+    public function test_monitoring_tools_are_loaded_with_production_safe_defaults(): void
+    {
+        $providers = (string) file_get_contents(base_path('bootstrap/providers.php'));
+        $appProvider = (string) file_get_contents(app_path('Providers/AppServiceProvider.php'));
+        $telescopeConfig = (string) file_get_contents(config_path('telescope.php'));
+
+        $this->assertFileExists(config_path('sentry.php'));
+        $this->assertStringNotContainsString('TelescopeServiceProvider::class', $providers);
+        $this->assertStringContainsString('class_exists(TelescopeApplicationServiceProvider::class)', $appProvider);
+        $this->assertStringContainsString("env('TELESCOPE_ENABLED', env('APP_ENV') === 'local')", $telescopeConfig);
     }
 
     public function test_crm_api_throttle_limit_uses_authenticated_crm_role(): void

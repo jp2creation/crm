@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
+use Laravel\Telescope\Console\PruneCommand;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -28,6 +29,12 @@ Schedule::command('crm:archive --quiet')
 Schedule::command('crm:monitor-queue-size --quiet')
     ->everyFiveMinutes()
     ->withoutOverlapping();
+
+if (class_exists(PruneCommand::class)) {
+    Schedule::command('telescope:prune --hours=48')
+        ->dailyAt('02:45')
+        ->withoutOverlapping();
+}
 
 Schedule::command('crm:refresh-dashboard-metrics --quiet')
     ->everyFifteenMinutes()

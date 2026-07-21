@@ -1,8 +1,11 @@
 *.log
 .DS_Store
 ._*
+.agents/
 .codex/
+.playwright-mcp/
 .playwright-artifacts/
+AGENTS.md
 .env
 .env.backup
 .env.production
@@ -30,6 +33,7 @@ boost.json
 /public/modules
 /public/storage
 /playwright-report
+/crm-navigation-results.json
 /storage/*.key
 /storage/debugbar
 /storage/pail

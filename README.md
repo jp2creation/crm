@@ -21,7 +21,7 @@ Ce depot contient l'application Laravel qui remplace les anciens endpoints PHP d
 - Module Tapis ROMUS integre au CRM avec rendu harmonise et generation PDF.
 - Pages CRM administrables et accessibles via slugs.
 - Administration Filament pour utilisateurs, roles, modules, menus, sites, vehicules, materiel et contenus.
-- API legacy compatible avec les anciens chemins `.php`.
+- API Laravel sans extension `.php`, avec audit des tentatives legacy bloquees.
 - API mobile Laravel Sanctum pour l'application Capacitor du dossier `mobile/`.
 
 ## Stack technique
@@ -61,7 +61,7 @@ Ce depot contient l'application Laravel qui remplace les anciens endpoints PHP d
 - API pages : `/api/pages`
 - API mobile : `/api/mobile/token`, `/api/mobile/me`, `/api/mobile/logout`
 
-Les routes legacy en `.php` restent exposees pour compatibilite, par exemple `/api/conges.php`.
+Les anciens chemins `.php`, par exemple `/api/conges.php`, sont bloques. Les integrateurs doivent utiliser les routes modernes sans extension, par exemple `/api/conges`.
 
 ## Structure du depot
 

@@ -16,6 +16,7 @@ use Illuminate\Http\Middleware\TrustProxies as LaravelTrustProxies;
 use Modules\CrmAdministration\Console\Commands\EnsureCrmAdminCommand;
 use Modules\CrmCashControl\Console\Commands\ArchiveCashReceiptsCommand;
 use Modules\CrmCore\Console\Commands\ArchiveCrmDataCommand;
+use Modules\CrmCore\Console\Commands\AuditLegacyPhpApiCommand;
 use Modules\CrmCore\Console\Commands\BackupDatabaseCommand;
 use Modules\CrmCore\Console\Commands\ManageCrmFeatureFlagCommand;
 use Modules\CrmCore\Console\Commands\MonitorQueueSizeCommand;
@@ -33,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         ArchiveCashReceiptsCommand::class,
         ArchiveCrmDataCommand::class,
+        AuditLegacyPhpApiCommand::class,
         BackupDatabaseCommand::class,
         EnsureCrmAdminCommand::class,
         ManageCrmFeatureFlagCommand::class,

@@ -2,11 +2,10 @@
 
 namespace Modules\CrmTeams\Services;
 
-use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Modules\CrmCore\Services\CrmAccessService;
+use Modules\CrmCore\Support\CrmReferenceCache;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class TeamService
@@ -62,10 +61,8 @@ class TeamService
             return $requestedSiteId;
         }
 
-        $defaultSiteId = (int) DB::table('crm_user_sites')
-            ->where('user_id', $actor->id)
-            ->where('is_default', true)
-            ->value('site_id');
+        $defaultSiteId = (int) (collect(CrmReferenceCache::activeUserRows())
+            ->firstWhere('id', $actor->id)['defaultSiteId'] ?? 0);
 
         if ($defaultSiteId > 0 && in_array($defaultSiteId, $siteIds, true)) {
             return $defaultSiteId;
@@ -80,25 +77,26 @@ class TeamService
      */
     private function siteRows(array $siteIds): array
     {
-        $counts = DB::table('crm_user_sites')
-            ->join('crm_users', 'crm_users.id', '=', 'crm_user_sites.user_id')
-            ->whereIn('crm_user_sites.site_id', $siteIds)
-            ->where('crm_users.active', true)
-            ->selectRaw('crm_user_sites.site_id, COUNT(*) as total')
-            ->groupBy('crm_user_sites.site_id')
-            ->pluck('total', 'site_id');
+        $siteLookup = array_fill_keys($siteIds, true);
+        $counts = array_fill_keys($siteIds, 0);
 
-        return CrmSite::query()
-            ->active()
-            ->whereIn('id', $siteIds)
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'active'])
-            ->map(fn (CrmSite $site): array => [
-                'id' => (int) $site->id,
-                'name' => $site->name,
-                'slug' => $site->slug,
-                'active' => (bool) $site->active,
-                'membersCount' => (int) ($counts[$site->id] ?? 0),
+        foreach (CrmReferenceCache::activeUserRows() as $user) {
+            foreach ($user['siteIds'] as $siteId) {
+                if (isset($siteLookup[$siteId])) {
+                    $counts[$siteId]++;
+                }
+            }
+        }
+
+        return collect(CrmReferenceCache::activeSiteRows())
+            ->filter(fn (array $site): bool => isset($siteLookup[(int) $site['id']]))
+            ->sortBy('name')
+            ->map(fn (array $site): array => [
+                'id' => (int) $site['id'],
+                'name' => $site['name'],
+                'slug' => $site['slug'],
+                'active' => true,
+                'membersCount' => (int) ($counts[(int) $site['id']] ?? 0),
             ])
             ->values()
             ->all();
@@ -109,46 +107,50 @@ class TeamService
      */
     private function memberRows(int $siteId): array
     {
-        return CrmUser::query()
-            ->with(['account:id,name,email', 'sites:id,name'])
-            ->where('active', true)
-            ->whereHas('sites', fn ($query) => $query->where('crm_sites.id', $siteId))
-            ->orderByRaw("COALESCE(NULLIF(first_name, ''), name) asc")
-            ->orderByRaw("COALESCE(NULLIF(last_name, ''), name) asc")
-            ->get()
-            ->map(fn (CrmUser $member): array => $this->memberRow($member))
+        return collect(CrmReferenceCache::activeUserRows())
+            ->filter(fn (array $member): bool => in_array($siteId, $member['siteIds'], true))
+            ->sortBy(fn (array $member): string => sprintf(
+                '%s|%s|%s',
+                $member['firstName'] ?: $member['name'],
+                $member['lastName'] ?: $member['name'],
+                $member['name'],
+            ))
+            ->map(fn (array $member): array => $this->memberRow($member))
             ->values()
             ->all();
     }
 
-    private function memberRow(CrmUser $member): array
+    /**
+     * @param  array{id: int, name: string, firstName: string, lastName: string, email: string, phone: string, role: string, photoUrl: string, siteIds: array<int, int>, siteNames: array<int, string>, defaultSiteId: int|null}  $member
+     */
+    private function memberRow(array $member): array
     {
-        [$firstName, $lastName] = $this->splitName($member);
+        [$firstName, $lastName] = $this->splitName($member['name'], $member['firstName'], $member['lastName']);
 
         return [
-            'id' => (int) $member->id,
-            'name' => trim($firstName.' '.$lastName) ?: $member->name,
+            'id' => $member['id'],
+            'name' => trim($firstName.' '.$lastName) ?: $member['name'],
             'firstName' => $firstName,
             'lastName' => $lastName,
-            'phone' => trim((string) $member->phone),
-            'email' => trim((string) $member->email) ?: trim((string) ($member->account?->email ?? '')),
-            'role' => $member->role,
-            'photoUrl' => trim((string) $member->photo_url) ?: '/assets/logo/logomark.png',
-            'siteIds' => $member->sites->pluck('id')->map(fn ($id): int => (int) $id)->sort()->values()->all(),
-            'siteNames' => $member->sites->pluck('name')->values()->all(),
+            'phone' => $member['phone'],
+            'email' => $member['email'],
+            'role' => $member['role'],
+            'photoUrl' => $member['photoUrl'],
+            'siteIds' => $member['siteIds'],
+            'siteNames' => $member['siteNames'],
         ];
     }
 
     /**
      * @return array{0: string, 1: string}
      */
-    private function splitName(CrmUser $member): array
+    private function splitName(string $name, string $firstName, string $lastName): array
     {
-        $firstName = trim((string) $member->first_name);
-        $lastName = trim((string) $member->last_name);
+        $firstName = trim($firstName);
+        $lastName = trim($lastName);
 
         if ($firstName === '') {
-            $rawName = trim((string) $member->name);
+            $rawName = trim($name);
             if ($rawName === 'J-Philippe') {
                 return ['Jean-Philippe', $lastName];
             }

@@ -7,6 +7,7 @@ use App\Models\CrmEquipmentItem;
 use App\Models\CrmMenuItem;
 use App\Models\CrmModule;
 use App\Models\CrmSite;
+use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,8 @@ final class CrmReferenceCache
     public const PERMISSION_ROWS = 'crm:permissions:rows:v1';
 
     public const PERMISSION_ID_LOOKUP = 'crm:permissions:id-lookup:v1';
+
+    public const ACTIVE_USER_ROWS = 'crm:users:active:rows:v1';
 
     public const ACTIVE_VEHICLE_ROWS = 'crm:vehicles:active:rows:v1';
 
@@ -199,6 +202,23 @@ final class CrmReferenceCache
     }
 
     /**
+     * @return array<int, array{id: int, name: string, firstName: string, lastName: string, email: string, phone: string, role: string, photoUrl: string, siteIds: array<int, int>, siteNames: array<int, string>, defaultSiteId: int|null}>
+     */
+    public static function activeUserRows(): array
+    {
+        return Cache::rememberForever(self::ACTIVE_USER_ROWS, function (): array {
+            return CrmUser::query()
+                ->with(['account:id,email', 'sites:id,name'])
+                ->where('active', true)
+                ->orderBy('name')
+                ->get()
+                ->map(fn (CrmUser $user): array => self::userRow($user))
+                ->values()
+                ->all();
+        });
+    }
+
+    /**
      * @return array<int, array{id: int, siteId: int, name: string, description: string, color: string, photoUrl: string, dayStartTime: string, dayEndTime: string, active: bool}>
      */
     public static function activeVehicleRows(): array
@@ -302,6 +322,11 @@ final class CrmReferenceCache
         Cache::forget(self::PERMISSION_ID_LOOKUP);
     }
 
+    public static function forgetUsers(): void
+    {
+        Cache::forget(self::ACTIVE_USER_ROWS);
+    }
+
     public static function forgetVehicles(): void
     {
         Cache::forget(self::ACTIVE_VEHICLE_ROWS);
@@ -324,6 +349,36 @@ final class CrmReferenceCache
             'morningEnd' => self::time5($site->morning_end, '12:00'),
             'afternoonStart' => self::time5($site->afternoon_start, '13:30'),
             'afternoonEnd' => self::time5($site->afternoon_end, '17:30'),
+        ];
+    }
+
+    /**
+     * @return array{id: int, name: string, firstName: string, lastName: string, email: string, phone: string, role: string, photoUrl: string, siteIds: array<int, int>, siteNames: array<int, string>, defaultSiteId: int|null}
+     */
+    private static function userRow(CrmUser $user): array
+    {
+        $siteIds = $user->sites
+            ->pluck('id')
+            ->map(fn ($id): int => (int) $id)
+            ->sort()
+            ->values()
+            ->all();
+        $defaultSite = $user->sites->first(
+            fn (CrmSite $site): bool => (bool) ($site->pivot->is_default ?? false),
+        );
+
+        return [
+            'id' => (int) $user->id,
+            'name' => $user->name,
+            'firstName' => trim((string) $user->first_name),
+            'lastName' => trim((string) $user->last_name),
+            'email' => trim((string) $user->email) ?: trim((string) ($user->account->email ?? '')),
+            'phone' => trim((string) $user->phone),
+            'role' => $user->role,
+            'photoUrl' => trim((string) $user->photo_url) ?: '/assets/logo/logomark.png',
+            'siteIds' => $siteIds,
+            'siteNames' => $user->sites->pluck('name')->map(fn ($name): string => (string) $name)->values()->all(),
+            'defaultSiteId' => $defaultSite ? (int) $defaultSite->id : ($siteIds[0] ?? null),
         ];
     }
 

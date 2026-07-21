@@ -104,6 +104,16 @@ return [
         'alert_cooldown_minutes' => (int) env('CRM_QUEUE_ALERT_COOLDOWN_MINUTES', 30),
     ],
 
+    'monitoring' => [
+        'failed_login_threshold' => (int) env('CRM_FAILED_LOGIN_ALERT_THRESHOLD', 5),
+        'failed_login_window_minutes' => (int) env('CRM_FAILED_LOGIN_ALERT_WINDOW_MINUTES', 15),
+        'failed_login_cooldown_minutes' => (int) env('CRM_FAILED_LOGIN_ALERT_COOLDOWN_MINUTES', 30),
+        'dashboard_alert_minutes' => (int) env('CRM_MONITORING_DASHBOARD_ALERT_MINUTES', 60),
+        'telescope_emails' => array_values(array_filter(
+            array_map('trim', explode(',', (string) env('CRM_TELESCOPE_ALLOWED_EMAILS', ''))),
+        )),
+    ],
+
     'login' => [
         'throttle_per_minute' => (int) env('CRM_LOGIN_THROTTLE_PER_MINUTE', 10),
     ],

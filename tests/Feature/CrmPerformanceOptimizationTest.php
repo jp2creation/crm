@@ -13,6 +13,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\CrmAdministration\Services\AdministrationService;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Tests\TestCase;
@@ -92,6 +93,127 @@ class CrmPerformanceOptimizationTest extends TestCase
         $this->assertSame([], DB::getQueryLog());
     }
 
+    public function test_user_reference_rows_are_cached_and_invalidated(): void
+    {
+        Cache::flush();
+
+        $site = CrmSite::query()->create([
+            'name' => 'Palissy',
+            'slug' => 'palissy',
+            'active' => true,
+        ]);
+        $user = CrmUser::query()->create([
+            'name' => 'Equipe cache',
+            'first_name' => 'Equipe',
+            'last_name' => 'Cache',
+            'email' => 'cache@example.test',
+            'phone' => '0500000000',
+            'role' => 'user',
+            'active' => true,
+        ]);
+        $user->sites()->sync([$site->id => ['is_default' => true]]);
+        CrmReferenceCache::forgetUsers();
+
+        DB::enableQueryLog();
+        CrmReferenceCache::activeUserRows();
+        $queriesAfterWarmup = count(DB::getQueryLog());
+
+        CrmReferenceCache::activeUserRows();
+        $this->assertSame($queriesAfterWarmup, count(DB::getQueryLog()));
+
+        $user->update(['name' => 'Equipe cache modifiee']);
+
+        $this->assertSame(
+            'Equipe cache modifiee',
+            collect(CrmReferenceCache::activeUserRows())->firstWhere('id', $user->id)['name'] ?? null,
+        );
+
+        $site->update(['name' => 'Palissy cache']);
+
+        $this->assertSame(
+            ['Palissy cache'],
+            collect(CrmReferenceCache::activeUserRows())->firstWhere('id', $user->id)['siteNames'] ?? [],
+        );
+    }
+
+    public function test_admin_user_access_sync_invalidates_cached_user_rows(): void
+    {
+        Cache::flush();
+
+        $site = CrmSite::query()->create([
+            'name' => 'Palissy',
+            'slug' => 'palissy',
+            'active' => true,
+        ]);
+        $newSite = CrmSite::query()->create([
+            'name' => 'Glotin',
+            'slug' => 'glotin',
+            'active' => true,
+        ]);
+        $admin = CrmUser::query()->create([
+            'name' => 'Admin cache',
+            'role' => 'admin',
+            'active' => true,
+        ]);
+        $permission = CrmPermission::query()->create([
+            'name' => 'platform.manage_users',
+            'label' => 'Gerer les utilisateurs',
+            'group_label' => 'Administration',
+            'sort_order' => 10,
+        ]);
+        $admin->permissions()->attach($permission->id);
+        $managedUser = CrmUser::query()->create([
+            'name' => 'Utilisateur pivot cache',
+            'role' => 'user',
+            'active' => true,
+        ]);
+        $managedUser->sites()->sync([$site->id => ['is_default' => true]]);
+        CrmReferenceCache::forgetUsers();
+        CrmReferenceCache::activeUserRows();
+
+        app(AdministrationService::class)->saveUser($admin, [
+            'id' => $managedUser->id,
+            'name' => 'Utilisateur pivot cache',
+            'role' => 'user',
+            'active' => true,
+            'siteIds' => [$newSite->id],
+            'moduleIds' => [],
+            'permissionIds' => [],
+            'accessRules' => [],
+        ]);
+
+        $row = collect(CrmReferenceCache::activeUserRows())->firstWhere('id', $managedUser->id);
+
+        $this->assertSame([$newSite->id], $row['siteIds'] ?? []);
+        $this->assertSame($newSite->id, $row['defaultSiteId'] ?? null);
+    }
+
+    public function test_permission_reference_rows_are_cached_and_invalidated(): void
+    {
+        Cache::flush();
+
+        $permission = CrmPermission::query()->create([
+            'name' => 'reservations.cache_test',
+            'label' => 'Voir le cache',
+            'group_label' => 'Reservations',
+            'sort_order' => 10,
+        ]);
+
+        DB::enableQueryLog();
+        CrmReferenceCache::permissionRows();
+        $queriesAfterWarmup = count(DB::getQueryLog());
+
+        CrmReferenceCache::permissionRows();
+        $this->assertSame($queriesAfterWarmup, count(DB::getQueryLog()));
+
+        $permission->update(['label' => 'Voir le cache modifie']);
+
+        $this->assertSame(
+            'Voir le cache modifie',
+            collect(CrmReferenceCache::permissionRows())->firstWhere('name', 'reservations.cache_test')['label'] ?? null,
+        );
+    }
+
     public function test_equipment_reference_rows_are_cached_and_invalidated(): void
     {
         Cache::flush();
@@ -145,6 +267,9 @@ class CrmPerformanceOptimizationTest extends TestCase
             'crm_sites' => [
                 'crm_sites_active_name_idx' => ['active', 'name'],
             ],
+            'crm_users' => [
+                'crm_users_active_name_idx' => ['active', 'name'],
+            ],
             'crm_modules' => [
                 'crm_modules_active_sort_name_idx' => ['active', 'sort_order', 'name'],
             ],
@@ -154,10 +279,12 @@ class CrmPerformanceOptimizationTest extends TestCase
             'crm_reservations' => [
                 'crm_reservations_vehicle_end_start_idx' => ['vehicle_id', 'end_at', 'start_at'],
                 'crm_reservations_site_end_start_idx' => ['site_id', 'end_at', 'start_at'],
+                'crm_reservations_site_start_vehicle_end_idx' => ['site_id', 'start_at', 'vehicle_id', 'end_at'],
             ],
             'crm_equipment_rentals' => [
                 'crm_equipment_rentals_item_end_start_status_idx' => ['equipment_item_id', 'end_at', 'start_at', 'status'],
                 'crm_equipment_rentals_site_status_end_start_idx' => ['site_id', 'status', 'end_at', 'start_at'],
+                'crm_equipment_rentals_site_start_item_end_status_idx' => ['site_id', 'start_at', 'equipment_item_id', 'end_at', 'status'],
             ],
             'crm_equipment_items' => [
                 'crm_equipment_items_active_site_sort_idx' => ['active', 'site_id', 'sort_order', 'name'],
@@ -181,6 +308,23 @@ class CrmPerformanceOptimizationTest extends TestCase
         }
     }
 
+    public function test_planning_queries_use_composite_calendar_indexes(): void
+    {
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            $this->markTestSkipped('Le plan EXPLAIN de ce test cible SQLite; MariaDB couvre les migrations en CI.');
+        }
+
+        $this->assertExplainAvoidsTableScan(
+            'EXPLAIN QUERY PLAN SELECT id FROM crm_reservations WHERE site_id = ? AND vehicle_id = ? AND end_at >= ? AND start_at <= ? ORDER BY start_at, id',
+            [1, 1, '2026-07-01 00:00:00', '2026-08-31 23:59:59'],
+        );
+
+        $this->assertExplainAvoidsTableScan(
+            'EXPLAIN QUERY PLAN SELECT id FROM crm_equipment_rentals WHERE site_id = ? AND equipment_item_id = ? AND end_at >= ? AND start_at <= ? ORDER BY start_at, id',
+            [1, 1, '2026-07-01 00:00:00', '2026-08-31 23:59:59'],
+        );
+    }
+
     /**
      * @param  array<int, string>  $expectedColumns
      */
@@ -195,5 +339,18 @@ class CrmPerformanceOptimizationTest extends TestCase
             array_values(array_map('strval', $index['columns'] ?? [])),
             "{$indexName} doit couvrir les colonnes attendues sur {$table}.",
         );
+    }
+
+    /**
+     * @param  array<int, int|string>  $bindings
+     */
+    private function assertExplainAvoidsTableScan(string $sql, array $bindings): void
+    {
+        $plan = collect(DB::select($sql, $bindings))
+            ->map(fn (object $row): string => (string) ($row->detail ?? json_encode($row, JSON_THROW_ON_ERROR)))
+            ->implode("\n");
+
+        $this->assertStringContainsString('USING INDEX', $plan, $plan);
+        $this->assertStringNotContainsString('SCAN crm_', $plan, $plan);
     }
 }
