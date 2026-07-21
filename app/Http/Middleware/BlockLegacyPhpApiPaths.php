@@ -21,7 +21,7 @@ class BlockLegacyPhpApiPaths
 
         $response = $next($request);
 
-        if ($this->isApiPermanentRedirect($request, $response)) {
+        if ($this->isApiPermanentRedirect($response)) {
             abort(404);
         }
 
@@ -83,13 +83,9 @@ class BlockLegacyPhpApiPaths
         return preg_match('#(?:^|/)api/[^?]*\.php$#i', $path) === 1;
     }
 
-    private function isApiPermanentRedirect(Request $request, Response $response): bool
+    private function isApiPermanentRedirect(Response $response): bool
     {
         if ($response->getStatusCode() !== Response::HTTP_PERMANENTLY_REDIRECT) {
-            return false;
-        }
-
-        if (! str_starts_with(trim($request->path(), '/'), 'api/')) {
             return false;
         }
 

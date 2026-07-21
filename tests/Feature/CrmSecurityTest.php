@@ -160,7 +160,7 @@ class CrmSecurityTest extends TestCase
 
     public function test_legacy_php_api_blocker_rejects_api_permanent_redirects(): void
     {
-        $request = Request::create('/api/administration', 'GET');
+        $request = Request::create('/administration', 'GET');
 
         $this->expectException(NotFoundHttpException::class);
 
@@ -171,6 +171,21 @@ class CrmSecurityTest extends TestCase
                 308,
             ),
         );
+    }
+
+    public function test_legacy_php_api_blocker_allows_non_api_permanent_redirects(): void
+    {
+        $request = Request::create('/dashboard', 'GET');
+
+        $response = app(BlockLegacyPhpApiPaths::class)->handle(
+            $request,
+            fn (): RedirectResponse => new RedirectResponse(
+                'https://crm.jp2.fr/dashboard/crm',
+                308,
+            ),
+        );
+
+        $this->assertSame(308, $response->getStatusCode());
     }
 
     public function test_laravel_router_does_not_register_legacy_php_api_routes(): void
