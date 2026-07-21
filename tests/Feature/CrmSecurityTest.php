@@ -26,6 +26,7 @@ use Illuminate\Support\ViewErrorBag;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 
@@ -155,6 +156,21 @@ class CrmSecurityTest extends TestCase
         $this->expectException(NotFoundHttpException::class);
 
         app(BlockLegacyPhpApiPaths::class)->handle($request, fn (): Response => new Response('ok'));
+    }
+
+    public function test_legacy_php_api_blocker_rejects_api_permanent_redirects(): void
+    {
+        $request = Request::create('/api/administration', 'GET');
+
+        $this->expectException(NotFoundHttpException::class);
+
+        app(BlockLegacyPhpApiPaths::class)->handle(
+            $request,
+            fn (): RedirectResponse => new RedirectResponse(
+                'https://crm.jp2.fr/api/administration?action=bootstrap',
+                308,
+            ),
+        );
     }
 
     public function test_laravel_router_does_not_register_legacy_php_api_routes(): void

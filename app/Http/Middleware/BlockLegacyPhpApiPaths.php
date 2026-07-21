@@ -19,7 +19,13 @@ class BlockLegacyPhpApiPaths
             }
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        if ($this->isApiPermanentRedirect($request, $response)) {
+            abort(404);
+        }
+
+        return $response;
     }
 
     /**
@@ -75,5 +81,20 @@ class BlockLegacyPhpApiPaths
     private function isLegacyPhpApiPath(string $path): bool
     {
         return preg_match('#(?:^|/)api/[^?]*\.php$#i', $path) === 1;
+    }
+
+    private function isApiPermanentRedirect(Request $request, Response $response): bool
+    {
+        if ($response->getStatusCode() !== Response::HTTP_PERMANENTLY_REDIRECT) {
+            return false;
+        }
+
+        if (! str_starts_with(trim($request->path(), '/'), 'api/')) {
+            return false;
+        }
+
+        $locationPath = parse_url((string) $response->headers->get('Location', ''), PHP_URL_PATH);
+
+        return is_string($locationPath) && str_starts_with(trim($locationPath, '/'), 'api/');
     }
 }
