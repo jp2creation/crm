@@ -44,6 +44,8 @@ class CrmFrontendSourceTest extends TestCase
         $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
         $adminexRoutes = (string) file_get_contents(resource_path('frontend/adminex/src/routes/index.tsx'));
         $crmModuleHostPage = (string) file_get_contents(resource_path('frontend/adminex/src/pages/crm/CrmModuleHostPage.tsx'));
+        $legacyAdminexBundle = (string) file_get_contents(resource_path('frontend/static/assets/index-CqSzWeas.js'));
+        $legacyAdminexEntry = (string) file_get_contents(resource_path('frontend/static/assets/legacy-adminex-entry.js'));
 
         $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
         $this->assertStringContainsString('loadCurrentCrmModuleOverlay', $shell);
@@ -72,6 +74,9 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString("path: 'pilotage-commercial'", $adminexRoutes);
         $this->assertStringContainsString('id="crm-sales-module"', $crmModuleHostPage);
         $this->assertStringContainsString('className="crm-sales-module-host"', $crmModuleHostPage);
+        $this->assertStringContainsString('path:`pilotage-commercial`', $legacyAdminexBundle);
+        $this->assertStringContainsString('id:`crm-sales-module`', $legacyAdminexBundle);
+        $this->assertStringContainsString('index-CqSzWeas.js?v=202607211820', $legacyAdminexEntry);
 
         $mobileFallback = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $shellCss = (string) file_get_contents(resource_path('frontend/crm/styles/shell.css'));
