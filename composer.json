@@ -79,6 +79,7 @@
             "@php artisan test tests/Feature/CrmMysqlSchemaTest.php tests/Feature/CrmAdministrationApiTest.php tests/Feature/CrmReservationApiTest.php tests/Feature/CrmEquipmentRentalApiTest.php tests/Feature/CrmLeaveApiTest.php tests/Feature/CrmPolicyAuthorizationTest.php tests/Feature/CrmPerformanceOptimizationTest.php"
         ],
         "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
+        "audit:standalone-php": "@php scripts/audit-standalone-php.php",
         "pint": "vendor/bin/pint --test app bootstrap/app.php config database Modules routes tests",
         "pint:fix": "vendor/bin/pint app bootstrap/app.php config database Modules routes tests",
         "test:coverage": [
@@ -87,6 +88,7 @@
             "@php scripts/check-coverage.php build/logs/clover.xml 80"
         ],
         "quality": [
+            "@composer audit:standalone-php",
             "@composer pint",
             "@composer analyse",
             "@composer test"

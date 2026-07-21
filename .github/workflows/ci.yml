@@ -46,6 +46,9 @@ jobs:
       - name: Audit Node dependencies
         run: npm audit --audit-level=moderate
 
+      - name: Audit standalone PHP scripts
+        run: composer audit:standalone-php
+
       - name: Check frontend sources
         run: |
           npm run typecheck
@@ -88,10 +91,62 @@ jobs:
       - name: Run coverage threshold
         run: composer test:coverage
 
+  e2e-regression:
+    name: Playwright regression
+    runs-on: ubuntu-latest
+    needs: laravel
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: bcmath, ctype, curl, dom, fileinfo, filter, gd, json, mbstring, openssl, pdo, pdo_sqlite, tokenizer, xml
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Prepare application
+        run: |
+          cp .env.example .env
+          cat >> .env <<'EOF'
+          APP_ENV=testing
+          APP_URL=http://127.0.0.1:8000
+          DB_CONNECTION=sqlite
+          DB_DATABASE=${{ github.workspace }}/database/database.sqlite
+          CACHE_STORE=array
+          SESSION_DRIVER=array
+          SESSION_SECURE_COOKIE=false
+          QUEUE_CONNECTION=sync
+          MAIL_MAILER=array
+          DEBUGBAR_ENABLED=false
+          EOF
+          touch database/database.sqlite
+          php artisan key:generate --ansi
+          php artisan migrate --force --ansi
+          php artisan crm:publish-static-assets --force --clean
+          php artisan crm:publish-module-assets --force
+
+      - name: Build frontend assets
+        run: npm run build
+
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Run Playwright smoke tests
+      - name: Run Playwright regression tests
         run: npm run test:e2e
 
   mysql-critical:
