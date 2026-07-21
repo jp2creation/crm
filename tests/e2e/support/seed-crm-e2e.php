@@ -64,6 +64,7 @@ $fixture = DB::transaction(function () use ($password): array {
         ['reservations', 'Reservations vehicules', '/reservations', 10],
         ['locations-materiel', 'Location materiel', '/locations-materiel', 15],
         ['conges', 'Conges', '/conges', 24],
+        ['pilotage-commercial', 'Pilotage commercial', '/pilotage-commercial', 30],
     ];
 
     $moduleIds = [];
@@ -94,6 +95,7 @@ $fixture = DB::transaction(function () use ($password): array {
         ['equipment_rentals.manage_items', 'Location materiel', 190],
         ['conges.view', 'Conges', 200],
         ['conges.manage', 'Conges', 210],
+        ['sales.view', 'Pilotage commercial', 220],
     ];
 
     $permissionIds = [];

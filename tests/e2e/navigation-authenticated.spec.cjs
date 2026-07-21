@@ -32,6 +32,7 @@ test.describe('CRM authenticated navigation E2E', () => {
     const pages = [
       ['/locations-materiel', /Location mat[ée]riel/i],
       ['/conges', /Cong[ée]s/i],
+      ['/pilotage-commercial', /Pilotage commercial/i],
     ];
 
     for (const [route, heading] of pages) {
@@ -39,5 +40,13 @@ test.describe('CRM authenticated navigation E2E', () => {
       await expect(page.locator('body')).toContainText(heading);
       await expect(page.locator('body')).not.toContainText(/404 - Page non trouv[ée]e/i);
     }
+
+    await page.goto('/conges');
+    await expect(page.locator('body')).toContainText(/Cong[ée]s/i);
+    await page.getByRole('link', { name: /Pilotage commercial/i }).click();
+    await expect(page).toHaveURL(/\/pilotage-commercial/);
+    await expect(page.locator('#crm-sales-module')).toBeVisible();
+    await expect(page.locator('body')).toContainText(/Pilotage commercial/i);
+    await expect(page.locator('body')).not.toContainText(/404 - Page non trouv[ée]e/i);
   });
 });
