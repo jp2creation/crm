@@ -184,6 +184,11 @@ class CrmSecurityTest extends TestCase
                 (string) file_get_contents($file),
                 $file,
             );
+            $this->assertStringContainsString(
+                'RewriteCond %{THE_REQUEST} \\s/+api/[^?\\s]+\\.php(?:[?\\s]|$) [NC]',
+                (string) file_get_contents($file),
+                $file,
+            );
         }
     }
 

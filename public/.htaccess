@@ -5,6 +5,8 @@
 
     RewriteEngine On
 
+    RewriteCond %{THE_REQUEST} \s/+api/[^?\s]+\.php(?:[?\s]|$) [NC]
+    RewriteRule ^ - [R=404,L]
     RewriteRule ^api/.*\.php$ - [R=404,L]
 
     # Block hidden/generated metadata files even when requests enter public/ directly.
