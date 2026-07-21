@@ -216,6 +216,17 @@ class CrmSecurityTest extends TestCase
         $this->assertSame(['index.php'], $phpFiles);
     }
 
+    public function test_public_front_controller_blocks_legacy_php_api_before_bootstrap(): void
+    {
+        $frontController = (string) file_get_contents(public_path('index.php'));
+
+        $this->assertStringContainsString('$legacyApiPathCandidates', $frontController);
+        $this->assertStringContainsString('THE_REQUEST', $frontController);
+        $this->assertStringContainsString('api/[^?\\s]+\\.php', $frontController);
+        $this->assertStringContainsString('http_response_code(404)', $frontController);
+        $this->assertStringContainsString('exit;', $frontController);
+    }
+
     public function test_htaccess_blocks_legacy_php_api_paths_before_laravel(): void
     {
         foreach ([base_path('.htaccess'), public_path('.htaccess'), public_path('api/.htaccess')] as $file) {
