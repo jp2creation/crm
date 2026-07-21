@@ -172,6 +172,16 @@ ensure_shared_paths() {
         "${SHARED_DIR}/storage/framework/testing" \
         "${SHARED_DIR}/storage/framework/views" \
         "${SHARED_DIR}/storage/logs"
+
+    mkdir -p "${SHARED_DIR}/public/assets"
+
+    if [ ! -d "${SHARED_DIR}/public/assets/uploads" ]; then
+        if [ -d "${CRM_DEPLOY_ROOT}/public/assets/uploads" ] && [ ! -L "${CRM_DEPLOY_ROOT}/public/assets/uploads" ]; then
+            cp -a "${CRM_DEPLOY_ROOT}/public/assets/uploads" "${SHARED_DIR}/public/assets/uploads"
+        else
+            mkdir -p "${SHARED_DIR}/public/assets/uploads"
+        fi
+    fi
 }
 
 switch_current() {
@@ -183,6 +193,34 @@ switch_current() {
     rm -f "$NEXT_LINK"
     ln -s "$RELEASE_DIR" "$NEXT_LINK"
     mv -Tf "$NEXT_LINK" "$CURRENT_LINK"
+}
+
+link_release_public_uploads() {
+    mkdir -p "${RELEASE_DIR}/public/assets"
+    rm -rf "${RELEASE_DIR}/public/assets/uploads"
+    ln -s "${SHARED_DIR}/public/assets/uploads" "${RELEASE_DIR}/public/assets/uploads"
+}
+
+switch_public_docroot() {
+    local public_path="${CRM_DEPLOY_ROOT}/public"
+    local desired_target="${CURRENT_LINK}/public"
+
+    if [ -L "$public_path" ]; then
+        if [ "$(readlink "$public_path")" != "$desired_target" ]; then
+            rm -f "$public_path"
+            ln -s "$desired_target" "$public_path"
+        fi
+
+        return
+    fi
+
+    if [ -e "$public_path" ]; then
+        local backup_path="${CRM_DEPLOY_ROOT}/public.pre-atomic-${RELEASE_NAME}"
+        mv "$public_path" "$backup_path"
+        echo "Ancien document root public sauvegarde: ${backup_path}"
+    fi
+
+    ln -s "$desired_target" "$public_path"
 }
 
 run_healthcheck() {
@@ -248,6 +286,7 @@ rm -f "${RELEASE_DIR}/.env"
 ln -s "${SHARED_DIR}/.env" "${RELEASE_DIR}/.env"
 rm -rf "${RELEASE_DIR}/storage"
 ln -s "${SHARED_DIR}/storage" "${RELEASE_DIR}/storage"
+link_release_public_uploads
 mkdir -p "${RELEASE_DIR}/bootstrap/cache"
 printf '%s\n' "$REVISION" > "${RELEASE_DIR}/.deployed-revision"
 
@@ -270,6 +309,7 @@ php artisan view:cache
 php artisan route:list --path=up >/dev/null
 
 switch_current
+switch_public_docroot
 run_healthcheck
 
 php artisan horizon:terminate || true
