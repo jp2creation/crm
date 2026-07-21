@@ -1,4 +1,14 @@
-Options -Indexes
+Options -MultiViews -Indexes
+
+RedirectMatch 404 ^/api/.*\.php$
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{THE_REQUEST} \s/+api/[^?\s]+\.php(?:[?\s]|$) [NC]
+    RewriteRule ^ - [R=404,L]
+    RewriteRule ^.*\.php$ - [R=404,L]
+</IfModule>
 
 <FilesMatch "^_.*\.php$|^\._">
     <IfModule mod_authz_core.c>

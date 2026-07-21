@@ -187,7 +187,7 @@ class CrmSecurityTest extends TestCase
 
     public function test_htaccess_blocks_legacy_php_api_paths_before_laravel(): void
     {
-        foreach ([base_path('.htaccess'), public_path('.htaccess')] as $file) {
+        foreach ([base_path('.htaccess'), public_path('.htaccess'), public_path('api/.htaccess')] as $file) {
             $this->assertStringContainsString(
                 'Options -MultiViews -Indexes',
                 (string) file_get_contents($file),
@@ -198,14 +198,16 @@ class CrmSecurityTest extends TestCase
                 (string) file_get_contents($file),
                 $file,
             );
-            $this->assertStringContainsString(
-                'RewriteRule ^api/.*\\.php$ - [R=404,L]',
-                (string) file_get_contents($file),
+            $contents = (string) file_get_contents($file);
+
+            $this->assertTrue(
+                str_contains($contents, 'RewriteRule ^api/.*\\.php$ - [R=404,L]')
+                || str_contains($contents, 'RewriteRule ^.*\\.php$ - [R=404,L]'),
                 $file,
             );
             $this->assertStringContainsString(
                 'RewriteCond %{THE_REQUEST} \\s/+api/[^?\\s]+\\.php(?:[?\\s]|$) [NC]',
-                (string) file_get_contents($file),
+                $contents,
                 $file,
             );
         }
