@@ -90,6 +90,16 @@ function routeForCurrentPath(): CrmHostRoute | null {
   }) || null;
 }
 
+function removeInactiveModuleHosts(activeRoute: CrmHostRoute | null): void {
+  hostRoutes.forEach((route) => {
+    if (route.adminexOnly || route.id === activeRoute?.id) {
+      return;
+    }
+
+    document.getElementById(route.id)?.remove();
+  });
+}
+
 function pageLooksLikeAdminex404(): boolean {
   const root = document.getElementById('root');
   const text = root?.textContent || '';
@@ -156,6 +166,7 @@ function ensureHost(): void {
   const route = routeForCurrentPath();
 
   document.documentElement.classList.toggle('crm-known-module-route', Boolean(route));
+  removeInactiveModuleHosts(route);
 
   if (!route || document.getElementById(route.id)) {
     return;

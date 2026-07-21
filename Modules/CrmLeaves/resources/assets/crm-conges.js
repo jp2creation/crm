@@ -3,6 +3,7 @@
   const rootId = "crm-leaves-module";
   const routeEvent = "crm:leaves-route-changed";
   let root = null;
+  let hostNode = null;
   let mountTimer = null;
   let mountAttempts = 0;
   const mountedRoots = new WeakSet();
@@ -1331,7 +1332,13 @@
   function boot(rootNode) {
     if (!rootNode) return false;
 
+    if (!isLeavesRoute()) {
+      teardown();
+      return false;
+    }
+
     if (mountedRoots.has(rootNode)) {
+      hostNode = rootNode;
       root = rootNode.shadowRoot || root;
       return true;
     }
@@ -1342,6 +1349,7 @@
     }
 
     root = rootNode.shadowRoot || rootNode.attachShadow({ mode: "open" });
+    hostNode = rootNode;
     mountedRoots.add(rootNode);
     load();
     return true;
@@ -1351,12 +1359,29 @@
     return window.location.pathname.replace(/\/$/, "") === "/conges";
   }
 
+  function teardown() {
+    if (mountTimer) {
+      window.clearTimeout(mountTimer);
+      mountTimer = null;
+    }
+
+    const host = hostNode || document.getElementById(rootId);
+
+    if (host) {
+      mountedRoots.delete(host);
+      host.remove();
+    }
+
+    root = null;
+    hostNode = null;
+  }
+
   function scheduleBoot(reset = false) {
     if (reset) mountAttempts = 0;
     if (mountTimer) window.clearTimeout(mountTimer);
 
     if (!isLeavesRoute()) {
-      mountTimer = null;
+      teardown();
       return;
     }
 
