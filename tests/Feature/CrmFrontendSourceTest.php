@@ -76,7 +76,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('className="crm-sales-module-host"', $crmModuleHostPage);
         $this->assertStringContainsString('path:`pilotage-commercial`', $legacyAdminexBundle);
         $this->assertStringContainsString('id:`crm-sales-module`', $legacyAdminexBundle);
-        $this->assertStringContainsString('index-CqSzWeas.js?v=202607211820', $legacyAdminexEntry);
+        $this->assertStringContainsString('index-CqSzWeas.js?v=202607211905', $legacyAdminexEntry);
 
         $mobileFallback = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $shellCss = (string) file_get_contents(resource_path('frontend/crm/styles/shell.css'));
