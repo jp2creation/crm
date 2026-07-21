@@ -2,7 +2,7 @@ import './styles/shell.css';
 import { installCrmApiClient } from './api/client';
 import { installCsrfFetch } from './api/csrf';
 import { installCrmShellGlobals, readCrmShellConfig } from './config';
-import { installLegacyStylesheets, loadLegacyAdminex } from './legacy/adminex';
+import { installLegacyAdminexNavigationBridge, installLegacyStylesheets, loadLegacyAdminex } from './legacy/adminex';
 import { installLegacyLogoutBridge } from './legacy/logout-bridge';
 import { revealBrandLoaderElement } from './loader';
 import { installMobileEmbedBridge } from './mobile/embed-bridge';
@@ -26,6 +26,7 @@ installLegacyStylesheets();
 revealBrandLoaderElement();
 installLegacyLogoutBridge(crmShellConfig);
 installFallbackNavigation();
+installLegacyAdminexNavigationBridge();
 
 await loadBrandMorphLoader();
 
