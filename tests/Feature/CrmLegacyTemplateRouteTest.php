@@ -7,10 +7,19 @@ use Tests\TestCase;
 
 class CrmLegacyTemplateRouteTest extends TestCase
 {
-    public function test_legacy_template_pages_are_not_available(): void
+    public function test_legacy_template_pages_redirect_guests_to_login(): void
     {
         foreach (['/auth/login', '/forms/layout', '/tables/simple', '/charts/line', '/pages/pricing'] as $path) {
-            $this->get($path)->assertNotFound();
+            $this->get($path)->assertRedirect('/login');
+        }
+    }
+
+    public function test_legacy_template_pages_redirect_authenticated_users_to_crm_dashboard(): void
+    {
+        foreach (['/app/ecommerce/products', '/features/query-builder', '/forms/layout', '/tables/simple', '/charts/line', '/pages/pricing'] as $path) {
+            $this->actingAs(User::factory()->make())
+                ->get($path)
+                ->assertRedirect('/dashboard/crm');
         }
     }
 

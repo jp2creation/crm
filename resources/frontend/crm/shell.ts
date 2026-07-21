@@ -3,6 +3,7 @@ import { installCrmApiClient } from './api/client';
 import { installCsrfFetch } from './api/csrf';
 import { installCrmShellGlobals, readCrmShellConfig } from './config';
 import { installLegacyAdminexNavigationBridge, installLegacyStylesheets, loadLegacyAdminex } from './legacy/adminex';
+import { installDeadAdminexLinkGuard } from './legacy/dead-links';
 import { installLegacyLogoutBridge } from './legacy/logout-bridge';
 import { revealBrandLoaderElement } from './loader';
 import { installMobileEmbedBridge } from './mobile/embed-bridge';
@@ -27,6 +28,7 @@ revealBrandLoaderElement();
 installLegacyLogoutBridge(crmShellConfig);
 installFallbackNavigation();
 installLegacyAdminexNavigationBridge();
+installDeadAdminexLinkGuard();
 
 await loadBrandMorphLoader();
 
@@ -47,10 +49,7 @@ window.CrmLoader?.begin?.(shellLoaderKey, {
 
 try {
   await loadCrmShellOverlays();
-  await Promise.all([
-    loadLegacyAdminex(),
-    loadCurrentCrmModuleOverlay(),
-  ]);
+  await Promise.all([loadLegacyAdminex(), loadCurrentCrmModuleOverlay()]);
   window.dispatchEvent(new CustomEvent('crm:module-ready', { detail: { key: shellLoaderKey } }));
   preloadRemainingCrmModuleOverlays();
 } catch (error) {

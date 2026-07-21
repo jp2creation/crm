@@ -3,12 +3,13 @@
 namespace Modules\CrmCore\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class LegacyTemplateController extends Controller
 {
-    public function __invoke(): Response
+    public function __invoke(Request $request): RedirectResponse
     {
-        abort(404);
+        return redirect()->to($request->user() ? '/dashboard/crm' : '/login');
     }
 }

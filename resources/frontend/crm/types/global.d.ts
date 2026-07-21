@@ -26,6 +26,7 @@ declare global {
       requestLocation: () => void;
     };
     __martinSolsCrmFetchCsrf?: boolean;
+    __martinSolsCrmDeadAdminexLinksInstalled?: boolean;
     __martinSolsCrmLegacyAdminexNavigationBridge?: boolean;
     __martinSolsCrmLegacyAdminexLoading?: Promise<void>;
     __martinSolsCrmModulesLoaded?: boolean;
