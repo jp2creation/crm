@@ -95,11 +95,9 @@ Les pages CRM servent la vue `crm`. Les API doivent utiliser le chemin sans exte
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
-use Modules\CrmCore\Http\Controllers\LegacyPhpApiController;
 use Modules\CrmExample\Http\Controllers\ExampleApiController;
 
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
-$crmLegacyApiMiddleware = ['throttle:crm-legacy-api', 'crm.compress'];
 
 Route::view('/example', 'crm')
     ->middleware(['auth', 'crm.module:example,example.view'])
@@ -109,15 +107,9 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/example', ExampleApiController::c
     ->middleware([...$crmApiMiddleware, 'crm.mobile_scope:crm:module:example'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.example');
-
-Route::any('/api/example.php', LegacyPhpApiController::class)
-    ->defaults('crm_legacy_target', '/api/example')
-    ->middleware($crmLegacyApiMiddleware)
-    ->withoutMiddleware([VerifyCsrfToken::class])
-    ->name('crm.api.example.legacy');
 ```
 
-Les routes legacy sont temporaires. Elles ne doivent jamais pointer vers un controleur metier : `GET`/`HEAD` redirigent vers l'API REST sans extension et les mutations repondent `410` selon `docs/LEGACY_API_MIGRATION.md`.
+Aucun alias `/api/*.php` ne doit etre cree. Les anciens clients doivent etre migres vers les routes Laravel sans extension.
 
 ## 6. Organiser la logique metier
 
@@ -206,7 +198,7 @@ make build
 - `database/migrations` existe dans le module.
 - Aucune migration CRM dans `database/migrations`.
 - Routes API sans `.php` presentes.
-- Routes legacy uniquement si necessaire.
+- Aucun alias API legacy `.php`.
 - Permissions et menu ajoutes.
 - Feature flag `module:<slug>` disponible.
 - Services testes.

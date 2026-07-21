@@ -51,12 +51,6 @@ $trustedHosts = array_values(array_filter(array_map(
 )));
 
 return [
-    'legacy_php_api' => [
-        'log_calls' => env('CRM_LEGACY_PHP_API_LOG', true),
-        'redirect_safe_methods' => env('CRM_LEGACY_PHP_API_REDIRECT_SAFE_METHODS', true),
-        'throttle_per_minute' => (int) env('CRM_LEGACY_PHP_API_THROTTLE_PER_MINUTE', 60),
-    ],
-
     'security' => [
         'force_https' => env('CRM_FORCE_HTTPS', env('APP_ENV', 'production') === 'production'),
         'hsts_enabled' => env('CRM_HSTS_ENABLED', env('APP_ENV', 'production') === 'production'),

@@ -17,7 +17,7 @@ Le guide pas a pas de creation d'un module est disponible dans [MODULE_CREATION_
 ## Conventions API
 
 - Les routes de production utilisent `/api/<module>`.
-- Les routes legacy `.php` ne doivent jamais appeler un controleur metier. Si un alias historique reste expose, il pointe vers `LegacyPhpApiController`.
+- Aucun alias API avec extension `.php` ne doit etre ajoute. Les anciens chemins `/api/*.php` doivent retourner `404`.
 - Les controleurs API recoivent `Modules\CrmCore\Http\Requests\CrmApiRequest`.
 - Les actions complexes convertissent le payload avec un DTO avant d'appeler le service.
 

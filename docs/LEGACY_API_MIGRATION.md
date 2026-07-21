@@ -1,50 +1,37 @@
 # Migration des endpoints legacy `.php`
 
-Objectif : retirer progressivement les anciens endpoints `/api/*.php` et garder uniquement les routes REST Laravel sans extension.
+Objectif : garder uniquement les routes Laravel sans extension et supprimer toute exposition directe de scripts ou d'alias `/api/*.php`.
 
 ## Etat au 21 juillet 2026
 
-- Les routes REST sans extension sont disponibles pour les modules CRM principaux.
-- Les anciens endpoints `/api/*.php` ne pointent plus vers les controleurs metier.
-- Chaque route `.php` passe par `LegacyPhpApiController`, qui journalise l'appel dans le canal `crm`.
-- Les methodes de lecture `GET` et `HEAD` sont redirigees en `308` vers la route REST sans extension, avec la query conservee.
-- Les mutations `POST`, `PUT`, `PATCH` et `DELETE` sont refusees en `410`.
-- La variable `CRM_LEGACY_PHP_API_REDIRECT_SAFE_METHODS=false` permet de bloquer aussi les lectures si une fenetre de retrait total est planifiee.
+- Aucun fichier PHP legacy n'est expose dans `public/`; seul `public/index.php` reste le front controller Laravel.
+- Les modules CRM enregistrent uniquement les routes `/api/<module>` sans extension.
+- Les anciens chemins `/api/*.php` ne sont plus routes par Laravel et retournent une erreur `404`.
+- `LegacyPhpApiController`, `AuditLegacyPhpApi`, le rate limiter `crm-legacy-api` et les variables `CRM_LEGACY_PHP_API_*` ont ete supprimes.
+- La documentation OpenAPI ne liste plus les chemins `.php`.
 
-## Feuille de route
+## Regle de developpement
 
-### Phase 1 - Audit final des consommateurs, avant le 15 aout 2026
+Une nouvelle fonctionnalite ne doit jamais ajouter de route API avec extension `.php`.
 
-- Lire les logs `Legacy CRM .php API redirected.` et `Legacy CRM .php API mutation blocked.`.
-- Identifier les navigateurs, PWA, scripts ou integrations externes qui appellent encore `/api/*.php`.
-- Creer un ticket par endpoint encore utilise avec le remplacement REST attendu.
+Si une integration externe demande un ancien chemin, il faut migrer le client vers la route Laravel moderne correspondante :
 
-### Phase 2 - Migration des clients, avant le 15 septembre 2026
-
-- Remplacer tous les appels front et mobile par `/api/<module>`.
-- Mettre a jour la documentation OpenAPI/Swagger pour les endpoints `Chat`, `News`, `Documents`, reservations, locations et comptabilite.
-- Garder les tests qui garantissent que les assets compiles ne referencent plus les routes legacy.
-
-### Phase 3 - Suppression applicative, avant le 31 octobre 2026
-
-- Retirer les definitions de routes `/api/*.php` dans les modules.
-- Supprimer les alias de routes `.legacy` lorsque les logs prouvent qu'ils ne recoivent plus de trafic utile.
-- Conserver les redirects de pages historiques uniquement si elles aident les favoris utilisateurs.
-
-### Phase 4 - Nettoyage securite, avant le 15 novembre 2026
-
-- Supprimer `AuditLegacyPhpApi` si aucun endpoint `.php` ne reste expose.
-- Supprimer la configuration `CRM_LEGACY_PHP_API_REDIRECT_SAFE_METHODS`.
-- Mettre a jour les tests de securite pour verifier l'absence totale de routes API legacy.
+```text
+/api/reservations.php?action=health  ->  /api/reservations?action=health
+/api/conges.php?action=bootstrap     ->  /api/conges?action=bootstrap
+```
 
 ## Commandes de controle
 
 ```bash
-rg -n "/api/[A-Za-z0-9_-]+\\.php|\\.legacy" app Modules resources tests
-php artisan route:list | rg "\\.php|legacy"
+find public -maxdepth 5 -type f -name '*.php' -print
+rg -n "/api/[A-Za-z0-9_-]+\\.php|LegacyPhpApiController|crm-legacy-api|legacy_php_api" app bootstrap config Modules resources tests docs
+php artisan route:list | rg "/api/.*\\.php|crm-legacy-api|LegacyPhpApiController"
 php artisan test --filter=CrmSecurityTest
 ```
 
-## Regle de release
+La seule sortie attendue pour `find public ...` est :
 
-Une nouvelle fonctionnalite ne doit pas ajouter de route `.php`. Si une integration externe impose temporairement un endpoint legacy, il doit rester un adaptateur mort vers `LegacyPhpApiController`, etre documente ici, et avoir une date de retrait.
+```text
+public/index.php
+```

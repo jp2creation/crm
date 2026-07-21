@@ -19,7 +19,6 @@ tags:
   - name: Equipes
   - name: Commercial
   - name: Mobile
-  - name: Legacy
   - name: Chat
     description: Aucun endpoint backend Chat n'est expose dans ce depot.
   - name: News
@@ -28,11 +27,6 @@ x-crm-audit:
   chatEndpoint: absent
   newsEndpoint: absent
   documentsEndpoint: documented
-  legacyPhpAliases:
-    mode: safe-read-redirects-only
-    redirectSafeMethodsEnv: CRM_LEGACY_PHP_API_REDIRECT_SAFE_METHODS
-    unsafeMethods: HTTP 410
-    documented: true
   moduleApis:
     - /api/dashboard
     - /api/administration
@@ -104,21 +98,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/administration.php:
-    get:
-      tags: [Administration, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/administration.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/administration avec la query conservee.
-    post:
-      tags: [Administration, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/reservations:
     get:
       tags: [Reservations]
@@ -250,21 +229,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/reservations.php:
-    get:
-      tags: [Reservations, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/reservations.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/reservations avec la query conservee.
-    post:
-      tags: [Reservations, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/equipment-rentals:
     get:
       tags: [Location materiel]
@@ -412,21 +376,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/equipment-rentals.php:
-    get:
-      tags: [Location materiel, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/equipment-rentals.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/equipment-rentals avec la query conservee.
-    post:
-      tags: [Location materiel, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/conges:
     get:
       tags: [Conges]
@@ -467,21 +416,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/conges.php:
-    get:
-      tags: [Conges, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/conges.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/conges avec la query conservee.
-    post:
-      tags: [Conges, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/controle-caisse:
     get:
       tags: [Comptabilite]
@@ -530,21 +464,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/controle-caisse.php:
-    get:
-      tags: [Comptabilite, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/controle-caisse.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/controle-caisse avec la query conservee.
-    post:
-      tags: [Comptabilite, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/demandes-acompte:
     get:
       tags: [Comptabilite]
@@ -594,21 +513,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/demandes-acompte.php:
-    get:
-      tags: [Comptabilite, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/demandes-acompte.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/demandes-acompte avec la query conservee.
-    post:
-      tags: [Comptabilite, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/remise-cheques:
     get:
       tags: [Comptabilite]
@@ -654,21 +558,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/remise-cheques.php:
-    get:
-      tags: [Comptabilite, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/remise-cheques.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/remise-cheques avec la query conservee.
-    post:
-      tags: [Comptabilite, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/documents:
     get:
       tags: [Documents]
@@ -715,21 +604,6 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
-  /api/documents.php:
-    get:
-      tags: [Documents, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/documents.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/documents avec la query conservee.
-    post:
-      tags: [Documents, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /documents/file/{document}:
     get:
       tags: [Documents]
@@ -792,21 +666,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/pages.php:
-    get:
-      tags: [Pages, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/pages.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/pages avec la query conservee.
-    post:
-      tags: [Pages, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/equipes:
     get:
       tags: [Equipes]
@@ -826,21 +685,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/equipes.php:
-    get:
-      tags: [Equipes, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/equipes.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/equipes avec la query conservee.
-    post:
-      tags: [Equipes, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/tournees-representants:
     get:
       tags: [Commercial]
@@ -895,21 +739,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /api/tournees-representants.php:
-    get:
-      tags: [Commercial, Legacy]
-      deprecated: true
-      summary: Ancien alias .php de /api/tournees-representants.
-      responses:
-        '308':
-          description: Redirection permanente vers /api/tournees-representants avec la query conservee.
-    post:
-      tags: [Commercial, Legacy]
-      deprecated: true
-      summary: Mutation legacy .php desactivee.
-      responses:
-        '410':
-          description: Endpoint legacy .php desactive.
   /api/mobile/token:
     post:
       tags: [Mobile]

@@ -91,7 +91,7 @@ Les flags de module utilisent la forme `module:<slug>`. Une desactivation retire
 
 ## Migration des endpoints legacy
 
-La feuille de route de retrait des routes `.php` est documentee dans [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md). En production, les endpoints `.php` restent des adaptateurs morts : `GET`/`HEAD` redirigent vers la route REST sans extension et les mutations repondent `410`.
+Le retrait des routes API `.php` est documente dans [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md). En production, ces endpoints ne sont plus routes par Laravel : les clients doivent appeler les routes REST sans extension.
 
 ## Regle importante
 

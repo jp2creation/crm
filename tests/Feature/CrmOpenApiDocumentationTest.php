@@ -44,24 +44,9 @@ class CrmOpenApiDocumentationTest extends TestCase
             $this->assertStringContainsString($route, $openApi);
         }
 
-        foreach ([
-            '/api/administration.php:',
-            '/api/reservations.php:',
-            '/api/equipment-rentals.php:',
-            '/api/conges.php:',
-            '/api/controle-caisse.php:',
-            '/api/demandes-acompte.php:',
-            '/api/remise-cheques.php:',
-            '/api/documents.php:',
-            '/api/pages.php:',
-            '/api/equipes.php:',
-            '/api/tournees-representants.php:',
-        ] as $legacyRoute) {
-            $this->assertStringContainsString($legacyRoute, $openApi);
-        }
-
-        $this->assertStringContainsString('summary: Ancien alias .php de /api/documents.', $openApi);
-        $this->assertStringContainsString('summary: Mutation legacy .php desactivee.', $openApi);
+        $this->assertStringNotContainsString('.php:', $openApi);
+        $this->assertStringNotContainsString('Ancien alias .php', $openApi);
+        $this->assertStringNotContainsString('Mutation legacy .php', $openApi);
         $this->assertStringNotContainsString('Meme contrat que /api/documents.', $openApi);
 
         foreach ([

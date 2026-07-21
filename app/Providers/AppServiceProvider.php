@@ -35,13 +35,6 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
         Model::preventLazyLoading($this->app->isLocal());
 
-        RateLimiter::for('crm-legacy-api', function (Request $request): Limit {
-            $maxAttempts = max(1, (int) config('crm.legacy_php_api.throttle_per_minute', 60));
-            $key = $request->user()?->getAuthIdentifier() ?: $request->ip();
-
-            return Limit::perMinute($maxAttempts)->by((string) $key);
-        });
-
         RateLimiter::for('crm-api', function (Request $request): Limit {
             $maxAttempts = $this->crmApiThrottleLimit($request);
             $key = $request->user()?->getAuthIdentifier() ?: $request->ip();

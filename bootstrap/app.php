@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\AuditLegacyPhpApi;
 use App\Http\Middleware\CompressResponse;
 use App\Http\Middleware\EnforceHttpsAndHsts;
 use App\Http\Middleware\EnsureCrmMobileTokenScope;
@@ -50,7 +49,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'crm.compress' => CompressResponse::class,
-            'crm.legacy_php_api' => AuditLegacyPhpApi::class,
             'crm.mobile_scope' => EnsureCrmMobileTokenScope::class,
             'crm.module' => EnsureCrmModuleAccess::class,
         ]);

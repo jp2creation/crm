@@ -38,7 +38,7 @@ flowchart LR
 - Administration Filament pour les donnees de reference et permissions.
 - PWA installable via `manifest.json` et Service Worker.
 - API mobile via Sanctum.
-- Endpoints legacy `.php` conserves pour compatibilite et audites par middleware.
+- Endpoints CRM exposes par Laravel sans extension `.php`.
 - Creation admin par commande Artisan `crm:admin`, sans mot de passe stocke dans `.env.example`.
 
 ## Experience developpeur

@@ -2,11 +2,9 @@
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
-use Modules\CrmCore\Http\Controllers\LegacyPhpApiController;
 use Modules\CrmDepositRequests\Http\Controllers\DepositRequestApiController;
 
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
-$crmLegacyApiMiddleware = ['throttle:crm-legacy-api', 'crm.compress'];
 
 Route::view('/demandes-acompte', 'crm')
     ->middleware(['auth', 'crm.module:demandes-acompte,deposit_requests.view,deposit_requests.create,deposit_requests.manage,deposit_requests.validate'])
@@ -20,9 +18,3 @@ Route::match(['GET', 'POST'], '/api/mobile/demandes-acompte', DepositRequestApiC
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:demandes-acompte'])
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.demandes-acompte');
-
-Route::any('/api/demandes-acompte.php', LegacyPhpApiController::class)
-    ->defaults('crm_legacy_target', '/api/demandes-acompte')
-    ->middleware($crmLegacyApiMiddleware)
-    ->withoutMiddleware([VerifyCsrfToken::class])
-    ->name('crm.api.deposit-requests.legacy');

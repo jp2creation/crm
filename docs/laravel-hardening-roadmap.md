@@ -4,22 +4,16 @@
 
 Le projet est un Laravel 12 avec Filament 5. L'administration Filament utilise le modele `users`, Spatie Permission et le guard `web`.
 
-Le CRM metier public utilise encore trois endpoints proceduraux dans `public/api` :
-
-- `administration.php`
-- `reservations.php`
-- `equipment-rentals.php`
-
-Ces endpoints gardent volontairement une compatibilite avec le front actuel, mais ils ne doivent pas rester l'architecture cible.
+Le CRM metier public passe par le routeur Laravel. Les anciens endpoints proceduraux `public/api/*.php` et les alias `/api/*.php` ont ete retires.
 
 ## Corrections immediates deja appliquees
 
-- Les erreurs internes des endpoints legacy sont logguees cote serveur et ne sont plus retournees en clair au navigateur quand `APP_DEBUG=false`.
+- Les erreurs internes des endpoints metier sont logguees cote serveur et ne sont plus retournees en clair au navigateur quand `APP_DEBUG=false`.
 - L'identite CRM par `?user_id=` dans l'URL a ete supprimee.
 - Les fichiers internes `public/api/_*.php` et les fichiers AppleDouble `._*` sont bloques par `.htaccess`.
 - `.gitignore` ignore maintenant les fichiers `._*`.
 - Une migration ajoute `crm_users.user_id` avec un index unique pour relier progressivement les utilisateurs metier aux comptes Laravel.
-- Les endpoints legacy privilegient maintenant la session Laravel : cookie Laravel -> table `sessions` -> `users.id` -> `crm_users.user_id`.
+- Les endpoints CRM privilegient la session Laravel : cookie Laravel -> table `sessions` -> `users.id` -> `crm_users.user_id`.
 - L'ancien header `X-CRM-User-Id` est desactive par defaut via `CRM_ALLOW_LEGACY_ACTOR_HEADER=false`; le champ body `actorUserId` reste toleré temporairement via `CRM_ALLOW_LEGACY_ACTOR_BODY=true`.
 - Une page de connexion CRM Laravel existe sur `/login`, avec deconnexion POST `/logout`, pour creer une session `web` hors Filament.
 - La resource Filament `Utilisateurs CRM` affiche le compte Laravel rattache et propose une action de creation/rattachement de compte pour les profils non rattaches.
@@ -36,13 +30,11 @@ Ces endpoints gardent volontairement une compatibilite avec le front actuel, mai
 
    Les routes applicatives doivent utiliser `auth`, `verified` si necessaire, puis des policies ou gates metier.
 
-3. Remplacer les endpoints `public/api/*.php`.
+3. Garder les endpoints CRM dans le routeur Laravel.
 
-   Cible :
+   Cible permanente :
 
-   - `app/Http/Controllers/Crm/AdministrationController.php`
-   - `app/Http/Controllers/Crm/ReservationController.php`
-   - `app/Http/Controllers/Crm/EquipmentRentalController.php`
+   - routes `/api/<module>` sans extension `.php`
    - Form Requests pour validation
    - Resources JSON pour les payloads front
    - Services metier pour conflits de planning, droits par site et droits par module
@@ -67,9 +59,9 @@ Ces endpoints gardent volontairement une compatibilite avec le front actuel, mai
 
    Une fois les comptes rattaches et le front migre, passer `CRM_ALLOW_LEGACY_ACTOR_IMPERSONATION=false`.
 
-5. Remplacer les alterations SQL a la requete par des migrations.
+5. Remplacer toute alteration SQL a la requete par des migrations.
 
-   Les appels `CREATE TABLE IF NOT EXISTS` et `ALTER TABLE` dans `public/api/*.php` doivent disparaitre. Le schema doit etre gere uniquement par `php artisan migrate`.
+   Le schema doit etre gere uniquement par `php artisan migrate`.
 
 6. Ajouter les contraintes relationnelles.
 
