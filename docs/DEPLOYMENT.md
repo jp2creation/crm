@@ -38,7 +38,7 @@ Le flux de production est :
 3. Extraire l'archive dans cette nouvelle release, sans toucher a `current`.
 4. Relier `.env` et `storage` depuis `shared`.
 5. Installer Composer dans la release inactive.
-6. Lancer `php artisan optimize:clear`, `migrate --force`, `storage:link --force`, `crm:publish-module-assets --force`, `optimize` et `view:cache`.
+6. Lancer `php artisan optimize:clear`, `migrate --force`, `storage:link --force`, `crm:publish-static-assets --force --clean`, `crm:publish-module-assets --force`, `optimize` et `view:cache`.
 7. Basculer atomiquement `current` vers la nouvelle release.
 8. Verifier automatiquement `/up`.
 9. En cas d'echec HTTP, revenir automatiquement au symlink precedent.
@@ -95,9 +95,7 @@ La feuille de route de retrait des routes `.php` est documentee dans [LEGACY_API
 
 ## Regle importante
 
-Les fichiers dans `public/assets` sont des sorties compilees. Toute correction durable doit etre faite dans les sources applicatives puis rebuildee.
-
-Exception temporaire : le bundle Adminex historique et les assets statiques encore references par le shell CRM restent dans `public/assets` tant que la migration frontend n'est pas terminee. Ne pas les modifier directement ; deplacer d'abord le comportement dans `resources/frontend` ou `Modules/*/resources/assets`.
+Les fichiers dans `public/assets` sont generes ou publies depuis `resources/frontend/static/assets`. Toute correction durable doit etre faite dans les sources applicatives puis publiee avec `php artisan crm:publish-static-assets --force --clean`. Le snapshot `legacy-adminex-*` est transitoire : il conserve Reservations et Location materiel pendant leur migration vers `resources/frontend/adminex` ou `resources/frontend/crm`, et ne doit pas redevenir une zone de developpement.
 
 Les fichiers dans `public/modules` sont publies depuis `Modules/*/resources/assets` et ne sont pas versionnes. Apres une modification de module, lancer `php artisan crm:publish-module-assets --force` avant de vider les caches.
 

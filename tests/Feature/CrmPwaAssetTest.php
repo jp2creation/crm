@@ -58,7 +58,7 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('no-cache, no-store, must-revalidate', $htaccess);
     }
 
-    public function test_lazy_chunks_import_the_current_entry_asset_version(): void
+    public function test_legacy_adminex_chunks_import_the_current_entry_asset_version(): void
     {
         $currentImport = 'index-CqSzWeas.js?v=202607201920';
         $legacyVersions = [
@@ -83,7 +83,7 @@ class CrmPwaAssetTest extends TestCase
         ];
         $chunksWithCurrentImport = 0;
 
-        foreach (glob(public_path('assets/*.js')) ?: [] as $assetPath) {
+        foreach (glob(resource_path('frontend/static/assets/*.js')) ?: [] as $assetPath) {
             $asset = (string) file_get_contents($assetPath);
 
             foreach ($legacyVersions as $legacyVersion) {
@@ -98,9 +98,9 @@ class CrmPwaAssetTest extends TestCase
         $this->assertGreaterThanOrEqual(20, $chunksWithCurrentImport);
     }
 
-    public function test_crm_shell_entry_uses_current_api_routes_when_legacy_is_disabled(): void
+    public function test_legacy_adminex_entry_uses_current_api_routes_when_legacy_is_disabled(): void
     {
-        $asset = (string) file_get_contents(public_path('assets/index-CqSzWeas.js'));
+        $asset = (string) file_get_contents(resource_path('frontend/static/assets/index-CqSzWeas.js'));
 
         $this->assertStringContainsString('/api/administration', $asset);
         $this->assertStringNotContainsString('/api/administration.php', $asset);
@@ -133,13 +133,13 @@ class CrmPwaAssetTest extends TestCase
         );
     }
 
-    public function test_legacy_public_js_entry_uses_its_lazy_import_version(): void
+    public function test_legacy_adminex_static_entry_is_versioned_by_deployment(): void
     {
         config(['crm.assets.version' => 'deploy-test']);
 
         $this->assertStringEndsWith(
-            '/assets/index-CqSzWeas.js?v=202607201920',
-            CrmAsset::url('assets/index-CqSzWeas.js'),
+            '/assets/legacy-adminex-entry.js?v=deploy-test',
+            CrmAsset::url('assets/legacy-adminex-entry.js'),
         );
     }
 

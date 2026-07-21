@@ -263,6 +263,7 @@ cd "$RELEASE_DIR"
 php artisan optimize:clear
 php artisan migrate --force
 php artisan storage:link --force
+php artisan crm:publish-static-assets --force --clean
 php artisan crm:publish-module-assets --force
 php artisan optimize
 php artisan view:cache

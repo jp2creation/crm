@@ -26,9 +26,9 @@ boost.json
 /mobile/node_modules
 /public/build
 /public/hot
+/public/assets
 /public/modules
 /public/storage
-/public/assets/uploads
 /playwright-report
 /storage/*.key
 /storage/debugbar

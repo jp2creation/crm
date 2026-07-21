@@ -96,7 +96,7 @@ function appendModuleScript(src: string): Promise<void> {
 
 export function installLegacyStylesheets(): void {
   ensureStylesheet(
-    configuredAsset('legacyAdminexStylesheet', '/assets/index-CVBlw941.css'),
+    configuredAsset('legacyAdminexStylesheet', ''),
     'legacy-adminex',
     'before-shell',
   );
@@ -139,5 +139,7 @@ export function installLegacyAdminexNavigationBridge(): void {
 }
 
 export function loadLegacyAdminex(): Promise<void> {
-  return appendModuleScript(configuredAsset('legacyAdminexScript', '/assets/index-CqSzWeas.js'));
+  const source = configuredAsset('legacyAdminexScript', '');
+
+  return source ? appendModuleScript(source) : Promise.resolve();
 }

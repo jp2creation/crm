@@ -85,6 +85,10 @@ class CrmFrontendSourceTest extends TestCase
 
         $this->assertFileExists(resource_path('frontend/adminex/src/main.tsx'));
         $this->assertFileExists(resource_path('frontend/adminex/src/routes/index.tsx'));
+        $this->assertFileExists(resource_path('frontend/static/assets/legacy-adminex-entry.js'));
+        $this->assertFileExists(resource_path('frontend/static/assets/legacy-adminex.css'));
+        $this->assertFileExists(resource_path('frontend/static/assets/reservations-CSr_CND1.js'));
+        $this->assertFileExists(resource_path('frontend/static/assets/equipment-rentals-Codex2.js'));
         $this->assertArrayHasKey('react', $package['dependencies']);
         $this->assertArrayHasKey('react-dom', $package['dependencies']);
         $this->assertArrayHasKey('react-router', $package['dependencies']);
@@ -95,12 +99,41 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertArrayHasKey('vitest', $package['devDependencies']);
     }
 
+    public function test_transitional_static_adminex_chunks_do_not_reference_missing_local_chunks(): void
+    {
+        $assetsDir = resource_path('frontend/static/assets');
+        $missing = [];
+        $importPattern = <<<'REGEX'
+/import\((["'`])\.\/([^"'`?]+)(?:\?[^"'`]*)?\1\)/
+REGEX;
+        $fromPattern = <<<'REGEX'
+/from(["'`])\.\/([^"'`?]+)(?:\?[^"'`]*)?\1/
+REGEX;
+
+        foreach (glob($assetsDir.'/*.js') ?: [] as $assetPath) {
+            $contents = (string) file_get_contents($assetPath);
+            preg_match_all($importPattern, $contents, $importMatches, PREG_SET_ORDER);
+            preg_match_all($fromPattern, $contents, $fromMatches, PREG_SET_ORDER);
+
+            foreach (array_merge($importMatches, $fromMatches) as $match) {
+                $dependency = $match[2] ?? null;
+
+                if ($dependency && ! file_exists($assetsDir.'/'.$dependency)) {
+                    $missing[] = basename($assetPath).' -> '.$dependency;
+                }
+            }
+        }
+
+        $this->assertSame([], $missing);
+    }
+
     public function test_deployment_archive_includes_vite_build_output(): void
     {
         $script = (string) file_get_contents(base_path('scripts/deploy-planethoster.sh'));
         $gitignore = (string) file_get_contents(base_path('.gitignore'));
 
         $this->assertStringContainsString('tar -rf "$LOCAL_ARCHIVE_TAR" public/build', $script);
+        $this->assertStringContainsString('php artisan crm:publish-static-assets --force --clean', $script);
         $this->assertStringContainsString('php artisan crm:publish-module-assets --force', $script);
         $this->assertStringContainsString('gzip -c "$LOCAL_ARCHIVE_TAR" > "$LOCAL_ARCHIVE"', $script);
         $this->assertStringContainsString('RELEASES_DIR="${CRM_DEPLOY_ROOT}/releases"', $script);
@@ -113,6 +146,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('cleanup_old_releases', $script);
         $this->assertStringContainsString("--exclude='storage/redis'", $script);
         $this->assertStringContainsString("--exclude='storage/framework/cache'", $script);
+        $this->assertStringContainsString('/public/assets', $gitignore);
         $this->assertStringContainsString('/public/modules', $gitignore);
     }
 

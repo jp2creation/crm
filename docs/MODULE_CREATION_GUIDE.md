@@ -181,6 +181,8 @@ php artisan crm:publish-module-assets --force
 
 Ne pas modifier directement `public/modules` pour une correction durable et ne pas commiter ce dossier : il est regenere au build/deploiement.
 
+Les images, logos et assets PWA communs doivent etre places dans `resources/frontend/static/assets`, puis publies vers `public/assets` avec `php artisan crm:publish-static-assets --force --clean`. Ne pas ajouter de nouveau code metier dans le snapshot `legacy-adminex-*` : il existe seulement pour maintenir les anciens ecrans pendant leur migration.
+
 ## 9. Tests attendus
 
 Ajouter au minimum :

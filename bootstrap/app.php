@@ -20,6 +20,7 @@ use Modules\CrmCore\Console\Commands\BackupDatabaseCommand;
 use Modules\CrmCore\Console\Commands\ManageCrmFeatureFlagCommand;
 use Modules\CrmCore\Console\Commands\MonitorQueueSizeCommand;
 use Modules\CrmCore\Console\Commands\PublishCrmModuleAssetsCommand;
+use Modules\CrmCore\Console\Commands\PublishCrmStaticAssetsCommand;
 use Modules\CrmCore\Console\Commands\RefreshDashboardMetricsCommand;
 use Sentry\Laravel\Integration;
 
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ManageCrmFeatureFlagCommand::class,
         MonitorQueueSizeCommand::class,
         PublishCrmModuleAssetsCommand::class,
+        PublishCrmStaticAssetsCommand::class,
         RefreshDashboardMetricsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {

@@ -1,1 +1,0 @@
-import{N as e,V as t,v as n,x as r,y as i}from"./index-CTsD809R.js?v=202607201920";t();var a=e();function o({className:e,inputClassName:t,placeholder:o,...s}){return(0,a.jsx)(`div`,{className:e,children:(0,a.jsx)(r,{type:`search`,placeholder:o,inputSize:`sm`,className:t,prefix:(0,a.jsx)(n,{icon:i.search,className:`h-4 w-4`,width:16,height:16}),...s})})}export{o as t};

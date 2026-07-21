@@ -6,9 +6,9 @@ return [
     | CRM Frontend Source Entries
     |--------------------------------------------------------------------------
     |
-    | The CRM shell is now built from resources/frontend. The Adminex bundle is
-    | still loaded as a legacy vendor artifact until the customized reservation
-    | and equipment pages are migrated back to source.
+    | The CRM shell is built from resources/frontend. The legacy Adminex runtime
+    | is published from resources/frontend/static/assets while Reservations and
+    | Equipment Rentals finish their migration into versioned TypeScript source.
     |
     */
 
@@ -17,7 +17,7 @@ return [
     ],
 
     'legacy' => [
-        'adminex_script' => 'assets/index-CqSzWeas.js',
-        'adminex_stylesheet' => 'assets/index-CVBlw941.css',
+        'adminex_script' => 'assets/legacy-adminex-entry.js',
+        'adminex_stylesheet' => 'assets/legacy-adminex.css',
     ],
 ];

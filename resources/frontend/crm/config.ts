@@ -25,8 +25,8 @@ export type CrmShellConfig = {
 const defaultConfig: CrmShellConfig = {
   assets: {
     brandMorphLoaderStylesheet: '/modules/crm-core/brand-morph-loader.css',
-    legacyAdminexScript: '/assets/index-CqSzWeas.js',
-    legacyAdminexStylesheet: '/assets/index-CVBlw941.css',
+    legacyAdminexScript: '',
+    legacyAdminexStylesheet: '',
     logoUrl: '/assets/logo/martin-sols-logo.png',
   },
   csrfToken: '',

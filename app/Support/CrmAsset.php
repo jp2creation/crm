@@ -25,7 +25,9 @@ final class CrmAsset
         }
 
         $usesBundledImports = str_starts_with($path, 'assets/') && str_ends_with($path, '.js');
-        $version = $usesBundledImports ? self::importVersion($path) : self::configuredVersion();
+        $version = $usesBundledImports
+            ? (self::importVersion($path) ?? self::configuredVersion())
+            : self::configuredVersion();
 
         if (! $version && str_ends_with($path, '.js')) {
             $version = self::importVersion($path);
@@ -40,6 +42,18 @@ final class CrmAsset
         }
 
         return asset($path).'?v='.rawurlencode((string) $version);
+    }
+
+    public static function cssUrl(string $entry): string
+    {
+        $entry = ltrim($entry, '/');
+        $manifestCssUrl = self::manifestCssUrl($entry);
+
+        if ($manifestCssUrl) {
+            return $manifestCssUrl;
+        }
+
+        return self::url($entry);
     }
 
     private static function manifestUrl(string $path): ?string
@@ -62,6 +76,20 @@ final class CrmAsset
         }
 
         return null;
+    }
+
+    private static function manifestCssUrl(string $path): ?string
+    {
+        $manifest = self::manifest();
+        $entry = $manifest[$path] ?? null;
+
+        if (! is_array($entry) || ! isset($entry['css']) || ! is_array($entry['css'])) {
+            return null;
+        }
+
+        $css = $entry['css'][0] ?? null;
+
+        return is_string($css) && $css !== '' ? asset('build/'.$css) : null;
     }
 
     private static function fileVersion(string $path): ?string

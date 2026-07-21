@@ -12,9 +12,15 @@ Theme boot, logout interception, mobile settings, loader activation, and legacy
 bridges belong in the versioned TypeScript sources.
 
 `resources/frontend/adminex` contains the original Adminex React/TypeScript
-source from the licensed template. The production CRM still loads the customized
-legacy Adminex bundle from `public/assets` while the reservation and equipment
-pages are migrated back to source.
+source from the licensed template. It is compiled by the main Vite build and is
+the target location for the ongoing migration.
 
-New CRM frontend work should start in `resources/frontend/crm` or in module
-`resources/assets` files, not by editing minified files in `public/assets`.
+`resources/frontend/static/assets` contains versioned public assets such as
+logos, PWA icons, flags, avatars, demo product images, and the transitional
+`legacy-adminex-*` snapshot still required by Reservations and Equipment
+Rentals. They are published to `public/assets` by
+`php artisan crm:publish-static-assets --force --clean`.
+
+New CRM frontend work should start in `resources/frontend/crm`, in
+`resources/frontend/adminex`, or in module `resources/assets` files, not by
+editing generated files in `public` or expanding the legacy Adminex snapshot.

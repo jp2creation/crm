@@ -19,6 +19,7 @@ install: ## Installe le projet local complet
 	$(ARTISAN) migrate --force
 	$(NPM) install
 	$(NPM) run build
+	$(ARTISAN) crm:publish-static-assets --force --clean
 	$(ARTISAN) crm:publish-module-assets --force
 	$(MAKE) hooks
 
@@ -59,7 +60,8 @@ migrate: ## Execute les migrations locales
 migrate-force: ## Execute les migrations avec --force
 	$(ARTISAN) migrate --force
 
-assets: ## Publie les assets des modules CRM
+assets: ## Publie les assets statiques et modules CRM
+	$(ARTISAN) crm:publish-static-assets --force --clean
 	$(ARTISAN) crm:publish-module-assets --force
 
 clear-cache: ## Vide les caches Laravel
@@ -75,6 +77,8 @@ route-list: ## Liste les routes CRM principales
 deploy-check: ## Verifie le projet avant deploiement
 	$(COMPOSER) quality
 	$(NPM) run build
+	$(ARTISAN) crm:publish-static-assets --force --clean
+	$(ARTISAN) crm:publish-module-assets --force
 	$(ARTISAN) test --filter=CrmModuleManifestTest
 
 deploy: ## Deploie via SSH avec CRM_DEPLOY_* configurees
