@@ -5,14 +5,14 @@ Objectif : garder uniquement les routes Laravel sans extension et supprimer tout
 ## Etat au 21 juillet 2026
 
 - Aucun fichier PHP legacy n'est expose dans `public/`; seul `public/index.php` reste le front controller Laravel.
-- Les modules CRM enregistrent uniquement les routes `/api/<module>` sans extension.
-- Les anciens chemins `/api/*.php` ne sont plus routes par Laravel et retournent une erreur `404`.
+- Les modules CRM enregistrent uniquement les routes metier `/api/<module>` sans extension.
+- Une route globale de blocage `/api/{legacyPhpPath}.php` retourne `404` avant toute action metier, afin d'empecher la redirection canonique automatique vers les routes modernes.
 - `LegacyPhpApiController`, `AuditLegacyPhpApi`, le rate limiter `crm-legacy-api` et les variables `CRM_LEGACY_PHP_API_*` ont ete supprimes.
 - La documentation OpenAPI ne liste plus les chemins `.php`.
 
 ## Regle de developpement
 
-Une nouvelle fonctionnalite ne doit jamais ajouter de route API avec extension `.php`.
+Une nouvelle fonctionnalite ne doit jamais ajouter de route API metier avec extension `.php`. La seule route `.php` autorisee est le coupe-circuit global `crm.api.legacy-php-blocked`.
 
 Si une integration externe demande un ancien chemin, il faut migrer le client vers la route Laravel moderne correspondante :
 
@@ -35,3 +35,5 @@ La seule sortie attendue pour `find public ...` est :
 ```text
 public/index.php
 ```
+
+La seule route `.php` attendue dans `route:list` est `api/{legacyPhpPath}.php`, nommee `crm.api.legacy-php-blocked`, et elle doit pointer vers `BlockedLegacyPhpApiController`.

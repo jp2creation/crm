@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\BlockedLegacyPhpApiController;
 use App\Models\CrmModule;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
@@ -133,7 +134,14 @@ class CrmSecurityTest extends TestCase
                 && str_ends_with($route->uri(), '.php'))
             ->values();
 
-        $this->assertCount(0, $legacyApiRoutes, $legacyApiRoutes->pluck('uri')->implode(', '));
+        $this->assertCount(1, $legacyApiRoutes, $legacyApiRoutes->pluck('uri')->implode(', '));
+
+        $route = $legacyApiRoutes->first();
+
+        $this->assertSame('api/{legacyPhpPath}.php', $route->uri());
+        $this->assertSame('crm.api.legacy-php-blocked', $route->getName());
+        $this->assertSame(BlockedLegacyPhpApiController::class, $route->getControllerClass());
+        $this->assertArrayNotHasKey('crm_legacy_target', $route->defaults);
     }
 
     public function test_public_directory_does_not_expose_legacy_php_api_scripts(): void
