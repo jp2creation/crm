@@ -8,6 +8,11 @@ RedirectMatch 404 ^/api/.*\.php$
     RewriteCond %{THE_REQUEST} \s/+api/[^?\s]+\.php(?:[?\s]|$) [NC]
     RewriteRule ^ - [R=404,L]
     RewriteRule ^.*\.php$ - [R=404,L]
+
+    # Keep the legacy API directory as a guard only; Laravel owns extensionless API routes.
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ /index.php [L]
 </IfModule>
 
 <FilesMatch "^_.*\.php$|^\._">
