@@ -2,10 +2,11 @@
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
+use Modules\CrmCore\Http\Controllers\LegacyPhpApiController;
 use Modules\CrmSalesTours\Http\Controllers\SalesTourApiController;
 
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
-$crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
+$crmLegacyApiMiddleware = ['throttle:crm-legacy-api', 'crm.compress'];
 
 Route::view('/rapport-visite', 'crm')
     ->middleware(['auth', 'crm.module:tournees-representants,sales_tours.view,sales_tours.create,sales_tours.report,sales_tours.manage'])
@@ -24,6 +25,8 @@ Route::match(['GET', 'POST'], '/api/mobile/tournees-representants', SalesTourApi
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.tournees-representants');
 
-Route::match(['GET', 'POST', 'OPTIONS'], '/api/tournees-representants.php', SalesTourApiController::class)
-    ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:tournees-representants'])
+Route::any('/api/tournees-representants.php', LegacyPhpApiController::class)
+    ->defaults('crm_legacy_target', '/api/tournees-representants')
+    ->middleware($crmLegacyApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.sales-tours.legacy');

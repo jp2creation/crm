@@ -210,22 +210,6 @@ class CrmAdministrationApiTest extends TestCase
         $this->assertNull(collect($profile['connectedDevices'])->firstWhere('id', substr(hash('sha256', 'old-session'), 0, 32)));
     }
 
-    public function test_admin_can_read_bootstrap_from_legacy_endpoint(): void
-    {
-        config(['crm.legacy_php_api.enabled' => true]);
-
-        [$account] = $this->createAdminUser();
-
-        $this->actingAs($account)
-            ->getJson('/api/administration.php?action=bootstrap')
-            ->assertOk()
-            ->assertJsonPath('ok', true)
-            ->assertJsonPath('roles.2.key', 'admin')
-            ->assertJsonPath('modules.0.slug', 'dashboard')
-            ->assertJsonPath('menuGroups.0.menuKey', 'home')
-            ->assertJsonPath('actor.name', 'J-Philippe');
-    }
-
     public function test_administration_bootstrap_cleans_template_menu_entries(): void
     {
         [$account] = $this->createAdminUser();

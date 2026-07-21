@@ -2,10 +2,11 @@
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
+use Modules\CrmCore\Http\Controllers\LegacyPhpApiController;
 use Modules\CrmEquipmentRentals\Http\Controllers\EquipmentRentalApiController;
 
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
-$crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
+$crmLegacyApiMiddleware = ['throttle:crm-legacy-api', 'crm.compress'];
 
 Route::view('/locations-materiel', 'crm')
     ->middleware(['auth', 'crm.module:locations-materiel,equipment_rentals.view,equipment_rentals.create,equipment_rentals.manage_items'])
@@ -69,6 +70,8 @@ Route::match(['GET', 'POST'], '/api/mobile/equipment-rentals', EquipmentRentalAp
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.equipment-rentals');
 
-Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipment-rentals.php', EquipmentRentalApiController::class)
-    ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:locations-materiel'])
+Route::any('/api/equipment-rentals.php', LegacyPhpApiController::class)
+    ->defaults('crm_legacy_target', '/api/equipment-rentals')
+    ->middleware($crmLegacyApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipment-rentals.legacy');

@@ -2,10 +2,11 @@
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
+use Modules\CrmCore\Http\Controllers\LegacyPhpApiController;
 use Modules\CrmDocuments\Http\Controllers\DocumentApiController;
 
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
-$crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
+$crmLegacyApiMiddleware = ['throttle:crm-legacy-api', 'crm.compress'];
 
 Route::redirect('/documents', '/documents/promo')
     ->middleware(['auth', 'crm.module:documents,documents.view,documents.manage'])
@@ -30,6 +31,8 @@ Route::match(['GET', 'POST'], '/api/mobile/documents', DocumentApiController::cl
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.documents');
 
-Route::match(['GET', 'POST', 'OPTIONS'], '/api/documents.php', DocumentApiController::class)
-    ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:documents'])
+Route::any('/api/documents.php', LegacyPhpApiController::class)
+    ->defaults('crm_legacy_target', '/api/documents')
+    ->middleware($crmLegacyApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.documents.legacy');

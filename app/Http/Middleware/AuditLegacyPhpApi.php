@@ -14,21 +14,17 @@ class AuditLegacyPhpApi
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (! (bool) config('crm.legacy_php_api.enabled', true)) {
-            Log::warning('Blocked legacy CRM .php API call.', $this->context($request));
-
-            return response()
-                ->json([
-                    'ok' => false,
-                    'error' => 'Endpoint legacy desactive. Utilisez la route API sans extension .php.',
-                ], 410, [], JSON_UNESCAPED_UNICODE);
+        if (! str_ends_with($request->path(), '.php')) {
+            return $next($request);
         }
 
-        if ((bool) config('crm.legacy_php_api.log_calls', true)) {
-            Log::notice('Legacy CRM .php API call.', $this->context($request));
-        }
+        Log::channel('crm')->warning('Blocked legacy CRM .php API middleware pass-through.', $this->context($request));
 
-        return $next($request);
+        return response()
+            ->json([
+                'ok' => false,
+                'error' => 'Endpoint legacy .php desactive. Utilisez la route API sans extension .php.',
+            ], 410, [], JSON_UNESCAPED_UNICODE);
     }
 
     /**

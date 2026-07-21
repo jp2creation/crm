@@ -29,7 +29,9 @@ x-crm-audit:
   newsEndpoint: absent
   documentsEndpoint: documented
   legacyPhpAliases:
-    enabledByEnv: CRM_LEGACY_PHP_API_ENABLED
+    mode: safe-read-redirects-only
+    redirectSafeMethodsEnv: CRM_LEGACY_PHP_API_REDIRECT_SAFE_METHODS
+    unsafeMethods: HTTP 410
     documented: true
   moduleApis:
     - /api/dashboard
@@ -105,16 +107,18 @@ paths:
   /api/administration.php:
     get:
       tags: [Administration, Legacy]
-      summary: Alias legacy de /api/administration.
+      deprecated: true
+      summary: Ancien alias .php de /api/administration.
       responses:
-        '200':
-          description: Meme contrat que /api/administration.
+        '308':
+          description: Redirection permanente vers /api/administration avec la query conservee.
     post:
       tags: [Administration, Legacy]
-      summary: Alias legacy de /api/administration.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/administration.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/reservations:
     get:
       tags: [Reservations]
@@ -249,16 +253,18 @@ paths:
   /api/reservations.php:
     get:
       tags: [Reservations, Legacy]
-      summary: Alias legacy de /api/reservations.
+      deprecated: true
+      summary: Ancien alias .php de /api/reservations.
       responses:
-        '200':
-          description: Meme contrat que /api/reservations.
+        '308':
+          description: Redirection permanente vers /api/reservations avec la query conservee.
     post:
       tags: [Reservations, Legacy]
-      summary: Alias legacy de /api/reservations.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/reservations.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/equipment-rentals:
     get:
       tags: [Location materiel]
@@ -409,16 +415,18 @@ paths:
   /api/equipment-rentals.php:
     get:
       tags: [Location materiel, Legacy]
-      summary: Alias legacy de /api/equipment-rentals.
+      deprecated: true
+      summary: Ancien alias .php de /api/equipment-rentals.
       responses:
-        '200':
-          description: Meme contrat que /api/equipment-rentals.
+        '308':
+          description: Redirection permanente vers /api/equipment-rentals avec la query conservee.
     post:
       tags: [Location materiel, Legacy]
-      summary: Alias legacy de /api/equipment-rentals.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/equipment-rentals.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/conges:
     get:
       tags: [Conges]
@@ -462,16 +470,18 @@ paths:
   /api/conges.php:
     get:
       tags: [Conges, Legacy]
-      summary: Alias legacy de /api/conges.
+      deprecated: true
+      summary: Ancien alias .php de /api/conges.
       responses:
-        '200':
-          description: Meme contrat que /api/conges.
+        '308':
+          description: Redirection permanente vers /api/conges avec la query conservee.
     post:
       tags: [Conges, Legacy]
-      summary: Alias legacy de /api/conges.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/conges.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/controle-caisse:
     get:
       tags: [Comptabilite]
@@ -523,16 +533,18 @@ paths:
   /api/controle-caisse.php:
     get:
       tags: [Comptabilite, Legacy]
-      summary: Alias legacy de /api/controle-caisse.
+      deprecated: true
+      summary: Ancien alias .php de /api/controle-caisse.
       responses:
-        '200':
-          description: Meme contrat que /api/controle-caisse.
+        '308':
+          description: Redirection permanente vers /api/controle-caisse avec la query conservee.
     post:
       tags: [Comptabilite, Legacy]
-      summary: Alias legacy de /api/controle-caisse.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/controle-caisse.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/demandes-acompte:
     get:
       tags: [Comptabilite]
@@ -585,16 +597,18 @@ paths:
   /api/demandes-acompte.php:
     get:
       tags: [Comptabilite, Legacy]
-      summary: Alias legacy de /api/demandes-acompte.
+      deprecated: true
+      summary: Ancien alias .php de /api/demandes-acompte.
       responses:
-        '200':
-          description: Meme contrat que /api/demandes-acompte.
+        '308':
+          description: Redirection permanente vers /api/demandes-acompte avec la query conservee.
     post:
       tags: [Comptabilite, Legacy]
-      summary: Alias legacy de /api/demandes-acompte.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/demandes-acompte.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/remise-cheques:
     get:
       tags: [Comptabilite]
@@ -643,16 +657,18 @@ paths:
   /api/remise-cheques.php:
     get:
       tags: [Comptabilite, Legacy]
-      summary: Alias legacy de /api/remise-cheques.
+      deprecated: true
+      summary: Ancien alias .php de /api/remise-cheques.
       responses:
-        '200':
-          description: Meme contrat que /api/remise-cheques.
+        '308':
+          description: Redirection permanente vers /api/remise-cheques avec la query conservee.
     post:
       tags: [Comptabilite, Legacy]
-      summary: Alias legacy de /api/remise-cheques.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/remise-cheques.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/documents:
     get:
       tags: [Documents]
@@ -702,16 +718,18 @@ paths:
   /api/documents.php:
     get:
       tags: [Documents, Legacy]
-      summary: Alias legacy de /api/documents.
+      deprecated: true
+      summary: Ancien alias .php de /api/documents.
       responses:
-        '200':
-          description: Meme contrat que /api/documents.
+        '308':
+          description: Redirection permanente vers /api/documents avec la query conservee.
     post:
       tags: [Documents, Legacy]
-      summary: Alias legacy de /api/documents.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/documents.
+        '410':
+          description: Endpoint legacy .php desactive.
   /documents/file/{document}:
     get:
       tags: [Documents]
@@ -777,16 +795,18 @@ paths:
   /api/pages.php:
     get:
       tags: [Pages, Legacy]
-      summary: Alias legacy de /api/pages.
+      deprecated: true
+      summary: Ancien alias .php de /api/pages.
       responses:
-        '200':
-          description: Meme contrat que /api/pages.
+        '308':
+          description: Redirection permanente vers /api/pages avec la query conservee.
     post:
       tags: [Pages, Legacy]
-      summary: Alias legacy de /api/pages.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/pages.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/equipes:
     get:
       tags: [Equipes]
@@ -809,16 +829,18 @@ paths:
   /api/equipes.php:
     get:
       tags: [Equipes, Legacy]
-      summary: Alias legacy de /api/equipes.
+      deprecated: true
+      summary: Ancien alias .php de /api/equipes.
       responses:
-        '200':
-          description: Meme contrat que /api/equipes.
+        '308':
+          description: Redirection permanente vers /api/equipes avec la query conservee.
     post:
       tags: [Equipes, Legacy]
-      summary: Alias legacy de /api/equipes.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/equipes.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/tournees-representants:
     get:
       tags: [Commercial]
@@ -876,16 +898,18 @@ paths:
   /api/tournees-representants.php:
     get:
       tags: [Commercial, Legacy]
-      summary: Alias legacy de /api/tournees-representants.
+      deprecated: true
+      summary: Ancien alias .php de /api/tournees-representants.
       responses:
-        '200':
-          description: Meme contrat que /api/tournees-representants.
+        '308':
+          description: Redirection permanente vers /api/tournees-representants avec la query conservee.
     post:
       tags: [Commercial, Legacy]
-      summary: Alias legacy de /api/tournees-representants.
+      deprecated: true
+      summary: Mutation legacy .php desactivee.
       responses:
-        '200':
-          description: Meme contrat que /api/tournees-representants.
+        '410':
+          description: Endpoint legacy .php desactive.
   /api/mobile/token:
     post:
       tags: [Mobile]

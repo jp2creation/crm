@@ -34,7 +34,6 @@ class CrmOpenApiDocumentationTest extends TestCase
             '/api/pages:',
             '/api/equipes:',
             '/api/tournees-representants:',
-            '/api/documents.php:',
             '/documents/file/{document}:',
             '/api/mobile/token:',
             '/api/mobile/refresh:',
@@ -44,6 +43,26 @@ class CrmOpenApiDocumentationTest extends TestCase
         ] as $route) {
             $this->assertStringContainsString($route, $openApi);
         }
+
+        foreach ([
+            '/api/administration.php:',
+            '/api/reservations.php:',
+            '/api/equipment-rentals.php:',
+            '/api/conges.php:',
+            '/api/controle-caisse.php:',
+            '/api/demandes-acompte.php:',
+            '/api/remise-cheques.php:',
+            '/api/documents.php:',
+            '/api/pages.php:',
+            '/api/equipes.php:',
+            '/api/tournees-representants.php:',
+        ] as $legacyRoute) {
+            $this->assertStringContainsString($legacyRoute, $openApi);
+        }
+
+        $this->assertStringContainsString('summary: Ancien alias .php de /api/documents.', $openApi);
+        $this->assertStringContainsString('summary: Mutation legacy .php desactivee.', $openApi);
+        $this->assertStringNotContainsString('Meme contrat que /api/documents.', $openApi);
 
         foreach ([
             'create_reservation',

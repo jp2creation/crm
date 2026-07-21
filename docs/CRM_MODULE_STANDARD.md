@@ -17,7 +17,7 @@ Le guide pas a pas de creation d'un module est disponible dans [MODULE_CREATION_
 ## Conventions API
 
 - Les routes de production utilisent `/api/<module>`.
-- Les routes legacy `.php` restent uniquement derriere le middleware `crm.legacy_php_api`.
+- Les routes legacy `.php` ne doivent jamais appeler un controleur metier. Si un alias historique reste expose, il pointe vers `LegacyPhpApiController`.
 - Les controleurs API recoivent `Modules\CrmCore\Http\Requests\CrmApiRequest`.
 - Les actions complexes convertissent le payload avec un DTO avant d'appeler le service.
 

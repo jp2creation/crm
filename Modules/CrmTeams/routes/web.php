@@ -2,10 +2,11 @@
 
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Support\Facades\Route;
+use Modules\CrmCore\Http\Controllers\LegacyPhpApiController;
 use Modules\CrmTeams\Http\Controllers\TeamApiController;
 
 $crmApiMiddleware = ['throttle:crm-api', 'crm.compress'];
-$crmLegacyApiMiddleware = ['crm.legacy_php_api', 'throttle:crm-legacy-api', 'crm.compress'];
+$crmLegacyApiMiddleware = ['throttle:crm-legacy-api', 'crm.compress'];
 
 Route::view('/equipes', 'crm')
     ->middleware(['auth', 'crm.module:equipes,teams.view'])
@@ -20,6 +21,8 @@ Route::match(['GET', 'POST'], '/api/mobile/equipes', TeamApiController::class)
     ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.mobile.equipes');
 
-Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipes.php', TeamApiController::class)
-    ->middleware([...$crmLegacyApiMiddleware, 'crm.mobile_scope:crm:module:equipes'])
+Route::any('/api/equipes.php', LegacyPhpApiController::class)
+    ->defaults('crm_legacy_target', '/api/equipes')
+    ->middleware($crmLegacyApiMiddleware)
+    ->withoutMiddleware([VerifyCsrfToken::class])
     ->name('crm.api.equipes.legacy');

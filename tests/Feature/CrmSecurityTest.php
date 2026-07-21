@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ViewErrorBag;
+use Modules\CrmCore\Http\Controllers\LegacyPhpApiController;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Spatie\Permission\Models\Role;
@@ -117,14 +118,36 @@ class CrmSecurityTest extends TestCase
         $this->assertStringContainsString('MartinSolsCrmLogout', $bridge);
     }
 
-    public function test_legacy_php_api_can_be_disabled_in_production(): void
+    public function test_legacy_php_api_read_requests_redirect_to_current_routes(): void
     {
-        config(['crm.legacy_php_api.enabled' => false]);
+        $this->get('/api/administration.php?action=bootstrap&siteId=1')
+            ->assertStatus(308)
+            ->assertRedirect('/api/administration?action=bootstrap&siteId=1');
+    }
 
-        $this->getJson('/api/administration.php?action=health')
+    public function test_legacy_php_api_mutations_are_blocked_without_csrf_bypass(): void
+    {
+        $this->postJson('/api/administration.php?action=save_site', ['name' => 'Palissy'])
             ->assertGone()
             ->assertJsonPath('ok', false)
-            ->assertJsonPath('error', 'Endpoint legacy desactive. Utilisez la route API sans extension .php.');
+            ->assertJsonPath('error', 'Endpoint legacy .php desactive. Utilisez la route API sans extension .php.')
+            ->assertJsonPath('target', '/api/administration');
+    }
+
+    public function test_all_legacy_php_routes_are_dead_adapters_not_business_controllers(): void
+    {
+        $legacyRoutes = collect(Route::getRoutes())
+            ->filter(fn ($route): bool => str_ends_with($route->uri(), '.php'))
+            ->values();
+
+        $this->assertCount(11, $legacyRoutes);
+
+        $legacyRoutes->each(function ($route): void {
+            $this->assertSame(LegacyPhpApiController::class, $route->getControllerClass());
+            $this->assertNotNull($route->defaults['crm_legacy_target'] ?? null);
+            $this->assertContains('throttle:crm-legacy-api', $route->gatherMiddleware());
+            $this->assertStringNotContainsString('crm.mobile_scope:crm:module', implode(',', $route->gatherMiddleware()));
+        });
     }
 
     public function test_https_middleware_redirects_http_when_enabled(): void

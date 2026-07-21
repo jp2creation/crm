@@ -91,7 +91,7 @@ Les flags de module utilisent la forme `module:<slug>`. Une desactivation retire
 
 ## Migration des endpoints legacy
 
-La feuille de route de retrait des routes `.php` est documentee dans [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md). En production, conserver `CRM_LEGACY_PHP_API_ENABLED=false` sauf fenetre de compatibilite explicitement planifiee.
+La feuille de route de retrait des routes `.php` est documentee dans [LEGACY_API_MIGRATION.md](LEGACY_API_MIGRATION.md). En production, les endpoints `.php` restent des adaptateurs morts : `GET`/`HEAD` redirigent vers la route REST sans extension et les mutations repondent `410`.
 
 ## Regle importante
 
