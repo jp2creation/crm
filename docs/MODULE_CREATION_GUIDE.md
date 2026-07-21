@@ -179,7 +179,7 @@ Placer les sources propres au module dans `resources/assets`, puis publier vers 
 php artisan crm:publish-module-assets --force
 ```
 
-Ne pas modifier directement `public/modules` pour une correction durable.
+Ne pas modifier directement `public/modules` pour une correction durable et ne pas commiter ce dossier : il est regenere au build/deploiement.
 
 ## 9. Tests attendus
 

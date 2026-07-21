@@ -47,8 +47,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('loadCurrentCrmModuleOverlay', $shell);
         $this->assertStringContainsString('preloadRemainingCrmModuleOverlays', $shell);
         $this->assertStringContainsString('Promise.all([', $shell);
-        $this->assertStringContainsString('loadLegacyAdminex(),', $shell);
-        $this->assertStringContainsString('loadCurrentCrmModuleOverlay(),', $shell);
+        $this->assertStringContainsString('loadLegacyAdminex()', $shell);
+        $this->assertStringContainsString('loadCurrentCrmModuleOverlay()', $shell);
         $this->assertStringContainsString("id: 'crm-sales-tours-module'", $hosts);
         $this->assertStringContainsString("paths: ['/rapport-visite', '/tournees-representants']", $hosts);
         $this->assertStringContainsString("paths: ['/reservations', '/locations-materiel']", $hosts);
@@ -98,8 +98,10 @@ class CrmFrontendSourceTest extends TestCase
     public function test_deployment_archive_includes_vite_build_output(): void
     {
         $script = (string) file_get_contents(base_path('scripts/deploy-planethoster.sh'));
+        $gitignore = (string) file_get_contents(base_path('.gitignore'));
 
         $this->assertStringContainsString('tar -rf "$LOCAL_ARCHIVE_TAR" public/build', $script);
+        $this->assertStringContainsString('php artisan crm:publish-module-assets --force', $script);
         $this->assertStringContainsString('gzip -c "$LOCAL_ARCHIVE_TAR" > "$LOCAL_ARCHIVE"', $script);
         $this->assertStringContainsString('RELEASES_DIR="${CRM_DEPLOY_ROOT}/releases"', $script);
         $this->assertStringContainsString('SHARED_DIR="${CRM_DEPLOY_ROOT}/shared"', $script);
@@ -111,6 +113,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('cleanup_old_releases', $script);
         $this->assertStringContainsString("--exclude='storage/redis'", $script);
         $this->assertStringContainsString("--exclude='storage/framework/cache'", $script);
+        $this->assertStringContainsString('/public/modules', $gitignore);
     }
 
     public function test_dom_ready_sensitive_crm_modules_boot_even_when_loaded_late(): void

@@ -97,7 +97,9 @@ La feuille de route de retrait des routes `.php` est documentee dans [LEGACY_API
 
 Les fichiers dans `public/assets` sont des sorties compilees. Toute correction durable doit etre faite dans les sources applicatives puis rebuildee.
 
-Les fichiers dans `public/modules` sont publies depuis `Modules/*/resources/assets`. Apres une modification de module, lancer `php artisan crm:publish-module-assets --force` avant de vider les caches.
+Exception temporaire : le bundle Adminex historique et les assets statiques encore references par le shell CRM restent dans `public/assets` tant que la migration frontend n'est pas terminee. Ne pas les modifier directement ; deplacer d'abord le comportement dans `resources/frontend` ou `Modules/*/resources/assets`.
+
+Les fichiers dans `public/modules` sont publies depuis `Modules/*/resources/assets` et ne sont pas versionnes. Apres une modification de module, lancer `php artisan crm:publish-module-assets --force` avant de vider les caches.
 
 ## Script de deploiement aide
 
