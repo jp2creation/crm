@@ -147,6 +147,17 @@ class CrmSecurityTest extends TestCase
         $this->assertSame(['index.php'], $phpFiles);
     }
 
+    public function test_htaccess_blocks_legacy_php_api_paths_before_laravel(): void
+    {
+        foreach ([base_path('.htaccess'), public_path('.htaccess')] as $file) {
+            $this->assertStringContainsString(
+                'RedirectMatch 404 ^/api/.*\\.php$',
+                (string) file_get_contents($file),
+                $file,
+            );
+        }
+    }
+
     public function test_https_middleware_redirects_http_when_enabled(): void
     {
         config(['crm.security.force_https' => true]);

@@ -1,5 +1,7 @@
 Options -Indexes
 
+RedirectMatch 404 ^/api/.*\.php$
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
 

@@ -32,6 +32,8 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+RedirectMatch 404 ^/api/.*\.php$
+
 <Files "manifest.json">
     ForceType application/manifest+json
     <IfModule mod_headers.c>
