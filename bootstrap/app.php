@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\BlockLegacyPhpApiPaths;
 use App\Http\Middleware\CompressResponse;
 use App\Http\Middleware\EnforceHttpsAndHsts;
 use App\Http\Middleware\EnsureCrmMobileTokenScope;
@@ -44,6 +45,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustHosts();
         $middleware->replace(LaravelTrustHosts::class, TrustCrmHosts::class);
         $middleware->replace(LaravelTrustProxies::class, TrustCrmProxies::class);
+        $middleware->prepend(BlockLegacyPhpApiPaths::class);
         $middleware->append(EnforceHttpsAndHsts::class);
         $middleware->append(MirrorAuthenticatedSessionMetadata::class);
 

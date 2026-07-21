@@ -243,6 +243,7 @@ class CrmSecurityTest extends TestCase
         $middleware = (string) file_get_contents(app_path('Http/Middleware/EnforceHttpsAndHsts.php'));
 
         $this->assertStringContainsString('trustHosts', $bootstrap);
+        $this->assertStringContainsString('BlockLegacyPhpApiPaths::class', $bootstrap);
         $this->assertStringContainsString('replace(LaravelTrustHosts::class, TrustCrmHosts::class)', $bootstrap);
         $this->assertStringContainsString('replace(LaravelTrustProxies::class, TrustCrmProxies::class)', $bootstrap);
         $this->assertStringContainsString('TrustCrmHosts::class', $bootstrap);
