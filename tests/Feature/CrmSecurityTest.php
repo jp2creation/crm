@@ -143,6 +143,20 @@ class CrmSecurityTest extends TestCase
         app(BlockLegacyPhpApiPaths::class)->handle($request, fn (): Response => new Response('ok'));
     }
 
+    public function test_legacy_php_api_blocker_checks_original_request_line(): void
+    {
+        $request = Request::create(
+            '/api/administration',
+            'GET',
+            ['action' => 'bootstrap'],
+        );
+        $request->server->set('THE_REQUEST', 'GET /api/administration.php?action=bootstrap HTTP/2');
+
+        $this->expectException(NotFoundHttpException::class);
+
+        app(BlockLegacyPhpApiPaths::class)->handle($request, fn (): Response => new Response('ok'));
+    }
+
     public function test_laravel_router_does_not_register_legacy_php_api_routes(): void
     {
         $legacyApiRoutes = collect(Route::getRoutes())
