@@ -80,9 +80,13 @@ const hostRoutes: CrmHostRoute[] = [
 ];
 
 const refreshStoragePrefix = 'crm:route-host-hard-refresh:v2:';
+const missingHostRefreshStoragePrefix = 'crm:route-host-missing-refresh:v1:';
 const maxRefreshAttempts = 2;
+const missingHostRefreshDelayMs = 900;
 let rootObserver: MutationObserver | null = null;
 let rootObserverTimer: number | null = null;
+let missingHostRefreshTimer: number | null = null;
+let missingHostRefreshPath = '';
 
 function normalizedPath(): string {
   return window.location.pathname.replace(/\/+$/, '') || '/';
@@ -140,6 +144,16 @@ function refreshedRouteUrl(): string {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
+function clearMissingHostRefreshTimer(): void {
+  if (!missingHostRefreshTimer) {
+    return;
+  }
+
+  window.clearTimeout(missingHostRefreshTimer);
+  missingHostRefreshTimer = null;
+  missingHostRefreshPath = '';
+}
+
 function refreshStaleRouteOnce(): boolean {
   if (!pageLooksLikeAdminex404()) {
     return false;
@@ -168,6 +182,62 @@ function refreshStaleRouteOnce(): boolean {
   return true;
 }
 
+function refreshMissingHostOnce(route: CrmHostRoute): boolean {
+  if (route.adminexOnly || pageLooksLikeAdminex404()) {
+    return false;
+  }
+
+  const key = `${missingHostRefreshStoragePrefix}${normalizedPath()}`;
+
+  try {
+    const attempt = Number(sessionStorage.getItem(key) || '0');
+
+    if (attempt >= maxRefreshAttempts) {
+      return false;
+    }
+
+    sessionStorage.setItem(key, String(attempt + 1));
+  } catch {
+    return false;
+  }
+
+  clearCrmRuntimeCaches()
+    .catch(() => undefined)
+    .finally(() => {
+      window.location.replace(refreshedRouteUrl());
+    });
+
+  return true;
+}
+
+function scheduleMissingHostRefresh(route: CrmHostRoute): void {
+  if (route.adminexOnly) {
+    clearMissingHostRefreshTimer();
+    return;
+  }
+
+  const path = normalizedPath();
+
+  if (missingHostRefreshTimer && missingHostRefreshPath === path) {
+    return;
+  }
+
+  clearMissingHostRefreshTimer();
+  missingHostRefreshPath = path;
+  missingHostRefreshTimer = window.setTimeout(() => {
+    missingHostRefreshTimer = null;
+
+    const currentRoute = routeForCurrentPath();
+
+    if (!currentRoute || currentRoute.id !== route.id || document.getElementById(route.id)) {
+      missingHostRefreshPath = '';
+      return;
+    }
+
+    refreshMissingHostOnce(route);
+  }, missingHostRefreshDelayMs);
+}
+
 function ensureHost(): void {
   const route = routeForCurrentPath();
 
@@ -175,17 +245,22 @@ function ensureHost(): void {
   removeInactiveModuleHosts(route);
 
   if (!route || document.getElementById(route.id)) {
+    clearMissingHostRefreshTimer();
     return;
   }
 
   if (route.adminexOnly) {
+    clearMissingHostRefreshTimer();
     refreshStaleRouteOnce();
     return;
   }
 
   if (refreshStaleRouteOnce()) {
+    clearMissingHostRefreshTimer();
     return;
   }
+
+  scheduleMissingHostRefresh(route);
 }
 
 function scheduleEnsureHost(): void {

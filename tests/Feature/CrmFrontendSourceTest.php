@@ -59,8 +59,11 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('adminexOnly: true', $hosts);
         $this->assertStringContainsString("prefix: '/documents/'", $hosts);
         $this->assertStringContainsString('refreshStaleRouteOnce', $hosts);
+        $this->assertStringContainsString('refreshMissingHostOnce', $hosts);
+        $this->assertStringContainsString('scheduleMissingHostRefresh', $hosts);
         $this->assertStringContainsString('clearCrmRuntimeCaches', $hosts);
         $this->assertStringContainsString("const refreshStoragePrefix = 'crm:route-host-hard-refresh:v2:'", $hosts);
+        $this->assertStringContainsString("const missingHostRefreshStoragePrefix = 'crm:route-host-missing-refresh:v1:'", $hosts);
         $this->assertStringContainsString("url.searchParams.set('_crm_refresh'", $hosts);
         $this->assertStringContainsString('window.location.replace(refreshedRouteUrl())', $hosts);
         $this->assertStringContainsString('installRootObserver', $hosts);
