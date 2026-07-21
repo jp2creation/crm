@@ -77,6 +77,9 @@ const GalleryPage = lazy(() => import('@/pages/pages').then(m => ({ default: m.G
 const FaqPage = lazy(() => import('@/pages/pages').then(m => ({ default: m.FaqPage })))
 const TypographyGuidePage = lazy(() => import('@/pages/pages').then(m => ({ default: m.TypographyGuidePage })))
 
+// CRM module hosts
+const CrmPilotageCommercialPage = lazy(() => import('@/pages/crm').then(m => ({ default: m.CrmPilotageCommercialPage })))
+
 // Auth
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })))
@@ -182,6 +185,10 @@ export const router = createBrowserRouter([
           {
             path: 'dashboard/crm',
             element: withSuspense(CRMDashboard),
+          },
+          {
+            path: 'pilotage-commercial',
+            element: withSuspense(CrmPilotageCommercialPage),
           },
           // Apps
           {

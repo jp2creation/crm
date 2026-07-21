@@ -42,6 +42,8 @@ class CrmFrontendSourceTest extends TestCase
         $shell = (string) file_get_contents(resource_path('frontend/crm/shell.ts'));
         $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
         $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
+        $adminexRoutes = (string) file_get_contents(resource_path('frontend/adminex/src/routes/index.tsx'));
+        $crmModuleHostPage = (string) file_get_contents(resource_path('frontend/adminex/src/pages/crm/CrmModuleHostPage.tsx'));
 
         $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
         $this->assertStringContainsString('loadCurrentCrmModuleOverlay', $shell);
@@ -66,6 +68,10 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('moduleKeysForCurrentPath', $modules);
         $this->assertStringContainsString('requestIdleCallback', $modules);
         $this->assertStringContainsString("cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js')", $modules);
+        $this->assertStringContainsString('CrmPilotageCommercialPage', $adminexRoutes);
+        $this->assertStringContainsString("path: 'pilotage-commercial'", $adminexRoutes);
+        $this->assertStringContainsString('id="crm-sales-module"', $crmModuleHostPage);
+        $this->assertStringContainsString('className="crm-sales-module-host"', $crmModuleHostPage);
 
         $mobileFallback = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $shellCss = (string) file_get_contents(resource_path('frontend/crm/styles/shell.css'));
