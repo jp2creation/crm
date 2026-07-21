@@ -10,6 +10,7 @@
     "CrmPages": true,
     "CrmAdministration": true,
     "CrmTeams": true,
+    "CrmSales": true,
     "CrmSalesTours": true,
     "CrmTapisRomus": true
 }

@@ -39,6 +39,7 @@ x-crm-audit:
     - /api/documents
     - /api/pages
     - /api/equipes
+    - /api/pilotage-commercial
     - /api/tournees-representants
 paths:
   /api/dashboard:
@@ -728,6 +729,63 @@ paths:
               - save_visit
               - delete_visit
               - save_report
+      requestBody:
+        $ref: '#/components/requestBodies/CrmJsonPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/CrmOk'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/pilotage-commercial:
+    get:
+      tags: [Commercial]
+      summary: Lire le pilotage commercial, les objectifs, factures et commissions.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum: [health, bootstrap]
+        - $ref: '#/components/parameters/SiteId'
+        - in: query
+          name: month
+          schema:
+            type: string
+            example: '2026-07'
+        - in: query
+          name: representativeId
+          schema:
+            type: integer
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [draft, pending, paid, overdue, canceled]
+      responses:
+        '200':
+          description: Health check ou tableau de bord commercial.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Commercial]
+      summary: Synchroniser les donnees demo, gerer objectifs et commissions.
+      parameters:
+        - in: query
+          name: action
+          required: true
+          schema:
+            type: string
+            enum:
+              - sync_demo
+              - save_objective
+              - mark_commission_paid
       requestBody:
         $ref: '#/components/requestBodies/CrmJsonPayload'
       responses:

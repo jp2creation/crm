@@ -7,6 +7,7 @@ type CrmModuleKey =
   | 'documents'
   | 'leaves'
   | 'pages'
+  | 'sales'
   | 'salesTours'
   | 'teams';
 
@@ -25,6 +26,7 @@ const moduleLoaders: Record<CrmModuleKey, () => Promise<unknown>> = {
   documents: () => import('../../../../Modules/CrmDocuments/resources/assets/crm-documents.js'),
   leaves: () => import('../../../../Modules/CrmLeaves/resources/assets/crm-conges.js'),
   pages: () => import('../../../../Modules/CrmPages/resources/assets/crm-pages.js'),
+  sales: () => import('../../../../Modules/CrmSales/resources/assets/crm-pilotage-commercial.js'),
   salesTours: () => import('../../../../Modules/CrmSalesTours/resources/assets/crm-tournees-representants.js'),
   teams: () => import('../../../../Modules/CrmTeams/resources/assets/crm-equipes.js'),
 };
@@ -32,6 +34,7 @@ const moduleLoaders: Record<CrmModuleKey, () => Promise<unknown>> = {
 const moduleRoutes: CrmModuleRoute[] = [
   { key: 'dashboard', paths: ['/', '/dashboard/crm'] },
   { key: 'leaves', paths: ['/conges'] },
+  { key: 'sales', paths: ['/pilotage-commercial'] },
   { key: 'salesTours', paths: ['/rapport-visite', '/tournees-representants'] },
   { key: 'documents', prefix: '/documents/' },
   { key: 'teams', paths: ['/equipes'] },

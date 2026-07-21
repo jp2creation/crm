@@ -22,6 +22,13 @@ export const fallbackNavigation: CrmFallbackNavigation = {
     { name: 'Équipe', slug: 'equipes', routePath: '/equipes', active: true, sortOrder: 16 },
     { name: 'Congés', slug: 'conges', routePath: '/conges', active: true, sortOrder: 17 },
     {
+      name: 'Pilotage commercial',
+      slug: 'pilotage-commercial',
+      routePath: '/pilotage-commercial',
+      active: true,
+      sortOrder: 19,
+    },
+    {
       name: 'Rapport de visite',
       slug: 'tournees-representants',
       routePath: '/rapport-visite',
@@ -96,6 +103,14 @@ export const fallbackNavigation: CrmFallbackNavigation = {
     },
     { itemKey: 'module:equipes', groupKey: 'apps', label: 'Équipe', iconKey: 'users', active: true, sortOrder: 16 },
     { itemKey: 'module:conges', groupKey: 'apps', label: 'Congés', iconKey: 'calendar', active: true, sortOrder: 17 },
+    {
+      itemKey: 'module:pilotage-commercial',
+      groupKey: 'apps',
+      label: 'Pilotage commercial',
+      iconKey: 'dashboard',
+      active: true,
+      sortOrder: 19,
+    },
     {
       itemKey: 'module:tournees-representants',
       groupKey: 'apps',

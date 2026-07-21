@@ -28,6 +28,12 @@ const hostRoutes: CrmHostRoute[] = [
     paths: ['/conges'],
   },
   {
+    className: 'crm-sales-module-host',
+    id: 'crm-sales-module',
+    label: 'Chargement du pilotage commercial...',
+    paths: ['/pilotage-commercial'],
+  },
+  {
     className: 'crm-sales-tours-module-host',
     id: 'crm-sales-tours-module',
     label: 'Chargement du rapport de visite...',

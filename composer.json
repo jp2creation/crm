@@ -46,6 +46,7 @@
             "Modules\\CrmLeaves\\": "Modules/CrmLeaves/app/",
             "Modules\\CrmPages\\": "Modules/CrmPages/app/",
             "Modules\\CrmReservations\\": "Modules/CrmReservations/app/",
+            "Modules\\CrmSales\\": "Modules/CrmSales/app/",
             "Modules\\CrmSalesTours\\": "Modules/CrmSalesTours/app/",
             "Modules\\CrmTeams\\": "Modules/CrmTeams/app/",
             "Modules\\CrmTapisRomus\\": "Modules/CrmTapisRomus/app/",

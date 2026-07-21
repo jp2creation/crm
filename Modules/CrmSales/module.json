@@ -1,0 +1,11 @@
+{
+    "name": "CrmSales",
+    "alias": "crmsales",
+    "description": "Pilotage commercial, objectifs, factures et commissions.",
+    "keywords": [],
+    "priority": 125,
+    "providers": [
+        "Modules\\CrmSales\\Providers\\CrmSalesServiceProvider"
+    ],
+    "files": []
+}

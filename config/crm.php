@@ -24,6 +24,9 @@ use App\Models\CrmModule;
 use App\Models\CrmPage;
 use App\Models\CrmPermission;
 use App\Models\CrmReservation;
+use App\Models\CrmSalesCommission;
+use App\Models\CrmSalesInvoice;
+use App\Models\CrmSalesObjective;
 use App\Models\CrmSalesTour;
 use App\Models\CrmSalesVisit;
 use App\Models\CrmSite;
@@ -191,6 +194,9 @@ return [
             CrmPage::class,
             CrmPermission::class,
             CrmReservation::class,
+            CrmSalesCommission::class,
+            CrmSalesInvoice::class,
+            CrmSalesObjective::class,
             CrmSalesTour::class,
             CrmSalesVisit::class,
             CrmSite::class,

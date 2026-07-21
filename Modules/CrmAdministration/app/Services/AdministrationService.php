@@ -895,7 +895,7 @@ class AdministrationService
             return 'documents';
         }
 
-        return in_array($slug, ['reservations', 'locations-materiel', 'equipes', 'conges', 'tournees-representants', 'tapis-romus'], true)
+        return in_array($slug, ['reservations', 'locations-materiel', 'equipes', 'conges', 'pilotage-commercial', 'tournees-representants', 'tapis-romus'], true)
             ? 'apps'
             : 'internal';
     }
@@ -951,6 +951,10 @@ class AdministrationService
             ['sales_tours.create', 'Creer un rapport de visite', 'Rapport de visite', 159],
             ['sales_tours.report', 'Renseigner les rapports de visite', 'Rapport de visite', 161],
             ['sales_tours.manage', 'Gerer tous les rapports de visite', 'Rapport de visite', 162],
+            ['sales.view', 'Voir le pilotage commercial', 'Pilotage commercial', 163],
+            ['sales.sync', 'Synchroniser les donnees commerciales', 'Pilotage commercial', 164],
+            ['sales.manage', 'Gerer les objectifs commerciaux', 'Pilotage commercial', 165],
+            ['sales.commissions', 'Gerer les commissions commerciales', 'Pilotage commercial', 166],
             ['platform.manage_sites', 'Gerer les sites', 'Administration', 160],
             ['platform.manage_users', 'Gerer les utilisateurs', 'Administration', 170],
             ['platform.manage_roles', 'Gerer les roles', 'Administration', 180],
@@ -967,22 +971,22 @@ class AdministrationService
                 'key' => 'user',
                 'label' => 'Employe',
                 'description' => 'Reservation et location sur les sites rattaches, suppression de ses propres demandes.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'teams.view', 'sales_tours.view', 'sales_tours.create', 'sales_tours.report', 'controle_caisse.view', 'deposit_requests.view', 'deposit_requests.create'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'conges', 'controle-caisse', 'demandes-acompte', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.delete_own', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.delete_own', 'conges.view', 'teams.view', 'sales_tours.view', 'sales_tours.create', 'sales_tours.report', 'sales.view', 'controle_caisse.view', 'deposit_requests.view', 'deposit_requests.create'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'pilotage-commercial', 'conges', 'controle-caisse', 'demandes-acompte', 'addvance'],
             ],
             [
                 'key' => 'responsable',
                 'label' => 'Responsable site',
                 'description' => 'Gestion des reservations, vehicules et locations materiel des sites rattaches.',
-                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'teams.view', 'sales_tours.view', 'sales_tours.create', 'sales_tours.report', 'sales_tours.manage', 'controle_caisse.view', 'controle_caisse.manage', 'deposit_requests.view', 'deposit_requests.create', 'deposit_requests.manage', 'check_remittances.view', 'check_remittances.manage'],
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance'],
+                'permissions' => ['reservations.view', 'reservations.create', 'reservations.update_own', 'reservations.update_any', 'reservations.delete_own', 'reservations.delete_any', 'reservations.manage_vehicles', 'equipment_rentals.view', 'equipment_rentals.create', 'equipment_rentals.update_own', 'equipment_rentals.update_any', 'equipment_rentals.delete_own', 'equipment_rentals.delete_any', 'equipment_rentals.manage_items', 'conges.view', 'conges.manage', 'teams.view', 'sales_tours.view', 'sales_tours.create', 'sales_tours.report', 'sales_tours.manage', 'sales.view', 'sales.sync', 'sales.manage', 'sales.commissions', 'controle_caisse.view', 'controle_caisse.manage', 'deposit_requests.view', 'deposit_requests.create', 'deposit_requests.manage', 'check_remittances.view', 'check_remittances.manage'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'pilotage-commercial', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance'],
             ],
             [
                 'key' => 'admin',
                 'label' => 'Administrateur',
                 'description' => 'Acces global aux sites, modules, utilisateurs, roles et permissions.',
                 'permissions' => array_map(fn (array $permission): string => $permission[0], $this->permissionSeed()),
-                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures', 'tapis-romus'],
+                'moduleSlugs' => ['dashboard', 'reservations', 'locations-materiel', 'equipes', 'tournees-representants', 'pilotage-commercial', 'pages-crm', 'administration', 'conges', 'controle-caisse', 'demandes-acompte', 'remise-cheques', 'addvance', 'documents-promo', 'documents-fiches-techniques', 'documents-procedures', 'tapis-romus'],
             ],
             [
                 'key' => 'blocked',
@@ -1003,6 +1007,7 @@ class AdministrationService
             ['Équipe', 'equipes', 'Annuaire des membres par site', '/equipes', 16, true],
             ['Congés', 'conges', 'Planning et gestion des congés', '/conges', 17, true],
             ['Rapport de visite', 'tournees-representants', 'Planning, visites clients et rapports de visite', '/rapport-visite', 18, true],
+            ['Pilotage commercial', 'pilotage-commercial', 'Objectifs, chiffre d affaires, factures et commissions commerciales', '/pilotage-commercial', 19, true],
             ['Pages CRM', 'pages-crm', 'Pages internes modifiables depuis le CRM', '/pages-crm', 18, true],
             ['Administration', 'administration', 'Gestion des sites, modules, utilisateurs et rôles', '/administration', 20, true],
             ['Contrôle caisse', 'controle-caisse', 'Contrôle journalier de caisse, reports, écarts et justificatifs', '/controle-caisse', 25, true],
