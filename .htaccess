@@ -5,6 +5,8 @@ RedirectMatch 404 ^/api/.*\.php$
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    RewriteRule ^api/.*\.php$ - [R=404,L]
+
     RewriteRule (^|/)\.(?!well-known/) - [F,L]
 
     # Let the React SPA own its virtual routes before protecting Laravel folders.
