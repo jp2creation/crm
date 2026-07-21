@@ -140,7 +140,39 @@
         });
     }
 
+    function shadowRootHasBlockingLoader(element) {
+        const shadowRoot = element.shadowRoot;
+
+        if (!shadowRoot) return null;
+
+        const candidates = shadowRoot.querySelectorAll([
+            '[class*="loading"]',
+            '[class*="Loading"]',
+            '[class*="spinner"]',
+            '[class~="animate-spin"]',
+            '[role="progressbar"]',
+            '[aria-busy="true"]'
+        ].join(', '));
+
+        for (const candidate of candidates) {
+            if (!isVisible(candidate)) continue;
+            if (isSpinnerCandidate(candidate)) return true;
+
+            const text = (candidate.textContent || '').trim();
+
+            if (loadingTextPattern.test(text) && !loadingErrorPattern.test(text)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     function isModulePlaceholder(element) {
+        const shadowBlocks = shadowRootHasBlockingLoader(element);
+
+        if (shadowBlocks !== null) return shadowBlocks;
+
         const text = (element.textContent || '').trim();
 
         if (!loadingTextPattern.test(text) || loadingErrorPattern.test(text)) return false;
