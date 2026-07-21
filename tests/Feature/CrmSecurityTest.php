@@ -189,6 +189,11 @@ class CrmSecurityTest extends TestCase
     {
         foreach ([base_path('.htaccess'), public_path('.htaccess')] as $file) {
             $this->assertStringContainsString(
+                'Options -MultiViews -Indexes',
+                (string) file_get_contents($file),
+                $file,
+            );
+            $this->assertStringContainsString(
                 'RedirectMatch 404 ^/api/.*\\.php$',
                 (string) file_get_contents($file),
                 $file,

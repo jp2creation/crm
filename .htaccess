@@ -1,4 +1,4 @@
-Options -Indexes
+Options -MultiViews -Indexes
 
 RedirectMatch 404 ^/api/.*\.php$
 
