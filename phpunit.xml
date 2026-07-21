@@ -24,8 +24,8 @@
             <directory>Modules/CrmCore/app/Services</directory>
             <directory>Modules/CrmDepositRequests/app/Http/Controllers</directory>
             <directory>Modules/CrmDepositRequests/app/Services</directory>
-            <directory>Modules/CrmDocuments/Http/Controllers</directory>
-            <directory>Modules/CrmDocuments/Services</directory>
+            <directory>Modules/CrmDocuments/app/Http/Controllers</directory>
+            <directory>Modules/CrmDocuments/app/Services</directory>
             <directory>Modules/CrmEquipmentRentals/app/Http/Controllers</directory>
             <directory>Modules/CrmEquipmentRentals/app/Services</directory>
             <directory>Modules/CrmLeaves/app/Http/Controllers</directory>

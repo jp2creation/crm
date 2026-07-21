@@ -14,6 +14,14 @@ Le slug est celui utilise par le menu, les feature flags et le middleware `crm.m
 
 ## 2. Creer l'arborescence
 
+Commencer par le generateur officiel du package :
+
+```bash
+php artisan module:make CrmExample
+```
+
+Les chemins utilises par cette commande sont centralises dans `config/modules.php`. Ne pas creer un module a la main sauf reprise d'un module existant : cela evite les variantes d'arborescence et garde les providers, routes, migrations et tests au meme endroit.
+
 Structure recommandee :
 
 ```text

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmReservations\Http\Controllers\ReservationApiController;
 
@@ -37,22 +37,22 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/reservations', ReservationApiCont
 Route::get('/api/mobile/reservations/bootstrap', ReservationApiController::class)
     ->defaults('crm_action', 'bootstrap_light')
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.reservations.bootstrap');
 
 Route::get('/api/mobile/reservations/users', ReservationApiController::class)
     ->defaults('crm_action', 'users')
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.reservations.users');
 
 Route::get('/api/mobile/reservations/vehicles', ReservationApiController::class)
     ->defaults('crm_action', 'vehicles')
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.reservations.vehicles');
 
 Route::match(['GET', 'POST'], '/api/mobile/reservations', ReservationApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:reservations'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.reservations');

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmCore\Http\Controllers\DashboardApiController;
 use Modules\CrmCore\Http\Controllers\LegacyCrmPathRedirectController;
@@ -42,23 +42,23 @@ Route::match(['GET', 'OPTIONS'], '/api/dashboard', DashboardApiController::class
 
 Route::get('/api/mobile/dashboard', DashboardApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:dashboard'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.dashboard');
 
 Route::options('/api/mobile/{path}', [MobileAuthController::class, 'options'])
     ->middleware('crm.compress')
     ->where('path', '.*')
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.options');
 
 Route::post('/api/mobile/token', [MobileAuthController::class, 'token'])
     ->middleware($crmLoginApiMiddleware)
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.token');
 
 Route::post('/api/mobile/refresh', [MobileAuthController::class, 'refresh'])
     ->middleware($crmLoginApiMiddleware)
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.refresh');
 
 Route::get('/api/mobile/me', [MobileAuthController::class, 'me'])
@@ -67,12 +67,12 @@ Route::get('/api/mobile/me', [MobileAuthController::class, 'me'])
 
 Route::post('/api/mobile/web-session', [MobileAuthController::class, 'webSession'])
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:mobile'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.web-session');
 
 Route::post('/api/mobile/logout', [MobileAuthController::class, 'logout'])
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:mobile'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.logout');
 
 Route::get('/mobile/session/{token}', [MobileAuthController::class, 'consumeWebSession'])

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmDepositRequests\Http\Controllers\DepositRequestApiController;
 
@@ -16,5 +16,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/demandes-acompte', DepositRequest
 
 Route::match(['GET', 'POST'], '/api/mobile/demandes-acompte', DepositRequestApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:demandes-acompte'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.demandes-acompte');

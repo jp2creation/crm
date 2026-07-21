@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmLeaves\Http\Controllers\LeaveApiController;
 
@@ -16,5 +16,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/conges', LeaveApiController::clas
 
 Route::match(['GET', 'POST'], '/api/mobile/conges', LeaveApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:conges'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.conges');

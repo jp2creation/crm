@@ -11,8 +11,7 @@ use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
 use Illuminate\Auth\SessionGuard;
-use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -23,6 +22,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ViewErrorBag;
+use Illuminate\Testing\TestResponse;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Spatie\Permission\Models\Role;
@@ -39,20 +39,18 @@ class CrmSecurityTest extends TestCase
         RateLimiter::clear('bruteforce@example.test|127.0.0.1');
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $this->from('/login')
-                ->post('/login', [
-                    'email' => 'bruteforce@example.test',
-                    'password' => 'mauvais-mot-de-passe',
-                ])
+            $this->postLoginWithCsrf([
+                'email' => 'bruteforce@example.test',
+                'password' => 'mauvais-mot-de-passe',
+            ])
                 ->assertRedirect('/login')
                 ->assertSessionHasErrors('email');
         }
 
-        $response = $this->from('/login')
-            ->post('/login', [
-                'email' => 'bruteforce@example.test',
-                'password' => 'mauvais-mot-de-passe',
-            ])
+        $response = $this->postLoginWithCsrf([
+            'email' => 'bruteforce@example.test',
+            'password' => 'mauvais-mot-de-passe',
+        ])
             ->assertRedirect('/login')
             ->assertSessionHasErrors('email');
 
@@ -74,12 +72,11 @@ class CrmSecurityTest extends TestCase
         $guard = Auth::guard('web');
         $this->assertInstanceOf(SessionGuard::class, $guard);
 
-        $this->from('/login')
-            ->post('/login', [
-                'email' => $user->email,
-                'password' => 'password',
-                'remember' => '1',
-            ])
+        $this->postLoginWithCsrf([
+            'email' => $user->email,
+            'password' => 'password',
+            'remember' => '1',
+        ])
             ->assertRedirect('/')
             ->assertCookie($guard->getRecallerName());
     }
@@ -92,12 +89,11 @@ class CrmSecurityTest extends TestCase
             'email' => 'pwa@example.test',
         ]);
 
-        $this->withSession(['url.intended' => '/?mobile_embed=1&mobile_site_id=3&source=pwa'])
-            ->post('/login', [
-                'email' => $user->email,
-                'password' => 'password',
-                'remember' => '1',
-            ])
+        $this->postLoginWithCsrf([
+            'email' => $user->email,
+            'password' => 'password',
+            'remember' => '1',
+        ], ['url.intended' => '/?mobile_embed=1&mobile_site_id=3&source=pwa'])
             ->assertRedirect('/?source=pwa');
     }
 
@@ -541,7 +537,7 @@ class CrmSecurityTest extends TestCase
 
     public function test_csrf_middleware_rejects_missing_token_when_enabled(): void
     {
-        $middleware = new class($this->app, $this->app['encrypter']) extends VerifyCsrfToken
+        $middleware = new class($this->app, $this->app['encrypter']) extends PreventRequestForgery
         {
             protected function runningUnitTests(): bool
             {
@@ -634,21 +630,26 @@ class CrmSecurityTest extends TestCase
 
     private function enforceCsrfDuringFeatureTest(): void
     {
-        $this->app->bind(ValidateCsrfToken::class, fn ($app): ValidateCsrfToken => new class($app, $app['encrypter']) extends ValidateCsrfToken
+        $this->app->bind(PreventRequestForgery::class, fn ($app): PreventRequestForgery => new class($app, $app['encrypter']) extends PreventRequestForgery
         {
             protected function runningUnitTests(): bool
             {
                 return false;
             }
         });
+    }
 
-        $this->app->bind(VerifyCsrfToken::class, fn ($app): VerifyCsrfToken => new class($app, $app['encrypter']) extends VerifyCsrfToken
-        {
-            protected function runningUnitTests(): bool
-            {
-                return false;
-            }
-        });
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $session
+     */
+    private function postLoginWithCsrf(array $payload, array $session = [], string $from = '/login'): TestResponse
+    {
+        $token = 'crm-login-csrf-token';
+
+        return $this->from($from)
+            ->withSession(['_token' => $token, ...$session])
+            ->post('/login', ['_token' => $token, ...$payload]);
     }
 
     /**

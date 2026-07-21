@@ -62,6 +62,9 @@ class CrmCashRegisterDay extends Model
         return $this->belongsTo(CrmSite::class, 'site_id');
     }
 
+    /**
+     * @return HasMany<CrmCashMovement, $this>
+     */
     public function movements(): HasMany
     {
         return $this->hasMany(CrmCashMovement::class, 'cash_register_day_id')
@@ -69,6 +72,9 @@ class CrmCashRegisterDay extends Model
             ->orderBy('id');
     }
 
+    /**
+     * @return HasMany<CrmCashReceipt, $this>
+     */
     public function receipts(): HasMany
     {
         return $this->hasMany(CrmCashReceipt::class, 'cash_register_day_id')
@@ -76,6 +82,9 @@ class CrmCashRegisterDay extends Model
             ->orderBy('id');
     }
 
+    /**
+     * @return HasMany<CrmCashCountLine, $this>
+     */
     public function cashCountLines(): HasMany
     {
         return $this->hasMany(CrmCashCountLine::class, 'cash_register_day_id')

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmDocuments\Http\Controllers\DocumentApiController;
 
@@ -26,5 +26,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/documents', DocumentApiController
 
 Route::match(['GET', 'POST'], '/api/mobile/documents', DocumentApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:documents'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.documents');

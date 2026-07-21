@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmCheckRemittances\Http\Controllers\CheckRemittanceApiController;
 
@@ -21,5 +21,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/remise-cheques', CheckRemittanceA
 
 Route::match(['GET', 'POST'], '/api/mobile/remise-cheques', CheckRemittanceApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:remise-cheques'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.remise-cheques');

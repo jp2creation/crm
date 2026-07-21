@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmCashControl\Http\Controllers\CashControlApiController;
 
@@ -16,5 +16,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/controle-caisse', CashControlApiC
 
 Route::match(['GET', 'POST'], '/api/mobile/controle-caisse', CashControlApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:controle-caisse'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.controle-caisse');

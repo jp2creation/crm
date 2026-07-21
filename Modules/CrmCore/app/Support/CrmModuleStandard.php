@@ -44,12 +44,12 @@ final class CrmModuleStandard
         $groups = [
             ['module.json'],
             ['routes/web.php'],
-            ['app/Providers', 'Providers'],
+            ['app/Providers'],
             ['database/migrations'],
         ];
 
         if (! $coreModule) {
-            $groups[] = ['app/Services', 'Services'];
+            $groups[] = ['app/Services'];
         }
 
         return $groups;

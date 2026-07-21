@@ -241,24 +241,6 @@ parameters:
 			path: Modules/CrmCashControl/app/Services/CashControlService.php
 
 		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\<string, mixed\>, Closure\(App\\Models\\CrmCashMovement\)\: array\<string, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: Modules/CrmCashControl/app/Services/CashControlService.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array\<string, mixed\>, Closure\(App\\Models\\CrmCashReceipt\)\: array\<string, mixed\> given\.$#'
-			identifier: argument.type
-			count: 1
-			path: Modules/CrmCashControl/app/Services/CashControlService.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:sum\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model\)\: float\)\|string\|null, Closure\(App\\Models\\CrmCashReceipt\)\: float given\.$#'
-			identifier: argument.type
-			count: 6
-			path: Modules/CrmCashControl/app/Services/CashControlService.php
-
-		-
 			message: '#^Parameter \#1 \$day of method Modules\\CrmCashControl\\Services\\CashControlService\:\:recalculateAndSave\(\) expects App\\Models\\CrmCashRegisterDay, Illuminate\\Database\\Eloquent\\Model given\.$#'
 			identifier: argument.type
 			count: 1
@@ -266,24 +248,6 @@ parameters:
 
 		-
 			message: '#^Parameter \#1 \$day of method Modules\\CrmCashControl\\Services\\CashControlService\:\:syncPaymentTotalsFromReceipts\(\) expects App\\Models\\CrmCashRegisterDay, Illuminate\\Database\\Eloquent\\Model given\.$#'
-			identifier: argument.type
-			count: 1
-			path: Modules/CrmCashControl/app/Services/CashControlService.php
-
-		-
-			message: '#^Parameter \#1 \$keyBy of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:keyBy\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: \(numeric\-string&uppercase\-string\)\)\|list\<Closure\|string\>\|string, Closure\(App\\Models\\CrmCashCountLine\)\: \(numeric\-string&uppercase\-string\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: Modules/CrmCashControl/app/Services/CashControlService.php
-
-		-
-			message: '#^Parameter \#1 \$movements of method Modules\\CrmCashControl\\Services\\CashControlService\:\:movementTotal\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\CrmCashMovement\>, Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: Modules/CrmCashControl/app/Services/CashControlService.php
-
-		-
-			message: '#^Parameter \#2 \$lines of method Modules\\CrmCashControl\\Services\\CashControlService\:\:cashCountTotals\(\) expects Illuminate\\Support\\Collection\<int, App\\Models\\CrmCashCountLine\>\|null, Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\> given\.$#'
 			identifier: argument.type
 			count: 1
 			path: Modules/CrmCashControl/app/Services/CashControlService.php
@@ -471,18 +435,6 @@ parameters:
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$site_id\.$#'
 			identifier: property.notFound
-			count: 1
-			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) expects callable\(Illuminate\\Database\\Eloquent\\Model, int\)\: array, Closure\(App\\Models\\CrmCheckRemittanceLine\)\: array given\.$#'
-			identifier: argument.type
-			count: 1
-			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
-
-		-
-			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:sum\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Model\)\: float\)\|string\|null, Closure\(App\\Models\\CrmCheckRemittanceLine\)\: float given\.$#'
-			identifier: argument.type
 			count: 1
 			path: Modules/CrmCheckRemittances/app/Services/CheckRemittanceService.php
 
@@ -850,145 +802,145 @@ parameters:
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/CrmDocuments/Http/Controllers/DocumentApiController.php
+			path: Modules/CrmDocuments/app/Http/Controllers/DocumentApiController.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk_path\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/CrmDocuments/Http/Controllers/DocumentApiController.php
+			path: Modules/CrmDocuments/app/Http/Controllers/DocumentApiController.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$mime_type\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Http/Controllers/DocumentApiController.php
+			path: Modules/CrmDocuments/app/Http/Controllers/DocumentApiController.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$category\.$#'
 			identifier: property.notFound
 			count: 4
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$created_by\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$description\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$directory_id\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$disk_path\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$mime_type\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$site_id\.$#'
 			identifier: property.notFound
 			count: 5
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$sort_order\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$updated_at\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocument\:\:\$visibility\.$#'
 			identifier: property.notFound
 			count: 2
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$category\.$#'
 			identifier: property.notFound
 			count: 3
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$created_by\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$description\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 3
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$parent_id\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$site_id\.$#'
 			identifier: property.notFound
 			count: 3
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$sort_order\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$updated_at\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmDocumentDirectory\:\:\$visibility\.$#'
 			identifier: property.notFound
 			count: 1
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
 			identifier: property.notFound
 			count: 3
-			path: Modules/CrmDocuments/Services/DocumentLibraryService.php
+			path: Modules/CrmDocuments/app/Services/DocumentLibraryService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\CrmEquipmentCategory\:\:\$active\.$#'

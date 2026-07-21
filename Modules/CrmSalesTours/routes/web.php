@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmSalesTours\Http\Controllers\SalesTourApiController;
 
@@ -20,5 +20,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/tournees-representants', SalesTou
 
 Route::match(['GET', 'POST'], '/api/mobile/tournees-representants', SalesTourApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:tournees-representants'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.tournees-representants');

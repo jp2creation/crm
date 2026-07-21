@@ -44,6 +44,9 @@ class CrmCheckRemittance extends Model
         return $this->belongsTo(CrmSite::class, 'site_id');
     }
 
+    /**
+     * @return HasMany<CrmCheckRemittanceLine, $this>
+     */
     public function checks(): HasMany
     {
         return $this->hasMany(CrmCheckRemittanceLine::class, 'check_remittance_id')

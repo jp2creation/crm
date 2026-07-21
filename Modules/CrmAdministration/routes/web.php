@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmAdministration\Http\Controllers\AdministrationApiController;
 
@@ -17,5 +17,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/administration', AdministrationAp
 
 Route::match(['GET', 'POST'], '/api/mobile/administration', AdministrationApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:administration'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.administration');

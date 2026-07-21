@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmTeams\Http\Controllers\TeamApiController;
 
@@ -16,5 +16,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/equipes', TeamApiController::clas
 
 Route::match(['GET', 'POST'], '/api/mobile/equipes', TeamApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:equipes'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.equipes');

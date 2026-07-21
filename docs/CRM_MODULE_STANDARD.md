@@ -14,6 +14,18 @@ Le guide pas a pas de creation d'un module est disponible dans [MODULE_CREATION_
 - `app/Data` pour les DTO qui normalisent les payloads entrants.
 - `tests/Feature` pour les parcours API et UI critiques.
 
+Les classes PHP propres au module doivent rester sous `app/`. Les anciens dossiers racine `Providers`, `Http` ou `Services` ne sont plus autorises, afin que tous les modules suivent l'arborescence generee par `nwidart/laravel-modules`.
+
+## Creation
+
+Creer d'abord le squelette avec Artisan :
+
+```bash
+php artisan module:make CrmExample
+```
+
+La configuration de generation est centralisee dans `config/modules.php` : chemins `app/`, `routes/`, `database/`, `resources/`, auteur Composer et fichier `modules_statuses.json`. Apres generation, adapter le provider pour etendre `Modules\CrmCore\Providers\CrmModuleServiceProvider`, puis declarer la priorite dans `module.json`.
+
 ## Conventions API
 
 - Les routes de production utilisent `/api/<module>`.

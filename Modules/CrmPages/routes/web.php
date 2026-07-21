@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 use Modules\CrmPages\Http\Controllers\PageApiController;
 
@@ -21,5 +21,5 @@ Route::match(['GET', 'POST', 'OPTIONS'], '/api/pages', PageApiController::class)
 
 Route::match(['GET', 'POST'], '/api/mobile/pages', PageApiController::class)
     ->middleware(['auth:sanctum', ...$crmApiMiddleware, 'crm.mobile_scope:crm:module:pages-crm'])
-    ->withoutMiddleware([VerifyCsrfToken::class])
+    ->withoutMiddleware([PreventRequestForgery::class])
     ->name('crm.api.mobile.pages');

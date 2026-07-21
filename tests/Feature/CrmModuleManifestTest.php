@@ -61,6 +61,26 @@ class CrmModuleManifestTest extends TestCase
         }
     }
 
+    public function test_crm_modules_keep_laravel_classes_under_app_directory(): void
+    {
+        $moduleRoots = collect(glob(base_path('Modules/*')) ?: [])
+            ->filter(fn (string $path): bool => is_dir($path))
+            ->values();
+
+        $this->assertNotEmpty($moduleRoots);
+
+        foreach ($moduleRoots as $moduleRoot) {
+            $moduleName = basename($moduleRoot);
+
+            foreach (['Http', 'Providers', 'Services'] as $legacyDirectory) {
+                $this->assertDirectoryDoesNotExist(
+                    $moduleRoot.'/'.$legacyDirectory,
+                    "{$moduleName} doit placer {$legacyDirectory} sous app/{$legacyDirectory}.",
+                );
+            }
+        }
+    }
+
     public function test_crm_migrations_live_inside_module_database_directories(): void
     {
         $rootCrmMigrations = collect(glob(database_path('migrations/*.php')) ?: [])
