@@ -76,7 +76,7 @@ if [ "${CRM_DEPLOY_ALLOW_DIRTY:-0}" = "1" ]; then
 else
     git archive --format=tar --output="$LOCAL_ARCHIVE_TAR" HEAD
 
-    if [ "$CRM_DEPLOY_BUILD" != "0" ] && [ -d public/build ]; then
+    if [ -d public/build ]; then
         tar -rf "$LOCAL_ARCHIVE_TAR" public/build
     fi
 
@@ -281,6 +281,11 @@ rm -rf "$RELEASE_DIR"
 mkdir -p "$RELEASE_DIR"
 tar -xzf "$REMOTE_ARCHIVE" -C "$RELEASE_DIR"
 rm -f "$REMOTE_ARCHIVE"
+
+if [ ! -f "${RELEASE_DIR}/public/build/manifest.json" ]; then
+    echo "Manifest Vite absent: ${RELEASE_DIR}/public/build/manifest.json" >&2
+    exit 1
+fi
 
 rm -f "${RELEASE_DIR}/.env"
 ln -s "${SHARED_DIR}/.env" "${RELEASE_DIR}/.env"

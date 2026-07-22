@@ -179,6 +179,9 @@ REGEX;
         $gitignore = (string) file_get_contents(base_path('.gitignore'));
 
         $this->assertStringContainsString('tar -rf "$LOCAL_ARCHIVE_TAR" public/build', $script);
+        $this->assertStringContainsString('if [ -d public/build ]; then', $script);
+        $this->assertStringNotContainsString('if [ "$CRM_DEPLOY_BUILD" != "0" ] && [ -d public/build ]; then', $script);
+        $this->assertStringContainsString('Manifest Vite absent: ${RELEASE_DIR}/public/build/manifest.json', $script);
         $this->assertStringContainsString('php artisan crm:publish-static-assets --force --clean', $script);
         $this->assertStringContainsString('php artisan crm:publish-module-assets --force', $script);
         $this->assertStringContainsString('gzip -c "$LOCAL_ARCHIVE_TAR" > "$LOCAL_ARCHIVE"', $script);
