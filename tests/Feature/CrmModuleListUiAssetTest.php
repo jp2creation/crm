@@ -28,7 +28,7 @@ class CrmModuleListUiAssetTest extends TestCase
         $this->assertStringNotContainsString('class="visit-card"', $public);
     }
 
-    public function test_team_members_are_rendered_as_a_column_list_on_mobile_too(): void
+    public function test_team_members_keep_table_desktop_and_cards_mobile(): void
     {
         $source = (string) file_get_contents(base_path('Modules/CrmTeams/resources/assets/crm-equipes.js'));
         $public = (string) file_get_contents(public_path('modules/crm-teams/crm-equipes.js'));
@@ -38,9 +38,11 @@ class CrmModuleListUiAssetTest extends TestCase
         $this->assertStringContainsString('<table class="teams-table">', $public);
         $this->assertStringContainsString('<th>Rôle</th>', $public);
         $this->assertStringContainsString('class="teams-role-pill"', $public);
-        $this->assertStringContainsString('.teams-table{min-width:54rem}', $public);
-        $this->assertStringNotContainsString('teams-mobile-list', $public);
-        $this->assertStringNotContainsString('function renderMemberCard', $public);
-        $this->assertStringNotContainsString('teams-person-row', $public);
+        $this->assertStringContainsString('class="teams-mobile-list"', $public);
+        $this->assertStringContainsString('function renderMemberCard', $public);
+        $this->assertStringContainsString('class="teams-person-card"', $public);
+        $this->assertStringContainsString('.teams-table-wrap{display:none}', $public);
+        $this->assertStringNotContainsString('.teams-table{min-width:54rem}', $public);
+        $this->assertStringNotContainsString('.layout-container.layout-page > :not(#${rootId}){display:none!important}', $public);
     }
 }
