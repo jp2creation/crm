@@ -74,6 +74,16 @@
     return String(value || '').slice(11, 16);
   }
 
+  function scrollPlanningIntoView() {
+    window.requestAnimationFrame(() => {
+      const target =
+        document.querySelector(`#${rootId} [data-rent-calendar]`) ||
+        document.querySelector(`#${rootId} [data-rent-planning]`);
+
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   function activeSiteId() {
     const fromApi = Number(window.CRM_ACTIVE_SITE?.getSiteId?.() || 0);
     if (Number.isFinite(fromApi) && fromApi > 0) return fromApi;
@@ -208,6 +218,7 @@
       #${rootId} .rent-card-subtitle{margin:.18rem 0 0;color:var(--rent-muted);font-size:.78rem;font-weight:750}
       #${rootId} .rent-card-body{display:grid;gap:.85rem;padding:1rem}
       #${rootId} .rent-planning-header{display:grid;grid-template-columns:2.75rem minmax(0,1fr) 2.75rem;align-items:center;text-align:center}
+      #${rootId} .rent-planning-card{scroll-margin-top:5.75rem}
       #${rootId} .rent-planning-header>div{min-width:0}
       #${rootId} .rent-nav-button{width:2.75rem;min-height:2.75rem;padding:0;border-radius:.65rem}
       #${rootId} .rent-nav-button svg{margin:0}
@@ -241,7 +252,7 @@
       #${rootId} .rent-period-afternoon{background:#ff5c57}
       #${rootId} .rent-period-day{background:#4f6df5}
       #${rootId} .rent-period.is-reserved{background:var(--rent-red)}
-      #${rootId} .rent-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--rent-border);border-radius:0 0 1rem 1rem;overflow:hidden}
+      #${rootId} .rent-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));scroll-margin-top:5.75rem;border:1px solid var(--rent-border);border-radius:0 0 1rem 1rem;overflow:hidden}
       #${rootId} .rent-month-head,#${rootId} .rent-month-cell{min-height:4.2rem;border-right:1px solid var(--rent-border);border-bottom:1px solid var(--rent-border);padding:.52rem}
       #${rootId} .rent-month-head{min-height:auto;background:#f8fafc;color:var(--rent-muted);font-size:.72rem;font-weight:950;text-align:center;text-transform:uppercase}
       #${rootId} .rent-month-cell:nth-child(7n){border-right:0}
@@ -441,7 +452,7 @@
       .join('');
 
     return `
-      <div class="rent-month-grid">
+      <div class="rent-month-grid" data-rent-calendar>
         ${heads}
         ${days.map((day) => renderMonthDay(day, item)).join('')}
       </div>
@@ -531,7 +542,9 @@
     root.querySelectorAll('[data-item-id]').forEach((button) => {
       button.addEventListener('click', () => {
         state.selectedItemId = Number(button.dataset.itemId);
+        state.view = 'month';
         render();
+        scrollPlanningIntoView();
       });
     });
 
@@ -548,6 +561,7 @@
 
         state.view = button.dataset.view === 'week' ? 'day' : button.dataset.view;
         render();
+        if (state.view === 'month') scrollPlanningIntoView();
       });
     });
 

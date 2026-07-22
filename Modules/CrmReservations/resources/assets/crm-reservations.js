@@ -75,6 +75,16 @@
     return String(value || '').slice(11, 16);
   }
 
+  function scrollPlanningIntoView() {
+    window.requestAnimationFrame(() => {
+      const target =
+        document.querySelector(`#${rootId} [data-resa-calendar]`) ||
+        document.querySelector(`#${rootId} [data-resa-planning]`);
+
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   function activeSiteId() {
     const fromApi = Number(window.CRM_ACTIVE_SITE?.getSiteId?.() || 0);
     if (Number.isFinite(fromApi) && fromApi > 0) return fromApi;
@@ -100,7 +110,9 @@
 
   function selectedVehicle() {
     const vehicles = siteVehicles();
-    return vehicles.find((vehicle) => Number(vehicle.id) === Number(state.selectedVehicleId)) || vehicles[0] || null;
+    if (!state.selectedVehicleId) return null;
+
+    return vehicles.find((vehicle) => Number(vehicle.id) === Number(state.selectedVehicleId)) || null;
   }
 
   function siteVehicles() {
@@ -195,6 +207,7 @@
       #${rootId} .resa-card-subtitle{margin:.18rem 0 0;color:var(--resa-muted);font-size:.78rem;font-weight:750}
       #${rootId} .resa-card-body{padding:1rem}
       #${rootId} .resa-planning-header{display:grid;grid-template-columns:2.75rem minmax(0,1fr) 2.75rem;align-items:center;text-align:center}
+      #${rootId} .resa-planning-card{scroll-margin-top:5.75rem}
       #${rootId} .resa-planning-header>div{min-width:0}
       #${rootId} .resa-nav-button{width:2.75rem;min-height:2.75rem;padding:0;border-radius:.65rem}
       #${rootId} .resa-nav-button svg{margin:0}
@@ -233,7 +246,7 @@
       #${rootId} .resa-selection-panel strong{display:block;margin:.18rem 0;color:var(--resa-text);font-size:1.15rem;font-weight:950}
       #${rootId} .resa-selection-actions{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-top:.7rem}
       #${rootId} .reservation-fast-actions{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.85rem}
-      #${rootId} .resa-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--resa-border);border-radius:.6rem;overflow:hidden}
+      #${rootId} .resa-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));scroll-margin-top:5.75rem;border:1px solid var(--resa-border);border-radius:.6rem;overflow:hidden}
       #${rootId} .resa-month-head,#${rootId} .resa-month-cell{min-height:4.2rem;border-right:1px solid var(--resa-border);border-bottom:1px solid var(--resa-border);padding:.52rem}
       #${rootId} .resa-month-head{min-height:auto;background:#f8fafc;color:var(--resa-muted);font-size:.72rem;font-weight:950;text-align:center;text-transform:uppercase}
       #${rootId} .resa-month-cell:nth-child(7n){border-right:0}
@@ -318,11 +331,11 @@
 
     return `
       <div class="resa-top">
-        <div class="resa-title">
-          <h1>Réservations véhicules</h1>
-          <p>${esc(site?.name || 'Site actif')} · Planning véhicules</p>
-        </div>
-        <button class="resa-button resa-button-primary" type="button" data-resa-new>${icon('plus')}Nouvelle réservation</button>
+          <div class="resa-title">
+            <h1>Réservations véhicules</h1>
+            <p>${esc(site?.name || 'Site actif')} · Planning véhicules</p>
+          </div>
+        ${vehicle ? `<button class="resa-button resa-button-primary" type="button" data-resa-new>${icon('plus')}Nouvelle réservation</button>` : ''}
       </div>
       <section class="resa-card">
         <header class="resa-card-header">
@@ -336,7 +349,9 @@
           ${vehicles.length ? `<div class="resa-vehicles">${vehicles.map(renderVehicleCard).join('')}</div>` : `<div class="resa-empty">Aucun véhicule sur ce site.</div>`}
         </div>
       </section>
-      <section class="resa-card resa-planning-card">
+      ${
+        vehicle
+          ? `<section class="resa-card resa-planning-card" data-resa-planning>
         <header class="resa-card-header resa-planning-header">
           <button class="resa-button resa-nav-button" type="button" data-prev aria-label="Période précédente">${icon('chevron-left')}</button>
           <div>
@@ -347,10 +362,12 @@
         </header>
         <div class="resa-card-body resa-grid">
           ${renderToolbar()}
-          ${vehicle ? (state.view === 'month' ? renderMonth(vehicle) : renderDay(vehicle)) : `<div class="resa-empty">Choisissez un véhicule pour afficher son planning.</div>`}
+          ${state.view === 'month' ? renderMonth(vehicle) : renderDay(vehicle)}
           ${renderSelectionPanel(vehicle)}
         </div>
-      </section>
+      </section>`
+          : ''
+      }
       ${state.modal ? renderModal() : ''}
     `;
   }
@@ -457,7 +474,7 @@
       .join('');
 
     return `
-      <div class="resa-month-grid">
+      <div class="resa-month-grid" data-resa-calendar>
         ${heads}
         ${days.map((day) => renderMonthDay(day, vehicle)).join('')}
       </div>
@@ -537,8 +554,10 @@
     root.querySelectorAll('[data-vehicle-id]').forEach((button) => {
       button.addEventListener('click', () => {
         state.selectedVehicleId = Number(button.dataset.vehicleId);
+        state.view = 'month';
         state.selection = null;
         render();
+        scrollPlanningIntoView();
       });
     });
 
@@ -556,6 +575,7 @@
 
         state.view = button.dataset.view === 'week' ? 'day' : button.dataset.view;
         render();
+        if (state.view === 'month') scrollPlanningIntoView();
       });
     });
 
@@ -653,6 +673,8 @@
 
   function openNewReservation() {
     const vehicle = selectedVehicle();
+    if (!vehicle) return;
+
     const startAt = state.selection?.startAt || `${state.selectedDate}T07:30`;
     const endAt = state.selection?.endAt || `${state.selectedDate}T12:00`;
     state.modal = { type: 'form', startAt, endAt, vehicleId: vehicle?.id };
@@ -724,7 +746,7 @@
       state.data = payload;
       const vehicles = siteVehicles();
       if (!vehicles.some((vehicle) => Number(vehicle.id) === Number(state.selectedVehicleId))) {
-        state.selectedVehicleId = vehicles[0]?.id || null;
+        state.selectedVehicleId = null;
       }
     } catch (error) {
       if (sequence === loadSequence) state.error = error.message || 'Connexion aux données réservations indisponible';

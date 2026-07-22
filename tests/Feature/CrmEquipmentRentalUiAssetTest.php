@@ -27,7 +27,13 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $this->assertStringContainsString('siteItemsWithoutCategory', $equipmentAsset);
         $this->assertStringContainsString('renderPlanningSections(item)', $equipmentAsset);
         $this->assertStringContainsString('data-rent-planning', $equipmentAsset);
+        $this->assertStringContainsString('data-rent-calendar', $equipmentAsset);
+        $this->assertStringContainsString('scrollPlanningIntoView', $equipmentAsset);
+        $this->assertStringContainsString('[data-rent-calendar]', $equipmentAsset);
+        $this->assertStringContainsString('scrollIntoView({ behavior: "smooth", block: "start" })', $equipmentAsset);
+        $this->assertStringContainsString('if (state.view === "month") scrollPlanningIntoView();', $equipmentAsset);
         $this->assertStringContainsString('state.selectedItemId = null;', $equipmentAsset);
+        $this->assertStringContainsString('state.view = "month";', $equipmentAsset);
         $this->assertStringNotContainsString('|| items[0] || null', $equipmentAsset);
         $this->assertStringContainsString('rent-period-morning', $equipmentAsset);
         $this->assertStringContainsString('rent-period-afternoon', $equipmentAsset);

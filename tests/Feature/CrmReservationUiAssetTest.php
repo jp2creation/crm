@@ -37,7 +37,18 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservationSelectionCellLabel', $reservationAsset);
         $this->assertStringNotContainsString('window.MartinSolsUi.renderProductGrid', $reservationAsset);
         $this->assertStringNotContainsString('window.MartinSolsUi.renderSegmentControl', $reservationAsset);
+        $this->assertStringContainsString('if (!state.selectedVehicleId) return null;', $reservationAsset);
+        $this->assertStringContainsString('data-resa-planning', $reservationAsset);
+        $this->assertStringContainsString('data-resa-calendar', $reservationAsset);
+        $this->assertStringContainsString('scrollPlanningIntoView', $reservationAsset);
+        $this->assertStringContainsString('[data-resa-calendar]', $reservationAsset);
+        $this->assertStringContainsString('scrollIntoView({ behavior: "smooth", block: "start" })', $reservationAsset);
+        $this->assertStringContainsString('if (state.view === "month") scrollPlanningIntoView();', $reservationAsset);
+        $this->assertStringContainsString('state.selectedVehicleId = null;', $reservationAsset);
+        $this->assertStringNotContainsString('|| vehicles[0] || null', $reservationAsset);
+        $this->assertStringNotContainsString('vehicles[0]?.id || null', $reservationAsset);
         $this->assertStringContainsString('view: "month"', $reservationAsset);
+        $this->assertStringContainsString('state.view = "month";', $reservationAsset);
         $this->assertStringContainsString('resa-planning-header', $reservationAsset);
         $this->assertStringContainsString('resa-month-dots', $reservationAsset);
         $this->assertStringContainsString('data-view="today"', $reservationAsset);
