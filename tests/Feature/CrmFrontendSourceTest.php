@@ -39,7 +39,12 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileExists(resource_path('frontend/crm/modules/hosts.ts'));
         $this->assertFileExists(resource_path('frontend/crm/router/menu.ts'));
         $this->assertFileExists(resource_path('frontend/crm/styles/shell.css'));
+        $this->assertFileExists(resource_path('frontend/crm/styles/template-compat.css'));
+        $this->assertFileExists(resource_path('frontend/crm/styles/template-compat/variables.css'));
+        $this->assertFileExists(resource_path('frontend/crm/styles/template-compat/components.css'));
 
+        $this->assertStringContainsString("import './styles/template-compat.css';", $shell);
+        $this->assertStringContainsString("import './styles/shell.css';", $shell);
         $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
         $this->assertStringContainsString('installNativeCrmShell', $shell);
         $this->assertStringContainsString('installCurrentCrmModuleRouteLoader', $shell);
@@ -91,6 +96,9 @@ class CrmFrontendSourceTest extends TestCase
 
         $mobileFallback = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $shellCss = (string) file_get_contents(resource_path('frontend/crm/styles/shell.css'));
+        $templateCompatCss = (string) file_get_contents(resource_path('frontend/crm/styles/template-compat.css'));
+        $templateVariablesCss = (string) file_get_contents(resource_path('frontend/crm/styles/template-compat/variables.css'));
+        $templateComponentsCss = (string) file_get_contents(resource_path('frontend/crm/styles/template-compat/components.css'));
 
         $this->assertStringContainsString("window.matchMedia('(max-width: 767.98px)')", $mobileFallback);
         $this->assertStringContainsString('shouldUseFallbackNavigation', $mobileFallback);
@@ -99,6 +107,14 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('new MutationObserver', $mobileFallback);
         $this->assertStringNotContainsString("if (!document.body.classList.contains('crm-mobile-app'))", $mobileFallback);
         $this->assertStringContainsString('body.crm-mobile-fallback-nav-browser', $shellCss);
+        $this->assertStringContainsString('@import "./template-compat/variables.css"', $templateCompatCss);
+        $this->assertStringContainsString('@import "./template-compat/components.css"', $templateCompatCss);
+        $this->assertStringContainsString('--theme-primary: 149 0 46;', $templateVariablesCss);
+        $this->assertStringContainsString('--theme-accent: 245 178 18;', $templateVariablesCss);
+        $this->assertStringContainsString('--color-secondary-900: #1d354f;', $templateVariablesCss);
+        $this->assertStringContainsString('--shadow-card:', $templateVariablesCss);
+        $this->assertStringContainsString('.card', $templateComponentsCss);
+        $this->assertStringContainsString('.btn-primary', $templateComponentsCss);
     }
 
     public function test_static_assets_keep_only_brand_and_pwa_files(): void

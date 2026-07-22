@@ -1,0 +1,8 @@
+/* Template compatibility layer: keeps the visual primitives originally used by the CRM modules without loading the legacy template runtime. */
+@import "./template-compat/variables.css";
+@import "./template-compat/fonts.css";
+@import "./template-compat/base.css";
+@import "./template-compat/layout.css";
+@import "./template-compat/forms.css";
+@import "./template-compat/components.css";
+@import "./template-compat/animations.css";

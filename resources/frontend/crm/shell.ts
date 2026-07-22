@@ -1,3 +1,4 @@
+import './styles/template-compat.css';
 import './styles/shell.css';
 import { installCrmApiClient } from './api/client';
 import { installCsrfFetch } from './api/csrf';
