@@ -6,24 +6,40 @@ use Tests\TestCase;
 
 class CrmEquipmentRentalUiAssetTest extends TestCase
 {
-    public function test_equipment_rental_module_uses_current_api_route(): void
+    public function test_equipment_rental_module_is_native_and_uses_current_api_route(): void
     {
-        $equipmentAsset = (string) file_get_contents(resource_path('frontend/static/assets/equipment-rentals-Codex2.js'));
+        $equipmentAsset = (string) file_get_contents(base_path('Modules/CrmEquipmentRentals/resources/assets/crm-equipment-rentals.js'));
         $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
         $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
 
-        $this->assertStringContainsString('var API="/api/equipment-rentals"', $equipmentAsset);
+        $this->assertStringContainsString('const api = "/api/equipment-rentals"', $equipmentAsset);
         $this->assertStringNotContainsString('/api/equipment-rentals.php', $equipmentAsset);
-        $this->assertStringContainsString('Array.isArray(user.moduleIds)?user.moduleIds:[]', $equipmentAsset);
-        $this->assertStringContainsString('Array.isArray(user.permissions)?user.permissions:[]', $equipmentAsset);
-        $this->assertStringNotContainsString('user.moduleIds.includes', $equipmentAsset);
-        $this->assertStringContainsString('state.data.user&&state.data.user.id===state.selectedUserId', $equipmentAsset);
+        $this->assertStringContainsString('credentials: "same-origin"', $equipmentAsset);
+        $this->assertStringContainsString('"X-CSRF-TOKEN": csrfToken()', $equipmentAsset);
+        $this->assertStringContainsString('create_rental', $equipmentAsset);
+        $this->assertStringContainsString('update_rental', $equipmentAsset);
+        $this->assertStringContainsString('delete_rental', $equipmentAsset);
+        $this->assertStringContainsString('canDeleteRental', $equipmentAsset);
+        $this->assertStringContainsString('equipment_rentals.delete_own', $equipmentAsset);
+        $this->assertStringContainsString('equipment_rentals.delete_any', $equipmentAsset);
+        $this->assertStringContainsString('rent-period-morning', $equipmentAsset);
+        $this->assertStringContainsString('rent-period-afternoon', $equipmentAsset);
+        $this->assertStringContainsString('rent-period-day', $equipmentAsset);
+        $this->assertStringContainsString('rentalPeriods', $equipmentAsset);
+        $this->assertStringContainsString('periodPayload', $equipmentAsset);
+        $this->assertStringContainsString('periodType: "day"', $equipmentAsset);
+        $this->assertStringContainsString('slot: "full_day"', $equipmentAsset);
+        $this->assertStringContainsString('Toutes catégories', $equipmentAsset);
+        $this->assertStringContainsString('data-rent-see-all', $equipmentAsset);
+        $this->assertStringContainsString('data-delete-rental', $equipmentAsset);
+        $this->assertStringContainsString('rent-summary-image', $equipmentAsset);
+        $this->assertStringContainsString('document.readyState ===', $equipmentAsset);
+
         $this->assertStringContainsString("id: 'crm-equipment-rentals-module'", $hosts);
         $this->assertStringContainsString("paths: ['/locations-materiel']", $hosts);
         $this->assertStringContainsString("prefix: '/locations-materiel/'", $hosts);
-        $this->assertStringContainsString("componentExport: 'EquipmentRentalsPage'", $modules);
-        $this->assertStringContainsString("hostId: 'crm-equipment-rentals-module'", $modules);
-        $this->assertStringContainsString("loadLegacyAsset('equipment-rentals-Codex2.js')", $modules);
-        $this->assertStringNotContainsString('equipment-rentals-Codex2.js?v=202607191940', $modules);
+        $this->assertStringContainsString("equipmentRentals: () => import('../../../../Modules/CrmEquipmentRentals/resources/assets/crm-equipment-rentals.js')", $modules);
+        $this->assertStringNotContainsString("loadLegacyAsset('equipment-rentals-Codex2.js')", $modules);
+        $this->assertFileDoesNotExist(resource_path('frontend/static/assets/equipment-rentals-Codex2.js'));
     }
 }

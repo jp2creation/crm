@@ -21,55 +21,21 @@ type CrmModuleRoute = {
   prefix?: string;
 };
 
-type LegacyReactComponentOptions = {
-  componentExport: string;
-  hostId: string;
-  loader: () => Promise<Record<string, unknown>>;
-};
-
-function mountLegacyReactComponent(options: LegacyReactComponentOptions): Promise<void> {
-  return import('../legacy/react-components').then((module) => module.mountLegacyReactComponent(options));
-}
-
-function loadLegacyAsset(filename: string): Promise<Record<string, unknown>> {
-  return import(/* @vite-ignore */ `/assets/${filename}?v=202607201920`) as Promise<Record<string, unknown>>;
-}
-
 const moduleLoaders: Record<CrmModuleKey, () => Promise<unknown>> = {
   accountSettings: () => import('../../../../Modules/CrmCore/resources/assets/crm-account-settings.js'),
-  administration: () =>
-    mountLegacyReactComponent({
-      componentExport: 'AdministrationPage',
-      hostId: 'crm-administration-module',
-      loader: () => loadLegacyAsset('administration-DvgVMvBV.js'),
-    }),
+  administration: () => import('../../../../Modules/CrmAdministration/resources/assets/crm-administration.js'),
   cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js'),
   checkRemittances: () => import('../../../../Modules/CrmCheckRemittances/resources/assets/crm-remise-cheques.js'),
   dashboard: () => import('../../../../Modules/CrmCore/resources/assets/crm-dashboard.js'),
   depositRequests: () => import('../../../../Modules/CrmDepositRequests/resources/assets/crm-demandes-acompte.js'),
   documents: () => import('../../../../Modules/CrmDocuments/resources/assets/crm-documents.js'),
-  equipmentRentals: () =>
-    mountLegacyReactComponent({
-      componentExport: 'EquipmentRentalsPage',
-      hostId: 'crm-equipment-rentals-module',
-      loader: () => loadLegacyAsset('equipment-rentals-Codex2.js'),
-    }),
+  equipmentRentals: () => import('../../../../Modules/CrmEquipmentRentals/resources/assets/crm-equipment-rentals.js'),
   leaves: () => import('../../../../Modules/CrmLeaves/resources/assets/crm-conges.js'),
   pages: () => import('../../../../Modules/CrmPages/resources/assets/crm-pages.js'),
-  reservations: () =>
-    mountLegacyReactComponent({
-      componentExport: 'ReservationsPage',
-      hostId: 'crm-reservations-module',
-      loader: () => loadLegacyAsset('reservations-CSr_CND1.js'),
-    }),
+  reservations: () => import('../../../../Modules/CrmReservations/resources/assets/crm-reservations.js'),
   sales: () => import('../../../../Modules/CrmSales/resources/assets/crm-pilotage-commercial.js'),
   salesTours: () => import('../../../../Modules/CrmSalesTours/resources/assets/crm-tournees-representants.js'),
-  tapisRomus: () =>
-    mountLegacyReactComponent({
-      componentExport: 'TapisRomusPage',
-      hostId: 'crm-tapis-romus-module',
-      loader: () => loadLegacyAsset('tapis-romus-CVLfrJx-.js'),
-    }),
+  tapisRomus: () => import('../../../../Modules/CrmTapisRomus/resources/assets/crm-tapis-romus.js'),
   teams: () => import('../../../../Modules/CrmTeams/resources/assets/crm-equipes.js'),
 };
 
@@ -93,12 +59,6 @@ const moduleRoutes: CrmModuleRoute[] = [
 
 const loadedModules = new Set<CrmModuleKey>();
 const loadingModules = new Map<CrmModuleKey, Promise<unknown>>();
-const transitionalReactModules = new Set<CrmModuleKey>([
-  'administration',
-  'equipmentRentals',
-  'reservations',
-  'tapisRomus',
-]);
 let currentRouteLoadTimer: number | null = null;
 
 function normalizedPath(): string {
@@ -220,11 +180,7 @@ export function preloadRemainingCrmModuleOverlays(): void {
   window.__martinSolsCrmModulesLoaded = true;
 
   idle(() => {
-    const preloadableModules = (Object.keys(moduleLoaders) as CrmModuleKey[]).filter(
-      (key) => !transitionalReactModules.has(key),
-    );
-
-    Promise.all(preloadableModules.map(loadModule)).catch((error: unknown) => {
+    Promise.all((Object.keys(moduleLoaders) as CrmModuleKey[]).map(loadModule)).catch((error: unknown) => {
       window.dispatchEvent(new CustomEvent('crm:module-error', { detail: { error } }));
     });
   });

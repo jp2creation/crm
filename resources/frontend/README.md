@@ -8,19 +8,12 @@ module registration.
 
 `resources/views/crm.blade.php` must stay intentionally thin: server meta tags,
 the JSON shell configuration (`#crm-shell-config`), `#root`, and the Vite entry.
-Theme boot, logout interception, mobile settings, loader activation, and legacy
-bridges belong in the versioned TypeScript sources.
-
-`resources/frontend/adminex` contains the original Adminex React/TypeScript
-source from the licensed template. It is compiled by the main Vite build and is
-the target location for the ongoing migration.
+Theme boot, logout interception, mobile settings, loader activation, and
+compatibility bridges belong in the versioned TypeScript sources.
 
 `resources/frontend/static/assets` contains versioned public assets such as
-logos, PWA icons, flags, avatars, demo product images, and the transitional
-`legacy-adminex-*` snapshot still required by Reservations and Equipment
-Rentals. They are published to `public/assets` by
+logos and PWA icons. They are published to `public/assets` by
 `php artisan crm:publish-static-assets --force --clean`.
 
-New CRM frontend work should start in `resources/frontend/crm`, in
-`resources/frontend/adminex`, or in module `resources/assets` files, not by
-editing generated files in `public` or expanding the legacy Adminex snapshot.
+New CRM frontend work should start in `resources/frontend/crm` or in module
+`resources/assets` files, not by editing generated files in `public`.

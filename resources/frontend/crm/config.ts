@@ -3,7 +3,6 @@ type CrmShellConfigInput = Partial<CrmShellConfig>;
 export type CrmShellConfig = {
   assets: {
     brandMorphLoaderStylesheet: string;
-    legacyAdminexStylesheet: string;
     logoUrl: string;
   };
   csrfToken: string;
@@ -24,7 +23,6 @@ export type CrmShellConfig = {
 const defaultConfig: CrmShellConfig = {
   assets: {
     brandMorphLoaderStylesheet: '/modules/crm-core/brand-morph-loader.css',
-    legacyAdminexStylesheet: '',
     logoUrl: '/assets/logo/martin-sols-logo.png',
   },
   csrfToken: '',
@@ -81,7 +79,7 @@ export function installCrmShellGlobals(config: CrmShellConfig): void {
   window.MartinSolsCrmAssets = config.assets;
 
   try {
-    localStorage.setItem('adminex-locale', config.locale);
+    localStorage.setItem('crm-locale', config.locale);
   } catch {
     // Locale preference is optional.
   }

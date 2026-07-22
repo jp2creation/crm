@@ -12,7 +12,7 @@ const deadLegacyPrefixes = ['/app', '/auth-card', '/charts', '/features', '/form
 const crmDashboardPaths = new Set(['/', '/dashboard', '/dashboard/crm']);
 const crmPagesPaths = new Set(['/pages/account-settings']);
 const hiddenHeaderLabels = new Set(['applications', 'composants']);
-const neutralizedTitle = 'Ancien lien Adminex desactive';
+const neutralizedTitle = 'Ancien lien de template desactive';
 
 let mutationFrame = 0;
 
@@ -41,7 +41,7 @@ function isPlainLeftClick(event: MouseEvent, link: HTMLAnchorElement): boolean {
   );
 }
 
-function isDeadLegacyAdminexPath(pathname: string): boolean {
+function isDeadLegacyTemplatePath(pathname: string): boolean {
   const path = normalizedPath(pathname);
 
   if (crmDashboardPaths.has(path) || crmPagesPaths.has(path)) {
@@ -59,28 +59,28 @@ function isDeadLegacyAdminexPath(pathname: string): boolean {
   return deadLegacyPrefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 
-function isDeadLegacyAdminexUrl(url: URL): boolean {
-  return url.origin === window.location.origin && isDeadLegacyAdminexPath(url.pathname);
+function isDeadLegacyTemplateUrl(url: URL): boolean {
+  return url.origin === window.location.origin && isDeadLegacyTemplatePath(url.pathname);
 }
 
 function injectStyles(): void {
-  if (document.getElementById('crm-dead-adminex-link-styles')) {
+  if (document.getElementById('crm-dead-legacy-link-styles')) {
     return;
   }
 
   const style = document.createElement('style');
 
-  style.id = 'crm-dead-adminex-link-styles';
+  style.id = 'crm-dead-legacy-link-styles';
   style.textContent = `
-    a[data-crm-dead-adminex-link="true"] {
+    a[data-crm-dead-legacy-link="true"] {
       cursor: default !important;
       opacity: 0.42 !important;
       filter: grayscale(0.35);
       pointer-events: auto;
     }
 
-    a[data-crm-dead-adminex-link-hidden="true"],
-    button[data-crm-dead-adminex-menu-hidden="true"] {
+    a[data-crm-dead-legacy-link-hidden="true"],
+    button[data-crm-dead-legacy-menu-hidden="true"] {
       display: none !important;
     }
   `;
@@ -89,13 +89,13 @@ function injectStyles(): void {
 }
 
 function neutralizeLink(link: HTMLAnchorElement, hide = false): void {
-  link.dataset.crmDeadAdminexLink = 'true';
+  link.dataset.crmDeadLegacyLink = 'true';
   link.setAttribute('aria-disabled', 'true');
   link.setAttribute('tabindex', '-1');
   link.title = neutralizedTitle;
 
   if (hide) {
-    link.dataset.crmDeadAdminexLinkHidden = 'true';
+    link.dataset.crmDeadLegacyLinkHidden = 'true';
   }
 }
 
@@ -116,7 +116,7 @@ function neutralizeDeadLinks(root: ParentNode = document): void {
   root.querySelectorAll<HTMLAnchorElement>('a[href]').forEach((link) => {
     const url = new URL(link.href, window.location.href);
 
-    if (!isDeadLegacyAdminexUrl(url)) {
+    if (!isDeadLegacyTemplateUrl(url)) {
       return;
     }
 
@@ -133,13 +133,13 @@ function hideLegacyMegaMenus(root: ParentNode = document): void {
       return;
     }
 
-    button.dataset.crmDeadAdminexMenuHidden = 'true';
+    button.dataset.crmDeadLegacyMenuHidden = 'true';
     button.setAttribute('aria-hidden', 'true');
     button.setAttribute('tabindex', '-1');
   });
 }
 
-function sweepLegacyAdminexChrome(root: ParentNode = document): void {
+function sweepLegacyTemplateChrome(root: ParentNode = document): void {
   injectStyles();
   neutralizeDeadLinks(root);
   hideLegacyMegaMenus(root);
@@ -152,18 +152,18 @@ function scheduleSweep(root: ParentNode = document): void {
 
   mutationFrame = window.requestAnimationFrame(() => {
     mutationFrame = 0;
-    sweepLegacyAdminexChrome(root);
+    sweepLegacyTemplateChrome(root);
   });
 }
 
-export function installDeadAdminexLinkGuard(): void {
-  if (window.__martinSolsCrmDeadAdminexLinksInstalled) {
+export function installDeadLegacyLinkGuard(): void {
+  if (window.__martinSolsCrmDeadLegacyLinksInstalled) {
     return;
   }
 
-  window.__martinSolsCrmDeadAdminexLinksInstalled = true;
+  window.__martinSolsCrmDeadLegacyLinksInstalled = true;
 
-  sweepLegacyAdminexChrome();
+  sweepLegacyTemplateChrome();
 
   document.addEventListener(
     'click',
@@ -177,7 +177,7 @@ export function installDeadAdminexLinkGuard(): void {
 
       const url = new URL(link.href, window.location.href);
 
-      if (!isDeadLegacyAdminexUrl(url)) {
+      if (!isDeadLegacyTemplateUrl(url)) {
         return;
       }
 

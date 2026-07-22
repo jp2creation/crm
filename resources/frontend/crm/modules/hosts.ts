@@ -138,12 +138,12 @@ function removeInactiveModuleHosts(activeRoute: CrmHostRoute | null): void {
       return;
     }
 
-    host.dispatchEvent(new CustomEvent('crm:legacy-react-host-remove'));
+    host.dispatchEvent(new CustomEvent('crm:module-host-remove'));
     host.remove();
   });
 }
 
-function pageLooksLikeAdminex404(): boolean {
+function pageLooksLikeLegacyTemplate404(): boolean {
   const root = document.getElementById('root');
   const text = root?.textContent || '';
 
@@ -184,7 +184,7 @@ function clearMissingHostRefreshTimer(): void {
 }
 
 function refreshStaleRouteOnce(): boolean {
-  if (!pageLooksLikeAdminex404()) {
+  if (!pageLooksLikeLegacyTemplate404()) {
     return false;
   }
 
@@ -212,7 +212,7 @@ function refreshStaleRouteOnce(): boolean {
 }
 
 function refreshMissingHostOnce(): boolean {
-  if (pageLooksLikeAdminex404()) {
+  if (pageLooksLikeLegacyTemplate404()) {
     return false;
   }
 

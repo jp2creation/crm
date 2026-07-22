@@ -37,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->defaultThemeMode(ThemeMode::Light)
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
-                fn (): HtmlString => new HtmlString('<link href="'.asset('css/filament/adminex-filament.css').'?v=2026070502" rel="stylesheet" data-navigate-track />')
+                fn (): HtmlString => new HtmlString('<link href="'.asset('css/filament/crm-filament.css').'?v=2026072201" rel="stylesheet" data-navigate-track />')
             )
             ->brandName('Martin Sols CRM')
             ->brandLogo(asset('martin-sols-logo.png'))

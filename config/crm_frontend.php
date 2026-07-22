@@ -6,8 +6,8 @@ return [
     | CRM Frontend Source Entries
     |--------------------------------------------------------------------------
     |
-    | The CRM shell is built from resources/frontend. A reduced Adminex runtime
-    | remains available only as a component library for transitional React chunks.
+    | The CRM shell is built from resources/frontend and module assets imported
+    | by Vite. Generated public assets are published during deployment.
     |
     */
 
@@ -15,7 +15,4 @@ return [
         'resources/frontend/crm/shell.ts',
     ],
 
-    'legacy' => [
-        'adminex_stylesheet' => 'assets/legacy-adminex.css',
-    ],
 ];

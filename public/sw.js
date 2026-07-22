@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'martin-sols-crm-v202607220503';
+const CACHE_VERSION = 'martin-sols-crm-v202607220735';
 const STATIC_CACHE = `${CACHE_VERSION}:static`;
 const OFFLINE_URL = '/offline.html';
 
@@ -6,7 +6,6 @@ const PRECACHE_URLS = [
   OFFLINE_URL,
   '/manifest.json',
   '/favicon.png',
-  '/assets/logo/logo.svg',
   '/assets/logo/martin-sols-logo.png',
   '/modules/crm-core/brand-morph-loader.css',
   '/modules/crm-core/brand-morph-loader.js',

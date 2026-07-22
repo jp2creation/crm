@@ -34,7 +34,7 @@ class CrmPwaAssetTest extends TestCase
         $serviceWorker = (string) file_get_contents(public_path('sw.js'));
 
         $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-", $serviceWorker);
-        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v202607220503'", $serviceWorker);
+        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v202607220735'", $serviceWorker);
         $this->assertStringContainsString('cache.add(url).catch(() => null)', $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'SKIP_WAITING'", $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'GET_VERSION'", $serviceWorker);
@@ -58,55 +58,17 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('no-cache, no-store, must-revalidate', $htaccess);
     }
 
-    public function test_legacy_adminex_chunks_import_the_current_entry_asset_version(): void
+    public function test_static_frontend_assets_are_limited_to_brand_and_pwa_files(): void
     {
-        $currentImport = 'index-CqSzWeas.js?v=202607201920';
-        $legacyVersions = [
-            '2026071404',
-            '2026071602',
-            '2026071603',
-            '2026071702',
-            '2026071704',
-            '2026071705',
-            '2026071706',
-            '2026071707',
-            '2026071708',
-            '2026071709',
-            '2026071710',
-            '2026071711',
-            '2026071712',
-            '2026071713',
-            '202607191940',
-            '202607192230',
-            '202607200930',
-            '1783861909',
-        ];
-        $chunksWithCurrentImport = 0;
-
-        foreach (glob(resource_path('frontend/static/assets/*.js')) ?: [] as $assetPath) {
-            $asset = (string) file_get_contents($assetPath);
-
-            foreach ($legacyVersions as $legacyVersion) {
-                $this->assertStringNotContainsString('?v='.$legacyVersion, $asset, basename($assetPath));
-            }
-
-            if (str_contains($asset, $currentImport)) {
-                $chunksWithCurrentImport++;
-            }
-        }
-
-        $this->assertGreaterThanOrEqual(20, $chunksWithCurrentImport);
-    }
-
-    public function test_legacy_adminex_entry_keeps_api_helpers_without_booting_router(): void
-    {
-        $asset = (string) file_get_contents(resource_path('frontend/static/assets/index-CqSzWeas.js'));
+        $assetsDir = resource_path('frontend/static/assets');
         $nativeHosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
 
-        $this->assertStringContainsString('/api/administration', $asset);
-        $this->assertStringNotContainsString('/api/administration.php', $asset);
-        $this->assertStringContainsString('tb=null;Xh();export', $asset);
-        $this->assertStringNotContainsString('path:`dashboard/crm`', $asset);
+        $this->assertSame([], glob($assetsDir.'/*.js') ?: []);
+        $this->assertSame([], glob($assetsDir.'/*.css') ?: []);
+        $this->assertFileExists($assetsDir.'/logo/martin-sols-logo.png');
+        $this->assertFileExists($assetsDir.'/logo/logomark.png');
+        $this->assertFileExists($assetsDir.'/pwa/icon-192.png');
+        $this->assertFileDoesNotExist($assetsDir.'/logo/logo.svg');
         $this->assertStringContainsString("paths: ['/', '/dashboard/crm']", $nativeHosts);
         $this->assertStringContainsString("id: 'crm-dashboard-module'", $nativeHosts);
     }
@@ -136,14 +98,13 @@ class CrmPwaAssetTest extends TestCase
         );
     }
 
-    public function test_legacy_adminex_static_entry_is_versioned_by_deployment(): void
+    public function test_crm_shell_entry_is_versioned_by_vite_manifest(): void
     {
-        config(['crm.assets.version' => 'deploy-test']);
+        $manifest = json_decode((string) file_get_contents(public_path('build/manifest.json')), true);
 
-        $this->assertStringEndsWith(
-            '/assets/legacy-adminex-entry.js?v=deploy-test',
-            CrmAsset::url('assets/legacy-adminex-entry.js'),
-        );
+        $this->assertIsArray($manifest);
+        $this->assertArrayHasKey('resources/frontend/crm/shell.ts', $manifest);
+        $this->assertStringStartsWith('assets/shell-', $manifest['resources/frontend/crm/shell.ts']['file']);
     }
 
     public function test_crm_assets_fallback_to_deployed_revision(): void

@@ -3,9 +3,9 @@ import { installCrmApiClient } from './api/client';
 import { installCsrfFetch } from './api/csrf';
 import { installCrmShellGlobals, readCrmShellConfig } from './config';
 import { installNativeCrmShell } from './layout/native-shell';
-import { installLegacyAdminexNavigationBridge, installLegacyStylesheets } from './legacy/adminex';
-import { installDeadAdminexLinkGuard } from './legacy/dead-links';
+import { installDeadLegacyLinkGuard } from './legacy/dead-links';
 import { installLegacyLogoutBridge } from './legacy/logout-bridge';
+import { installLegacyStylesheets, installLegacyTemplateNavigationBridge } from './legacy/template-compat';
 import { revealBrandLoaderElement } from './loader';
 import { installMobileEmbedBridge } from './mobile/embed-bridge';
 import { installMobileFallbackNavigation } from './mobile/fallback-nav';
@@ -29,8 +29,8 @@ installLegacyStylesheets();
 revealBrandLoaderElement();
 installLegacyLogoutBridge(crmShellConfig);
 installFallbackNavigation();
-installLegacyAdminexNavigationBridge();
-installDeadAdminexLinkGuard();
+installLegacyTemplateNavigationBridge();
+installDeadLegacyLinkGuard();
 
 await loadBrandMorphLoader();
 

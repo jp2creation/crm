@@ -1,4 +1,4 @@
-import { isLegacyAdminexRoute } from '../legacy/adminex';
+import { isLegacyTemplateRoute } from '../legacy/template-compat';
 import { crmHostRouteForPath, type CrmHostRoute } from '../modules/hosts';
 import type { CrmFallbackNavigation, CrmMenuGroup, CrmMenuItem, CrmModule } from '../types/global';
 
@@ -371,7 +371,7 @@ function setNativeShellClasses(active: boolean): void {
 function renderNativeShell(): void {
   const root = rootElement();
 
-  if (!root || isLegacyAdminexRoute()) {
+  if (!root || isLegacyTemplateRoute()) {
     setNativeShellClasses(false);
     return;
   }
@@ -391,7 +391,7 @@ function renderNativeShell(): void {
 }
 
 async function loadProfile(): Promise<void> {
-  if (profileLoaded || isLegacyAdminexRoute()) {
+  if (profileLoaded || isLegacyTemplateRoute()) {
     return;
   }
 

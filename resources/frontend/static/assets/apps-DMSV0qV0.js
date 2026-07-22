@@ -1,1 +1,0 @@
-import{I as e,W as t,l as n,u as r,w as i}from"./index-CqSzWeas.js?v=202607201920";t();var a=e();function o({className:e,inputClassName:t,placeholder:o,...s}){return(0,a.jsx)(`div`,{className:e,children:(0,a.jsx)(i,{type:`search`,placeholder:o,inputSize:`sm`,className:t,prefix:(0,a.jsx)(n,{icon:r.search,className:`h-4 w-4`,width:16,height:16}),...s})})}export{o as t};
