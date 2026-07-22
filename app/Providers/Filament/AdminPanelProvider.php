@@ -51,11 +51,14 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: base_path('Modules/CrmEquipmentRentals/app/Filament/Resources'), for: 'Modules\CrmEquipmentRentals\Filament\Resources')
             ->discoverResources(in: base_path('Modules/CrmPages/app/Filament/Resources'), for: 'Modules\CrmPages\Filament\Resources')
             ->discoverResources(in: base_path('Modules/CrmReservations/app/Filament/Resources'), for: 'Modules\CrmReservations\Filament\Resources')
+            ->discoverResources(in: base_path('Modules/CrmStats/app/Filament/Resources'), for: 'Modules\CrmStats\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->discoverPages(in: base_path('Modules/CrmStats/app/Filament/Pages'), for: 'Modules\CrmStats\Filament\Pages')
             ->pages([
                 Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->discoverWidgets(in: base_path('Modules/CrmStats/app/Filament/Widgets'), for: 'Modules\CrmStats\Filament\Widgets')
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,

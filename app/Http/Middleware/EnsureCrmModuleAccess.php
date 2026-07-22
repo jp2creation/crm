@@ -19,7 +19,7 @@ class EnsureCrmModuleAccess
 
     public function handle(Request $request, Closure $next, string $moduleSlug, string ...$permissions): Response
     {
-        if (! $this->features->enabledModule($moduleSlug)) {
+        if ($moduleSlug !== 'documents' && ! $this->features->enabledModule($moduleSlug)) {
             abort(404);
         }
 
@@ -43,11 +43,7 @@ class EnsureCrmModuleAccess
             abort(403);
         }
 
-        $moduleSlugs = $this->moduleSlugs($actor, $moduleSlug);
-        $moduleSlugs = array_values(array_filter(
-            $moduleSlugs,
-            fn (string $slug): bool => $this->features->enabledModule($slug),
-        ));
+        $moduleSlugs = $this->enabledModuleSlugs($this->moduleSlugs($actor, $moduleSlug));
 
         if ($moduleSlugs === []) {
             abort(404);
@@ -96,6 +92,18 @@ class EnsureCrmModuleAccess
             ->all();
 
         return array_values(array_unique(['documents', ...$documentSlugs]));
+    }
+
+    /**
+     * @param  array<int, string>  $moduleSlugs
+     * @return array<int, string>
+     */
+    private function enabledModuleSlugs(array $moduleSlugs): array
+    {
+        return array_values(array_filter(
+            $moduleSlugs,
+            fn (string $slug): bool => $this->features->enabledModule($slug),
+        ));
     }
 
     /**

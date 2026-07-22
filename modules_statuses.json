@@ -12,5 +12,6 @@
     "CrmTeams": true,
     "CrmSales": true,
     "CrmSalesTours": true,
-    "CrmTapisRomus": true
+    "CrmTapisRomus": true,
+    "CrmStats": true
 }

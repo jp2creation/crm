@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CrmDocument;
+use App\Models\CrmFeatureFlag;
 use App\Models\CrmModule;
 use App\Models\CrmPermission;
 use App\Models\CrmSite;
@@ -43,6 +44,37 @@ class CrmDocumentsApiTest extends TestCase
             ->assertJsonPath('category.slug', 'promo')
             ->assertJsonPath('selectedSiteId', $site->id)
             ->assertJsonPath('canManage', false);
+    }
+
+    public function test_documents_category_page_uses_active_child_module_when_parent_documents_is_disabled(): void
+    {
+        [$account] = $this->createCrmUser(['documents.view']);
+
+        CrmModule::query()->updateOrCreate(
+            ['slug' => 'documents'],
+            [
+                'name' => 'Documents',
+                'description' => 'Parent menu documents',
+                'route_path' => '/documents',
+                'active' => false,
+                'sort_order' => 240,
+            ],
+        );
+
+        CrmFeatureFlag::query()->updateOrCreate(
+            ['flag_key' => 'module:documents'],
+            [
+                'scope' => 'module',
+                'name' => 'Documents',
+                'description' => 'Parent menu documents',
+                'enabled' => false,
+            ],
+        );
+
+        $this->actingAs($account)
+            ->get('/documents/promo')
+            ->assertOk()
+            ->assertSee('crm-shell-config');
     }
 
     public function test_manage_permission_is_required_to_upload_document(): void

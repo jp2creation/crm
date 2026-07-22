@@ -167,7 +167,7 @@
         }
       }
 
-      html.crm-account-settings-route #crm-account-settings-module {
+      html.crm-account-settings-route body:not(.crm-native-shell-active) #crm-account-settings-module {
         display: none !important;
       }
 
@@ -1031,11 +1031,18 @@
 
     try {
       const profile = await loadProfile(forceRender);
-      hydrateNativeAccountPage(profile);
+      if (!hydrateNativeAccountPage(profile)) {
+        renderAccount(profile);
+      }
     } catch (error) {
-      const root = nativeAccountRoot();
+      const root = nativeAccountRoot() || outlet();
       if (root) {
-        setNativeStatus(root, error.message || 'Impossible de charger le compte.', true);
+        if (root.id === 'crm-account-settings-module') {
+          root.innerHTML = '<section class="crm-account-shell"><div class="crm-account-card"><p data-crm-account-status></p></div></section>';
+          setStatus(root, error.message || 'Impossible de charger le compte.', true);
+        } else {
+          setNativeStatus(root, error.message || 'Impossible de charger le compte.', true);
+        }
       }
     }
   }

@@ -6,9 +6,8 @@ return [
     | CRM Frontend Source Entries
     |--------------------------------------------------------------------------
     |
-    | The CRM shell is built from resources/frontend. The legacy Adminex runtime
-    | is published from resources/frontend/static/assets while Reservations and
-    | Equipment Rentals finish their migration into versioned TypeScript source.
+    | The CRM shell is built from resources/frontend. A reduced Adminex runtime
+    | remains available only as a component library for transitional React chunks.
     |
     */
 
@@ -17,7 +16,6 @@ return [
     ],
 
     'legacy' => [
-        'adminex_script' => 'assets/legacy-adminex-entry.js',
         'adminex_stylesheet' => 'assets/legacy-adminex.css',
     ],
 ];

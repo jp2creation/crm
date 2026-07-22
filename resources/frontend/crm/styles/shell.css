@@ -1,4 +1,417 @@
 /* CRM shell overrides moved from resources/views/crm.blade.php. */
+:root {
+  --sidebar-width: 260px;
+}
+
+.crm-native-shell {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: rgb(29 53 79);
+  font-family:
+    'DM Sans',
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.crm-native-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 1022;
+  display: flex;
+  width: var(--sidebar-width);
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid rgb(226 232 240);
+  background: #fff;
+  box-shadow: 10px 0 28px rgb(15 23 42 / 0.04);
+}
+
+.crm-native-brand {
+  display: flex;
+  min-height: 5.2rem;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgb(226 232 240);
+  padding: 1rem 1.2rem;
+}
+
+.crm-native-brand img {
+  width: min(180px, 72%);
+  max-height: 54px;
+  object-fit: contain;
+}
+
+.crm-native-nav {
+  flex: 1;
+  overflow: auto;
+  padding: 1.1rem 0.75rem;
+}
+
+.crm-native-nav-group + .crm-native-nav-group {
+  margin-top: 1.1rem;
+}
+
+.crm-native-nav-title {
+  margin: 0 0 0.45rem;
+  padding: 0 0.55rem;
+  color: rgb(125 142 159);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.crm-native-nav-link {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.5rem;
+  padding: 0.58rem 0.65rem;
+  color: rgb(76 99 125);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.crm-native-nav-link:hover {
+  background: rgb(149 0 46 / 0.06);
+  color: rgb(149 0 46);
+}
+
+.crm-native-nav-link.is-active {
+  background: rgb(149 0 46);
+  color: #fff;
+  box-shadow: 0 14px 28px rgb(149 0 46 / 0.18);
+}
+
+.crm-native-nav-icon {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.45rem;
+  background: rgb(241 245 249);
+  color: rgb(76 99 125);
+  font-size: 0.68rem;
+  font-weight: 950;
+}
+
+.crm-native-nav-link.is-active .crm-native-nav-icon {
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+
+.crm-native-nav-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-native-logout {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  border: 0;
+  border-top: 1px solid rgb(226 232 240);
+  background: #fff;
+  padding: 0 1.35rem;
+  color: rgb(76 99 125);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 850;
+  text-align: left;
+  cursor: pointer;
+}
+
+.crm-native-body {
+  min-height: 100vh;
+  padding-left: var(--sidebar-width);
+}
+
+.crm-native-header {
+  position: fixed;
+  inset: 0 0 auto var(--sidebar-width);
+  z-index: 1020;
+  height: 4rem;
+  border-bottom: 1px solid rgb(226 232 240);
+  background: rgb(255 255 255 / 0.96);
+  backdrop-filter: blur(14px);
+}
+
+.crm-native-header-inner {
+  display: flex;
+  height: 100%;
+  max-width: 100%;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1.4rem;
+}
+
+.crm-native-menu-button,
+.header-icon-btn {
+  display: inline-grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  place-items: center;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.55rem;
+  background: #fff;
+  color: rgb(76 99 125);
+  cursor: pointer;
+}
+
+.crm-native-menu-button svg,
+.header-icon-btn svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.crm-native-menu-button {
+  display: none;
+}
+
+.crm-native-mobile-brand {
+  display: none;
+}
+
+.crm-native-header-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.crm-native-bell {
+  position: relative;
+  text-decoration: none;
+}
+
+.crm-native-bell span {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #ef4444;
+}
+
+.crm-native-user {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.7rem;
+  border-left: 1px solid rgb(226 232 240);
+  padding: 0.2rem 0 0.2rem 0.85rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.crm-native-user-text {
+  display: grid;
+  min-width: 0;
+  text-align: right;
+}
+
+.crm-native-user-text strong,
+.crm-native-user-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crm-native-user-text strong {
+  color: rgb(29 53 79);
+  font-size: 0.9rem;
+  font-weight: 850;
+  line-height: 1.1;
+}
+
+.crm-native-user-text small {
+  color: rgb(93 114 135);
+  font-size: 0.74rem;
+  font-weight: 750;
+}
+
+.crm-native-avatar {
+  position: relative;
+  display: inline-grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(149 0 46);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.crm-native-avatar img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.crm-native-avatar b {
+  position: relative;
+  z-index: 1;
+}
+
+.crm-native-avatar img[src]:not([src='']) + b {
+  opacity: 0;
+}
+
+.crm-native-main {
+  min-width: 0;
+  padding-top: 4rem;
+}
+
+.crm-native-content {
+  max-width: 100%;
+  padding: 1.65rem;
+}
+
+.crm-native-empty {
+  display: grid;
+  min-height: calc(100vh - 9rem);
+  place-items: center;
+  align-content: center;
+  gap: 0.8rem;
+  text-align: center;
+}
+
+.crm-native-empty h1 {
+  margin: 0;
+  color: rgb(149 0 46);
+  font-size: 2.5rem;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.crm-native-empty p {
+  margin: 0;
+  color: rgb(93 114 135);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.crm-native-button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  background: rgb(149 0 46);
+  padding: 0 1rem;
+  color: #fff;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.crm-native-backdrop {
+  display: none;
+}
+
+@media (max-width: 1023.98px) {
+  .crm-native-sidebar {
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+  }
+
+  body.crm-native-sidebar-open .crm-native-sidebar {
+    transform: translateX(0);
+  }
+
+  .crm-native-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1021;
+    display: none;
+    border: 0;
+    background: rgb(15 23 42 / 0.42);
+  }
+
+  body.crm-native-sidebar-open .crm-native-backdrop {
+    display: block;
+  }
+
+  .crm-native-body {
+    padding-left: 0;
+  }
+
+  .crm-native-header {
+    left: 0;
+  }
+
+  .crm-native-menu-button {
+    display: inline-grid;
+  }
+
+  .crm-native-mobile-brand {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .crm-native-mobile-brand img {
+    width: min(170px, 45vw);
+    max-height: 42px;
+    object-fit: contain;
+  }
+
+  .crm-native-content {
+    padding: 1.35rem 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .crm-native-header-inner {
+    gap: 0.65rem;
+    padding: 0 0.75rem;
+  }
+
+  .crm-native-user {
+    padding-left: 0.45rem;
+  }
+
+  .crm-native-user-text {
+    display: none;
+  }
+
+  .crm-native-bell,
+  .crm-native-avatar,
+  .crm-native-menu-button {
+    width: 2.45rem;
+    height: 2.45rem;
+  }
+
+  .crm-native-header-actions {
+    gap: 0.45rem;
+  }
+}
+
 .layout-header .header-search-wrap,
 .layout-header .header-mobile-panel,
 .layout-header .header-actions-divider,

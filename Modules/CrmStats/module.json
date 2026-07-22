@@ -1,0 +1,11 @@
+{
+    "name": "CrmStats",
+    "alias": "crmstats",
+    "description": "Pilotage commercial et statistiques via API de facturation externe.",
+    "keywords": [],
+    "priority": 140,
+    "providers": [
+        "Modules\\CrmStats\\Providers\\CrmStatsServiceProvider"
+    ],
+    "files": []
+}

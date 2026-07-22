@@ -98,14 +98,17 @@ class CrmPwaAssetTest extends TestCase
         $this->assertGreaterThanOrEqual(20, $chunksWithCurrentImport);
     }
 
-    public function test_legacy_adminex_entry_uses_current_api_routes_when_legacy_is_disabled(): void
+    public function test_legacy_adminex_entry_keeps_api_helpers_without_booting_router(): void
     {
         $asset = (string) file_get_contents(resource_path('frontend/static/assets/index-CqSzWeas.js'));
+        $nativeHosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
 
         $this->assertStringContainsString('/api/administration', $asset);
         $this->assertStringNotContainsString('/api/administration.php', $asset);
-        $this->assertStringContainsString('path:`dashboard/crm`,element:(0,z.jsx)(`div`,{id:`crm-dashboard-module`', $asset);
-        $this->assertStringNotContainsString('path:`dashboard/crm`,element:$(ly)', $asset);
+        $this->assertStringContainsString('tb=null;Xh();export', $asset);
+        $this->assertStringNotContainsString('path:`dashboard/crm`', $asset);
+        $this->assertStringContainsString("paths: ['/', '/dashboard/crm']", $nativeHosts);
+        $this->assertStringContainsString("id: 'crm-dashboard-module'", $nativeHosts);
     }
 
     public function test_login_page_loads_the_pwa_boot_script_once(): void

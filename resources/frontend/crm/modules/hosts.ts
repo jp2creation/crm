@@ -1,5 +1,4 @@
-type CrmHostRoute = {
-  adminexOnly?: boolean;
+export type CrmHostRoute = {
   className: string;
   id: string;
   label: string;
@@ -7,75 +6,97 @@ type CrmHostRoute = {
   prefix?: string;
 };
 
-const hostRoutes: CrmHostRoute[] = [
+export const hostRoutes: CrmHostRoute[] = [
   {
     className: 'crm-dashboard-module-host',
     id: 'crm-dashboard-module',
-    label: 'Chargement du tableau de bord...',
+    label: 'Tableau de bord',
     paths: ['/', '/dashboard/crm'],
   },
   {
-    adminexOnly: true,
-    className: '',
-    id: 'crm-adminex-reservations-route',
-    label: '',
-    paths: ['/reservations', '/locations-materiel'],
+    className: 'crm-reservations-module-host',
+    id: 'crm-reservations-module',
+    label: 'Réservations véhicules',
+    paths: ['/reservations'],
+    prefix: '/reservations/',
+  },
+  {
+    className: 'crm-equipment-rentals-module-host',
+    id: 'crm-equipment-rentals-module',
+    label: 'Location matériel',
+    paths: ['/locations-materiel'],
+    prefix: '/locations-materiel/',
+  },
+  {
+    className: 'crm-administration-module-host',
+    id: 'crm-administration-module',
+    label: 'Administration',
+    paths: ['/administration'],
+    prefix: '/administration/',
   },
   {
     className: 'crm-leaves-module-host',
     id: 'crm-leaves-module',
-    label: 'Chargement des conges...',
+    label: 'Congés',
     paths: ['/conges'],
   },
   {
     className: 'crm-sales-module-host',
     id: 'crm-sales-module',
-    label: 'Chargement du pilotage commercial...',
+    label: 'Pilotage commercial',
     paths: ['/pilotage-commercial'],
   },
   {
     className: 'crm-sales-tours-module-host',
     id: 'crm-sales-tours-module',
-    label: 'Chargement du rapport de visite...',
+    label: 'Rapport de visite',
     paths: ['/rapport-visite', '/tournees-representants'],
   },
   {
     className: 'crm-documents-module-host',
     id: 'crm-documents-module',
-    label: 'Chargement des documents...',
+    label: 'Documents',
+    paths: ['/documents'],
     prefix: '/documents/',
   },
   {
     className: 'crm-teams-module-host',
     id: 'crm-teams-module',
-    label: "Chargement de l'equipe...",
+    label: 'Équipe',
     paths: ['/equipes'],
   },
   {
     className: 'crm-cash-control-module-host',
     id: 'crm-cash-control-module',
-    label: 'Chargement controle caisse...',
+    label: 'Contrôle caisse',
     paths: ['/controle-caisse'],
   },
   {
     className: 'crm-deposit-requests-module-host',
     id: 'crm-deposit-requests-module',
-    label: "Chargement des demandes d'acompte...",
+    label: "Demande d'acompte",
     paths: ['/demandes-acompte'],
   },
   {
     className: 'crm-check-remittance-module-host',
     id: 'crm-check-remittance-module',
-    label: 'Chargement des remises de cheques...',
+    label: 'Remise de chèques',
     paths: ['/remise-cheques'],
     prefix: '/remise-cheques/',
   },
   {
     className: 'crm-pages-module-host',
     id: 'crm-pages-root',
-    label: 'Chargement des pages CRM...',
+    label: 'Pages CRM',
     paths: ['/pages-crm'],
     prefix: '/pages-crm/',
+  },
+  {
+    className: 'crm-tapis-romus-module-host',
+    id: 'crm-tapis-romus-module',
+    label: 'Tapis ROMUS',
+    paths: ['/tapis-romus'],
+    prefix: '/tapis-romus/',
   },
 ];
 
@@ -88,25 +109,37 @@ let rootObserverTimer: number | null = null;
 let missingHostRefreshTimer: number | null = null;
 let missingHostRefreshPath = '';
 
-function normalizedPath(): string {
-  return window.location.pathname.replace(/\/+$/, '') || '/';
+export function normalizedCrmPath(value = window.location.pathname): string {
+  return value.replace(/\/+$/, '') || '/';
+}
+
+export function crmHostRouteForPath(pathname: string): CrmHostRoute | null {
+  const path = normalizedCrmPath(pathname);
+  return (
+    hostRoutes.find((route) => {
+      return (route.paths || []).includes(path) || (route.prefix ? path.startsWith(route.prefix) : false);
+    }) || null
+  );
 }
 
 function routeForCurrentPath(): CrmHostRoute | null {
-  const path = normalizedPath();
-
-  return hostRoutes.find((route) => {
-    return (route.paths || []).includes(path) || (route.prefix ? path.startsWith(route.prefix) : false);
-  }) || null;
+  return crmHostRouteForPath(window.location.pathname);
 }
 
 function removeInactiveModuleHosts(activeRoute: CrmHostRoute | null): void {
   hostRoutes.forEach((route) => {
-    if (route.adminexOnly || route.id === activeRoute?.id) {
+    if (route.id === activeRoute?.id) {
       return;
     }
 
-    document.getElementById(route.id)?.remove();
+    const host = document.getElementById(route.id);
+
+    if (!host) {
+      return;
+    }
+
+    host.dispatchEvent(new CustomEvent('crm:legacy-react-host-remove'));
+    host.remove();
   });
 }
 
@@ -121,11 +154,7 @@ async function clearCrmRuntimeCaches(): Promise<void> {
   if (typeof caches !== 'undefined') {
     const keys = await caches.keys();
 
-    await Promise.all(
-      keys
-        .filter((key) => key.startsWith('martin-sols-crm-'))
-        .map((key) => caches.delete(key)),
-    );
+    await Promise.all(keys.filter((key) => key.startsWith('martin-sols-crm-')).map((key) => caches.delete(key)));
   }
 
   if (navigator.serviceWorker) {
@@ -159,7 +188,7 @@ function refreshStaleRouteOnce(): boolean {
     return false;
   }
 
-  const key = `${refreshStoragePrefix}${normalizedPath()}`;
+  const key = `${refreshStoragePrefix}${normalizedCrmPath()}`;
 
   try {
     const attempt = Number(sessionStorage.getItem(key) || '0');
@@ -182,12 +211,12 @@ function refreshStaleRouteOnce(): boolean {
   return true;
 }
 
-function refreshMissingHostOnce(route: CrmHostRoute): boolean {
-  if (route.adminexOnly || pageLooksLikeAdminex404()) {
+function refreshMissingHostOnce(): boolean {
+  if (pageLooksLikeAdminex404()) {
     return false;
   }
 
-  const key = `${missingHostRefreshStoragePrefix}${normalizedPath()}`;
+  const key = `${missingHostRefreshStoragePrefix}${normalizedCrmPath()}`;
 
   try {
     const attempt = Number(sessionStorage.getItem(key) || '0');
@@ -211,12 +240,7 @@ function refreshMissingHostOnce(route: CrmHostRoute): boolean {
 }
 
 function scheduleMissingHostRefresh(route: CrmHostRoute): void {
-  if (route.adminexOnly) {
-    clearMissingHostRefreshTimer();
-    return;
-  }
-
-  const path = normalizedPath();
+  const path = normalizedCrmPath();
 
   if (missingHostRefreshTimer && missingHostRefreshPath === path) {
     return;
@@ -234,7 +258,7 @@ function scheduleMissingHostRefresh(route: CrmHostRoute): void {
       return;
     }
 
-    refreshMissingHostOnce(route);
+    refreshMissingHostOnce();
   }, missingHostRefreshDelayMs);
 }
 
@@ -246,12 +270,6 @@ function ensureHost(): void {
 
   if (!route || document.getElementById(route.id)) {
     clearMissingHostRefreshTimer();
-    return;
-  }
-
-  if (route.adminexOnly) {
-    clearMissingHostRefreshTimer();
-    refreshStaleRouteOnce();
     return;
   }
 

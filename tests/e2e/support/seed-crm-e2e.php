@@ -63,7 +63,13 @@ $fixture = DB::transaction(function () use ($password): array {
         ['dashboard', 'Tableau de bord', '/', 1],
         ['reservations', 'Reservations vehicules', '/reservations', 10],
         ['locations-materiel', 'Location materiel', '/locations-materiel', 15],
+        ['equipes', 'Equipe', '/equipes', 18],
         ['conges', 'Conges', '/conges', 24],
+        ['controle-caisse', 'Controle caisse', '/controle-caisse', 25],
+        ['demandes-acompte', 'Demandes acompte', '/demandes-acompte', 26],
+        ['remise-cheques', 'Remise cheques', '/remise-cheques', 27],
+        ['pages-crm', 'Pages CRM', '/pages-crm', 28],
+        ['documents-promo', 'Documents promo', '/documents/promo', 29],
         ['pilotage-commercial', 'Pilotage commercial', '/pilotage-commercial', 30],
     ];
 
@@ -96,6 +102,12 @@ $fixture = DB::transaction(function () use ($password): array {
         ['conges.view', 'Conges', 200],
         ['conges.manage', 'Conges', 210],
         ['sales.view', 'Pilotage commercial', 220],
+        ['teams.view', 'Equipe', 230],
+        ['controle_caisse.view', 'Controle caisse', 240],
+        ['deposit_requests.view', 'Demandes acompte', 250],
+        ['check_remittances.view', 'Remise cheques', 260],
+        ['pages.view', 'Pages CRM', 270],
+        ['documents.view', 'Documents', 280],
     ];
 
     $permissionIds = [];

@@ -1,1 +1,1 @@
-export { CrmModuleHostPage, CrmPilotageCommercialPage } from './CrmModuleHostPage'
+export { CrmHostPage, CrmModuleHostPage, CrmPilotageCommercialPage } from './CrmModuleHostPage';

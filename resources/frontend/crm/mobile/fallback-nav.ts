@@ -10,22 +10,21 @@ function mobileMediaQuery(): MediaQueryList | null {
 }
 
 function isStandaloneDisplay(): boolean {
-  const standaloneQuery = typeof window.matchMedia === 'function'
-    ? window.matchMedia('(display-mode: standalone)')
-    : null;
+  const standaloneQuery =
+    typeof window.matchMedia === 'function' ? window.matchMedia('(display-mode: standalone)') : null;
 
   return Boolean(
-    mobileMediaQuery()?.matches
-      || standaloneQuery?.matches
-      || (navigator as Navigator & { standalone?: boolean }).standalone,
+    mobileMediaQuery()?.matches ||
+    standaloneQuery?.matches ||
+    (navigator as Navigator & { standalone?: boolean }).standalone,
   );
 }
 
 function shouldUseFallbackNavigation(): boolean {
   return Boolean(
-    document.body.classList.contains('crm-mobile-app')
-      || document.body.classList.contains('crm-mobile-embed')
-      || isStandaloneDisplay(),
+    document.body.classList.contains('crm-mobile-app') ||
+    document.body.classList.contains('crm-mobile-embed') ||
+    isStandaloneDisplay(),
   );
 }
 
@@ -236,7 +235,10 @@ function ensureFallback(): void {
   );
 
   document.body.classList.add('crm-mobile-fallback-nav-active');
-  document.body.classList.toggle('crm-mobile-fallback-nav-browser', !document.body.classList.contains('crm-mobile-app'));
+  document.body.classList.toggle(
+    'crm-mobile-fallback-nav-browser',
+    !document.body.classList.contains('crm-mobile-app'),
+  );
   document.querySelector('[data-crm-mobile-fallback-open]')?.addEventListener('click', openDrawer);
   document.querySelectorAll('[data-crm-mobile-fallback-close]').forEach((button) => {
     button.addEventListener('click', closeDrawer);

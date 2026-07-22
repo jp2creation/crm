@@ -9,7 +9,8 @@ class CrmReservationUiAssetTest extends TestCase
     public function test_vehicle_day_view_uses_two_horizontal_time_rows(): void
     {
         $reservationAsset = (string) file_get_contents(resource_path('frontend/static/assets/reservations-CSr_CND1.js'));
-        $indexAsset = (string) file_get_contents(resource_path('frontend/static/assets/index-CqSzWeas.js'));
+        $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
+        $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
 
         $this->assertStringContainsString('reservation-day-board', $reservationAsset);
         $this->assertStringContainsString('function ReservationModuleLoading', $reservationAsset);
@@ -119,11 +120,13 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-notes', $reservationAsset);
         $this->assertStringContainsString('@media (max-width:560px)', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:repeat(2,minmax(0,1fr))', $reservationAsset);
-        $this->assertStringContainsString('assets/reservations-CSr_CND1.js?v=202607201920', $indexAsset);
-        $this->assertStringContainsString('./reservations-CSr_CND1.js?v=202607201920', $indexAsset);
-        $this->assertStringContainsString('path:`reservations`,element:$(py)', $indexAsset);
-        $this->assertStringContainsString('path:`reservations/*`,element:$(py)', $indexAsset);
-        $this->assertStringContainsString('path:`reservation`,element:(0,z.jsx)(Rr,{to:`/reservations`,replace:!0})', $indexAsset);
+        $this->assertStringContainsString("id: 'crm-reservations-module'", $hosts);
+        $this->assertStringContainsString("paths: ['/reservations']", $hosts);
+        $this->assertStringContainsString("prefix: '/reservations/'", $hosts);
+        $this->assertStringContainsString("componentExport: 'ReservationsPage'", $modules);
+        $this->assertStringContainsString("hostId: 'crm-reservations-module'", $modules);
+        $this->assertStringContainsString("loadLegacyAsset('reservations-CSr_CND1.js')", $modules);
+        $this->assertStringContainsString('import(/* @vite-ignore */ `/assets/${filename}?v=202607201920`)', $modules);
         foreach ([
             '2026071404',
             '2026071602',
@@ -141,8 +144,7 @@ class CrmReservationUiAssetTest extends TestCase
             '2026071713',
             '202607191940',
         ] as $legacyVersion) {
-            $this->assertStringNotContainsString('assets/reservations-CSr_CND1.js?v='.$legacyVersion, $indexAsset);
-            $this->assertStringNotContainsString('./reservations-CSr_CND1.js?v='.$legacyVersion, $indexAsset);
+            $this->assertStringNotContainsString('reservations-CSr_CND1.js?v='.$legacyVersion, $modules);
         }
     }
 }

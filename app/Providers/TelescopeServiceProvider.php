@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Telescope\IncomingEntry;
 use Laravel\Telescope\Telescope;
 use Laravel\Telescope\TelescopeApplicationServiceProvider;
+use Throwable;
 
 class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
 {
@@ -20,8 +22,13 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
         $this->hideSensitiveRequestDetails();
 
         $isLocal = $this->app->environment('local');
+        $canStoreEntries = $this->canStoreTelescopeEntries();
 
-        Telescope::filter(function (IncomingEntry $entry) use ($isLocal) {
+        Telescope::filter(function (IncomingEntry $entry) use ($isLocal, $canStoreEntries): bool {
+            if (! $canStoreEntries) {
+                return false;
+            }
+
             return $isLocal ||
                    $entry->isReportableException() ||
                    $entry->isFailedRequest() ||
@@ -29,6 +36,20 @@ class TelescopeServiceProvider extends TelescopeApplicationServiceProvider
                    $entry->isScheduledTask() ||
                    $entry->hasMonitoredTag();
         });
+    }
+
+    private function canStoreTelescopeEntries(): bool
+    {
+        if (config('telescope.driver') !== 'database') {
+            return true;
+        }
+
+        try {
+            return Schema::hasTable('telescope_entries')
+                && Schema::hasTable('telescope_entries_tags');
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     /**

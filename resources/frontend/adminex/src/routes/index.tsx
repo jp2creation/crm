@@ -1,99 +1,103 @@
-import { createBrowserRouter, Navigate } from 'react-router'
-import { lazy, Suspense } from 'react'
+import { createBrowserRouter, Navigate } from 'react-router';
+import { lazy, Suspense } from 'react';
 
 // Layouts - Keep these eagerly loaded for fast initial render
-import { RootLayout } from '@/layouts/RootLayout'
-import { BlankLayout } from '@/layouts/BlankLayout'
-import { FullLayout } from '@/layouts/FullLayout'
-import { AuthLayout, AuthCardLayout } from '@/layouts/AuthLayout'
+import { RootLayout } from '@/layouts/RootLayout';
+import { BlankLayout } from '@/layouts/BlankLayout';
+import { FullLayout } from '@/layouts/FullLayout';
+import { AuthLayout, AuthCardLayout } from '@/layouts/AuthLayout';
+import { CrmModuleHostPage, CrmPilotageCommercialPage } from '@/pages/crm';
 
 // Loading fallback component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[400px]">
     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
   </div>
-)
+);
 
 // ============================
 // Lazy-loaded Pages
 // ============================
 
 // Home & Landing
-const HomePage = lazy(() => import('@/pages/home/HomePage').then(m => ({ default: m.HomePage })))
+const HomePage = lazy(() => import('@/pages/home/HomePage').then((m) => ({ default: m.HomePage })));
 
 // Dashboards
-const DashboardPage = lazy(() => import('@/pages/dashboard').then(m => ({ default: m.DashboardPage })))
-const AnalyticsDashboard = lazy(() => import('@/pages/dashboard').then(m => ({ default: m.AnalyticsDashboard })))
-const EcommerceDashboard = lazy(() => import('@/pages/dashboard').then(m => ({ default: m.EcommerceDashboard })))
-const CRMDashboard = lazy(() => import('@/pages/dashboard').then(m => ({ default: m.CRMDashboard })))
+const DashboardPage = lazy(() => import('@/pages/dashboard').then((m) => ({ default: m.DashboardPage })));
+const AnalyticsDashboard = lazy(() => import('@/pages/dashboard').then((m) => ({ default: m.AnalyticsDashboard })));
+const EcommerceDashboard = lazy(() => import('@/pages/dashboard').then((m) => ({ default: m.EcommerceDashboard })));
+const CRMDashboard = lazy(() => import('@/pages/dashboard').then((m) => ({ default: m.CRMDashboard })));
 
 // Apps
-const ContactsPage = lazy(() => import('@/pages/apps/contacts').then(m => ({ default: m.ContactsPage })))
-const EmailPage = lazy(() => import('@/pages/apps/email').then(m => ({ default: m.EmailPage })))
-const CalendarPage = lazy(() => import('@/pages/apps/calendar').then(m => ({ default: m.CalendarPage })))
-const BlogListPage = lazy(() => import('@/pages/apps/blog').then(m => ({ default: m.BlogListPage })))
-const BlogDetailPage = lazy(() => import('@/pages/apps/blog').then(m => ({ default: m.BlogDetailPage })))
-const BlogCreatePage = lazy(() => import('@/pages/apps/blog').then(m => ({ default: m.BlogCreatePage })))
-const ChatPage = lazy(() => import('@/pages/apps/chat').then(m => ({ default: m.ChatPage })))
-const VoiceCallPage = lazy(() => import('@/pages/apps/chat').then(m => ({ default: m.VoiceCallPage })))
-const VideoCallPage = lazy(() => import('@/pages/apps/chat').then(m => ({ default: m.VideoCallPage })))
-const ProductsPage = lazy(() => import('@/pages/apps/ecommerce').then(m => ({ default: m.ProductsPage })))
-const ProductDetailPage = lazy(() => import('@/pages/apps/ecommerce').then(m => ({ default: m.ProductDetailPage })))
-const ProductCreatePage = lazy(() => import('@/pages/apps/ecommerce').then(m => ({ default: m.ProductCreatePage })))
-const CheckoutPage = lazy(() => import('@/pages/apps/ecommerce').then(m => ({ default: m.CheckoutPage })))
-const NotesPage = lazy(() => import('@/pages/apps/notes').then(m => ({ default: m.NotesPage })))
-const KanbanPage = lazy(() => import('@/pages/apps/kanban').then(m => ({ default: m.KanbanPage })))
+const ContactsPage = lazy(() => import('@/pages/apps/contacts').then((m) => ({ default: m.ContactsPage })));
+const EmailPage = lazy(() => import('@/pages/apps/email').then((m) => ({ default: m.EmailPage })));
+const CalendarPage = lazy(() => import('@/pages/apps/calendar').then((m) => ({ default: m.CalendarPage })));
+const BlogListPage = lazy(() => import('@/pages/apps/blog').then((m) => ({ default: m.BlogListPage })));
+const BlogDetailPage = lazy(() => import('@/pages/apps/blog').then((m) => ({ default: m.BlogDetailPage })));
+const BlogCreatePage = lazy(() => import('@/pages/apps/blog').then((m) => ({ default: m.BlogCreatePage })));
+const ChatPage = lazy(() => import('@/pages/apps/chat').then((m) => ({ default: m.ChatPage })));
+const VoiceCallPage = lazy(() => import('@/pages/apps/chat').then((m) => ({ default: m.VoiceCallPage })));
+const VideoCallPage = lazy(() => import('@/pages/apps/chat').then((m) => ({ default: m.VideoCallPage })));
+const ProductsPage = lazy(() => import('@/pages/apps/ecommerce').then((m) => ({ default: m.ProductsPage })));
+const ProductDetailPage = lazy(() => import('@/pages/apps/ecommerce').then((m) => ({ default: m.ProductDetailPage })));
+const ProductCreatePage = lazy(() => import('@/pages/apps/ecommerce').then((m) => ({ default: m.ProductCreatePage })));
+const CheckoutPage = lazy(() => import('@/pages/apps/ecommerce').then((m) => ({ default: m.CheckoutPage })));
+const NotesPage = lazy(() => import('@/pages/apps/notes').then((m) => ({ default: m.NotesPage })));
+const KanbanPage = lazy(() => import('@/pages/apps/kanban').then((m) => ({ default: m.KanbanPage })));
 
 // Forms
-const FormLayoutPage = lazy(() => import('@/pages/forms').then(m => ({ default: m.FormLayoutPage })))
-const FormValidationPage = lazy(() => import('@/pages/forms').then(m => ({ default: m.FormValidationPage })))
-const EditorPage = lazy(() => import('@/pages/forms').then(m => ({ default: m.EditorPage })))
+const FormLayoutPage = lazy(() => import('@/pages/forms').then((m) => ({ default: m.FormLayoutPage })));
+const FormValidationPage = lazy(() => import('@/pages/forms').then((m) => ({ default: m.FormValidationPage })));
+const EditorPage = lazy(() => import('@/pages/forms').then((m) => ({ default: m.EditorPage })));
 
 // Tables
-const SimpleTablePage = lazy(() => import('@/pages/tables').then(m => ({ default: m.SimpleTablePage })))
-const DataTablePage = lazy(() => import('@/pages/tables').then(m => ({ default: m.DataTablePage })))
-const CrudTablePage = lazy(() => import('@/pages/tables').then(m => ({ default: m.CrudTablePage })))
+const SimpleTablePage = lazy(() => import('@/pages/tables').then((m) => ({ default: m.SimpleTablePage })));
+const DataTablePage = lazy(() => import('@/pages/tables').then((m) => ({ default: m.DataTablePage })));
+const CrudTablePage = lazy(() => import('@/pages/tables').then((m) => ({ default: m.CrudTablePage })));
 
 // Charts
-const LineChartsPage = lazy(() => import('@/pages/charts').then(m => ({ default: m.LineChartsPage })))
-const AreaChartsPage = lazy(() => import('@/pages/charts').then(m => ({ default: m.AreaChartsPage })))
-const ColumnChartsPage = lazy(() => import('@/pages/charts').then(m => ({ default: m.ColumnChartsPage })))
-const PieDoughnutChartsPage = lazy(() => import('@/pages/charts').then(m => ({ default: m.PieDoughnutChartsPage })))
-const RadarChartsPage = lazy(() => import('@/pages/charts').then(m => ({ default: m.RadarChartsPage })))
-const CandlestickChartsPage = lazy(() => import('@/pages/charts').then(m => ({ default: m.CandlestickChartsPage })))
+const LineChartsPage = lazy(() => import('@/pages/charts').then((m) => ({ default: m.LineChartsPage })));
+const AreaChartsPage = lazy(() => import('@/pages/charts').then((m) => ({ default: m.AreaChartsPage })));
+const ColumnChartsPage = lazy(() => import('@/pages/charts').then((m) => ({ default: m.ColumnChartsPage })));
+const PieDoughnutChartsPage = lazy(() => import('@/pages/charts').then((m) => ({ default: m.PieDoughnutChartsPage })));
+const RadarChartsPage = lazy(() => import('@/pages/charts').then((m) => ({ default: m.RadarChartsPage })));
+const CandlestickChartsPage = lazy(() => import('@/pages/charts').then((m) => ({ default: m.CandlestickChartsPage })));
 
 // Features (Complex Logic)
-const RuleEnginePage = lazy(() => import('@/pages/features').then(m => ({ default: m.RuleEnginePage })))
-const QueryBuilderPage = lazy(() => import('@/pages/features').then(m => ({ default: m.QueryBuilderPage })))
-const SimulationPage = lazy(() => import('@/pages/features').then(m => ({ default: m.SimulationPage })))
-const InsightsPage = lazy(() => import('@/pages/features').then(m => ({ default: m.InsightsPage })))
-const WorkflowBuilderPage = lazy(() => import('@/pages/features').then(m => ({ default: m.WorkflowBuilderPage })))
-const TaskSchedulerPage = lazy(() => import('@/pages/features').then(m => ({ default: m.TaskSchedulerPage })))
+const RuleEnginePage = lazy(() => import('@/pages/features').then((m) => ({ default: m.RuleEnginePage })));
+const QueryBuilderPage = lazy(() => import('@/pages/features').then((m) => ({ default: m.QueryBuilderPage })));
+const SimulationPage = lazy(() => import('@/pages/features').then((m) => ({ default: m.SimulationPage })));
+const InsightsPage = lazy(() => import('@/pages/features').then((m) => ({ default: m.InsightsPage })));
+const WorkflowBuilderPage = lazy(() => import('@/pages/features').then((m) => ({ default: m.WorkflowBuilderPage })));
+const TaskSchedulerPage = lazy(() => import('@/pages/features').then((m) => ({ default: m.TaskSchedulerPage })));
 
 // Pages
-const PricingPage = lazy(() => import('@/pages/pages').then(m => ({ default: m.PricingPage })))
-const AccountSettingsPage = lazy(() => import('@/pages/pages').then(m => ({ default: m.AccountSettingsPage })))
-const GalleryPage = lazy(() => import('@/pages/pages').then(m => ({ default: m.GalleryPage })))
-const FaqPage = lazy(() => import('@/pages/pages').then(m => ({ default: m.FaqPage })))
-const TypographyGuidePage = lazy(() => import('@/pages/pages').then(m => ({ default: m.TypographyGuidePage })))
-
-// CRM module hosts
-const CrmPilotageCommercialPage = lazy(() => import('@/pages/crm').then(m => ({ default: m.CrmPilotageCommercialPage })))
+const PricingPage = lazy(() => import('@/pages/pages').then((m) => ({ default: m.PricingPage })));
+const AccountSettingsPage = lazy(() => import('@/pages/pages').then((m) => ({ default: m.AccountSettingsPage })));
+const GalleryPage = lazy(() => import('@/pages/pages').then((m) => ({ default: m.GalleryPage })));
+const FaqPage = lazy(() => import('@/pages/pages').then((m) => ({ default: m.FaqPage })));
+const TypographyGuidePage = lazy(() => import('@/pages/pages').then((m) => ({ default: m.TypographyGuidePage })));
 
 // Auth
-const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
-const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then(m => ({ default: m.RegisterPage })))
-const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage').then(m => ({ default: m.ForgotPasswordPage })))
+const LoginPage = lazy(() => import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })));
+const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage').then((m) => ({ default: m.RegisterPage })));
+const ForgotPasswordPage = lazy(() =>
+  import('@/pages/auth/ForgotPasswordPage').then((m) => ({ default: m.ForgotPasswordPage })),
+);
 
 // Errors
-const NotFoundPage = lazy(() => import('@/pages/errors/NotFoundPage').then(m => ({ default: m.NotFoundPage })))
+const NotFoundPage = lazy(() => import('@/pages/errors/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
 // Lazy wrapper helper
 const withSuspense = (Component: React.LazyExoticComponent<React.ComponentType>) => (
   <Suspense fallback={<PageLoader />}>
     <Component />
   </Suspense>
-)
+);
+
+const withCrmHost = (id: string, className: string, label: string) => (
+  <CrmModuleHostPage id={id} className={className} label={label} />
+);
 
 /**
  * Application Router Configuration
@@ -188,7 +192,67 @@ export const router = createBrowserRouter([
           },
           {
             path: 'pilotage-commercial',
-            element: withSuspense(CrmPilotageCommercialPage),
+            element: <CrmPilotageCommercialPage />,
+          },
+          {
+            path: 'conges',
+            element: withCrmHost('crm-leaves-module', 'crm-leaves-module-host', 'Congés'),
+          },
+          {
+            path: 'equipes',
+            element: withCrmHost('crm-teams-module', 'crm-teams-module-host', 'Équipe'),
+          },
+          {
+            path: 'rapport-visite',
+            element: withCrmHost('crm-sales-tours-module', 'crm-sales-tours-module-host', 'Rapport de visite'),
+          },
+          {
+            path: 'tournees-representants',
+            element: withCrmHost('crm-sales-tours-module', 'crm-sales-tours-module-host', 'Rapport de visite'),
+          },
+          {
+            path: 'controle-caisse',
+            element: withCrmHost('crm-cash-control-module', 'crm-cash-control-module-host', 'Contrôle caisse'),
+          },
+          {
+            path: 'demandes-acompte',
+            element: withCrmHost(
+              'crm-deposit-requests-module',
+              'crm-deposit-requests-module-host',
+              "Demande d'acompte",
+            ),
+          },
+          {
+            path: 'remise-cheques',
+            element: withCrmHost(
+              'crm-check-remittance-module',
+              'crm-check-remittance-module-host',
+              'Remise de chèques',
+            ),
+          },
+          {
+            path: 'remise-cheques/:remittance',
+            element: withCrmHost(
+              'crm-check-remittance-module',
+              'crm-check-remittance-module-host',
+              'Remise de chèques',
+            ),
+          },
+          {
+            path: 'pages-crm',
+            element: withCrmHost('crm-pages-root', 'crm-pages-module-host', 'Pages CRM'),
+          },
+          {
+            path: 'pages-crm/:slug',
+            element: withCrmHost('crm-pages-root', 'crm-pages-module-host', 'Pages CRM'),
+          },
+          {
+            path: 'documents',
+            element: <Navigate to="/documents/promo" replace />,
+          },
+          {
+            path: 'documents/:category',
+            element: withCrmHost('crm-documents-module', 'crm-documents-module-host', 'Documents'),
           },
           // Apps
           {
@@ -363,4 +427,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-])
+]);

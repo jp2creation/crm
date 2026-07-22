@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5b07633a1a414bf092bd4db5646aacc9",
+    "content-hash": "a372cb3064fd299480f73800dd8be001",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -279,6 +279,63 @@
                 }
             ],
             "time": "2026-06-14T18:21:03+00:00"
+        },
+        {
+            "name": "brick/money",
+            "version": "0.14.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/brick/money.git",
+                "reference": "55ee503b846f17aa616eb3ffd1ed34785e37e1a8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/brick/money/zipball/55ee503b846f17aa616eb3ffd1ed34785e37e1a8",
+                "reference": "55ee503b846f17aa616eb3ffd1ed34785e37e1a8",
+                "shasum": ""
+            },
+            "require": {
+                "brick/math": "~0.15.0 || ~0.16.0 || ~0.17.0 || ~0.18.0",
+                "php": "^8.2",
+                "psr/simple-cache": "^2.0 || ^3.0"
+            },
+            "require-dev": {
+                "brick/varexporter": "0.7.0",
+                "ext-dom": "*",
+                "ext-pdo": "*",
+                "phpstan/phpstan": "2.1.40",
+                "phpunit/phpunit": "^11.0"
+            },
+            "suggest": {
+                "ext-intl": "Required to format Money objects"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Brick\\Money\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Money and currency library",
+            "keywords": [
+                "brick",
+                "currency",
+                "money"
+            ],
+            "support": {
+                "issues": "https://github.com/brick/money/issues",
+                "source": "https://github.com/brick/money/tree/0.14.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/BenMorel",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-07-14T10:40:54+00:00"
         },
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -988,6 +1045,239 @@
                 }
             ],
             "time": "2025-03-06T22:45:56+00:00"
+        },
+        {
+            "name": "elegantly/filament-kpi",
+            "version": "v5.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ElegantEngineeringTech/filament-kpi.git",
+                "reference": "cdf1a4e99ce073ec4531bfebece455b4d774d972"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ElegantEngineeringTech/filament-kpi/zipball/cdf1a4e99ce073ec4531bfebece455b4d774d972",
+                "reference": "cdf1a4e99ce073ec4531bfebece455b4d774d972",
+                "shasum": ""
+            },
+            "require": {
+                "elegantly/laravel-kpi": "^1.1",
+                "filament/filament": "^5.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.16.0"
+            },
+            "require-dev": {
+                "larastan/larastan": "^2.9",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.1.1",
+                "orchestra/testbench": "^9.0.0",
+                "pestphp/pest": "^3.0",
+                "pestphp/pest-plugin-arch": "^3.0",
+                "pestphp/pest-plugin-laravel": "^3.0",
+                "phpstan/extension-installer": "^1.3",
+                "phpstan/phpstan-deprecation-rules": "^1.1",
+                "phpstan/phpstan-phpunit": "^1.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Elegantly\\FilamentKpi\\FilamentKpiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Elegantly\\FilamentKpi\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Quentin Gabriele",
+                    "email": "quentin.gabriele@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Plugin for elegantly/laravel-kpi",
+            "homepage": "https://github.com/elegantengineeringtech/filament-kpi",
+            "keywords": [
+                "ElegantEngineeringTech",
+                "filament-kpi",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/elegantengineeringtech/filament-kpi/issues",
+                "source": "https://github.com/elegantengineeringtech/filament-kpi"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ElegantEngineeringTech",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-01-18T17:13:15+00:00"
+        },
+        {
+            "name": "elegantly/laravel-kpi",
+            "version": "v1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ElegantEngineeringTech/laravel-kpi.git",
+                "reference": "2e35292d3c9fec65e54e955ccc1f95c70563253d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ElegantEngineeringTech/laravel-kpi/zipball/2e35292d3c9fec65e54e955ccc1f95c70563253d",
+                "reference": "2e35292d3c9fec65e54e955ccc1f95c70563253d",
+                "shasum": ""
+            },
+            "require": {
+                "elegantly/laravel-money": "^4.0",
+                "illuminate/contracts": "^13.0",
+                "php": "^8.3",
+                "spatie/laravel-package-tools": "^1.16",
+                "spatie/php-structure-discoverer": "^2.2"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.1.1",
+                "orchestra/testbench": "^11.0",
+                "pestphp/pest": "^4.0",
+                "pestphp/pest-plugin-arch": "^4.0",
+                "pestphp/pest-plugin-laravel": "^4.0",
+                "phpstan/extension-installer": "^1.4",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "Kpi": "Elegantly\\Kpi\\Facades\\Kpi"
+                    },
+                    "providers": [
+                        "Elegantly\\Kpi\\KpiServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Elegantly\\Kpi\\": "src/",
+                    "Elegantly\\Kpi\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Quentin Gabriele",
+                    "email": "quentin.gabriele@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Advanced KPI for your Laravel application",
+            "homepage": "https://github.com/ElegantEngineeringTech/laravel-kpi",
+            "keywords": [
+                "ElegantEngineeringTech",
+                "Metrics",
+                "kpi",
+                "laravel",
+                "laravel-kpi"
+            ],
+            "support": {
+                "issues": "https://github.com/ElegantEngineeringTech/laravel-kpi/issues",
+                "source": "https://github.com/ElegantEngineeringTech/laravel-kpi/tree/v1.4.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ElegantEngineeringTech",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-05-02T16:55:53+00:00"
+        },
+        {
+            "name": "elegantly/laravel-money",
+            "version": "v4.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ElegantEngineeringTech/laravel-money.git",
+                "reference": "1627df975c3668f5ecacf7c54459812042c22db3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ElegantEngineeringTech/laravel-money/zipball/1627df975c3668f5ecacf7c54459812042c22db3",
+                "reference": "1627df975c3668f5ecacf7c54459812042c22db3",
+                "shasum": ""
+            },
+            "require": {
+                "brick/money": "^0.13.0||^0.14.0",
+                "illuminate/contracts": "^13.0",
+                "php": "^8.3",
+                "spatie/laravel-package-tools": "^1.13.0"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.14",
+                "nunomaduro/collision": "^8.0",
+                "orchestra/testbench": "^11.0",
+                "pestphp/pest": "^4.4",
+                "pestphp/pest-plugin-arch": "^4.0",
+                "pestphp/pest-plugin-laravel": "^4.1",
+                "phpstan/extension-installer": "^1.4.0",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Elegantly\\Money\\MoneyServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Elegantly\\Money\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Quentin Gabriele",
+                    "email": "quentin.gabriele@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Use Brick/Money in your Laravel app",
+            "homepage": "https://github.com/ElegantEngineeringTech/laravel-money",
+            "keywords": [
+                "Elegantly",
+                "laravel",
+                "laravel-money",
+                "money"
+            ],
+            "support": {
+                "issues": "https://github.com/ElegantEngineeringTech/laravel-money/issues",
+                "source": "https://github.com/ElegantEngineeringTech/laravel-money/tree/v4.0.2"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ElegantEngineeringTech",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-07-14T18:31:36+00:00"
         },
         {
             "name": "filament/actions",
@@ -6074,6 +6364,85 @@
                 }
             ],
             "time": "2026-03-17T22:46:46+00:00"
+        },
+        {
+            "name": "spatie/php-structure-discoverer",
+            "version": "2.4.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/php-structure-discoverer.git",
+                "reference": "fa2b7dae8e8a22c0306154c4b052420e054f7e2b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/php-structure-discoverer/zipball/fa2b7dae8e8a22c0306154c4b052420e054f7e2b",
+                "reference": "fa2b7dae8e8a22c0306154c4b052420e054f7e2b",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/collections": "^11.0|^12.0|^13.0",
+                "php": "^8.3",
+                "spatie/laravel-package-tools": "^1.92.7",
+                "symfony/finder": "^6.0|^7.3.5|^8.0"
+            },
+            "require-dev": {
+                "amphp/parallel": "^2.3.2",
+                "illuminate/console": "^11.0|^12.0|^13.0",
+                "nunomaduro/collision": "^7.0|^8.8.3",
+                "orchestra/testbench": "^9.5|^10.8|^11.0",
+                "pestphp/pest": "^3.8|^4.0",
+                "pestphp/pest-plugin-laravel": "^3.2|^4.0",
+                "phpstan/extension-installer": "^1.4.3",
+                "phpstan/phpstan-deprecation-rules": "^1.2.1",
+                "phpstan/phpstan-phpunit": "^1.4.2",
+                "spatie/laravel-ray": "^1.43.1"
+            },
+            "suggest": {
+                "amphp/parallel": "When you want to use the Parallel discover worker"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spatie\\StructureDiscoverer\\StructureDiscovererServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\StructureDiscoverer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ruben Van Assche",
+                    "email": "ruben@spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Automatically discover structures within your PHP application",
+            "homepage": "https://github.com/spatie/php-structure-discoverer",
+            "keywords": [
+                "discover",
+                "laravel",
+                "php",
+                "php-structure-discoverer"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/php-structure-discoverer/issues",
+                "source": "https://github.com/spatie/php-structure-discoverer/tree/2.4.4"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/LaravelAutoDiscoverer",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-06-15T07:14:32+00:00"
         },
         {
             "name": "spatie/shiki-php",
@@ -12375,8 +12744,8 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "ext-gd": "*",
-        "php": "^8.3"
+        "php": "^8.3",
+        "ext-gd": "*"
     },
     "platform-dev": {},
     "platform-overrides": {

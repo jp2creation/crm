@@ -4,7 +4,6 @@
   $crmBodyClass = trim(($crmMobileEmbed ? 'crm-mobile-embed ' : '').($isCrmMobileApp ? 'crm-mobile-app' : ''));
   $crmShellConfig = [
       'assets' => [
-          'legacyAdminexScript' => \App\Support\CrmAsset::url(config('crm_frontend.legacy.adminex_script')),
           'legacyAdminexStylesheet' => \App\Support\CrmAsset::url(config('crm_frontend.legacy.adminex_stylesheet')),
           'brandMorphLoaderStylesheet' => \App\Support\CrmAsset::url('modules/crm-core/brand-morph-loader.css'),
           'logoUrl' => asset('assets/logo/martin-sols-logo.png'),

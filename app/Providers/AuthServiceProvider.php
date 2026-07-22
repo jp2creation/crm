@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\CachedBillingStat;
 use App\Models\CrmEquipmentCategory;
 use App\Models\CrmEquipmentItem;
 use App\Models\CrmEquipmentRental;
@@ -16,6 +17,7 @@ use App\Models\CrmSite;
 use App\Models\CrmUser;
 use App\Models\CrmVehicle;
 use App\Models\User;
+use App\Policies\CachedBillingStatPolicy;
 use App\Policies\CrmEquipmentItemPolicy;
 use App\Policies\CrmEquipmentRentalPolicy;
 use App\Policies\CrmLeaveEntryPolicy;
@@ -46,6 +48,7 @@ class AuthServiceProvider extends ServiceProvider
         CrmSite::class => FilamentAdminPolicy::class,
         CrmUser::class => FilamentAdminPolicy::class,
         CrmVehicle::class => CrmVehiclePolicy::class,
+        CachedBillingStat::class => CachedBillingStatPolicy::class,
     ];
 
     public function boot(): void

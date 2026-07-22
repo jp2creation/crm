@@ -16,7 +16,6 @@ declare global {
     MartinSolsCrmApi?: CrmApiClient;
     MartinSolsCrmAssets?: {
       brandMorphLoaderStylesheet?: string;
-      legacyAdminexScript?: string;
       legacyAdminexStylesheet?: string;
       logoUrl?: string;
     };
@@ -28,8 +27,8 @@ declare global {
     __martinSolsCrmFetchCsrf?: boolean;
     __martinSolsCrmDeadAdminexLinksInstalled?: boolean;
     __martinSolsCrmLegacyAdminexNavigationBridge?: boolean;
-    __martinSolsCrmLegacyAdminexLoading?: Promise<void>;
     __martinSolsCrmModulesLoaded?: boolean;
+    __martinSolsCrmRouteModuleLoaderInstalled?: boolean;
   }
 }
 
@@ -84,7 +83,6 @@ export type CrmRequestOptions = Omit<RequestInit, 'body'> & {
 export type CrmShellConfig = {
   assets: {
     brandMorphLoaderStylesheet: string;
-    legacyAdminexScript: string;
     legacyAdminexStylesheet: string;
     logoUrl: string;
   };

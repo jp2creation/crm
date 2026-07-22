@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+use Elegantly\Kpi\Models\Kpi;
+use Modules\CrmStats\Kpis\BillingInvoicesKpi;
+use Modules\CrmStats\Kpis\BillingNewClientsKpi;
+use Modules\CrmStats\Kpis\BillingRevenueKpi;
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Discover Definitions
+    |--------------------------------------------------------------------------
+    |
+    | If 'enabled' is set to true, your KPI definitions will be automatically
+    | discovered when taking snapshots.
+    | Set the 'path' to specify the directory where your KPI definitions are stored.
+    | Definitions will be discovered from this path and its subdirectories.
+    |
+    */
+    'discover' => [
+        'enabled' => true,
+        /**
+         * This path will be used with the `app_path` helper, like `app_path('Kpis')`.
+         */
+        'path' => 'Kpis',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Registered Definitions
+    |--------------------------------------------------------------------------
+    |
+    | You can manually register your KPI definitions if you are not using
+    | "discover" or if you want to add additional definitions located elsewhere.
+    |
+    */
+    'definitions' => [
+        BillingRevenueKpi::class,
+        BillingInvoicesKpi::class,
+        BillingNewClientsKpi::class,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Model
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define a custom class to use for your Kpi model
+    |
+    */
+    'model' => Kpi::class,
+];

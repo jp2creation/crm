@@ -9,11 +9,16 @@ class CrmFrontendSourceTest extends TestCase
     public function test_crm_shell_is_loaded_from_versioned_vite_source(): void
     {
         $blade = (string) file_get_contents(resource_path('views/crm.blade.php'));
+        $viteConfig = (string) file_get_contents(base_path('vite.config.js'));
 
         $this->assertStringContainsString("@vite(config('crm_frontend.vite_entries'))", $blade);
         $this->assertStringContainsString('id="crm-shell-config"', $blade);
         $this->assertStringContainsString('<div id="root"></div>', $blade);
         $this->assertStringContainsString('meta name="csrf-token"', $blade);
+        $this->assertStringNotContainsString('legacyAdminexScript', $blade);
+        $this->assertStringNotContainsString('resources/frontend/adminex/src/main.tsx', $viteConfig);
+        $this->assertStringNotContainsString('resources/frontend/adminex/src', $viteConfig);
+        $this->assertStringNotContainsString('adminex-ui', $viteConfig);
         $this->assertStringNotContainsString('data-crm-api-csrf', $blade);
         $this->assertStringNotContainsString('data-crm-frontend-assets', $blade);
         $this->assertStringNotContainsString('data-crm-logout-bridge', $blade);
@@ -31,6 +36,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileExists(resource_path('frontend/crm/api/client.ts'));
         $this->assertFileExists(resource_path('frontend/crm/config.ts'));
         $this->assertFileExists(resource_path('frontend/crm/legacy/logout-bridge.ts'));
+        $this->assertFileExists(resource_path('frontend/crm/layout/native-shell.ts'));
         $this->assertFileExists(resource_path('frontend/crm/loader.ts'));
         $this->assertFileExists(resource_path('frontend/crm/mobile/embed-bridge.ts'));
         $this->assertFileExists(resource_path('frontend/crm/mobile/fallback-nav.ts'));
@@ -40,23 +46,36 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileExists(resource_path('frontend/crm/styles/shell.css'));
 
         $shell = (string) file_get_contents(resource_path('frontend/crm/shell.ts'));
+        $nativeShell = (string) file_get_contents(resource_path('frontend/crm/layout/native-shell.ts'));
+        $legacyAdminex = (string) file_get_contents(resource_path('frontend/crm/legacy/adminex.ts'));
         $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
         $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
-        $adminexRoutes = (string) file_get_contents(resource_path('frontend/adminex/src/routes/index.tsx'));
-        $crmModuleHostPage = (string) file_get_contents(resource_path('frontend/adminex/src/pages/crm/CrmModuleHostPage.tsx'));
+        $legacyReactBridge = (string) file_get_contents(resource_path('frontend/crm/legacy/react-components.ts'));
         $legacyAdminexBundle = (string) file_get_contents(resource_path('frontend/static/assets/index-CqSzWeas.js'));
-        $legacyAdminexEntry = (string) file_get_contents(resource_path('frontend/static/assets/legacy-adminex-entry.js'));
 
         $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
+        $this->assertStringContainsString('installNativeCrmShell', $shell);
+        $this->assertStringContainsString('installCurrentCrmModuleRouteLoader', $shell);
         $this->assertStringContainsString('loadCurrentCrmModuleOverlay', $shell);
         $this->assertStringContainsString('preloadRemainingCrmModuleOverlays', $shell);
-        $this->assertStringContainsString('Promise.all([', $shell);
-        $this->assertStringContainsString('loadLegacyAdminex()', $shell);
+        $this->assertStringNotContainsString('loadLegacyAdminex()', $shell);
         $this->assertStringContainsString('loadCurrentCrmModuleOverlay()', $shell);
+        $this->assertStringContainsString('data-crm-native-shell', $nativeShell);
+        $this->assertStringContainsString('layout-sidebar crm-native-sidebar', $nativeShell);
+        $this->assertStringContainsString('layout-header crm-native-header', $nativeShell);
+        $this->assertStringContainsString("fetch('/api/administration?action=profile'", $nativeShell);
+        $this->assertStringContainsString('isLegacyAdminexRoute()', $legacyAdminex);
+        $this->assertStringContainsString('return false;', $legacyAdminex);
+        $this->assertStringNotContainsString('appendModuleScript', $legacyAdminex);
+        $this->assertStringNotContainsString('/reservations', $legacyAdminex);
+        $this->assertStringNotContainsString('/locations-materiel', $legacyAdminex);
         $this->assertStringContainsString("id: 'crm-sales-tours-module'", $hosts);
         $this->assertStringContainsString("paths: ['/rapport-visite', '/tournees-representants']", $hosts);
-        $this->assertStringContainsString("paths: ['/reservations', '/locations-materiel']", $hosts);
-        $this->assertStringContainsString('adminexOnly: true', $hosts);
+        $this->assertStringContainsString("id: 'crm-reservations-module'", $hosts);
+        $this->assertStringContainsString("id: 'crm-equipment-rentals-module'", $hosts);
+        $this->assertStringContainsString("id: 'crm-administration-module'", $hosts);
+        $this->assertStringContainsString("id: 'crm-tapis-romus-module'", $hosts);
+        $this->assertStringNotContainsString('adminexOnly', $hosts);
         $this->assertStringContainsString("prefix: '/documents/'", $hosts);
         $this->assertStringContainsString('refreshStaleRouteOnce', $hosts);
         $this->assertStringContainsString('refreshMissingHostOnce', $hosts);
@@ -71,15 +90,24 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('replaceChildren(host)', $hosts);
         $this->assertStringNotContainsString('document.createElement', $hosts);
         $this->assertStringContainsString('moduleKeysForCurrentPath', $modules);
+        $this->assertStringContainsString('loadCurrentRouteModules', $modules);
+        $this->assertStringContainsString("window.addEventListener('crm:navigation', loadCurrentRouteModules)", $modules);
         $this->assertStringContainsString('requestIdleCallback', $modules);
+        $this->assertStringContainsString('transitionalReactModules', $modules);
+        $this->assertStringContainsString('!transitionalReactModules.has(key)', $modules);
         $this->assertStringContainsString("cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js')", $modules);
-        $this->assertStringContainsString('CrmPilotageCommercialPage', $adminexRoutes);
-        $this->assertStringContainsString("path: 'pilotage-commercial'", $adminexRoutes);
-        $this->assertStringContainsString('id="crm-sales-module"', $crmModuleHostPage);
-        $this->assertStringContainsString('className="crm-sales-module-host"', $crmModuleHostPage);
-        $this->assertStringContainsString('path:`pilotage-commercial`', $legacyAdminexBundle);
-        $this->assertStringContainsString('id:`crm-sales-module`', $legacyAdminexBundle);
-        $this->assertStringContainsString('index-CqSzWeas.js?v=202607211905', $legacyAdminexEntry);
+        $this->assertStringContainsString('mountLegacyReactComponent', $modules);
+        $this->assertStringContainsString("hostId: 'crm-reservations-module'", $modules);
+        $this->assertStringContainsString("hostId: 'crm-equipment-rentals-module'", $modules);
+        $this->assertStringContainsString("hostId: 'crm-administration-module'", $modules);
+        $this->assertStringContainsString("hostId: 'crm-tapis-romus-module'", $modules);
+        $this->assertStringContainsString('__crmReact', $legacyReactBridge);
+        $this->assertStringContainsString('__crmReactDomClient', $legacyReactBridge);
+        $this->assertStringContainsString('j as __crmReact', $legacyAdminexBundle);
+        $this->assertStringContainsString('oi as __crmReactDomClient', $legacyAdminexBundle);
+        $this->assertStringContainsString('tb=null;Xh();export', $legacyAdminexBundle);
+        $this->assertStringNotContainsString('tb=ji([{path:`/`,', $legacyAdminexBundle);
+        $this->assertStringNotContainsString('document.getElementById(`root`)).render', $legacyAdminexBundle);
 
         $mobileFallback = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $shellCss = (string) file_get_contents(resource_path('frontend/crm/styles/shell.css'));
@@ -93,19 +121,23 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('body.crm-mobile-fallback-nav-browser', $shellCss);
     }
 
-    public function test_adminex_source_and_dependencies_are_available_for_migration(): void
+    public function test_transitional_adminex_runtime_is_available_without_router_boot(): void
     {
         $package = json_decode((string) file_get_contents(base_path('package.json')), true, flags: JSON_THROW_ON_ERROR);
+        $legacyRuntime = (string) file_get_contents(resource_path('frontend/static/assets/index-CqSzWeas.js'));
 
-        $this->assertFileExists(resource_path('frontend/adminex/src/main.tsx'));
-        $this->assertFileExists(resource_path('frontend/adminex/src/routes/index.tsx'));
-        $this->assertFileExists(resource_path('frontend/static/assets/legacy-adminex-entry.js'));
         $this->assertFileExists(resource_path('frontend/static/assets/legacy-adminex.css'));
         $this->assertFileExists(resource_path('frontend/static/assets/reservations-CSr_CND1.js'));
         $this->assertFileExists(resource_path('frontend/static/assets/equipment-rentals-Codex2.js'));
+        $this->assertFileExists(resource_path('frontend/static/assets/administration-DvgVMvBV.js'));
+        $this->assertFileExists(resource_path('frontend/static/assets/tapis-romus-CVLfrJx-.js'));
+        $this->assertStringContainsString('j as __crmReact', $legacyRuntime);
+        $this->assertStringContainsString('oi as __crmReactDomClient', $legacyRuntime);
+        $this->assertStringContainsString('tb=null;Xh();export', $legacyRuntime);
+        $this->assertStringNotContainsString('tb=ji([{path:`/`,', $legacyRuntime);
+        $this->assertStringNotContainsString('createRoot)(document.getElementById(`root`))', $legacyRuntime);
         $this->assertArrayHasKey('react', $package['dependencies']);
         $this->assertArrayHasKey('react-dom', $package['dependencies']);
-        $this->assertArrayHasKey('react-router', $package['dependencies']);
         $this->assertArrayHasKey('@vitejs/plugin-react', $package['devDependencies']);
         $this->assertArrayHasKey('typescript', $package['devDependencies']);
         $this->assertArrayHasKey('eslint', $package['devDependencies']);

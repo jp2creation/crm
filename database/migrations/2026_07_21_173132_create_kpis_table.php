@@ -1,0 +1,42 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up()
+    {
+        Schema::create('kpis', function (Blueprint $table) {
+            $table->id();
+
+            $table->string('name');
+            $table->datetime('date');
+
+            $table->string('type');
+
+            $table->decimal('number_value', 14, 4)->nullable();
+
+            $table->string('string_value')->nullable();
+
+            $table->bigInteger('money_value')->nullable();
+            $table->string('money_currency')->nullable();
+
+            $table->json('json_value')->nullable();
+
+            $table->text('description')->nullable(); // store any comment
+            $table->json('metadata')->nullable();
+            $table->json('tags')->nullable();
+
+            $table->index(['name', 'date']);
+
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('kpis');
+    }
+};
