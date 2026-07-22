@@ -57,7 +57,9 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-fast-actions', $reservationAsset);
         $this->assertStringContainsString('grid-template-columns:1fr 1fr', $reservationAsset);
         $this->assertStringContainsString('data-delete-reservation', $reservationAsset);
-        $this->assertStringContainsString('data-resa-see-all', $reservationAsset);
+        $this->assertStringNotContainsString('data-resa-see-all', $reservationAsset);
+        $this->assertStringNotContainsString('Prochaines réservations', $reservationAsset);
+        $this->assertStringNotContainsString('Toutes les réservations à venir', $reservationAsset);
         $this->assertStringContainsString('document.readyState ===', $reservationAsset);
 
         $this->assertStringContainsString("id: 'crm-reservations-module'", $hosts);

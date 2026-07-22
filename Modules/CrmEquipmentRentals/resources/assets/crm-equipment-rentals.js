@@ -107,9 +107,17 @@
       );
   }
 
+  function siteItemsWithoutCategory() {
+    const id = siteId();
+
+    return (state.data?.equipmentItems || []).filter((item) => Number(item.siteId) === id && item.active !== false);
+  }
+
   function selectedItem() {
     const items = siteItems();
-    return items.find((item) => Number(item.id) === Number(state.selectedItemId)) || items[0] || null;
+    if (!state.selectedItemId) return null;
+
+    return items.find((item) => Number(item.id) === Number(state.selectedItemId)) || null;
   }
 
   function rentals() {
@@ -185,7 +193,7 @@
     const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
-      #${rootId}{--rent-primary:rgb(var(--theme-primary,149 0 46));--rent-border:var(--color-surface-200,#e2e8f0);--rent-text:var(--color-secondary-900,#0f172a);--rent-muted:var(--color-secondary-500,#64748b);--rent-green:#16a34a;--rent-red:#dc2626;--rent-blue:#4f6df5;display:grid;gap:1rem}
+      #${rootId}{--rent-primary:rgb(var(--theme-primary,149 0 46));--rent-border:var(--color-surface-200,#e4e9f1);--rent-soft:#f7f9fc;--rent-text:var(--color-secondary-900,#223957);--rent-muted:var(--color-secondary-500,#64748b);--rent-green:#16a34a;--rent-red:#dc2626;--rent-blue:#4f6df5;display:grid;gap:1rem}
       #${rootId} *{box-sizing:border-box}
       #${rootId} svg{width:1.05rem;height:1.05rem;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
       #${rootId} .rent-top{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
@@ -194,7 +202,7 @@
       #${rootId} .rent-button{display:inline-flex;align-items:center;justify-content:center;gap:.42rem;min-height:2.45rem;border:1px solid var(--rent-border);border-radius:.5rem;background:#fff;padding:.58rem .9rem;color:var(--rent-text);font-size:.84rem;font-weight:900;text-decoration:none;cursor:pointer;box-shadow:0 10px 24px rgba(15,23,42,.04)}
       #${rootId} .rent-button-primary{border-color:transparent;background:var(--rent-primary);color:#fff}
       #${rootId} .rent-button-danger{color:#b91c1c}
-      #${rootId} .rent-card{border:1px solid var(--rent-border);border-radius:.6rem;background:#fff;box-shadow:0 12px 28px rgba(15,23,42,.05)}
+      #${rootId} .rent-card{border:1px solid var(--rent-border);border-radius:1rem;background:#fff;box-shadow:0 16px 42px rgba(15,23,42,.055)}
       #${rootId} .rent-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:.8rem;border-bottom:1px solid var(--rent-border);padding:.92rem 1rem}
       #${rootId} .rent-card-title{margin:0;color:var(--rent-text);font-size:1rem;font-weight:950}
       #${rootId} .rent-card-subtitle{margin:.18rem 0 0;color:var(--rent-muted);font-size:.78rem;font-weight:750}
@@ -203,22 +211,24 @@
       #${rootId} .rent-planning-header>div{min-width:0}
       #${rootId} .rent-nav-button{width:2.75rem;min-height:2.75rem;padding:0;border-radius:.65rem}
       #${rootId} .rent-nav-button svg{margin:0}
+      #${rootId} .rent-resources{display:grid;gap:.85rem}
+      #${rootId} .rent-resources-head{display:flex;align-items:center;justify-content:flex-end;gap:.75rem}
       #${rootId} .rent-items{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.85rem}
-      #${rootId} .rent-product-card{overflow:hidden;border:1px solid var(--rent-border);border-radius:.55rem;background:#fff;text-align:left;cursor:pointer;box-shadow:0 10px 24px rgba(15,23,42,.06);transition:transform .15s ease,box-shadow .15s ease}
-      #${rootId} .rent-product-card:hover,#${rootId} .rent-product-card.is-active{transform:translateY(-1px);box-shadow:0 16px 32px rgba(149,0,46,.13)}
-      #${rootId} .rent-product-image{position:relative;display:grid;place-items:center;aspect-ratio:1.45/1;background:linear-gradient(135deg,#f7e8ee,#f3edf0);color:var(--rent-primary);font-size:1.35rem;font-weight:950;overflow:hidden}
+      #${rootId} .rent-product-card{position:relative;display:flex;min-width:0;flex-direction:column;overflow:hidden;border:1px solid var(--rent-border);border-radius:.75rem;background:#fff;text-align:left;cursor:pointer;box-shadow:0 14px 34px rgba(15,23,42,.055);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+      #${rootId} .rent-product-card:hover,#${rootId} .rent-product-card.is-active{border-color:rgba(149,0,46,.55);transform:translateY(-1px);box-shadow:0 16px 36px rgba(15,23,42,.08)}
+      #${rootId} .rent-product-card:focus-visible{outline:3px solid rgba(149,0,46,.2);outline-offset:2px}
+      #${rootId} .rent-product-image{position:relative;display:grid;place-items:center;aspect-ratio:4/3;background:var(--color-surface-100,#f1f5f9);color:var(--rent-primary);font-size:1.35rem;font-weight:950;overflow:hidden}
       #${rootId} .rent-product-image img{width:100%;height:100%;object-fit:cover}
       #${rootId} .rent-dot{position:absolute;right:.62rem;top:.62rem;width:.72rem;height:.72rem;border-radius:999px;background:var(--rent-green);box-shadow:0 0 0 3px #fff}
       #${rootId} .rent-dot.is-busy{background:var(--rent-red)}
-      #${rootId} .rent-product-body{padding:.72rem .78rem}
-      #${rootId} .rent-product-name{display:block;color:var(--rent-text);font-size:.92rem;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      #${rootId} .rent-product-meta{display:block;margin-top:.25rem;color:var(--rent-primary);font-size:.76rem;font-weight:950;text-align:right}
+      #${rootId} .rent-product-body{display:flex;min-height:3.9rem;flex:1;flex-direction:column;gap:.35rem;padding:.65rem .75rem .7rem}
+      #${rootId} .rent-product-name{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:var(--rent-text);font-size:.9rem;font-weight:900;line-height:1.2}
+      #${rootId} .rent-product-meta{display:flex;justify-content:flex-end;margin-top:auto;color:var(--rent-primary);font-size:.7rem;font-weight:900}
       #${rootId} .rent-toolbar{display:grid;gap:.75rem}
       #${rootId} .rent-legend{display:flex;align-items:center;justify-content:center;gap:.65rem;flex-wrap:wrap}
-      #${rootId} .rent-segment{display:inline-grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--rent-border);border-radius:.55rem;overflow:hidden;background:#fff}
-      #${rootId} .rent-segment button{border:0;border-right:1px solid var(--rent-border);background:transparent;padding:.55rem .85rem;color:var(--rent-text);font-size:.78rem;font-weight:900;cursor:pointer}
-      #${rootId} .rent-segment button:last-child{border-right:0}
-      #${rootId} .rent-segment button.is-active{background:var(--rent-primary);color:#fff}
+      #${rootId} .rent-segment{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.25rem;border:1px solid var(--rent-border);border-radius:.8rem;background:var(--rent-soft);padding:.22rem}
+      #${rootId} .rent-segment button{min-width:0;border:0;border-radius:.58rem;background:transparent;padding:.55rem .85rem;color:var(--rent-muted);font-size:.78rem;font-weight:900;cursor:pointer}
+      #${rootId} .rent-segment button.is-active{background:var(--rent-primary);color:#fff;box-shadow:0 8px 16px rgba(149,0,46,.18)}
       #${rootId} select,#${rootId} input,#${rootId} textarea{width:100%;border:1px solid var(--rent-border);border-radius:.5rem;background:#fff;padding:.65rem .72rem;color:var(--rent-text);font:inherit;font-size:.86rem;font-weight:750}
       #${rootId} textarea{min-height:5.6rem;resize:vertical}
       #${rootId} label{display:grid;gap:.28rem;color:var(--rent-muted);font-size:.72rem;font-weight:950;text-transform:uppercase}
@@ -231,7 +241,7 @@
       #${rootId} .rent-period-afternoon{background:#ff5c57}
       #${rootId} .rent-period-day{background:#4f6df5}
       #${rootId} .rent-period.is-reserved{background:var(--rent-red)}
-      #${rootId} .rent-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--rent-border);border-radius:.6rem;overflow:hidden}
+      #${rootId} .rent-month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--rent-border);border-radius:0 0 1rem 1rem;overflow:hidden}
       #${rootId} .rent-month-head,#${rootId} .rent-month-cell{min-height:4.2rem;border-right:1px solid var(--rent-border);border-bottom:1px solid var(--rent-border);padding:.52rem}
       #${rootId} .rent-month-head{min-height:auto;background:#f8fafc;color:var(--rent-muted);font-size:.72rem;font-weight:950;text-align:center;text-transform:uppercase}
       #${rootId} .rent-month-cell:nth-child(7n){border-right:0}
@@ -266,7 +276,7 @@
       .dark #${rootId} .rent-card,.dark #${rootId} .rent-button,.dark #${rootId} .rent-product-card,.dark #${rootId} .rent-row,.dark #${rootId} .rent-dialog,.dark #${rootId} input,.dark #${rootId} select,.dark #${rootId} textarea{background:var(--color-surface-900,#0f172a);border-color:var(--rent-border)}
       .dark #${rootId} .rent-summary,.dark #${rootId} .rent-month-head{background:var(--color-surface-800,#1e293b)}
       @media (max-width:1100px){#${rootId} .rent-items{grid-template-columns:repeat(3,minmax(0,1fr))}}
-      @media (max-width:760px){#${rootId}{gap:.85rem}#${rootId} .rent-top{display:grid;align-items:start}#${rootId} .rent-title h1{font-size:1.55rem}#${rootId} .rent-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .rent-product-image{aspect-ratio:1.35/1;font-size:1.15rem}#${rootId} .rent-product-body{padding:.62rem}#${rootId} .rent-top .rent-button,#${rootId} .rent-actions .rent-button{width:100%}#${rootId} .rent-nav-button{width:2.75rem;min-height:2.75rem}#${rootId} .rent-periods{grid-template-columns:1fr}#${rootId} .rent-month-head,#${rootId} .rent-month-cell{padding:.38rem;min-height:3.45rem}#${rootId} .rent-row{grid-template-columns:1fr}#${rootId} .rent-form-grid{grid-template-columns:1fr}#${rootId} .rent-actions{grid-template-columns:1fr 1fr}#${rootId} .rent-dialog{max-height:82vh}}
+      @media (max-width:760px){#${rootId}{gap:.85rem}#${rootId} .rent-top{display:grid;align-items:start}#${rootId} .rent-title h1{font-size:1.82rem;line-height:1.08}#${rootId} .rent-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}#${rootId} .rent-product-image{aspect-ratio:4/3;font-size:1.15rem}#${rootId} .rent-product-body{padding:.65rem .75rem .7rem}#${rootId} .rent-segment{width:100%}#${rootId} .rent-top .rent-button,#${rootId} .rent-actions .rent-button{width:100%}#${rootId} .rent-nav-button{width:2.75rem;min-height:2.75rem}#${rootId} .rent-periods{grid-template-columns:1fr}#${rootId} .rent-month-head,#${rootId} .rent-month-cell{padding:.38rem .18rem;min-height:3.85rem;text-align:center}#${rootId} .rent-month-cell button{align-items:center;text-align:center}#${rootId} .rent-row{grid-template-columns:1fr}#${rootId} .rent-form-grid{grid-template-columns:1fr}#${rootId} .rent-actions{grid-template-columns:1fr 1fr}#${rootId} .rent-dialog{max-height:82vh}}
     `;
     document.head.appendChild(style);
   }
@@ -318,49 +328,45 @@
           <h1>Location matériel</h1>
           <p>${esc(site?.name || 'Site actif')} · Planning matériel</p>
         </div>
-        <button class="rent-button rent-button-primary" type="button" data-rent-new>${icon('plus')}Nouvelle réservation</button>
+        ${item ? `<button class="rent-button rent-button-primary" type="button" data-rent-new>${icon('plus')}Nouvelle réservation</button>` : ''}
       </div>
-      <section class="rent-card">
-        <header class="rent-card-header">
-          <div>
-            <h2 class="rent-card-title">Matériel du site</h2>
-            <p class="rent-card-subtitle">Sélectionnez une machine pour afficher son planning</p>
-          </div>
-          <span class="rent-badge">${items.length}</span>
-        </header>
-        <div class="rent-card-body">
-          <select data-category-filter aria-label="Catégorie matériel">
-            <option value="all">Toutes catégories</option>
-            ${(state.data?.equipmentCategories || []).map((category) => `<option value="${esc(category.id)}"${String(category.id) === String(state.selectedCategoryId) ? ' selected' : ''}>${esc(category.name)}</option>`).join('')}
-          </select>
-          ${items.length ? `<div class="rent-items">${items.map(renderItemCard).join('')}</div>` : `<div class="rent-empty">Aucun matériel sur ce site.</div>`}
+      ${renderResources(items)}
+      ${item ? renderPlanningSections(item) : ''}
+      ${state.modal ? renderModal() : ''}
+    `;
+  }
+
+  function renderResources(items) {
+    return `
+      <section class="rent-resources" data-rent-resources>
+        <div class="rent-resources-head">
+          <span class="rent-badge">${items.length}/${siteItemsWithoutCategory().length}</span>
         </div>
+        <select data-category-filter aria-label="Catégorie matériel">
+          <option value="all">Toutes catégories</option>
+          ${(state.data?.equipmentCategories || []).map((category) => `<option value="${esc(category.id)}"${String(category.id) === String(state.selectedCategoryId) ? ' selected' : ''}>${esc(category.name)}</option>`).join('')}
+        </select>
+        ${items.length ? `<div class="rent-items">${items.map(renderItemCard).join('')}</div>` : `<div class="rent-empty">Aucun matériel sur ce site.</div>`}
       </section>
-      <section class="rent-card rent-planning-card">
+    `;
+  }
+
+  function renderPlanningSections(item) {
+    return `
+      <section class="rent-card rent-planning-card" data-rent-planning>
         <header class="rent-card-header rent-planning-header">
           <button class="rent-button rent-nav-button" type="button" data-prev aria-label="Période précédente">${icon('chevron-left')}</button>
           <div>
             <h2 class="rent-card-title">${state.view === 'month' ? monthLabel(state.month) : dateLabel(state.selectedDate)}</h2>
-            <p class="rent-card-subtitle">Planning ${esc(item?.name || 'matériel')}</p>
+            <p class="rent-card-subtitle">Planning ${esc(item.name || 'matériel')}</p>
           </div>
           <button class="rent-button rent-nav-button" type="button" data-next aria-label="Période suivante">${icon('chevron-right')}</button>
         </header>
         <div class="rent-card-body">
           ${renderToolbar()}
-          ${item ? (state.view === 'month' ? renderMonth(item) : renderDay(item)) : `<div class="rent-empty">Choisissez un matériel pour afficher son planning.</div>`}
+          ${state.view === 'month' ? renderMonth(item) : renderDay(item)}
         </div>
       </section>
-      <section class="rent-card">
-        <header class="rent-card-header">
-          <div>
-            <h2 class="rent-card-title">Prochaines locations</h2>
-            <p class="rent-card-subtitle">Locations à venir du matériel sélectionné</p>
-          </div>
-          <button class="rent-button" type="button" data-rent-see-all>Voir tout</button>
-        </header>
-        <div class="rent-card-body">${renderUpcoming(item, false)}</div>
-      </section>
-      ${state.modal ? renderModal() : ''}
     `;
   }
 
@@ -461,46 +467,7 @@
     `;
   }
 
-  function renderUpcoming(item, all) {
-    const today = `${formatDate(new Date())}T00:00`;
-    const rows = (item ? itemRentals(item.id) : rentals())
-      .filter((rental) => String(rental.endAt) >= today)
-      .slice(0, all ? 200 : 5);
-
-    if (!rows.length) return `<div class="rent-empty">Aucune location à venir.</div>`;
-
-    return `<div class="rent-list">${rows.map(renderRentalRow).join('')}</div>`;
-  }
-
-  function renderRentalRow(rental) {
-    const item = rentalItem(rental);
-
-    return `
-      <button class="rent-row" type="button" data-open-rental="${esc(rental.id)}">
-        <span>
-          <strong>${esc(item?.name || rental.title || 'Location matériel')}</strong>
-          <span>${esc(dateLabel(rental.startAt))} · ${esc(timeLabel(rental.startAt))} - ${esc(timeLabel(rental.endAt))}</span>
-        </span>
-        <span class="rent-badge">${esc(periodName(rental.slot, rental.periodType))}</span>
-      </button>
-    `;
-  }
-
   function renderModal() {
-    if (state.modal?.type === 'list') {
-      return `
-        <div class="rent-modal" data-modal-close>
-          <section class="rent-dialog" role="dialog" aria-modal="true" aria-label="Toutes les locations">
-            <header class="rent-dialog-header">
-              <h2 class="rent-dialog-title">Toutes les locations à venir</h2>
-              <button class="rent-close" type="button" data-modal-close>${icon('x')}</button>
-            </header>
-            <div class="rent-form">${renderUpcoming(selectedItem(), true)}</div>
-          </section>
-        </div>
-      `;
-    }
-
     const rental = state.modal?.rental || null;
     const item = rental ? rentalItem(rental) : selectedItem();
     const date = String(state.modal?.date || rental?.startAt || state.selectedDate).slice(0, 10);
@@ -557,7 +524,7 @@
   function bind(root) {
     root.querySelector('[data-category-filter]')?.addEventListener('change', (event) => {
       state.selectedCategoryId = event.currentTarget.value;
-      state.selectedItemId = siteItems()[0]?.id || null;
+      state.selectedItemId = null;
       render();
     });
 
@@ -595,10 +562,6 @@
     root.querySelector('[data-prev]')?.addEventListener('click', () => movePeriod(-1));
     root.querySelector('[data-next]')?.addEventListener('click', () => movePeriod(1));
     root.querySelector('[data-rent-new]')?.addEventListener('click', () => openNewRental());
-    root.querySelector('[data-rent-see-all]')?.addEventListener('click', () => {
-      state.modal = { type: 'list' };
-      render();
-    });
 
     root.querySelectorAll('[data-date]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -618,10 +581,6 @@
         state.modal = { type: 'form', date: state.selectedDate, period: button.dataset.period };
         render();
       });
-    });
-
-    root.querySelectorAll('[data-open-rental]').forEach((button) => {
-      button.addEventListener('click', () => openRental(Number(button.dataset.openRental)));
     });
 
     root.querySelectorAll('[data-modal-close]').forEach((node) => {
@@ -650,6 +609,8 @@
   }
 
   function openNewRental() {
+    if (!selectedItem()) return;
+
     state.modal = { type: 'form', date: state.selectedDate, period: 'morning' };
     render();
   }
@@ -727,7 +688,7 @@
 
       state.data = payload;
       if (!siteItems().some((item) => Number(item.id) === Number(state.selectedItemId))) {
-        state.selectedItemId = siteItems()[0]?.id || null;
+        state.selectedItemId = null;
       }
     } catch (error) {
       if (sequence === loadSequence) state.error = error.message || 'Connexion aux données locations indisponible';

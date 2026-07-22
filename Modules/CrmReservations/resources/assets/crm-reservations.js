@@ -351,16 +351,6 @@
           ${renderSelectionPanel(vehicle)}
         </div>
       </section>
-      <section class="resa-card">
-        <header class="resa-card-header">
-          <div>
-            <h2 class="resa-card-title">Prochaines réservations</h2>
-            <p class="resa-card-subtitle">Réservations à venir du véhicule sélectionné</p>
-          </div>
-          <button class="resa-button" type="button" data-resa-see-all>Voir tout</button>
-        </header>
-        <div class="resa-card-body">${renderUpcoming(vehicle, false)}</div>
-      </section>
       ${state.modal ? renderModal() : ''}
     `;
   }
@@ -496,46 +486,7 @@
     `;
   }
 
-  function renderUpcoming(vehicle, all) {
-    const today = `${formatDate(new Date())}T00:00`;
-    const rows = (vehicle ? vehicleReservations(vehicle.id) : reservations())
-      .filter((reservation) => String(reservation.endAt) >= today)
-      .slice(0, all ? 200 : 5);
-
-    if (!rows.length) return `<div class="resa-empty">Aucune réservation à venir.</div>`;
-
-    return `<div class="resa-list">${rows.map(renderReservationRow).join('')}</div>`;
-  }
-
-  function renderReservationRow(reservation) {
-    const vehicle = reservationVehicle(reservation);
-
-    return `
-      <button class="resa-row" type="button" data-open-reservation="${esc(reservation.id)}">
-        <span>
-          <strong>${esc(vehicle?.name || reservation.title || 'Réservation')}</strong>
-          <span>${esc(dateLabel(reservation.startAt))} · ${esc(timeLabel(reservation.startAt))} - ${esc(timeLabel(reservation.endAt))}</span>
-        </span>
-        <span class="resa-badge">${esc(reservation.userName || 'CRM')}</span>
-      </button>
-    `;
-  }
-
   function renderModal() {
-    if (state.modal?.type === 'list') {
-      return `
-        <div class="resa-modal" data-modal-close>
-          <section class="resa-dialog" role="dialog" aria-modal="true" aria-label="Toutes les réservations">
-            <header class="resa-dialog-header">
-              <h2 class="resa-dialog-title">Toutes les réservations à venir</h2>
-              <button class="resa-close" type="button" data-modal-close>${icon('x')}</button>
-            </header>
-            <div class="resa-form">${renderUpcoming(selectedVehicle(), true)}</div>
-          </section>
-        </div>
-      `;
-    }
-
     const reservation = state.modal?.reservation || null;
     const vehicle = reservation ? reservationVehicle(reservation) : selectedVehicle();
     const isEdit = Boolean(reservation);
@@ -620,10 +571,6 @@
     root.querySelector('[data-prev]')?.addEventListener('click', () => movePeriod(-1));
     root.querySelector('[data-next]')?.addEventListener('click', () => movePeriod(1));
     root.querySelector('[data-resa-new]')?.addEventListener('click', () => openNewReservation());
-    root.querySelector('[data-resa-see-all]')?.addEventListener('click', () => {
-      state.modal = { type: 'list' };
-      render();
-    });
 
     root.querySelectorAll('[data-date]').forEach((button) => {
       button.addEventListener('click', () => {
@@ -643,10 +590,6 @@
 
         chooseSlot(button.dataset.slotStart, button.dataset.slotEnd);
       });
-    });
-
-    root.querySelectorAll('[data-open-reservation]').forEach((button) => {
-      button.addEventListener('click', () => openReservation(Number(button.dataset.openReservation)));
     });
 
     root.querySelector('[data-selection-clear]')?.addEventListener('click', () => {

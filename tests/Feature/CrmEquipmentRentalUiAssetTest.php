@@ -23,6 +23,12 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $this->assertStringContainsString('canDeleteRental', $equipmentAsset);
         $this->assertStringContainsString('equipment_rentals.delete_own', $equipmentAsset);
         $this->assertStringContainsString('equipment_rentals.delete_any', $equipmentAsset);
+        $this->assertStringContainsString('if (!state.selectedItemId) return null;', $equipmentAsset);
+        $this->assertStringContainsString('siteItemsWithoutCategory', $equipmentAsset);
+        $this->assertStringContainsString('renderPlanningSections(item)', $equipmentAsset);
+        $this->assertStringContainsString('data-rent-planning', $equipmentAsset);
+        $this->assertStringContainsString('state.selectedItemId = null;', $equipmentAsset);
+        $this->assertStringNotContainsString('|| items[0] || null', $equipmentAsset);
         $this->assertStringContainsString('rent-period-morning', $equipmentAsset);
         $this->assertStringContainsString('rent-period-afternoon', $equipmentAsset);
         $this->assertStringContainsString('rent-period-day', $equipmentAsset);
@@ -39,7 +45,9 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $this->assertStringContainsString('periodType: "day"', $equipmentAsset);
         $this->assertStringContainsString('slot: "full_day"', $equipmentAsset);
         $this->assertStringContainsString('Toutes catégories', $equipmentAsset);
-        $this->assertStringContainsString('data-rent-see-all', $equipmentAsset);
+        $this->assertStringNotContainsString('data-rent-see-all', $equipmentAsset);
+        $this->assertStringNotContainsString('Prochaines locations', $equipmentAsset);
+        $this->assertStringNotContainsString('Toutes les locations à venir', $equipmentAsset);
         $this->assertStringContainsString('data-delete-rental', $equipmentAsset);
         $this->assertStringContainsString('rent-summary-image', $equipmentAsset);
         $this->assertStringContainsString('document.readyState ===', $equipmentAsset);
