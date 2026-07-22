@@ -239,6 +239,7 @@ body.crm-native-shell-active {
   display: flex;
   min-height: 4rem;
   align-items: center;
+  gap: 0.75rem;
   border: 0;
   border-top: 1px solid rgb(226 232 240);
   background: #fff;
@@ -249,6 +250,14 @@ body.crm-native-shell-active {
   font-weight: 500;
   text-align: left;
   cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.crm-native-logout:hover {
+  background: var(--color-surface-100, #f4f4f5);
+  color: rgb(29 53 79);
 }
 
 .crm-native-body {

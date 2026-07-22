@@ -103,20 +103,41 @@ function iconSvg(path: string): string {
 function iconForKey(iconKey?: string): string {
   const icons: Record<string, string> = {
     article: iconSvg('<path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v5h5"></path><path d="M10 12h6M10 16h5"></path>'),
-    banknote: iconSvg('<rect x="3" y="6" width="18" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle><path d="M6 9h1M17 15h1"></path>'),
-    bus: iconSvg('<rect x="5" y="3" width="14" height="14" rx="3"></rect><path d="M8 7h8M8 11h8M8 17v2M16 17v2"></path><circle cx="8.5" cy="14" r=".5"></circle><circle cx="15.5" cy="14" r=".5"></circle>'),
+    banknote: iconSvg(
+      '<rect x="3" y="6" width="18" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle><path d="M6 9h1M17 15h1"></path>',
+    ),
+    bus: iconSvg(
+      '<rect x="5" y="3" width="14" height="14" rx="3"></rect><path d="M8 7h8M8 11h8M8 17v2M16 17v2"></path><circle cx="8.5" cy="14" r=".5"></circle><circle cx="15.5" cy="14" r=".5"></circle>',
+    ),
     calendar: iconSvg('<rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M4 10h16"></path>'),
-    category: iconSvg('<rect x="4" y="4" width="6" height="6" rx="1.5"></rect><rect x="14" y="4" width="6" height="6" rx="1.5"></rect><rect x="4" y="14" width="6" height="6" rx="1.5"></rect><rect x="14" y="14" width="6" height="6" rx="1.5"></rect>'),
-    checklist: iconSvg('<path d="m8 7 1.6 1.6L13 5"></path><path d="M16 7h4"></path><path d="m8 15 1.6 1.6L13 13"></path><path d="M16 15h4"></path><path d="M4 7h.01M4 15h.01"></path>'),
+    category: iconSvg(
+      '<rect x="4" y="4" width="6" height="6" rx="1.5"></rect><rect x="14" y="4" width="6" height="6" rx="1.5"></rect><rect x="4" y="14" width="6" height="6" rx="1.5"></rect><rect x="14" y="14" width="6" height="6" rx="1.5"></rect>',
+    ),
+    checklist: iconSvg(
+      '<path d="m8 7 1.6 1.6L13 5"></path><path d="M16 7h4"></path><path d="m8 15 1.6 1.6L13 13"></path><path d="M16 15h4"></path><path d="M4 7h.01M4 15h.01"></path>',
+    ),
     creditCard: iconSvg('<rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18M7 15h4"></path>'),
-    dashboard: iconSvg('<rect x="4" y="4" width="6" height="6" rx="1.5"></rect><rect x="14" y="4" width="6" height="6" rx="1.5"></rect><rect x="4" y="14" width="6" height="6" rx="1.5"></rect><rect x="14" y="14" width="6" height="6" rx="1.5"></rect>'),
-    fileText: iconSvg('<path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v5h5"></path><path d="M10 13h6M10 17h4"></path>'),
+    dashboard: iconSvg(
+      '<rect x="4" y="4" width="6" height="6" rx="1.5"></rect><rect x="14" y="4" width="6" height="6" rx="1.5"></rect><rect x="4" y="14" width="6" height="6" rx="1.5"></rect><rect x="14" y="14" width="6" height="6" rx="1.5"></rect>',
+    ),
+    fileText: iconSvg(
+      '<path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v5h5"></path><path d="M10 13h6M10 17h4"></path>',
+    ),
+    logout: iconSvg(
+      '<path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M21 19V5a2 2 0 0 0-2-2h-6"></path><path d="M13 21h6a2 2 0 0 0 2-2"></path>',
+    ),
     package: iconSvg('<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"></path><path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path>'),
     ruler: iconSvg('<path d="M4 17 17 4l3 3L7 20z"></path><path d="m14 7 3 3M11 10l2 2M8 13l3 3"></path>'),
-    settings: iconSvg('<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"></path><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"></path>'),
+    settings: iconSvg(
+      '<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"></path><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"></path>',
+    ),
     table: iconSvg('<path d="M4 6h16M4 12h16M4 18h16"></path><path d="M8 6v12M16 6v12"></path>'),
-    truck: iconSvg('<path d="M3 7h11v8H3z"></path><path d="M14 10h3l3 3v2h-6z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle>'),
-    users: iconSvg('<path d="M16 11a4 4 0 1 0-8 0"></path><path d="M4 21a8 8 0 0 1 16 0"></path><path d="M18 8a3 3 0 0 1 3 3M6 8a3 3 0 0 0-3 3"></path>'),
+    truck: iconSvg(
+      '<path d="M3 7h11v8H3z"></path><path d="M14 10h3l3 3v2h-6z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle>',
+    ),
+    users: iconSvg(
+      '<path d="M16 11a4 4 0 1 0-8 0"></path><path d="M4 21a8 8 0 0 1 16 0"></path><path d="M18 8a3 3 0 0 1 3 3M6 8a3 3 0 0 0-3 3"></path>',
+    ),
   };
 
   return icons[iconKey || ''] || iconSvg('<circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path>');
@@ -314,7 +335,10 @@ function shellHtml(route: CrmHostRoute | null): string {
     `<img src="${esc(logoUrl())}" alt="Martin Sols">`,
     '</a>',
     `<nav class="crm-native-nav">${menuGroupsHtml()}</nav>`,
-    '<button class="crm-native-logout" type="button" data-crm-native-logout>Se déconnecter</button>',
+    '<button class="crm-native-logout" type="button" data-crm-native-logout>',
+    `<span class="crm-native-nav-icon">${iconForKey('logout')}</span>`,
+    '<span class="crm-native-nav-label">Se déconnecter</span>',
+    '</button>',
     '</aside>',
     '<button class="crm-native-backdrop" type="button" data-crm-native-sidebar-close aria-label="Fermer le menu"></button>',
     '<div class="crm-native-body">',

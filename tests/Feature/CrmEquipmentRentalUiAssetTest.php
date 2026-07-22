@@ -11,6 +11,7 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $equipmentAsset = (string) file_get_contents(base_path('Modules/CrmEquipmentRentals/resources/assets/crm-equipment-rentals.js'));
         $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
         $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
+        $equipmentAsset = str_replace("'", '"', $equipmentAsset);
 
         $this->assertStringContainsString('const api = "/api/equipment-rentals"', $equipmentAsset);
         $this->assertStringNotContainsString('/api/equipment-rentals.php', $equipmentAsset);
@@ -25,10 +26,13 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $this->assertStringContainsString('rent-period-morning', $equipmentAsset);
         $this->assertStringContainsString('rent-period-afternoon', $equipmentAsset);
         $this->assertStringContainsString('rent-period-day', $equipmentAsset);
-        $this->assertStringContainsString('window.MartinSolsUi.renderProductGrid', $equipmentAsset);
-        $this->assertStringContainsString('window.MartinSolsUi.renderSegmentControl', $equipmentAsset);
-        $this->assertStringContainsString('value: "today"', $equipmentAsset);
+        $this->assertStringNotContainsString('window.MartinSolsUi.renderProductGrid', $equipmentAsset);
+        $this->assertStringNotContainsString('window.MartinSolsUi.renderSegmentControl', $equipmentAsset);
+        $this->assertStringContainsString('view: "month"', $equipmentAsset);
+        $this->assertStringContainsString('rent-planning-header', $equipmentAsset);
+        $this->assertStringContainsString('rent-month-dots', $equipmentAsset);
         $this->assertStringContainsString('data-view="today"', $equipmentAsset);
+        $this->assertStringContainsString('data-view="today" class=""', $equipmentAsset);
         $this->assertStringContainsString('state.month = new Date(today.getFullYear(), today.getMonth(), 1)', $equipmentAsset);
         $this->assertStringContainsString('rentalPeriods', $equipmentAsset);
         $this->assertStringContainsString('periodPayload', $equipmentAsset);

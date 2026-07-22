@@ -1,20 +1,20 @@
 (() => {
-  const api = "/api/reservations";
-  const rootId = "crm-reservations-module";
-  const styleId = "crm-reservations-style";
-  const activeSiteEvent = "crm:active-site-changed";
-  const activeSiteStorageKey = "crm:active-site-id";
-  const routeEvents = ["popstate", "crm:navigation", "crm:route-changed"];
-  const routePrefixes = ["/reservations"];
+  const api = '/api/reservations';
+  const rootId = 'crm-reservations-module';
+  const styleId = 'crm-reservations-style';
+  const activeSiteEvent = 'crm:active-site-changed';
+  const activeSiteStorageKey = 'crm:active-site-id';
+  const routeEvents = ['popstate', 'crm:navigation', 'crm:route-changed'];
+  const routePrefixes = ['/reservations'];
 
   const state = {
     data: null,
     loading: false,
-    error: "",
+    error: '',
     selectedVehicleId: null,
     selectedDate: formatDate(new Date()),
     month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    view: "day",
+    view: 'month',
     modal: null,
     selection: null,
   };
@@ -23,33 +23,36 @@
   let loadSequence = 0;
 
   function isRoute() {
-    const path = window.location.pathname.replace(/\/+$/, "") || "/";
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
     return routePrefixes.some((route) => path === route || path.startsWith(`${route}/`));
   }
 
   function esc(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   }
 
   function formatDate(date) {
     return [
       date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0"),
-    ].join("-");
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
   }
 
   function parseDate(value) {
-    const [year, month, day] = String(value || "").slice(0, 10).split("-").map(Number);
+    const [year, month, day] = String(value || '')
+      .slice(0, 10)
+      .split('-')
+      .map(Number);
     return new Date(year || 1970, (month || 1) - 1, day || 1);
   }
 
@@ -60,16 +63,16 @@
   }
 
   function monthLabel(date) {
-    const label = date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    const label = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
 
   function dateLabel(value) {
-    return parseDate(value).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+    return parseDate(value).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   function timeLabel(value) {
-    return String(value || "").slice(11, 16);
+    return String(value || '').slice(11, 16);
   }
 
   function activeSiteId() {
@@ -128,8 +131,8 @@
     const access = permissions();
 
     return (
-      access.has("reservations.delete_any") ||
-      (Number(reservation.userId) === Number(user.id) && access.has("reservations.delete_own"))
+      access.has('reservations.delete_any') ||
+      (Number(reservation.userId) === Number(user.id) && access.has('reservations.delete_own'))
     );
   }
 
@@ -145,26 +148,26 @@
 
   async function request(action, options = {}) {
     const url = new URL(api, window.location.origin);
-    url.searchParams.set("action", action);
+    url.searchParams.set('action', action);
 
     Object.entries(options.query || {}).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== "") url.searchParams.set(key, String(value));
+      if (value !== null && value !== undefined && value !== '') url.searchParams.set(key, String(value));
     });
 
     const response = await fetch(url.toString(), {
-      method: options.method || "GET",
-      credentials: "same-origin",
+      method: options.method || 'GET',
+      credentials: 'same-origin',
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": csrfToken(),
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken(),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok || payload.ok === false) {
-      throw new Error(payload.error || "Module réservations indisponible");
+      throw new Error(payload.error || 'Module réservations indisponible');
     }
 
     return payload;
@@ -173,10 +176,10 @@
   function ensureStyle() {
     if (document.getElementById(styleId)) return;
 
-    const style = document.createElement("style");
+    const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
-      #${rootId}{--resa-primary:rgb(var(--theme-primary,149 0 46));--resa-border:var(--color-surface-200,#e2e8f0);--resa-text:var(--color-secondary-900,#0f172a);--resa-muted:var(--color-secondary-500,#64748b);--resa-green:#16a34a;--resa-red:#dc2626;display:grid;gap:1rem}
+      #${rootId}{--resa-primary:rgb(var(--theme-primary,149 0 46));--resa-border:var(--color-surface-200,#e2e8f0);--resa-text:var(--color-secondary-900,#0f172a);--resa-muted:var(--color-secondary-500,#64748b);--resa-green:#16a34a;--resa-red:#dc2626;--resa-blue:#4f6df5;display:grid;gap:1rem}
       #${rootId} *{box-sizing:border-box}
       #${rootId} svg{width:1.05rem;height:1.05rem;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
       #${rootId} .resa-top{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
@@ -191,6 +194,10 @@
       #${rootId} .resa-card-title{margin:0;color:var(--resa-text);font-size:1rem;font-weight:950}
       #${rootId} .resa-card-subtitle{margin:.18rem 0 0;color:var(--resa-muted);font-size:.78rem;font-weight:750}
       #${rootId} .resa-card-body{padding:1rem}
+      #${rootId} .resa-planning-header{display:grid;grid-template-columns:2.75rem minmax(0,1fr) 2.75rem;align-items:center;text-align:center}
+      #${rootId} .resa-planning-header>div{min-width:0}
+      #${rootId} .resa-nav-button{width:2.75rem;min-height:2.75rem;padding:0;border-radius:.65rem}
+      #${rootId} .resa-nav-button svg{margin:0}
       #${rootId} .resa-vehicles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.85rem}
       #${rootId} .resa-product-card{overflow:hidden;border:1px solid var(--resa-border);border-radius:.55rem;background:#fff;text-align:left;cursor:pointer;box-shadow:0 10px 24px rgba(15,23,42,.06);transition:transform .15s ease,box-shadow .15s ease}
       #${rootId} .resa-product-card:hover,#${rootId} .resa-product-card.is-active{transform:translateY(-1px);box-shadow:0 16px 32px rgba(149,0,46,.13)}
@@ -201,7 +208,8 @@
       #${rootId} .resa-product-body{padding:.72rem .78rem}
       #${rootId} .resa-product-name{display:block;color:var(--resa-text);font-size:.92rem;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       #${rootId} .resa-product-meta{display:block;margin-top:.25rem;color:var(--resa-muted);font-size:.76rem;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      #${rootId} .resa-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+      #${rootId} .resa-toolbar{display:grid;gap:.75rem}
+      #${rootId} .resa-legend{display:flex;align-items:center;justify-content:center;gap:.65rem;flex-wrap:wrap}
       #${rootId} .resa-segment{display:inline-grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--resa-border);border-radius:.55rem;overflow:hidden;background:#fff}
       #${rootId} .resa-segment button{border:0;border-right:1px solid var(--resa-border);background:transparent;padding:.55rem .85rem;color:var(--resa-text);font-size:.78rem;font-weight:900;cursor:pointer}
       #${rootId} .resa-segment button:last-child{border-right:0}
@@ -212,6 +220,9 @@
       #${rootId} .resa-day-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(6.5rem,1fr));gap:.45rem}
       #${rootId} .resa-mobile-day-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
       #${rootId} .resa-mobile-slot-column{display:grid;gap:.45rem;min-width:0}
+      #${rootId} .resa-slot-column-heading{display:grid;place-items:center;min-height:3rem;border-radius:.55rem;background:#f8fafc;color:var(--resa-text);text-align:center}
+      #${rootId} .resa-slot-column-heading strong{font-size:.78rem;font-weight:950}
+      #${rootId} .resa-slot-column-heading span{font-size:.72rem;font-weight:900;color:var(--resa-muted)}
       #${rootId} .reservation-mobile-slot-button,#${rootId} .reservation-day-cell-button{display:grid;place-items:center;min-height:3.1rem;border:0;border-radius:.55rem;background:var(--resa-green);color:#fff;padding:.35rem .45rem;text-align:center;cursor:pointer;box-shadow:0 9px 18px rgba(22,163,74,.22)}
       #${rootId} .reservation-mobile-slot-button.is-reserved,#${rootId} .reservation-day-cell-button.is-reserved{background:var(--resa-red);box-shadow:0 9px 18px rgba(220,38,38,.22)}
       #${rootId} .reservation-mobile-slot-button.is-selecting,#${rootId} .reservation-day-cell-button.is-selecting{background:var(--resa-primary);box-shadow:0 9px 18px rgba(149,0,46,.22)}
@@ -228,7 +239,11 @@
       #${rootId} .resa-month-cell:nth-child(7n){border-right:0}
       #${rootId} .resa-month-cell button{display:grid;gap:.25rem;width:100%;height:100%;border:0;background:transparent;color:var(--resa-text);text-align:left;cursor:pointer}
       #${rootId} .resa-month-cell.is-muted{background:#fafafa;color:#94a3b8}
-      #${rootId} .resa-month-pill{display:inline-flex;width:max-content;border-radius:999px;background:#f7e8ee;padding:.12rem .42rem;color:var(--resa-primary);font-size:.68rem;font-weight:900}
+      #${rootId} .resa-month-dots{display:flex;align-items:center;justify-content:center;gap:.24rem;margin-top:auto}
+      #${rootId} .resa-month-dot{width:.42rem;height:.42rem;border-radius:999px;background:var(--resa-primary)}
+      #${rootId} .resa-month-dot-morning{background:#14b8a6}
+      #${rootId} .resa-month-dot-afternoon{background:#ff5c57}
+      #${rootId} .resa-month-dot-day{background:#4f6df5}
       #${rootId} .resa-list{display:grid;gap:.55rem}
       #${rootId} .resa-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem;align-items:center;border:1px solid var(--resa-border);border-radius:.5rem;padding:.72rem .8rem;background:#fff}
       #${rootId} .resa-row strong{display:block;color:var(--resa-text);font-size:.88rem;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -254,7 +269,7 @@
       .dark #${rootId} .resa-card,.dark #${rootId} .resa-button,.dark #${rootId} .resa-product-card,.dark #${rootId} .resa-row,.dark #${rootId} .resa-dialog,.dark #${rootId} input,.dark #${rootId} select,.dark #${rootId} textarea,.dark #${rootId} .resa-selection-panel{background:var(--color-surface-900,#0f172a);border-color:var(--resa-border)}
       .dark #${rootId} .resa-summary,.dark #${rootId} .resa-month-head{background:var(--color-surface-800,#1e293b)}
       @media (max-width:1100px){#${rootId} .resa-vehicles{grid-template-columns:repeat(3,minmax(0,1fr))}}
-      @media (max-width:760px){#${rootId}{gap:.85rem}#${rootId} .resa-top{display:grid;align-items:start}#${rootId} .resa-title h1{font-size:1.55rem}#${rootId} .resa-vehicles{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .resa-product-image{aspect-ratio:1.35/1;font-size:1.15rem}#${rootId} .resa-product-body{padding:.62rem}#${rootId} .resa-toolbar{display:grid}#${rootId} .resa-button{width:100%}#${rootId} .resa-month-head,#${rootId} .resa-month-cell{padding:.38rem;min-height:3.45rem}#${rootId} .resa-mobile-day-slots{grid-template-columns:repeat(2,minmax(0,1fr))}#${rootId} .reservation-mobile-slot-button{min-height:2.8rem;border-radius:.48rem}#${rootId} .resa-slot-time{font-size:.98rem}#${rootId} .resa-slot-meta{font-size:.64rem}#${rootId} .resa-row{grid-template-columns:1fr}#${rootId} .resa-form-grid{grid-template-columns:1fr}#${rootId} .reservation-fast-actions{grid-template-columns:1fr 1fr}#${rootId} .resa-dialog{max-height:82vh}}
+      @media (max-width:760px){#${rootId}{gap:.85rem}#${rootId} .resa-top{display:grid;align-items:start}#${rootId} .resa-title h1{font-size:1.55rem}#${rootId} .resa-vehicles{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .resa-product-image{aspect-ratio:1.35/1;font-size:1.15rem}#${rootId} .resa-product-body{padding:.62rem}#${rootId} .resa-top .resa-button,#${rootId} .reservation-fast-actions .resa-button{width:100%}#${rootId} .resa-nav-button{width:2.75rem;min-height:2.75rem}#${rootId} .resa-month-head,#${rootId} .resa-month-cell{padding:.38rem;min-height:3.45rem}#${rootId} .resa-mobile-day-slots{grid-template-columns:repeat(2,minmax(0,1fr))}#${rootId} .reservation-mobile-slot-button{min-height:2.8rem;border-radius:.48rem}#${rootId} .resa-slot-time{font-size:.98rem}#${rootId} .resa-slot-meta{font-size:.64rem}#${rootId} .resa-row{grid-template-columns:1fr}#${rootId} .resa-form-grid{grid-template-columns:1fr}#${rootId} .reservation-fast-actions{grid-template-columns:1fr 1fr}#${rootId} .resa-dialog{max-height:82vh}}
     `;
     document.head.appendChild(style);
   }
@@ -305,9 +320,9 @@
       <div class="resa-top">
         <div class="resa-title">
           <h1>Réservations véhicules</h1>
-          <p>${esc(site?.name || "Site actif")} · Planning véhicules</p>
+          <p>${esc(site?.name || 'Site actif')} · Planning véhicules</p>
         </div>
-        <button class="resa-button resa-button-primary" type="button" data-resa-new>${icon("plus")}Nouvelle réservation</button>
+        <button class="resa-button resa-button-primary" type="button" data-resa-new>${icon('plus')}Nouvelle réservation</button>
       </div>
       <section class="resa-card">
         <header class="resa-card-header">
@@ -318,19 +333,21 @@
           <span class="resa-badge">${vehicles.length}</span>
         </header>
         <div class="resa-card-body">
-          ${renderVehicleGrid(vehicles)}
+          ${vehicles.length ? `<div class="resa-vehicles">${vehicles.map(renderVehicleCard).join('')}</div>` : `<div class="resa-empty">Aucun véhicule sur ce site.</div>`}
         </div>
       </section>
-      <section class="resa-card">
-        <header class="resa-card-header">
+      <section class="resa-card resa-planning-card">
+        <header class="resa-card-header resa-planning-header">
+          <button class="resa-button resa-nav-button" type="button" data-prev aria-label="Période précédente">${icon('chevron-left')}</button>
           <div>
-            <h2 class="resa-card-title">${state.view === "month" ? monthLabel(state.month) : dateLabel(state.selectedDate)}</h2>
-            <p class="resa-card-subtitle">${esc(vehicle?.name || "Aucun véhicule sélectionné")}</p>
+            <h2 class="resa-card-title">${state.view === 'month' ? monthLabel(state.month) : dateLabel(state.selectedDate)}</h2>
+            <p class="resa-card-subtitle">Planning véhicules</p>
           </div>
+          <button class="resa-button resa-nav-button" type="button" data-next aria-label="Période suivante">${icon('chevron-right')}</button>
         </header>
         <div class="resa-card-body resa-grid">
           ${renderToolbar()}
-          ${vehicle ? (state.view === "month" ? renderMonth(vehicle) : renderDay(vehicle)) : `<div class="resa-empty">Choisissez un véhicule pour afficher son planning.</div>`}
+          ${vehicle ? (state.view === 'month' ? renderMonth(vehicle) : renderDay(vehicle)) : `<div class="resa-empty">Choisissez un véhicule pour afficher son planning.</div>`}
           ${renderSelectionPanel(vehicle)}
         </div>
       </section>
@@ -344,79 +361,40 @@
         </header>
         <div class="resa-card-body">${renderUpcoming(vehicle, false)}</div>
       </section>
-      ${state.modal ? renderModal() : ""}
+      ${state.modal ? renderModal() : ''}
     `;
-  }
-
-  function renderVehicleGrid(vehicles) {
-    if (window.MartinSolsUi?.renderProductGrid) {
-      return window.MartinSolsUi.renderProductGrid(
-        vehicles.map((vehicle) => ({
-          active: Number(vehicle.id) === Number(selectedVehicle()?.id),
-          busy: isVehicleBusy(vehicle),
-          id: vehicle.id,
-          imageUrl: vehicle.photoUrl || null,
-          meta: vehicle.description || vehicle.plateNumber || "",
-          name: vehicle.name || "Véhicule",
-        })),
-        {
-          actionName: "vehicle-id",
-          emptyLabel: "Aucun véhicule sur ce site.",
-        },
-      ).replace("ms-ui-product-grid", "ms-ui-product-grid resa-vehicles");
-    }
-
-    return vehicles.length ? `<div class="resa-vehicles">${vehicles.map(renderVehicleCard).join("")}</div>` : `<div class="resa-empty">Aucun véhicule sur ce site.</div>`;
   }
 
   function renderVehicleCard(vehicle) {
     const busy = isVehicleBusy(vehicle);
-    const initials = String(vehicle.name || "?")
+    const initials = String(vehicle.name || '?')
       .split(/\s+/)
       .slice(0, 2)
-      .map((part) => part[0] || "")
-      .join("")
+      .map((part) => part[0] || '')
+      .join('')
       .toUpperCase();
 
     return `
-      <button class="resa-product-card${Number(vehicle.id) === Number(selectedVehicle()?.id) ? " is-active" : ""}" type="button" data-vehicle-id="${esc(vehicle.id)}">
+      <button class="resa-product-card${Number(vehicle.id) === Number(selectedVehicle()?.id) ? ' is-active' : ''}" type="button" data-vehicle-id="${esc(vehicle.id)}">
         <span class="resa-product-image">
-          ${vehicle.photoUrl ? `<img src="${esc(vehicle.photoUrl)}" alt="${esc(vehicle.name)}" loading="lazy">` : esc(initials || "V")}
-          <span class="resa-dot${busy ? " is-busy" : ""}" aria-label="${busy ? "Réservé" : "Disponible"}"></span>
+          ${vehicle.photoUrl ? `<img src="${esc(vehicle.photoUrl)}" alt="${esc(vehicle.name)}" loading="lazy">` : esc(initials || 'V')}
+          <span class="resa-dot${busy ? ' is-busy' : ''}" aria-label="${busy ? 'Réservé' : 'Disponible'}"></span>
         </span>
         <span class="resa-product-body">
           <strong class="resa-product-name">${esc(vehicle.name)}</strong>
-          <span class="resa-product-meta">${esc(vehicle.description || "Véhicule du site")}</span>
+          <span class="resa-product-meta">${esc(vehicle.description || 'Véhicule du site')}</span>
         </span>
       </button>
     `;
   }
 
   function renderToolbar() {
-    const segment = window.MartinSolsUi?.renderSegmentControl
-      ? window.MartinSolsUi.renderSegmentControl(
-          [
-            { label: "Mois", value: "month", active: state.view === "month" },
-            { label: "Jour", value: "day", active: state.view === "day" },
-            { label: "Aujourd'hui", value: "today", active: state.view === "day" && state.selectedDate === formatDate(new Date()) },
-          ],
-          "Vue planning",
-        ).replace("ms-ui-segment", "ms-ui-segment resa-segment")
-      : `
-        <div class="resa-segment" role="tablist" aria-label="Vue planning">
-          <button type="button" data-view="month" class="${state.view === "month" ? "is-active" : ""}">Mois</button>
-          <button type="button" data-view="day" class="${state.view === "day" ? "is-active" : ""}">Jour</button>
-          <button type="button" data-view="today" class="${state.view === "day" && state.selectedDate === formatDate(new Date()) ? "is-active" : ""}">Aujourd'hui</button>
-        </div>
-      `;
-
     return `
       <div class="resa-toolbar">
-        ${segment}
-        <div class="resa-toolbar">
-          <button class="resa-button" type="button" data-prev>${icon("chevron-left")}Précédent</button>
-          <button class="resa-button" type="button" data-today>Aujourd'hui</button>
-          <button class="resa-button" type="button" data-next>Suivant${icon("chevron-right")}</button>
+        <div class="resa-segment" role="tablist" aria-label="Vue planning">
+          <button type="button" data-view="month" class="${state.view === 'month' ? 'is-active' : ''}">Mois</button>
+          <button type="button" data-view="day" class="${state.view === 'day' ? 'is-active' : ''}">Jour</button>
+          <button type="button" data-view="today" class="">Aujourd'hui</button>
         </div>
       </div>
     `;
@@ -424,14 +402,16 @@
 
   function renderDay(vehicle) {
     const slots = vehicleDaySlots(vehicle);
-    const morning = slots.filter((slot) => slot.period === "morning");
-    const afternoon = slots.filter((slot) => slot.period === "afternoon");
+    const morning = slots.filter((slot) => slot.period === 'morning');
+    const afternoon = slots.filter((slot) => slot.period === 'afternoon');
 
     return `
       <div class="reservation-day-board resa-day-board">
-        ${renderSlotSection("Matin", morning)}
-        ${renderSlotSection("Après-midi", afternoon)}
-        <div class="resa-toolbar" aria-label="Légende">
+        <div class="resa-mobile-day-slots">
+          ${renderSlotColumn('Matin', morning, 'morning')}
+          ${renderSlotColumn('Après-midi', afternoon, 'afternoon')}
+        </div>
+        <div class="resa-legend" aria-label="Légende">
           <span class="resa-badge"><span style="width:.55rem;height:.55rem;border-radius:999px;background:#16a34a;margin-right:.35rem"></span>Disponible</span>
           <span class="resa-badge"><span style="width:.55rem;height:.55rem;border-radius:999px;background:#dc2626;margin-right:.35rem"></span>Réservé</span>
         </div>
@@ -439,18 +419,13 @@
     `;
   }
 
-  function renderSlotSection(title, slots) {
+  function renderSlotColumn(title, slots, period) {
+    const range = slots.length ? `${slots[0].start} - ${slots[slots.length - 1].end}` : 'Aucun créneau';
+
     return `
-      <section class="resa-day-section">
-        <div class="resa-day-section-title"><span>${esc(title)}</span><span>${slots.length} créneaux</span></div>
-        <div class="resa-mobile-day-slots ${title === "Matin" ? "reservation-day-row-track-morning" : "reservation-day-row-track-afternoon"}">
-          <div class="resa-mobile-slot-column">
-            ${slots.filter((_, index) => index % 2 === 0).map(renderSlot).join("")}
-          </div>
-          <div class="resa-mobile-slot-column">
-            ${slots.filter((_, index) => index % 2 === 1).map(renderSlot).join("")}
-          </div>
-        </div>
+      <section class="resa-mobile-slot-column reservation-day-row-track-${esc(period)}">
+        <div class="resa-slot-column-heading"><strong>${esc(title)}</strong><span>${esc(range)}</span></div>
+        ${slots.map(renderSlot).join('')}
       </section>
     `;
   }
@@ -460,26 +435,26 @@
     const reservation = slot.reservation;
 
     return `
-      <button class="reservation-mobile-slot-button reservation-day-cell-button${reservation ? " is-reserved" : ""}${selected ? " is-selecting" : ""}" type="button" data-slot-start="${esc(slot.startAt)}" data-slot-end="${esc(slot.endAt)}"${reservation ? ` data-reservation-id="${esc(reservation.id)}"` : ""}>
+      <button class="reservation-mobile-slot-button reservation-day-cell-button${reservation ? ' is-reserved' : ''}${selected ? ' is-selecting' : ''}" type="button" data-slot-start="${esc(slot.startAt)}" data-slot-end="${esc(slot.endAt)}"${reservation ? ` data-reservation-id="${esc(reservation.id)}"` : ''}>
         <span class="resa-slot-time">${esc(slot.start)}</span>
-        <span class="resa-slot-meta">${reservation ? esc(reservationVehicle(reservation)?.name || reservation.title || "Réservé") : reservationSelectionCellLabel(slot)}</span>
+        <span class="resa-slot-meta">${reservation ? esc(reservationVehicle(reservation)?.name || reservation.title || 'Réservé') : reservationSelectionCellLabel(slot)}</span>
       </button>
     `;
   }
 
   function renderSelectionPanel(vehicle) {
-    if (!state.selection || !vehicle) return "";
+    if (!state.selection || !vehicle) return '';
 
     const complete = state.selection.startAt && state.selection.endAt;
 
     return `
       <section class="resa-selection-panel">
         <span>Créneau prêt</span>
-        <strong>${esc(timeLabel(state.selection.startAt))}${complete ? ` → ${esc(timeLabel(state.selection.endAt))}` : ""}</strong>
-        <p class="resa-card-subtitle">${complete ? "Valide pour ouvrir la fiche de réservation." : "Clique sur l'heure de fin."}</p>
+        <strong>${esc(timeLabel(state.selection.startAt))}${complete ? ` → ${esc(timeLabel(state.selection.endAt))}` : ''}</strong>
+        <p class="resa-card-subtitle">${complete ? 'Valide pour ouvrir la fiche de réservation.' : "Clique sur l'heure de fin."}</p>
         <div class="resa-selection-actions">
           <button class="resa-button" type="button" data-selection-clear>Effacer</button>
-          <button class="resa-button resa-button-primary" type="button" data-selection-confirm ${complete ? "" : "disabled"}>Valider</button>
+          <button class="resa-button resa-button-primary" type="button" data-selection-confirm ${complete ? '' : 'disabled'}>Valider</button>
         </div>
       </section>
     `;
@@ -487,26 +462,35 @@
 
   function renderMonth(vehicle) {
     const days = calendarDays(state.month);
-    const heads = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => `<div class="resa-month-head">${day}</div>`).join("");
+    const heads = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+      .map((day) => `<div class="resa-month-head">${day}</div>`)
+      .join('');
 
     return `
       <div class="resa-month-grid">
         ${heads}
-        ${days.map((day) => renderMonthDay(day, vehicle)).join("")}
+        ${days.map((day) => renderMonthDay(day, vehicle)).join('')}
       </div>
     `;
   }
 
   function renderMonthDay(day, vehicle) {
     const date = formatDate(day);
-    const count = vehicleReservations(vehicle.id).filter((reservation) => sameDate(reservation.startAt, date)).length;
+    const dots = vehicleReservations(vehicle.id)
+      .filter((reservation) => sameDate(reservation.startAt, date))
+      .slice(0, 3)
+      .map(
+        (reservation) =>
+          `<span class="resa-month-dot resa-month-dot-${esc(reservationPeriodKey(reservation))}"></span>`,
+      )
+      .join('');
     const muted = day.getMonth() !== state.month.getMonth();
 
     return `
-      <div class="resa-month-cell${muted ? " is-muted" : ""}">
+      <div class="resa-month-cell${muted ? ' is-muted' : ''}">
         <button type="button" data-date="${esc(date)}">
           <strong>${day.getDate()}</strong>
-          ${count ? `<span class="resa-month-pill">${count} résa</span>` : ""}
+          ${dots ? `<span class="resa-month-dots">${dots}</span>` : ''}
         </button>
       </div>
     `;
@@ -520,7 +504,7 @@
 
     if (!rows.length) return `<div class="resa-empty">Aucune réservation à venir.</div>`;
 
-    return `<div class="resa-list">${rows.map(renderReservationRow).join("")}</div>`;
+    return `<div class="resa-list">${rows.map(renderReservationRow).join('')}</div>`;
   }
 
   function renderReservationRow(reservation) {
@@ -529,22 +513,22 @@
     return `
       <button class="resa-row" type="button" data-open-reservation="${esc(reservation.id)}">
         <span>
-          <strong>${esc(vehicle?.name || reservation.title || "Réservation")}</strong>
+          <strong>${esc(vehicle?.name || reservation.title || 'Réservation')}</strong>
           <span>${esc(dateLabel(reservation.startAt))} · ${esc(timeLabel(reservation.startAt))} - ${esc(timeLabel(reservation.endAt))}</span>
         </span>
-        <span class="resa-badge">${esc(reservation.userName || "CRM")}</span>
+        <span class="resa-badge">${esc(reservation.userName || 'CRM')}</span>
       </button>
     `;
   }
 
   function renderModal() {
-    if (state.modal?.type === "list") {
+    if (state.modal?.type === 'list') {
       return `
         <div class="resa-modal" data-modal-close>
           <section class="resa-dialog" role="dialog" aria-modal="true" aria-label="Toutes les réservations">
             <header class="resa-dialog-header">
               <h2 class="resa-dialog-title">Toutes les réservations à venir</h2>
-              <button class="resa-close" type="button" data-modal-close>${icon("x")}</button>
+              <button class="resa-close" type="button" data-modal-close>${icon('x')}</button>
             </header>
             <div class="resa-form">${renderUpcoming(selectedVehicle(), true)}</div>
           </section>
@@ -560,21 +544,26 @@
 
     return `
       <div class="resa-modal" data-modal-close>
-        <section class="resa-dialog" role="dialog" aria-modal="true" aria-label="${isEdit ? "Modifier réservation" : "Nouvelle réservation"}">
+        <section class="resa-dialog" role="dialog" aria-modal="true" aria-label="${isEdit ? 'Modifier réservation' : 'Nouvelle réservation'}">
           <header class="resa-dialog-header">
-            <h2 class="resa-dialog-title">${isEdit ? "Modifier réservation" : "Nouvelle réservation"}</h2>
-            <button class="resa-close" type="button" data-modal-close>${icon("x")}</button>
+            <h2 class="resa-dialog-title">${isEdit ? 'Modifier réservation' : 'Nouvelle réservation'}</h2>
+            <button class="resa-close" type="button" data-modal-close>${icon('x')}</button>
           </header>
           <form class="resa-form" data-reservation-form>
             <div class="resa-summary">
-              <span class="resa-summary-item"><span>Véhicule</span><strong>${esc(vehicle?.name || "Véhicule")}</strong></span>
+              <span class="resa-summary-item"><span>Véhicule</span><strong>${esc(vehicle?.name || 'Véhicule')}</strong></span>
               <span class="resa-summary-item"><span>Début</span><strong>${esc(dateLabel(startAt))} ${esc(timeLabel(startAt))}</strong></span>
               <span class="resa-summary-item"><span>Fin</span><strong>${esc(dateLabel(endAt))} ${esc(timeLabel(endAt))}</strong></span>
             </div>
-            <input type="hidden" name="id" value="${esc(reservation?.id || "")}">
+            <input type="hidden" name="id" value="${esc(reservation?.id || '')}">
             <label>Véhicule
               <select name="vehicleId" required>
-                ${siteVehicles().map((item) => `<option value="${esc(item.id)}"${Number(item.id) === Number(vehicle?.id) ? " selected" : ""}>${esc(item.name)}</option>`).join("")}
+                ${siteVehicles()
+                  .map(
+                    (item) =>
+                      `<option value="${esc(item.id)}"${Number(item.id) === Number(vehicle?.id) ? ' selected' : ''}>${esc(item.name)}</option>`,
+                  )
+                  .join('')}
               </select>
             </label>
             <div class="resa-form-grid">
@@ -582,10 +571,10 @@
               <label>Début <input type="time" name="start" value="${esc(timeLabel(startAt))}" required></label>
               <label>Fin <input type="time" name="end" value="${esc(timeLabel(endAt))}" required></label>
             </div>
-            <label>Notes <textarea id="reservation-notes" name="notes" placeholder="Adresse, matériel, précision chantier...">${esc(reservation?.notes || "")}</textarea></label>
+            <label>Notes <textarea id="reservation-notes" name="notes" placeholder="Adresse, matériel, précision chantier...">${esc(reservation?.notes || '')}</textarea></label>
             <div class="reservation-fast-actions">
-              <button class="resa-button resa-button-primary" type="submit">${icon("save")}${isEdit ? "Modifier" : "Créer"}</button>
-              ${isEdit && canDeleteReservation(reservation) ? `<button class="resa-button resa-button-danger" type="button" data-delete-reservation="${esc(reservation.id)}">${icon("trash")}Supprimer</button>` : `<button class="resa-button" type="button" data-modal-close>Annuler</button>`}
+              <button class="resa-button resa-button-primary" type="submit">${icon('save')}${isEdit ? 'Modifier' : 'Créer'}</button>
+              ${isEdit && canDeleteReservation(reservation) ? `<button class="resa-button resa-button-danger" type="button" data-delete-reservation="${esc(reservation.id)}">${icon('trash')}Supprimer</button>` : `<button class="resa-button" type="button" data-modal-close>Annuler</button>`}
             </div>
           </form>
         </section>
@@ -594,59 +583,59 @@
   }
 
   function bind(root) {
-    root.querySelectorAll("[data-vehicle-id]").forEach((button) => {
-      button.addEventListener("click", () => {
+    root.querySelectorAll('[data-vehicle-id]').forEach((button) => {
+      button.addEventListener('click', () => {
         state.selectedVehicleId = Number(button.dataset.vehicleId);
         state.selection = null;
         render();
       });
     });
 
-    root.querySelectorAll("[data-view]").forEach((button) => {
-      button.addEventListener("click", () => {
-        if (button.dataset.view === "today") {
+    root.querySelectorAll('[data-view]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (button.dataset.view === 'today') {
           const today = new Date();
           state.selectedDate = formatDate(today);
           state.month = new Date(today.getFullYear(), today.getMonth(), 1);
-          state.view = "day";
+          state.view = 'day';
           state.selection = null;
           render();
           return;
         }
 
-        state.view = button.dataset.view === "week" ? "day" : button.dataset.view;
+        state.view = button.dataset.view === 'week' ? 'day' : button.dataset.view;
         render();
       });
     });
 
-    root.querySelector("[data-today]")?.addEventListener("click", () => {
+    root.querySelector('[data-today]')?.addEventListener('click', () => {
       const today = new Date();
       state.selectedDate = formatDate(today);
       state.month = new Date(today.getFullYear(), today.getMonth(), 1);
-      state.view = "day";
+      state.view = 'day';
       state.selection = null;
       render();
     });
 
-    root.querySelector("[data-prev]")?.addEventListener("click", () => movePeriod(-1));
-    root.querySelector("[data-next]")?.addEventListener("click", () => movePeriod(1));
-    root.querySelector("[data-resa-new]")?.addEventListener("click", () => openNewReservation());
-    root.querySelector("[data-resa-see-all]")?.addEventListener("click", () => {
-      state.modal = { type: "list" };
+    root.querySelector('[data-prev]')?.addEventListener('click', () => movePeriod(-1));
+    root.querySelector('[data-next]')?.addEventListener('click', () => movePeriod(1));
+    root.querySelector('[data-resa-new]')?.addEventListener('click', () => openNewReservation());
+    root.querySelector('[data-resa-see-all]')?.addEventListener('click', () => {
+      state.modal = { type: 'list' };
       render();
     });
 
-    root.querySelectorAll("[data-date]").forEach((button) => {
-      button.addEventListener("click", () => {
+    root.querySelectorAll('[data-date]').forEach((button) => {
+      button.addEventListener('click', () => {
         state.selectedDate = button.dataset.date;
-        state.view = "day";
+        state.view = 'day';
         state.selection = null;
         render();
       });
     });
 
-    root.querySelectorAll("[data-slot-start]").forEach((button) => {
-      button.addEventListener("click", () => {
+    root.querySelectorAll('[data-slot-start]').forEach((button) => {
+      button.addEventListener('click', () => {
         if (button.dataset.reservationId) {
           openReservation(Number(button.dataset.reservationId));
           return;
@@ -656,39 +645,39 @@
       });
     });
 
-    root.querySelectorAll("[data-open-reservation]").forEach((button) => {
-      button.addEventListener("click", () => openReservation(Number(button.dataset.openReservation)));
+    root.querySelectorAll('[data-open-reservation]').forEach((button) => {
+      button.addEventListener('click', () => openReservation(Number(button.dataset.openReservation)));
     });
 
-    root.querySelector("[data-selection-clear]")?.addEventListener("click", () => {
+    root.querySelector('[data-selection-clear]')?.addEventListener('click', () => {
       state.selection = null;
       render();
     });
 
-    root.querySelector("[data-selection-confirm]")?.addEventListener("click", () => {
+    root.querySelector('[data-selection-confirm]')?.addEventListener('click', () => {
       if (!state.selection?.startAt || !state.selection?.endAt) return;
       state.modal = {
-        type: "form",
+        type: 'form',
         startAt: state.selection.startAt,
         endAt: state.selection.endAt,
       };
       render();
     });
 
-    root.querySelectorAll("[data-modal-close]").forEach((node) => {
-      node.addEventListener("click", (event) => {
-        if (event.target !== node && !node.matches("button")) return;
+    root.querySelectorAll('[data-modal-close]').forEach((node) => {
+      node.addEventListener('click', (event) => {
+        if (event.target !== node && !node.matches('button')) return;
         state.modal = null;
         render();
       });
     });
 
-    root.querySelector("[data-reservation-form]")?.addEventListener("submit", saveReservation);
-    root.querySelector("[data-delete-reservation]")?.addEventListener("click", deleteReservation);
+    root.querySelector('[data-reservation-form]')?.addEventListener('submit', saveReservation);
+    root.querySelector('[data-delete-reservation]')?.addEventListener('click', deleteReservation);
   }
 
   function movePeriod(direction) {
-    if (state.view === "month") {
+    if (state.view === 'month') {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() + direction, 1);
       load({ force: true });
       return;
@@ -715,7 +704,7 @@
   function openReservation(id) {
     const reservation = reservations().find((item) => Number(item.id) === Number(id));
     if (!reservation) return;
-    state.modal = { type: "form", reservation };
+    state.modal = { type: 'form', reservation };
     render();
   }
 
@@ -723,7 +712,7 @@
     const vehicle = selectedVehicle();
     const startAt = state.selection?.startAt || `${state.selectedDate}T07:30`;
     const endAt = state.selection?.endAt || `${state.selectedDate}T12:00`;
-    state.modal = { type: "form", startAt, endAt, vehicleId: vehicle?.id };
+    state.modal = { type: 'form', startAt, endAt, vehicleId: vehicle?.id };
     render();
   }
 
@@ -731,40 +720,40 @@
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    const id = Number(data.get("id") || 0);
-    const date = String(data.get("date") || state.selectedDate);
+    const id = Number(data.get('id') || 0);
+    const date = String(data.get('date') || state.selectedDate);
     const payload = {
       id: id || undefined,
-      vehicleId: Number(data.get("vehicleId") || selectedVehicle()?.id),
-      title: "Réservation véhicule",
-      startAt: `${date}T${data.get("start")}`,
-      endAt: `${date}T${data.get("end")}`,
-      notes: String(data.get("notes") || ""),
+      vehicleId: Number(data.get('vehicleId') || selectedVehicle()?.id),
+      title: 'Réservation véhicule',
+      startAt: `${date}T${data.get('start')}`,
+      endAt: `${date}T${data.get('end')}`,
+      notes: String(data.get('notes') || ''),
     };
 
     try {
-      await request(id ? "update_reservation" : "create_reservation", {
-        method: "POST",
+      await request(id ? 'update_reservation' : 'create_reservation', {
+        method: 'POST',
         body: payload,
       });
       state.modal = null;
       state.selection = null;
       await load({ force: true });
     } catch (error) {
-      alert(error.message || "Enregistrement impossible");
+      alert(error.message || 'Enregistrement impossible');
     }
   }
 
   async function deleteReservation(event) {
     const id = Number(event.currentTarget.dataset.deleteReservation || 0);
-    if (!id || !confirm("Supprimer cette réservation ?")) return;
+    if (!id || !confirm('Supprimer cette réservation ?')) return;
 
     try {
-      await request("delete_reservation", { method: "POST", body: { id } });
+      await request('delete_reservation', { method: 'POST', body: { id } });
       state.modal = null;
       await load({ force: true });
     } catch (error) {
-      alert(error.message || "Suppression impossible");
+      alert(error.message || 'Suppression impossible');
     }
   }
 
@@ -775,13 +764,13 @@
     const sequence = ++loadSequence;
     const range = dateRange();
     state.loading = true;
-    state.error = "";
+    state.error = '';
     render();
 
     try {
-      const payload = await request("bootstrap", {
+      const payload = await request('bootstrap', {
         query: {
-          siteId: siteId() || "",
+          siteId: siteId() || '',
           from: range.from,
           to: range.to,
         },
@@ -795,7 +784,7 @@
         state.selectedVehicleId = vehicles[0]?.id || null;
       }
     } catch (error) {
-      if (sequence === loadSequence) state.error = error.message || "Connexion aux données réservations indisponible";
+      if (sequence === loadSequence) state.error = error.message || 'Connexion aux données réservations indisponible';
     } finally {
       if (sequence !== loadSequence) return;
       state.loading = false;
@@ -806,10 +795,10 @@
   function vehicleDefaultDayHours(vehicle) {
     const site = selectedSite();
     return {
-      morningStart: vehicle?.dayStartTime || site?.hours?.morningStart || "07:30",
-      morningEnd: site?.hours?.morningEnd || "12:00",
-      afternoonStart: site?.hours?.afternoonStart || "13:30",
-      afternoonEnd: vehicle?.dayEndTime || site?.hours?.afternoonEnd || "17:30",
+      morningStart: vehicle?.dayStartTime || site?.hours?.morningStart || '07:30',
+      morningEnd: site?.hours?.morningEnd || '12:00',
+      afternoonStart: site?.hours?.afternoonStart || '13:30',
+      afternoonEnd: vehicle?.dayEndTime || site?.hours?.afternoonEnd || '17:30',
     };
   }
 
@@ -817,8 +806,8 @@
     const hours = vehicleDefaultDayHours(vehicle);
 
     return [
-      ...makeSlots(hours.morningStart, hours.morningEnd, "morning", vehicle),
-      ...makeSlots(hours.afternoonStart, hours.afternoonEnd, "afternoon", vehicle),
+      ...makeSlots(hours.morningStart, hours.morningEnd, 'morning', vehicle),
+      ...makeSlots(hours.afternoonStart, hours.afternoonEnd, 'afternoon', vehicle),
     ];
   }
 
@@ -846,7 +835,22 @@
   }
 
   function reservationForSlot(vehicleId, startAt, endAt) {
-    return vehicleReservations(vehicleId).find((reservation) => reservation.startAt < endAt && reservation.endAt > startAt) || null;
+    return (
+      vehicleReservations(vehicleId).find(
+        (reservation) => reservation.startAt < endAt && reservation.endAt > startAt,
+      ) || null
+    );
+  }
+
+  function reservationPeriodKey(reservation) {
+    const start = timeMinutes(timeLabel(reservation.startAt));
+    const end = timeMinutes(timeLabel(reservation.endAt));
+
+    if (start < timeMinutes('12:00') && end > timeMinutes('13:00')) {
+      return 'day';
+    }
+
+    return start < timeMinutes('12:00') ? 'morning' : 'afternoon';
   }
 
   function reservationCellIsSelected(slot) {
@@ -860,11 +864,11 @@
   function reservationSelectionCellLabel(slot) {
     const selection = state.selection;
     if (!selection?.startAt || !reservationCellIsSelected(slot)) return `Fin ${slot.end}`;
-    if (!selection.endAt) return slot.startAt === selection.startAt ? "Début choisi" : `Fin ${slot.end}`;
-    if (slot.startAt === selection.startAt) return "Début";
-    if (slot.endAt === selection.endAt) return "Fin";
+    if (!selection.endAt) return slot.startAt === selection.startAt ? 'Début choisi' : `Fin ${slot.end}`;
+    if (slot.startAt === selection.startAt) return 'Début';
+    if (slot.endAt === selection.endAt) return 'Fin';
 
-    return "Inclus";
+    return 'Inclus';
   }
 
   function calendarDays(month) {
@@ -887,27 +891,31 @@
     const now = new Date();
     const value = now.toISOString().slice(0, 16);
 
-    return vehicleReservations(vehicle.id).some((reservation) => reservation.startAt <= value && reservation.endAt >= value);
+    return vehicleReservations(vehicle.id).some(
+      (reservation) => reservation.startAt <= value && reservation.endAt >= value,
+    );
   }
 
   function sameDate(value, date) {
-    return String(value || "").slice(0, 10) === date;
+    return String(value || '').slice(0, 10) === date;
   }
 
   function timeMinutes(time) {
-    const [hours, minutes] = String(time || "00:00").split(":").map(Number);
-    return (Number(hours || 0) * 60) + Number(minutes || 0);
+    const [hours, minutes] = String(time || '00:00')
+      .split(':')
+      .map(Number);
+    return Number(hours || 0) * 60 + Number(minutes || 0);
   }
 
   function minutesTime(minutes) {
-    return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+    return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
   }
 
   function icon(name) {
     const paths = {
       plus: '<path d="M12 5v14M5 12h14"></path>',
-      "chevron-left": '<path d="m15 18-6-6 6-6"></path>',
-      "chevron-right": '<path d="m9 18 6-6-6-6"></path>',
+      'chevron-left': '<path d="m15 18-6-6 6-6"></path>',
+      'chevron-right': '<path d="m9 18 6-6-6-6"></path>',
       x: '<path d="M18 6 6 18M6 6l12 12"></path>',
       save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><path d="M17 21v-8H7v8M7 3v5h8"></path>',
       trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"></path>',
@@ -932,8 +940,8 @@
     window.addEventListener(activeSiteEvent, () => load({ force: true }));
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
   } else {
     boot();
   }

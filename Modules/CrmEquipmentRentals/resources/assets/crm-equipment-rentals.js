@@ -1,20 +1,20 @@
 (() => {
-  const api = "/api/equipment-rentals";
-  const rootId = "crm-equipment-rentals-module";
-  const styleId = "crm-equipment-rentals-style";
-  const activeSiteEvent = "crm:active-site-changed";
-  const activeSiteStorageKey = "crm:active-site-id";
-  const routeEvents = ["popstate", "crm:navigation", "crm:route-changed"];
+  const api = '/api/equipment-rentals';
+  const rootId = 'crm-equipment-rentals-module';
+  const styleId = 'crm-equipment-rentals-style';
+  const activeSiteEvent = 'crm:active-site-changed';
+  const activeSiteStorageKey = 'crm:active-site-id';
+  const routeEvents = ['popstate', 'crm:navigation', 'crm:route-changed'];
 
   const state = {
     data: null,
     loading: false,
-    error: "",
+    error: '',
     selectedItemId: null,
-    selectedCategoryId: "all",
+    selectedCategoryId: 'all',
     selectedDate: formatDate(new Date()),
     month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    view: "day",
+    view: 'month',
     modal: null,
   };
 
@@ -22,33 +22,36 @@
   let loadSequence = 0;
 
   function isRoute() {
-    const path = window.location.pathname.replace(/\/+$/, "") || "/";
-    return path === "/locations-materiel" || path.startsWith("/locations-materiel/");
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
+    return path === '/locations-materiel' || path.startsWith('/locations-materiel/');
   }
 
   function esc(value) {
-    return String(value ?? "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   function csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   }
 
   function formatDate(date) {
     return [
       date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0"),
-    ].join("-");
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
   }
 
   function parseDate(value) {
-    const [year, month, day] = String(value || "").slice(0, 10).split("-").map(Number);
+    const [year, month, day] = String(value || '')
+      .slice(0, 10)
+      .split('-')
+      .map(Number);
     return new Date(year || 1970, (month || 1) - 1, day || 1);
   }
 
@@ -59,16 +62,16 @@
   }
 
   function monthLabel(date) {
-    const label = date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    const label = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
 
   function dateLabel(value) {
-    return parseDate(value).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+    return parseDate(value).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   function timeLabel(value) {
-    return String(value || "").slice(11, 16);
+    return String(value || '').slice(11, 16);
   }
 
   function activeSiteId() {
@@ -99,7 +102,9 @@
 
     return (state.data?.equipmentItems || [])
       .filter((item) => Number(item.siteId) === id && item.active !== false)
-      .filter((item) => state.selectedCategoryId === "all" || Number(item.categoryId) === Number(state.selectedCategoryId));
+      .filter(
+        (item) => state.selectedCategoryId === 'all' || Number(item.categoryId) === Number(state.selectedCategoryId),
+      );
   }
 
   function selectedItem() {
@@ -118,7 +123,9 @@
   }
 
   function rentalItem(rental) {
-    return (state.data?.equipmentItems || []).find((item) => Number(item.id) === Number(rental.equipmentItemId)) || null;
+    return (
+      (state.data?.equipmentItems || []).find((item) => Number(item.id) === Number(rental.equipmentItemId)) || null
+    );
   }
 
   function permissions() {
@@ -130,33 +137,33 @@
     const access = permissions();
 
     return (
-      access.has("equipment_rentals.delete_any") ||
-      (Number(rental.userId) === Number(user.id) && access.has("equipment_rentals.delete_own"))
+      access.has('equipment_rentals.delete_any') ||
+      (Number(rental.userId) === Number(user.id) && access.has('equipment_rentals.delete_own'))
     );
   }
 
   async function request(action, options = {}) {
     const url = new URL(api, window.location.origin);
-    url.searchParams.set("action", action);
+    url.searchParams.set('action', action);
 
     Object.entries(options.query || {}).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== "") url.searchParams.set(key, String(value));
+      if (value !== null && value !== undefined && value !== '') url.searchParams.set(key, String(value));
     });
 
     const response = await fetch(url.toString(), {
-      method: options.method || "GET",
-      credentials: "same-origin",
+      method: options.method || 'GET',
+      credentials: 'same-origin',
       headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "X-CSRF-TOKEN": csrfToken(),
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken(),
       },
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok || payload.ok === false) {
-      throw new Error(payload.error || "Module location matériel indisponible");
+      throw new Error(payload.error || 'Module location matériel indisponible');
     }
 
     return payload;
@@ -175,7 +182,7 @@
   function ensureStyle() {
     if (document.getElementById(styleId)) return;
 
-    const style = document.createElement("style");
+    const style = document.createElement('style');
     style.id = styleId;
     style.textContent = `
       #${rootId}{--rent-primary:rgb(var(--theme-primary,149 0 46));--rent-border:var(--color-surface-200,#e2e8f0);--rent-text:var(--color-secondary-900,#0f172a);--rent-muted:var(--color-secondary-500,#64748b);--rent-green:#16a34a;--rent-red:#dc2626;--rent-blue:#4f6df5;display:grid;gap:1rem}
@@ -192,6 +199,10 @@
       #${rootId} .rent-card-title{margin:0;color:var(--rent-text);font-size:1rem;font-weight:950}
       #${rootId} .rent-card-subtitle{margin:.18rem 0 0;color:var(--rent-muted);font-size:.78rem;font-weight:750}
       #${rootId} .rent-card-body{display:grid;gap:.85rem;padding:1rem}
+      #${rootId} .rent-planning-header{display:grid;grid-template-columns:2.75rem minmax(0,1fr) 2.75rem;align-items:center;text-align:center}
+      #${rootId} .rent-planning-header>div{min-width:0}
+      #${rootId} .rent-nav-button{width:2.75rem;min-height:2.75rem;padding:0;border-radius:.65rem}
+      #${rootId} .rent-nav-button svg{margin:0}
       #${rootId} .rent-items{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.85rem}
       #${rootId} .rent-product-card{overflow:hidden;border:1px solid var(--rent-border);border-radius:.55rem;background:#fff;text-align:left;cursor:pointer;box-shadow:0 10px 24px rgba(15,23,42,.06);transition:transform .15s ease,box-shadow .15s ease}
       #${rootId} .rent-product-card:hover,#${rootId} .rent-product-card.is-active{transform:translateY(-1px);box-shadow:0 16px 32px rgba(149,0,46,.13)}
@@ -202,7 +213,8 @@
       #${rootId} .rent-product-body{padding:.72rem .78rem}
       #${rootId} .rent-product-name{display:block;color:var(--rent-text);font-size:.92rem;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       #${rootId} .rent-product-meta{display:block;margin-top:.25rem;color:var(--rent-primary);font-size:.76rem;font-weight:950;text-align:right}
-      #${rootId} .rent-toolbar{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+      #${rootId} .rent-toolbar{display:grid;gap:.75rem}
+      #${rootId} .rent-legend{display:flex;align-items:center;justify-content:center;gap:.65rem;flex-wrap:wrap}
       #${rootId} .rent-segment{display:inline-grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--rent-border);border-radius:.55rem;overflow:hidden;background:#fff}
       #${rootId} .rent-segment button{border:0;border-right:1px solid var(--rent-border);background:transparent;padding:.55rem .85rem;color:var(--rent-text);font-size:.78rem;font-weight:900;cursor:pointer}
       #${rootId} .rent-segment button:last-child{border-right:0}
@@ -225,7 +237,11 @@
       #${rootId} .rent-month-cell:nth-child(7n){border-right:0}
       #${rootId} .rent-month-cell button{display:grid;gap:.25rem;width:100%;height:100%;border:0;background:transparent;color:var(--rent-text);text-align:left;cursor:pointer}
       #${rootId} .rent-month-cell.is-muted{background:#fafafa;color:#94a3b8}
-      #${rootId} .rent-pill{display:inline-flex;width:max-content;border-radius:999px;background:#f7e8ee;padding:.12rem .42rem;color:var(--rent-primary);font-size:.68rem;font-weight:900}
+      #${rootId} .rent-month-dots{display:flex;align-items:center;justify-content:center;gap:.24rem;margin-top:auto}
+      #${rootId} .rent-month-dot{width:.42rem;height:.42rem;border-radius:999px;background:var(--rent-primary)}
+      #${rootId} .rent-month-dot-morning{background:#14b8a6}
+      #${rootId} .rent-month-dot-afternoon{background:#ff5c57}
+      #${rootId} .rent-month-dot-day{background:#4f6df5}
       #${rootId} .rent-list{display:grid;gap:.55rem}
       #${rootId} .rent-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem;align-items:center;border:1px solid var(--rent-border);border-radius:.5rem;padding:.72rem .8rem;background:#fff}
       #${rootId} .rent-row strong{display:block;color:var(--rent-text);font-size:.88rem;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -250,7 +266,7 @@
       .dark #${rootId} .rent-card,.dark #${rootId} .rent-button,.dark #${rootId} .rent-product-card,.dark #${rootId} .rent-row,.dark #${rootId} .rent-dialog,.dark #${rootId} input,.dark #${rootId} select,.dark #${rootId} textarea{background:var(--color-surface-900,#0f172a);border-color:var(--rent-border)}
       .dark #${rootId} .rent-summary,.dark #${rootId} .rent-month-head{background:var(--color-surface-800,#1e293b)}
       @media (max-width:1100px){#${rootId} .rent-items{grid-template-columns:repeat(3,minmax(0,1fr))}}
-      @media (max-width:760px){#${rootId}{gap:.85rem}#${rootId} .rent-top{display:grid;align-items:start}#${rootId} .rent-title h1{font-size:1.55rem}#${rootId} .rent-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .rent-product-image{aspect-ratio:1.35/1;font-size:1.15rem}#${rootId} .rent-product-body{padding:.62rem}#${rootId} .rent-toolbar{display:grid}#${rootId} .rent-button{width:100%}#${rootId} .rent-periods{grid-template-columns:1fr}#${rootId} .rent-month-head,#${rootId} .rent-month-cell{padding:.38rem;min-height:3.45rem}#${rootId} .rent-row{grid-template-columns:1fr}#${rootId} .rent-form-grid{grid-template-columns:1fr}#${rootId} .rent-actions{grid-template-columns:1fr 1fr}#${rootId} .rent-dialog{max-height:82vh}}
+      @media (max-width:760px){#${rootId}{gap:.85rem}#${rootId} .rent-top{display:grid;align-items:start}#${rootId} .rent-title h1{font-size:1.55rem}#${rootId} .rent-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}#${rootId} .rent-product-image{aspect-ratio:1.35/1;font-size:1.15rem}#${rootId} .rent-product-body{padding:.62rem}#${rootId} .rent-top .rent-button,#${rootId} .rent-actions .rent-button{width:100%}#${rootId} .rent-nav-button{width:2.75rem;min-height:2.75rem}#${rootId} .rent-periods{grid-template-columns:1fr}#${rootId} .rent-month-head,#${rootId} .rent-month-cell{padding:.38rem;min-height:3.45rem}#${rootId} .rent-row{grid-template-columns:1fr}#${rootId} .rent-form-grid{grid-template-columns:1fr}#${rootId} .rent-actions{grid-template-columns:1fr 1fr}#${rootId} .rent-dialog{max-height:82vh}}
     `;
     document.head.appendChild(style);
   }
@@ -300,9 +316,9 @@
       <div class="rent-top">
         <div class="rent-title">
           <h1>Location matériel</h1>
-          <p>${esc(site?.name || "Site actif")} · Planning matériel</p>
+          <p>${esc(site?.name || 'Site actif')} · Planning matériel</p>
         </div>
-        <button class="rent-button rent-button-primary" type="button" data-rent-new>${icon("plus")}Nouvelle réservation</button>
+        <button class="rent-button rent-button-primary" type="button" data-rent-new>${icon('plus')}Nouvelle réservation</button>
       </div>
       <section class="rent-card">
         <header class="rent-card-header">
@@ -315,21 +331,23 @@
         <div class="rent-card-body">
           <select data-category-filter aria-label="Catégorie matériel">
             <option value="all">Toutes catégories</option>
-            ${(state.data?.equipmentCategories || []).map((category) => `<option value="${esc(category.id)}"${String(category.id) === String(state.selectedCategoryId) ? " selected" : ""}>${esc(category.name)}</option>`).join("")}
+            ${(state.data?.equipmentCategories || []).map((category) => `<option value="${esc(category.id)}"${String(category.id) === String(state.selectedCategoryId) ? ' selected' : ''}>${esc(category.name)}</option>`).join('')}
           </select>
-          ${renderItemGrid(items)}
+          ${items.length ? `<div class="rent-items">${items.map(renderItemCard).join('')}</div>` : `<div class="rent-empty">Aucun matériel sur ce site.</div>`}
         </div>
       </section>
-      <section class="rent-card">
-        <header class="rent-card-header">
+      <section class="rent-card rent-planning-card">
+        <header class="rent-card-header rent-planning-header">
+          <button class="rent-button rent-nav-button" type="button" data-prev aria-label="Période précédente">${icon('chevron-left')}</button>
           <div>
-            <h2 class="rent-card-title">${state.view === "month" ? monthLabel(state.month) : dateLabel(state.selectedDate)}</h2>
-            <p class="rent-card-subtitle">${esc(item?.name || "Aucun matériel sélectionné")}</p>
+            <h2 class="rent-card-title">${state.view === 'month' ? monthLabel(state.month) : dateLabel(state.selectedDate)}</h2>
+            <p class="rent-card-subtitle">Planning ${esc(item?.name || 'matériel')}</p>
           </div>
+          <button class="rent-button rent-nav-button" type="button" data-next aria-label="Période suivante">${icon('chevron-right')}</button>
         </header>
         <div class="rent-card-body">
           ${renderToolbar()}
-          ${item ? (state.view === "month" ? renderMonth(item) : renderDay(item)) : `<div class="rent-empty">Choisissez un matériel pour afficher son planning.</div>`}
+          ${item ? (state.view === 'month' ? renderMonth(item) : renderDay(item)) : `<div class="rent-empty">Choisissez un matériel pour afficher son planning.</div>`}
         </div>
       </section>
       <section class="rent-card">
@@ -342,45 +360,24 @@
         </header>
         <div class="rent-card-body">${renderUpcoming(item, false)}</div>
       </section>
-      ${state.modal ? renderModal() : ""}
+      ${state.modal ? renderModal() : ''}
     `;
-  }
-
-  function renderItemGrid(items) {
-    if (window.MartinSolsUi?.renderProductGrid) {
-      return window.MartinSolsUi.renderProductGrid(
-        items.map((item) => ({
-          active: Number(item.id) === Number(selectedItem()?.id),
-          busy: isItemBusy(item),
-          id: item.id,
-          imageUrl: item.photoUrl || null,
-          meta: priceLabel(item),
-          name: item.name || "Matériel",
-        })),
-        {
-          actionName: "item-id",
-          emptyLabel: "Aucun matériel sur ce site.",
-        },
-      ).replace("ms-ui-product-grid", "ms-ui-product-grid rent-items");
-    }
-
-    return items.length ? `<div class="rent-items">${items.map(renderItemCard).join("")}</div>` : `<div class="rent-empty">Aucun matériel sur ce site.</div>`;
   }
 
   function renderItemCard(item) {
     const busy = isItemBusy(item);
-    const initials = String(item.name || "?")
+    const initials = String(item.name || '?')
       .split(/\s+/)
       .slice(0, 2)
-      .map((part) => part[0] || "")
-      .join("")
+      .map((part) => part[0] || '')
+      .join('')
       .toUpperCase();
 
     return `
-      <button class="rent-product-card${Number(item.id) === Number(selectedItem()?.id) ? " is-active" : ""}" type="button" data-item-id="${esc(item.id)}">
+      <button class="rent-product-card${Number(item.id) === Number(selectedItem()?.id) ? ' is-active' : ''}" type="button" data-item-id="${esc(item.id)}">
         <span class="rent-product-image">
-          ${item.photoUrl ? `<img src="${esc(item.photoUrl)}" alt="${esc(item.name)}" loading="lazy">` : esc(initials || "M")}
-          <span class="rent-dot${busy ? " is-busy" : ""}" aria-label="${busy ? "Réservé" : "Disponible"}"></span>
+          ${item.photoUrl ? `<img src="${esc(item.photoUrl)}" alt="${esc(item.name)}" loading="lazy">` : esc(initials || 'M')}
+          <span class="rent-dot${busy ? ' is-busy' : ''}" aria-label="${busy ? 'Réservé' : 'Disponible'}"></span>
         </span>
         <span class="rent-product-body">
           <strong class="rent-product-name">${esc(item.name)}</strong>
@@ -391,30 +388,12 @@
   }
 
   function renderToolbar() {
-    const segment = window.MartinSolsUi?.renderSegmentControl
-      ? window.MartinSolsUi.renderSegmentControl(
-          [
-            { label: "Mois", value: "month", active: state.view === "month" },
-            { label: "Jour", value: "day", active: state.view === "day" },
-            { label: "Aujourd'hui", value: "today", active: state.view === "day" && state.selectedDate === formatDate(new Date()) },
-          ],
-          "Vue planning",
-        ).replace("ms-ui-segment", "ms-ui-segment rent-segment")
-      : `
-        <div class="rent-segment" role="tablist" aria-label="Vue planning">
-          <button type="button" data-view="month" class="${state.view === "month" ? "is-active" : ""}">Mois</button>
-          <button type="button" data-view="day" class="${state.view === "day" ? "is-active" : ""}">Jour</button>
-          <button type="button" data-view="today" class="${state.view === "day" && state.selectedDate === formatDate(new Date()) ? "is-active" : ""}">Aujourd'hui</button>
-        </div>
-      `;
-
     return `
       <div class="rent-toolbar">
-        ${segment}
-        <div class="rent-toolbar">
-          <button class="rent-button" type="button" data-prev>${icon("chevron-left")}Précédent</button>
-          <button class="rent-button" type="button" data-today>Aujourd'hui</button>
-          <button class="rent-button" type="button" data-next>Suivant${icon("chevron-right")}</button>
+        <div class="rent-segment" role="tablist" aria-label="Vue planning">
+          <button type="button" data-view="month" class="${state.view === 'month' ? 'is-active' : ''}">Mois</button>
+          <button type="button" data-view="day" class="${state.view === 'day' ? 'is-active' : ''}">Jour</button>
+          <button type="button" data-view="today" class="">Aujourd'hui</button>
         </div>
       </div>
     `;
@@ -426,9 +405,9 @@
     return `
       <div class="rent-day-board">
         <div class="rent-periods">
-          ${periods.map((period) => renderPeriod(item, period)).join("")}
+          ${periods.map((period) => renderPeriod(item, period)).join('')}
         </div>
-        <div class="rent-toolbar" aria-label="Légende">
+        <div class="rent-legend" aria-label="Légende">
           <span class="rent-badge"><span style="width:.55rem;height:.55rem;border-radius:999px;background:#14b8a6;margin-right:.35rem"></span>Matin</span>
           <span class="rent-badge"><span style="width:.55rem;height:.55rem;border-radius:999px;background:#ff5c57;margin-right:.35rem"></span>Après-midi</span>
           <span class="rent-badge"><span style="width:.55rem;height:.55rem;border-radius:999px;background:#4f6df5;margin-right:.35rem"></span>Journée complète</span>
@@ -441,36 +420,42 @@
     const rental = rentalForPeriod(item, period);
 
     return `
-      <button class="rent-period rent-period-${esc(period.key)}${rental ? " is-reserved" : ""}" type="button" data-period="${esc(period.key)}"${rental ? ` data-rental-id="${esc(rental.id)}"` : ""}>
+      <button class="rent-period rent-period-${esc(period.key)}${rental ? ' is-reserved' : ''}" type="button" data-period="${esc(period.key)}"${rental ? ` data-rental-id="${esc(rental.id)}"` : ''}>
         <strong>${esc(period.label)}</strong>
         <span>${esc(period.time)}</span>
-        <span>${rental ? esc(rentalItem(rental)?.name || rental.title || "Réservée") : "Disponible"}</span>
+        <span>${rental ? esc(rentalItem(rental)?.name || rental.title || 'Réservée') : 'Disponible'}</span>
       </button>
     `;
   }
 
   function renderMonth(item) {
     const days = calendarDays(state.month);
-    const heads = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => `<div class="rent-month-head">${day}</div>`).join("");
+    const heads = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+      .map((day) => `<div class="rent-month-head">${day}</div>`)
+      .join('');
 
     return `
       <div class="rent-month-grid">
         ${heads}
-        ${days.map((day) => renderMonthDay(day, item)).join("")}
+        ${days.map((day) => renderMonthDay(day, item)).join('')}
       </div>
     `;
   }
 
   function renderMonthDay(day, item) {
     const date = formatDate(day);
-    const count = itemRentals(item.id).filter((rental) => sameDate(rental.startAt, date)).length;
+    const dots = itemRentals(item.id)
+      .filter((rental) => sameDate(rental.startAt, date))
+      .slice(0, 3)
+      .map((rental) => `<span class="rent-month-dot rent-month-dot-${esc(periodKey(rental))}"></span>`)
+      .join('');
     const muted = day.getMonth() !== state.month.getMonth();
 
     return `
-      <div class="rent-month-cell${muted ? " is-muted" : ""}">
+      <div class="rent-month-cell${muted ? ' is-muted' : ''}">
         <button type="button" data-date="${esc(date)}">
           <strong>${day.getDate()}</strong>
-          ${count ? `<span class="rent-pill">${count} location</span>` : ""}
+          ${dots ? `<span class="rent-month-dots">${dots}</span>` : ''}
         </button>
       </div>
     `;
@@ -484,7 +469,7 @@
 
     if (!rows.length) return `<div class="rent-empty">Aucune location à venir.</div>`;
 
-    return `<div class="rent-list">${rows.map(renderRentalRow).join("")}</div>`;
+    return `<div class="rent-list">${rows.map(renderRentalRow).join('')}</div>`;
   }
 
   function renderRentalRow(rental) {
@@ -493,7 +478,7 @@
     return `
       <button class="rent-row" type="button" data-open-rental="${esc(rental.id)}">
         <span>
-          <strong>${esc(item?.name || rental.title || "Location matériel")}</strong>
+          <strong>${esc(item?.name || rental.title || 'Location matériel')}</strong>
           <span>${esc(dateLabel(rental.startAt))} · ${esc(timeLabel(rental.startAt))} - ${esc(timeLabel(rental.endAt))}</span>
         </span>
         <span class="rent-badge">${esc(periodName(rental.slot, rental.periodType))}</span>
@@ -502,13 +487,13 @@
   }
 
   function renderModal() {
-    if (state.modal?.type === "list") {
+    if (state.modal?.type === 'list') {
       return `
         <div class="rent-modal" data-modal-close>
           <section class="rent-dialog" role="dialog" aria-modal="true" aria-label="Toutes les locations">
             <header class="rent-dialog-header">
               <h2 class="rent-dialog-title">Toutes les locations à venir</h2>
-              <button class="rent-close" type="button" data-modal-close>${icon("x")}</button>
+              <button class="rent-close" type="button" data-modal-close>${icon('x')}</button>
             </header>
             <div class="rent-form">${renderUpcoming(selectedItem(), true)}</div>
           </section>
@@ -519,39 +504,49 @@
     const rental = state.modal?.rental || null;
     const item = rental ? rentalItem(rental) : selectedItem();
     const date = String(state.modal?.date || rental?.startAt || state.selectedDate).slice(0, 10);
-    const period = state.modal?.period || periodKey(rental) || "morning";
+    const period = state.modal?.period || periodKey(rental) || 'morning';
     const isEdit = Boolean(rental);
 
     return `
       <div class="rent-modal" data-modal-close>
-        <section class="rent-dialog" role="dialog" aria-modal="true" aria-label="${isEdit ? "Modifier location" : "Location rapide"}">
+        <section class="rent-dialog" role="dialog" aria-modal="true" aria-label="${isEdit ? 'Modifier location' : 'Location rapide'}">
           <header class="rent-dialog-header">
-            <h2 class="rent-dialog-title">${isEdit ? "Modifier location" : "Location rapide"}</h2>
-            <button class="rent-close" type="button" data-modal-close>${icon("x")}</button>
+            <h2 class="rent-dialog-title">${isEdit ? 'Modifier location' : 'Location rapide'}</h2>
+            <button class="rent-close" type="button" data-modal-close>${icon('x')}</button>
           </header>
           <form class="rent-form" data-rental-form>
             <div class="rent-summary">
               <span class="rent-summary-image">${item?.photoUrl ? `<img src="${esc(item.photoUrl)}" alt="${esc(item.name)}">` : esc(itemInitials(item))}</span>
-              <span><strong>${esc(item?.name || "Matériel")}</strong><span>${esc(dateLabel(date))} · ${esc(periodName(period))}</span></span>
+              <span><strong>${esc(item?.name || 'Matériel')}</strong><span>${esc(dateLabel(date))} · ${esc(periodName(period))}</span></span>
             </div>
-            <input type="hidden" name="id" value="${esc(rental?.id || "")}">
+            <input type="hidden" name="id" value="${esc(rental?.id || '')}">
             <label>Matériel
               <select name="equipmentItemId" required>
-                ${siteItems().map((entry) => `<option value="${esc(entry.id)}"${Number(entry.id) === Number(item?.id) ? " selected" : ""}>${esc(entry.name)}</option>`).join("")}
+                ${siteItems()
+                  .map(
+                    (entry) =>
+                      `<option value="${esc(entry.id)}"${Number(entry.id) === Number(item?.id) ? ' selected' : ''}>${esc(entry.name)}</option>`,
+                  )
+                  .join('')}
               </select>
             </label>
             <div class="rent-form-grid">
               <label>Date <input type="date" name="date" value="${esc(date)}" required></label>
               <label>Période
                 <select name="period" required>
-                  ${rentalPeriods(item).map((entry) => `<option value="${esc(entry.key)}"${entry.key === period ? " selected" : ""}>${esc(entry.label)}</option>`).join("")}
+                  ${rentalPeriods(item)
+                    .map(
+                      (entry) =>
+                        `<option value="${esc(entry.key)}"${entry.key === period ? ' selected' : ''}>${esc(entry.label)}</option>`,
+                    )
+                    .join('')}
                 </select>
               </label>
             </div>
-            <label>Notes <textarea name="notes" placeholder="Client, chantier, précision...">${esc(rental?.notes || "")}</textarea></label>
+            <label>Notes <textarea name="notes" placeholder="Client, chantier, précision...">${esc(rental?.notes || '')}</textarea></label>
             <div class="rent-actions">
-              <button class="rent-button rent-button-primary" type="submit">${icon("save")}${isEdit ? "Modifier" : "Créer"}</button>
-              ${isEdit && canDeleteRental(rental) ? `<button class="rent-button rent-button-danger" type="button" data-delete-rental="${esc(rental.id)}">${icon("trash")}Supprimer</button>` : `<button class="rent-button" type="button" data-modal-close>Annuler</button>`}
+              <button class="rent-button rent-button-primary" type="submit">${icon('save')}${isEdit ? 'Modifier' : 'Créer'}</button>
+              ${isEdit && canDeleteRental(rental) ? `<button class="rent-button rent-button-danger" type="button" data-delete-rental="${esc(rental.id)}">${icon('trash')}Supprimer</button>` : `<button class="rent-button" type="button" data-modal-close>Annuler</button>`}
             </div>
           </form>
         </section>
@@ -560,89 +555,89 @@
   }
 
   function bind(root) {
-    root.querySelector("[data-category-filter]")?.addEventListener("change", (event) => {
+    root.querySelector('[data-category-filter]')?.addEventListener('change', (event) => {
       state.selectedCategoryId = event.currentTarget.value;
       state.selectedItemId = siteItems()[0]?.id || null;
       render();
     });
 
-    root.querySelectorAll("[data-item-id]").forEach((button) => {
-      button.addEventListener("click", () => {
+    root.querySelectorAll('[data-item-id]').forEach((button) => {
+      button.addEventListener('click', () => {
         state.selectedItemId = Number(button.dataset.itemId);
         render();
       });
     });
 
-    root.querySelectorAll("[data-view]").forEach((button) => {
-      button.addEventListener("click", () => {
-        if (button.dataset.view === "today") {
+    root.querySelectorAll('[data-view]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (button.dataset.view === 'today') {
           const today = new Date();
           state.selectedDate = formatDate(today);
           state.month = new Date(today.getFullYear(), today.getMonth(), 1);
-          state.view = "day";
+          state.view = 'day';
           render();
           return;
         }
 
-        state.view = button.dataset.view === "week" ? "day" : button.dataset.view;
+        state.view = button.dataset.view === 'week' ? 'day' : button.dataset.view;
         render();
       });
     });
 
-    root.querySelector("[data-today]")?.addEventListener("click", () => {
+    root.querySelector('[data-today]')?.addEventListener('click', () => {
       const today = new Date();
       state.selectedDate = formatDate(today);
       state.month = new Date(today.getFullYear(), today.getMonth(), 1);
-      state.view = "day";
+      state.view = 'day';
       render();
     });
 
-    root.querySelector("[data-prev]")?.addEventListener("click", () => movePeriod(-1));
-    root.querySelector("[data-next]")?.addEventListener("click", () => movePeriod(1));
-    root.querySelector("[data-rent-new]")?.addEventListener("click", () => openNewRental());
-    root.querySelector("[data-rent-see-all]")?.addEventListener("click", () => {
-      state.modal = { type: "list" };
+    root.querySelector('[data-prev]')?.addEventListener('click', () => movePeriod(-1));
+    root.querySelector('[data-next]')?.addEventListener('click', () => movePeriod(1));
+    root.querySelector('[data-rent-new]')?.addEventListener('click', () => openNewRental());
+    root.querySelector('[data-rent-see-all]')?.addEventListener('click', () => {
+      state.modal = { type: 'list' };
       render();
     });
 
-    root.querySelectorAll("[data-date]").forEach((button) => {
-      button.addEventListener("click", () => {
+    root.querySelectorAll('[data-date]').forEach((button) => {
+      button.addEventListener('click', () => {
         state.selectedDate = button.dataset.date;
-        state.view = "day";
+        state.view = 'day';
         render();
       });
     });
 
-    root.querySelectorAll("[data-period]").forEach((button) => {
-      button.addEventListener("click", () => {
+    root.querySelectorAll('[data-period]').forEach((button) => {
+      button.addEventListener('click', () => {
         if (button.dataset.rentalId) {
           openRental(Number(button.dataset.rentalId));
           return;
         }
 
-        state.modal = { type: "form", date: state.selectedDate, period: button.dataset.period };
+        state.modal = { type: 'form', date: state.selectedDate, period: button.dataset.period };
         render();
       });
     });
 
-    root.querySelectorAll("[data-open-rental]").forEach((button) => {
-      button.addEventListener("click", () => openRental(Number(button.dataset.openRental)));
+    root.querySelectorAll('[data-open-rental]').forEach((button) => {
+      button.addEventListener('click', () => openRental(Number(button.dataset.openRental)));
     });
 
-    root.querySelectorAll("[data-modal-close]").forEach((node) => {
-      node.addEventListener("click", (event) => {
-        if (event.target !== node && !node.matches("button")) return;
+    root.querySelectorAll('[data-modal-close]').forEach((node) => {
+      node.addEventListener('click', (event) => {
+        if (event.target !== node && !node.matches('button')) return;
         state.modal = null;
         render();
       });
     });
 
-    root.querySelector("[data-rental-form]")?.addEventListener("submit", saveRental);
-    root.querySelector("[data-delete-rental]")?.addEventListener("click", deleteRental);
+    root.querySelector('[data-rental-form]')?.addEventListener('submit', saveRental);
+    root.querySelector('[data-delete-rental]')?.addEventListener('click', deleteRental);
   }
 
   function movePeriod(direction) {
-    if (state.view === "month") {
+    if (state.view === 'month') {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() + direction, 1);
       load({ force: true });
       return;
@@ -655,7 +650,7 @@
   }
 
   function openNewRental() {
-    state.modal = { type: "form", date: state.selectedDate, period: "morning" };
+    state.modal = { type: 'form', date: state.selectedDate, period: 'morning' };
     render();
   }
 
@@ -663,7 +658,7 @@
     const rental = rentals().find((item) => Number(item.id) === Number(id));
     if (!rental) return;
 
-    state.modal = { type: "form", rental };
+    state.modal = { type: 'form', rental };
     render();
   }
 
@@ -671,41 +666,41 @@
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
-    const id = Number(data.get("id") || 0);
-    const period = String(data.get("period") || "morning");
+    const id = Number(data.get('id') || 0);
+    const period = String(data.get('period') || 'morning');
     const mapped = periodPayload(period);
     const payload = {
       id: id || undefined,
-      equipmentItemId: Number(data.get("equipmentItemId") || selectedItem()?.id),
-      date: String(data.get("date") || state.selectedDate),
+      equipmentItemId: Number(data.get('equipmentItemId') || selectedItem()?.id),
+      date: String(data.get('date') || state.selectedDate),
       periodType: mapped.periodType,
       slot: mapped.slot,
-      notes: String(data.get("notes") || ""),
-      status: "reserved",
+      notes: String(data.get('notes') || ''),
+      status: 'reserved',
     };
 
     try {
-      await request(id ? "update_rental" : "create_rental", {
-        method: "POST",
+      await request(id ? 'update_rental' : 'create_rental', {
+        method: 'POST',
         body: payload,
       });
       state.modal = null;
       await load({ force: true });
     } catch (error) {
-      alert(error.message || "Enregistrement impossible");
+      alert(error.message || 'Enregistrement impossible');
     }
   }
 
   async function deleteRental(event) {
     const id = Number(event.currentTarget.dataset.deleteRental || 0);
-    if (!id || !confirm("Supprimer cette location ?")) return;
+    if (!id || !confirm('Supprimer cette location ?')) return;
 
     try {
-      await request("delete_rental", { method: "POST", body: { id } });
+      await request('delete_rental', { method: 'POST', body: { id } });
       state.modal = null;
       await load({ force: true });
     } catch (error) {
-      alert(error.message || "Suppression impossible");
+      alert(error.message || 'Suppression impossible');
     }
   }
 
@@ -716,13 +711,13 @@
     const sequence = ++loadSequence;
     const range = dateRange();
     state.loading = true;
-    state.error = "";
+    state.error = '';
     render();
 
     try {
-      const payload = await request("bootstrap", {
+      const payload = await request('bootstrap', {
         query: {
-          siteId: siteId() || "",
+          siteId: siteId() || '',
           from: range.from,
           to: range.to,
         },
@@ -735,7 +730,7 @@
         state.selectedItemId = siteItems()[0]?.id || null;
       }
     } catch (error) {
-      if (sequence === loadSequence) state.error = error.message || "Connexion aux données locations indisponible";
+      if (sequence === loadSequence) state.error = error.message || 'Connexion aux données locations indisponible';
     } finally {
       if (sequence !== loadSequence) return;
       state.loading = false;
@@ -744,61 +739,67 @@
   }
 
   function rentalPeriods(item) {
-    const mode = item?.rentalMode || "half_day_and_day";
+    const mode = item?.rentalMode || 'half_day_and_day';
     const periods = [];
 
-    if (mode !== "day_only") {
-      periods.push({ key: "morning", label: "Matin", time: "07:30 - 12:00" });
-      periods.push({ key: "afternoon", label: "Après-midi", time: "13:30 - 17:30" });
+    if (mode !== 'day_only') {
+      periods.push({ key: 'morning', label: 'Matin', time: '07:30 - 12:00' });
+      periods.push({ key: 'afternoon', label: 'Après-midi', time: '13:30 - 17:30' });
     }
 
-    if (mode !== "half_day_only") {
-      periods.push({ key: "day", label: "Journée complète", time: "07:30 - 17:30" });
+    if (mode !== 'half_day_only') {
+      periods.push({ key: 'day', label: 'Journée complète', time: '07:30 - 17:30' });
     }
 
     return periods;
   }
 
   function rentalForPeriod(item, period) {
-    return itemRentals(item.id).find((rental) => sameDate(rental.startAt, state.selectedDate) && periodKey(rental) === period.key) || null;
+    return (
+      itemRentals(item.id).find(
+        (rental) => sameDate(rental.startAt, state.selectedDate) && periodKey(rental) === period.key,
+      ) || null
+    );
   }
 
   function periodPayload(period) {
-    if (period === "day") return { periodType: "day", slot: "full_day" };
+    if (period === 'day') return { periodType: 'day', slot: 'full_day' };
 
-    return { periodType: "half_day", slot: period };
+    return { periodType: 'half_day', slot: period };
   }
 
   function periodKey(rental) {
-    if (!rental) return "";
-    if (rental.periodType === "day" || rental.slot === "full_day") return "day";
+    if (!rental) return '';
+    if (rental.periodType === 'day' || rental.slot === 'full_day') return 'day';
 
-    return rental.slot || "morning";
+    return rental.slot || 'morning';
   }
 
   function periodName(period, periodType) {
-    const key = periodType === "day" || period === "full_day" ? "day" : period;
+    const key = periodType === 'day' || period === 'full_day' ? 'day' : period;
 
-    return {
-      morning: "Matin",
-      afternoon: "Après-midi",
-      day: "Journée complète",
-    }[key] || "Matin";
+    return (
+      {
+        morning: 'Matin',
+        afternoon: 'Après-midi',
+        day: 'Journée complète',
+      }[key] || 'Matin'
+    );
   }
 
   function priceLabel(item) {
-    if (!item) return "";
+    if (!item) return '';
     if (item.showDayPrice === false) return `${Number(item.halfDayPrice || 0)} EUR/½j`;
 
     return `${Number(item.dayPrice || 0)} EUR/j`;
   }
 
   function itemInitials(item) {
-    return String(item?.name || "M")
+    return String(item?.name || 'M')
       .split(/\s+/)
       .slice(0, 2)
-      .map((part) => part[0] || "")
-      .join("")
+      .map((part) => part[0] || '')
+      .join('')
       .toUpperCase();
   }
 
@@ -824,14 +825,14 @@
   }
 
   function sameDate(value, date) {
-    return String(value || "").slice(0, 10) === date;
+    return String(value || '').slice(0, 10) === date;
   }
 
   function icon(name) {
     const paths = {
       plus: '<path d="M12 5v14M5 12h14"></path>',
-      "chevron-left": '<path d="m15 18-6-6 6-6"></path>',
-      "chevron-right": '<path d="m9 18 6-6-6-6"></path>',
+      'chevron-left': '<path d="m15 18-6-6 6-6"></path>',
+      'chevron-right': '<path d="m9 18 6-6-6-6"></path>',
       x: '<path d="M18 6 6 18M6 6l12 12"></path>',
       save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><path d="M17 21v-8H7v8M7 3v5h8"></path>',
       trash: '<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"></path>',
@@ -856,8 +857,8 @@
     window.addEventListener(activeSiteEvent, () => load({ force: true }));
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot, { once: true });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
   } else {
     boot();
   }

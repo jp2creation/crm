@@ -11,6 +11,7 @@ class CrmReservationUiAssetTest extends TestCase
         $reservationAsset = (string) file_get_contents(base_path('Modules/CrmReservations/resources/assets/crm-reservations.js'));
         $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
         $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
+        $reservationAsset = str_replace("'", '"', $reservationAsset);
 
         $this->assertStringContainsString('const api = "/api/reservations"', $reservationAsset);
         $this->assertStringNotContainsString('/api/reservations.php', $reservationAsset);
@@ -25,18 +26,22 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('reservation-day-board', $reservationAsset);
         $this->assertStringContainsString('reservation-mobile-slot-button', $reservationAsset);
         $this->assertStringContainsString('reservation-day-cell-button', $reservationAsset);
-        $this->assertStringContainsString('reservation-day-row-track-morning', $reservationAsset);
-        $this->assertStringContainsString('reservation-day-row-track-afternoon', $reservationAsset);
+        $this->assertStringContainsString('renderSlotColumn("Matin", morning, "morning")', $reservationAsset);
+        $this->assertStringContainsString('renderSlotColumn("Après-midi", afternoon, "afternoon")', $reservationAsset);
+        $this->assertStringContainsString('reservation-day-row-track-${esc(period)}', $reservationAsset);
         $this->assertStringContainsString('vehicleDaySlots', $reservationAsset);
         $this->assertStringContainsString('vehicleDefaultDayHours', $reservationAsset);
         $this->assertStringContainsString('dayStartTime', $reservationAsset);
         $this->assertStringContainsString('dayEndTime', $reservationAsset);
         $this->assertStringContainsString('reservationCellIsSelected', $reservationAsset);
         $this->assertStringContainsString('reservationSelectionCellLabel', $reservationAsset);
-        $this->assertStringContainsString('window.MartinSolsUi.renderProductGrid', $reservationAsset);
-        $this->assertStringContainsString('window.MartinSolsUi.renderSegmentControl', $reservationAsset);
-        $this->assertStringContainsString('value: "today"', $reservationAsset);
+        $this->assertStringNotContainsString('window.MartinSolsUi.renderProductGrid', $reservationAsset);
+        $this->assertStringNotContainsString('window.MartinSolsUi.renderSegmentControl', $reservationAsset);
+        $this->assertStringContainsString('view: "month"', $reservationAsset);
+        $this->assertStringContainsString('resa-planning-header', $reservationAsset);
+        $this->assertStringContainsString('resa-month-dots', $reservationAsset);
         $this->assertStringContainsString('data-view="today"', $reservationAsset);
+        $this->assertStringContainsString('data-view="today" class=""', $reservationAsset);
         $this->assertStringContainsString('state.month = new Date(today.getFullYear(), today.getMonth(), 1)', $reservationAsset);
         $this->assertStringContainsString('Début choisi', $reservationAsset);
         $this->assertStringContainsString('return "Fin";', $reservationAsset);

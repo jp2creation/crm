@@ -63,6 +63,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('window.CRM_NAV_FALLBACK = profile.navigation', $nativeShell);
         $this->assertStringContainsString('data-crm-native-submenu-toggle', $nativeShell);
         $this->assertStringContainsString('iconForKey', $nativeShell);
+        $this->assertStringContainsString("iconForKey('logout')", $nativeShell);
+        $this->assertStringContainsString('crm-native-nav-label">Se déconnecter', $nativeShell);
         $this->assertStringContainsString("new Set(['home', 'apps', 'accounting', 'internal'])", $nativeShell);
         $this->assertStringContainsString("commercial: 'dashboard'", $nativeShell);
         $this->assertStringContainsString('isLegacyTemplateRoute()', $legacyTemplate);
