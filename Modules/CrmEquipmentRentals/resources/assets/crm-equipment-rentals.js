@@ -317,7 +317,7 @@
             <option value="all">Toutes catégories</option>
             ${(state.data?.equipmentCategories || []).map((category) => `<option value="${esc(category.id)}"${String(category.id) === String(state.selectedCategoryId) ? " selected" : ""}>${esc(category.name)}</option>`).join("")}
           </select>
-          ${items.length ? `<div class="rent-items">${items.map(renderItemCard).join("")}</div>` : `<div class="rent-empty">Aucun matériel sur ce site.</div>`}
+          ${renderItemGrid(items)}
         </div>
       </section>
       <section class="rent-card">
@@ -346,6 +346,27 @@
     `;
   }
 
+  function renderItemGrid(items) {
+    if (window.MartinSolsUi?.renderProductGrid) {
+      return window.MartinSolsUi.renderProductGrid(
+        items.map((item) => ({
+          active: Number(item.id) === Number(selectedItem()?.id),
+          busy: isItemBusy(item),
+          id: item.id,
+          imageUrl: item.photoUrl || null,
+          meta: priceLabel(item),
+          name: item.name || "Matériel",
+        })),
+        {
+          actionName: "item-id",
+          emptyLabel: "Aucun matériel sur ce site.",
+        },
+      ).replace("ms-ui-product-grid", "ms-ui-product-grid rent-items");
+    }
+
+    return items.length ? `<div class="rent-items">${items.map(renderItemCard).join("")}</div>` : `<div class="rent-empty">Aucun matériel sur ce site.</div>`;
+  }
+
   function renderItemCard(item) {
     const busy = isItemBusy(item);
     const initials = String(item.name || "?")
@@ -370,13 +391,26 @@
   }
 
   function renderToolbar() {
-    return `
-      <div class="rent-toolbar">
+    const segment = window.MartinSolsUi?.renderSegmentControl
+      ? window.MartinSolsUi.renderSegmentControl(
+          [
+            { label: "Mois", value: "month", active: state.view === "month" },
+            { label: "Jour", value: "day", active: state.view === "day" },
+            { label: "Aujourd'hui", value: "today", active: state.view === "day" && state.selectedDate === formatDate(new Date()) },
+          ],
+          "Vue planning",
+        ).replace("ms-ui-segment", "ms-ui-segment rent-segment")
+      : `
         <div class="rent-segment" role="tablist" aria-label="Vue planning">
           <button type="button" data-view="month" class="${state.view === "month" ? "is-active" : ""}">Mois</button>
-          <button type="button" data-view="week" class="${state.view === "week" ? "is-active" : ""}">Semaine</button>
-          <button type="button" data-view="day" class="${state.view === "day" ? "is-active" : ""}">Aujourd'hui</button>
+          <button type="button" data-view="day" class="${state.view === "day" ? "is-active" : ""}">Jour</button>
+          <button type="button" data-view="today" class="${state.view === "day" && state.selectedDate === formatDate(new Date()) ? "is-active" : ""}">Aujourd'hui</button>
         </div>
+      `;
+
+    return `
+      <div class="rent-toolbar">
+        ${segment}
         <div class="rent-toolbar">
           <button class="rent-button" type="button" data-prev>${icon("chevron-left")}Précédent</button>
           <button class="rent-button" type="button" data-today>Aujourd'hui</button>
@@ -541,8 +575,16 @@
 
     root.querySelectorAll("[data-view]").forEach((button) => {
       button.addEventListener("click", () => {
+        if (button.dataset.view === "today") {
+          const today = new Date();
+          state.selectedDate = formatDate(today);
+          state.month = new Date(today.getFullYear(), today.getMonth(), 1);
+          state.view = "day";
+          render();
+          return;
+        }
+
         state.view = button.dataset.view === "week" ? "day" : button.dataset.view;
-        if (button.dataset.view === "day") state.selectedDate = formatDate(new Date());
         render();
       });
     });

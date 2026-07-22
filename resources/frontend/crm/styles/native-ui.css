@@ -1,0 +1,790 @@
+/* Native CRM UI kit inspired by the former Adminex layout, rebuilt as source CSS. */
+
+.crm-native-shell,
+.crm-mobile-fallback-header,
+.crm-mobile-fallback-panel,
+.ms-ui-dialog,
+.resa-dialog,
+.rent-dialog {
+  --ms-ui-primary: rgb(var(--theme-primary, 149 0 46));
+  --ms-ui-accent: rgb(var(--theme-accent, 245 178 18));
+  --ms-ui-text: var(--color-secondary-900, #1d354f);
+  --ms-ui-muted: var(--color-secondary-500, #5d7287);
+  --ms-ui-border: var(--color-surface-200, #e4e4e7);
+  --ms-ui-surface: #fff;
+  --ms-ui-soft: var(--color-secondary-50, #eff2f5);
+  --ms-ui-radius: var(--radius, 0.625rem);
+  --ms-ui-shadow-card: var(--shadow-card, 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -4px rgb(0 0 0 / 0.06));
+  --ms-ui-shadow-ring: var(--shadow-card-ring, 0 0 0 1px rgb(0 0 0 / 0.03));
+  --ms-ui-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+html.crm-native-shell-active {
+  scroll-behavior: smooth;
+}
+
+html.crm-native-shell-active:not([data-card-style]) {
+  color-scheme: light;
+}
+
+body.ms-ui-modal-open {
+  overflow: hidden;
+}
+
+.crm-native-content > [id$='-module'],
+.crm-native-content > #crm-pages-root {
+  min-width: 0;
+  color: var(--ms-ui-text);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.crm-native-content
+  :is(
+    .dash-card,
+    .cash-card,
+    .sales-card,
+    .deposit-card,
+    .check-card,
+    .teams-card,
+    .leave-card,
+    .doc-card,
+    .pages-card,
+    .admin-card,
+    .tapis-card,
+    .resa-card,
+    .rent-card
+  ) {
+  border: 1px solid var(--ms-ui-border) !important;
+  border-radius: var(--ms-ui-radius) !important;
+  background: var(--ms-ui-surface) !important;
+  box-shadow: var(--ms-ui-shadow-card), var(--ms-ui-shadow-ring) !important;
+}
+
+.crm-native-content :is(.resa-top, .rent-top, .dash-top, .sales-top, .teams-top, .leave-top, .doc-top, .cash-top) {
+  gap: 1rem !important;
+  margin-bottom: 0.2rem;
+}
+
+.crm-native-content
+  :is(
+    .resa-title h1,
+    .rent-title h1,
+    .dash-title h1,
+    .sales-title h1,
+    .teams-title h1,
+    .leave-title h1,
+    .doc-title h1,
+    .cash-title h1
+  ),
+.crm-native-content :is(h1.module-title, h1.page-title) {
+  color: var(--ms-ui-text) !important;
+  font-size: clamp(1.5rem, 1.3rem + 0.65vw, 2rem) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.25 !important;
+}
+
+.crm-native-content
+  :is(
+    .resa-title p,
+    .rent-title p,
+    .dash-title p,
+    .sales-title p,
+    .teams-title p,
+    .leave-title p,
+    .doc-title p,
+    .cash-title p
+  ) {
+  color: var(--ms-ui-muted) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+
+.crm-native-content
+  :is(
+    .resa-card-header,
+    .rent-card-header,
+    .dash-card-header,
+    .sales-card-header,
+    .teams-card-header,
+    .leave-card-header,
+    .doc-card-header,
+    .cash-card-header
+  ) {
+  border-bottom: 1px solid var(--ms-ui-border) !important;
+  padding: 1rem 1.1rem !important;
+}
+
+.crm-native-content
+  :is(
+    .resa-card-body,
+    .rent-card-body,
+    .dash-card-body,
+    .sales-card-body,
+    .teams-card-body,
+    .leave-card-body,
+    .doc-card-body,
+    .cash-card-body
+  ) {
+  padding: 1.05rem !important;
+}
+
+.crm-native-content
+  :is(
+    .resa-card-title,
+    .rent-card-title,
+    .dash-card-title,
+    .sales-card-title,
+    .teams-card-title,
+    .leave-card-title,
+    .doc-card-title,
+    .cash-card-title
+  ) {
+  margin: 0 !important;
+  color: var(--ms-ui-text) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.crm-native-content
+  :is(
+    .resa-card-subtitle,
+    .rent-card-subtitle,
+    .dash-card-subtitle,
+    .sales-card-subtitle,
+    .teams-card-subtitle,
+    .leave-card-subtitle,
+    .doc-card-subtitle,
+    .cash-card-subtitle
+  ) {
+  color: var(--ms-ui-muted) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+}
+
+.crm-native-content
+  :is(
+    .resa-button,
+    .rent-button,
+    .dash-button,
+    .cash-button,
+    .sales-button,
+    .deposit-button,
+    .check-button,
+    .teams-button,
+    .leave-button,
+    .doc-button,
+    .admin-button,
+    .tapis-button,
+    .crm-account-btn
+  ) {
+  min-height: var(--btn-height-md, 2.5rem) !important;
+  border-radius: var(--ms-ui-radius) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  transition:
+    background-color var(--duration-fast, 150ms),
+    border-color var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms),
+    opacity var(--duration-fast, 150ms),
+    filter var(--duration-fast, 150ms) !important;
+}
+
+.crm-native-content :is(.resa-button-primary, .rent-button-primary, .dash-button-primary, .crm-account-btn-primary) {
+  border-color: transparent !important;
+  background: var(--ms-ui-primary) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 28px rgb(149 0 46 / 0.18) !important;
+}
+
+.crm-native-content
+  :is(.resa-button-primary, .rent-button-primary, .dash-button-primary, .crm-account-btn-primary):hover {
+  filter: brightness(0.93);
+}
+
+.crm-native-content :is(input, select, textarea, .input, .select, .textarea, .select-trigger) {
+  border-radius: var(--ms-ui-radius) !important;
+  border-color: var(--ms-ui-border) !important;
+  background-color: #fff !important;
+  color: var(--ms-ui-text) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  transition:
+    border-color var(--duration-fast, 150ms),
+    box-shadow var(--duration-fast, 150ms),
+    background-color var(--duration-fast, 150ms) !important;
+}
+
+.crm-native-content :is(input, select, textarea, .input, .select, .textarea, .select-trigger):focus {
+  border-color: var(--ms-ui-primary) !important;
+  box-shadow: 0 0 0 3px rgb(149 0 46 / 0.12) !important;
+  outline: 0 !important;
+}
+
+.crm-native-content :is(.resa-list, .rent-list, .teams-list, .doc-list, .cash-list, .check-list, .deposit-list) {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.crm-native-content :is(.resa-row, .rent-row, .teams-row, .doc-row, .cash-row, .check-row, .deposit-row) {
+  border-radius: var(--ms-ui-radius) !important;
+  border-color: var(--ms-ui-border) !important;
+  background: #fff !important;
+  transition:
+    border-color var(--duration-fast, 150ms),
+    background-color var(--duration-fast, 150ms),
+    box-shadow var(--duration-fast, 150ms) !important;
+}
+
+.crm-native-content :is(.resa-row, .rent-row, .teams-row, .doc-row, .cash-row, .check-row, .deposit-row):hover {
+  border-color: rgb(149 0 46 / 0.18) !important;
+  background: rgb(149 0 46 / 0.035) !important;
+  box-shadow: 0 10px 22px rgb(15 23 42 / 0.045) !important;
+}
+
+.ms-ui-modal,
+.resa-modal,
+.rent-modal {
+  animation: ms-ui-backdrop-in 180ms var(--ms-ui-ease);
+}
+
+.ms-ui-dialog,
+.resa-dialog,
+.rent-dialog {
+  animation: ms-ui-dialog-in 220ms var(--ms-ui-ease);
+}
+
+@keyframes ms-ui-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ms-ui-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ms-ui-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ms-ui-modal,
+.resa-modal,
+.rent-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(15 23 42 / 0.52);
+  backdrop-filter: blur(7px);
+}
+
+.ms-ui-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: transparent;
+}
+
+.ms-ui-dialog,
+.resa-dialog,
+.rent-dialog {
+  position: relative;
+  width: min(100%, 35rem) !important;
+  max-height: min(86vh, 48rem) !important;
+  overflow: auto !important;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 1.05rem !important;
+  background: #fff;
+  box-shadow: 0 26px 80px rgb(15 23 42 / 0.3);
+}
+
+.ms-ui-dialog-close {
+  position: absolute;
+  top: 0.86rem;
+  right: 0.86rem;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 999px;
+  background: #fff;
+  color: rgb(76 99 125);
+  cursor: pointer;
+}
+
+.resa-dialog-header,
+.rent-dialog-header {
+  min-height: 4.75rem;
+  padding: 1.05rem 1.25rem !important;
+}
+
+.resa-dialog-title,
+.rent-dialog-title {
+  color: rgb(29 53 79) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.resa-close,
+.rent-close {
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 999px !important;
+}
+
+.ms-ui-segment,
+.resa-segment,
+.rent-segment {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 3rem;
+  overflow: hidden;
+  border: 1px solid rgb(226 232 240) !important;
+  border-radius: var(--ms-ui-radius) !important;
+  background: #fff;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.85);
+}
+
+.ms-ui-segment button,
+.resa-segment button,
+.rent-segment button {
+  min-width: 0;
+  border: 0 !important;
+  border-right: 1px solid rgb(226 232 240) !important;
+  background: rgb(248 250 252 / 0.75) !important;
+  color: rgb(76 99 125) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+}
+
+.ms-ui-segment button:last-child,
+.resa-segment button:last-child,
+.rent-segment button:last-child {
+  border-right: 0 !important;
+}
+
+.ms-ui-segment button.is-active,
+.resa-segment button.is-active,
+.rent-segment button.is-active {
+  background: rgb(var(--theme-primary, 149 0 46)) !important;
+  color: #fff !important;
+  box-shadow: 0 12px 28px rgb(149 0 46 / 0.18);
+}
+
+.ms-ui-product-grid,
+.resa-vehicles,
+.rent-items {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem !important;
+}
+
+.ms-ui-product-card,
+.resa-product-card,
+.rent-product-card {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  border: 1px solid rgb(226 232 240) !important;
+  border-radius: var(--ms-ui-radius) !important;
+  background: #fff;
+  padding: 0 !important;
+  font: inherit !important;
+  color: inherit !important;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--ms-ui-shadow-card), var(--ms-ui-shadow-ring) !important;
+  transition:
+    box-shadow var(--duration-fast, 150ms),
+    border-color var(--duration-fast, 150ms),
+    background-color var(--duration-fast, 150ms);
+}
+
+.ms-ui-product-card:hover,
+.resa-product-card:hover,
+.rent-product-card:hover {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.05),
+    0 12px 28px -8px rgb(15 23 42 / 0.18) !important;
+}
+
+.ms-ui-product-card.is-active,
+.resa-product-card.is-active,
+.rent-product-card.is-active {
+  border-color: rgb(149 0 46 / 0.2) !important;
+  box-shadow:
+    0 0 0 1px rgb(149 0 46 / 0.05),
+    var(--ms-ui-shadow-card) !important;
+}
+
+.ms-ui-product-image,
+.resa-product-image,
+.rent-product-image {
+  position: relative;
+  display: grid;
+  aspect-ratio: 1.34 / 1;
+  min-height: 0;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f9eef2, #f3edf0);
+  color: rgb(var(--theme-primary, 149 0 46));
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.ms-ui-product-image img,
+.resa-product-image img,
+.rent-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain !important;
+  padding: 0.45rem;
+  background: #fff;
+}
+
+.ms-ui-product-body,
+.resa-product-body,
+.rent-product-body {
+  display: grid;
+  min-height: 4.25rem;
+  align-content: start;
+  gap: 0.28rem;
+  padding: 0.78rem 0.82rem !important;
+}
+
+.ms-ui-product-body strong,
+.resa-product-name,
+.rent-product-name {
+  display: -webkit-box !important;
+  overflow: hidden;
+  color: rgb(29 53 79) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  text-overflow: ellipsis;
+  white-space: normal !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.ms-ui-product-body small,
+.resa-product-meta,
+.rent-product-meta {
+  overflow: hidden;
+  color: rgb(93 114 135) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  text-align: left !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ms-ui-status-dot,
+.resa-dot,
+.rent-dot {
+  position: absolute;
+  top: 0.62rem;
+  right: 0.62rem;
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+  border-radius: 999px;
+  background: #16a34a;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 7px 18px rgb(22 163 74 / 0.32);
+}
+
+.ms-ui-status-dot.is-busy,
+.resa-dot.is-busy,
+.rent-dot.is-busy {
+  background: #dc2626;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 7px 18px rgb(220 38 38 / 0.3);
+}
+
+.resa-card,
+.rent-card {
+  border-color: rgb(226 232 240) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 16px 38px rgb(15 23 42 / 0.06) !important;
+}
+
+.resa-card-header,
+.rent-card-header {
+  align-items: center !important;
+  padding: 1rem 1.15rem !important;
+}
+
+.resa-card-title,
+.rent-card-title {
+  color: rgb(29 53 79) !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.resa-card-subtitle,
+.rent-card-subtitle {
+  color: rgb(93 114 135) !important;
+  font-size: 0.82rem !important;
+}
+
+.resa-button,
+.rent-button {
+  border-radius: 0.78rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+}
+
+.resa-button-primary,
+.rent-button-primary {
+  box-shadow: 0 14px 30px rgb(149 0 46 / 0.2) !important;
+}
+
+.resa-month-grid,
+.rent-month-grid {
+  border-radius: 1rem !important;
+}
+
+.resa-month-head,
+.rent-month-head {
+  min-height: 2.8rem !important;
+  align-content: center;
+  color: rgb(76 99 125) !important;
+}
+
+.resa-month-cell,
+.rent-month-cell {
+  min-height: 5.65rem !important;
+  background: #fff;
+}
+
+.resa-month-cell button,
+.rent-month-cell button {
+  align-content: start;
+}
+
+.resa-month-pill,
+.rent-pill {
+  width: 0.52rem !important;
+  height: 0.52rem !important;
+  overflow: hidden;
+  border-radius: 999px !important;
+  background: rgb(var(--theme-primary, 149 0 46)) !important;
+  padding: 0 !important;
+  color: transparent !important;
+}
+
+.reservation-fast-actions,
+.rent-actions,
+.resa-selection-actions {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+.resa-summary,
+.rent-summary {
+  border-radius: 0.9rem !important;
+  background: #fff !important;
+  box-shadow: inset 0 0 0 1px rgb(226 232 240);
+}
+
+.resa-summary-item {
+  min-width: 0;
+  border: 1px solid rgb(226 232 240);
+  border-radius: 0.7rem;
+  background: #fff;
+  padding: 0.7rem 0.78rem;
+}
+
+.resa-summary-item:first-child {
+  grid-column: 1 / -1;
+}
+
+.rent-period {
+  border-radius: var(--ms-ui-radius) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  box-shadow: 0 16px 34px rgb(15 23 42 / 0.12) !important;
+}
+
+.rent-period strong,
+.reservation-mobile-slot-button strong,
+.reservation-day-cell-button strong {
+  font-family: var(--font-sans) !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+}
+
+.rent-period span,
+.reservation-mobile-slot-button span,
+.reservation-day-cell-button span,
+.resa-slot-time,
+.resa-slot-meta {
+  font-family: var(--font-sans) !important;
+  font-weight: 500 !important;
+}
+
+.reservation-mobile-slot-button,
+.reservation-day-cell-button {
+  border-radius: var(--ms-ui-radius) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  transition:
+    filter var(--duration-fast, 150ms),
+    transform var(--duration-fast, 150ms),
+    box-shadow var(--duration-fast, 150ms) !important;
+}
+
+.reservation-mobile-slot-button:active,
+.reservation-day-cell-button:active,
+.ms-ui-product-card:active,
+.resa-product-card:active,
+.rent-product-card:active {
+  transform: scale(0.985);
+}
+
+.ms-ui-empty {
+  display: grid;
+  min-height: 6rem;
+  place-items: center;
+  border: 1px dashed rgb(226 232 240);
+  border-radius: 0.8rem;
+  color: rgb(93 114 135);
+  font-weight: 500;
+  text-align: center;
+}
+
+@media (max-width: 1100px) {
+  .ms-ui-product-grid,
+  .resa-vehicles,
+  .rent-items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .ms-ui-product-grid,
+  .resa-vehicles,
+  .rent-items {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.75rem !important;
+  }
+
+  .ms-ui-product-image,
+  .resa-product-image,
+  .rent-product-image {
+    aspect-ratio: 1.22 / 1;
+  }
+
+  .ms-ui-product-body,
+  .resa-product-body,
+  .rent-product-body {
+    min-height: 4.05rem;
+    padding: 0.72rem !important;
+  }
+
+  .ms-ui-product-body strong,
+  .resa-product-name,
+  .rent-product-name {
+    font-size: 0.91rem !important;
+  }
+
+  .resa-toolbar,
+  .rent-toolbar {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+  }
+
+  .resa-toolbar .resa-toolbar,
+  .rent-toolbar .rent-toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .resa-toolbar .resa-toolbar .resa-button,
+  .rent-toolbar .rent-toolbar .rent-button {
+    padding-inline: 0.45rem !important;
+    font-size: 0.76rem !important;
+  }
+
+  .resa-month-cell,
+  .rent-month-cell {
+    min-height: 4.55rem !important;
+  }
+
+  .ms-ui-dialog,
+  .resa-dialog,
+  .rent-dialog {
+    width: min(100%, 32.5rem) !important;
+    max-height: 84vh !important;
+  }
+
+  .resa-form,
+  .rent-form {
+    padding: 1rem !important;
+  }
+
+  .reservation-fast-actions .resa-button,
+  .rent-actions .rent-button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 0.55rem !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .crm-native-content,
+  .ms-ui-modal,
+  .resa-modal,
+  .rent-modal,
+  .ms-ui-dialog,
+  .resa-dialog,
+  .rent-dialog,
+  .ms-ui-product-card,
+  .resa-product-card,
+  .rent-product-card,
+  .reservation-mobile-slot-button,
+  .reservation-day-cell-button {
+    animation: none !important;
+    transition: none !important;
+  }
+}

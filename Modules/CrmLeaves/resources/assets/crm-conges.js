@@ -1,7 +1,7 @@
 (() => {
-  const api = "/api/conges";
-  const rootId = "crm-leaves-module";
-  const routeEvent = "crm:leaves-route-changed";
+  const api = '/api/conges';
+  const rootId = 'crm-leaves-module';
+  const routeEvent = 'crm:leaves-route-changed';
   let root = null;
   let hostNode = null;
   let mountTimer = null;
@@ -11,43 +11,46 @@
     data: null,
     month: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     filters: {
-      employeeId: "all",
-      type: "all",
-      status: "active",
-      query: "",
+      employeeId: 'all',
+      type: 'all',
+      status: 'active',
+      query: '',
     },
     selectedDate: formatDate(new Date()),
     modal: null,
   };
 
-  const esc = (value) => String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  const esc = (value) =>
+    String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
 
   function parseDate(value) {
-    const [year, month, day] = String(value || "").split("-").map(Number);
+    const [year, month, day] = String(value || '')
+      .split('-')
+      .map(Number);
     return new Date(year, month - 1, day);
   }
 
   function formatDate(date) {
     return [
       date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0"),
-    ].join("-");
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
   }
 
   function dateLabel(value) {
     const date = parseDate(value);
     if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   function monthLabel(date) {
-    const label = date.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+    const label = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
 
@@ -81,12 +84,18 @@
     return formatDate(weekStart(date));
   }
 
-  function normalizeColor(value, fallback = "#facc15") {
-    return /^#[0-9a-f]{6}$/i.test(String(value || "")) ? value : fallback;
+  function normalizeColor(value, fallback = '#facc15') {
+    return /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : fallback;
   }
 
   function typeMeta(type) {
-    return (state.data?.types || []).find((item) => item.value === type) || { value: "conge", label: "Conge", color: "#facc15" };
+    return (
+      (state.data?.types || []).find((item) => item.value === type) || {
+        value: 'conge',
+        label: 'Conge',
+        color: '#facc15',
+      }
+    );
   }
 
   function employees() {
@@ -99,7 +108,7 @@
   }
 
   function selectedEmployee() {
-    if (state.filters.employeeId === "all") return null;
+    if (state.filters.employeeId === 'all') return null;
     return employees().find((employee) => Number(employee.id) === Number(state.filters.employeeId)) || null;
   }
 
@@ -108,53 +117,61 @@
     if (Number.isFinite(fromApi) && fromApi > 0) return fromApi;
 
     try {
-      const fromStorage = Number(window.localStorage.getItem("crm:active-site-id") || 0);
+      const fromStorage = Number(window.localStorage.getItem('crm:active-site-id') || 0);
       if (Number.isFinite(fromStorage) && fromStorage > 0) return fromStorage;
     } catch (error) {
       // The server will fall back to the first authorized site.
     }
 
     const selected = Number(state.data?.selectedSiteId || state.data?.user?.selectedSiteId || 0);
-    return Number.isFinite(selected) && selected > 0 ? selected : "";
+    return Number.isFinite(selected) && selected > 0 ? selected : '';
   }
 
   function activeSiteName() {
     const siteId = Number(state.data?.selectedSiteId || state.data?.user?.selectedSiteId || activeSiteId());
     const site = (state.data?.sites || []).find((item) => Number(item.id) === siteId);
-    return site?.name || "Site actif";
+    return site?.name || 'Site actif';
   }
 
   function syncEmployeeFilter() {
-    if (state.filters.employeeId === "all") return;
+    if (state.filters.employeeId === 'all') return;
     const exists = employees().some((employee) => Number(employee.id) === Number(state.filters.employeeId));
-    if (!exists) state.filters.employeeId = "all";
+    if (!exists) state.filters.employeeId = 'all';
   }
 
   function statusLabel(status) {
-    return {
-      approved: "Valide",
-      planned: "Planifie",
-      pending: "A valider",
-      refused: "Refuse",
-    }[status] || status || "";
+    return (
+      {
+        approved: 'Valide',
+        planned: 'Planifie',
+        pending: 'A valider',
+        refused: 'Refuse',
+      }[status] ||
+      status ||
+      ''
+    );
   }
 
   function periodLabel(period) {
-    return {
-      full: "Journee",
-      morning: "Matin",
-      afternoon: "Apres-midi",
-    }[period] || period || "";
+    return (
+      {
+        full: 'Journee',
+        morning: 'Matin',
+        afternoon: 'Apres-midi',
+      }[period] ||
+      period ||
+      ''
+    );
   }
 
   function matchesFilters(leave) {
     const filters = state.filters;
     const query = filters.query.trim().toLowerCase();
 
-    if (filters.employeeId !== "all" && Number(leave.employeeId) !== Number(filters.employeeId)) return false;
-    if (filters.type !== "all" && leave.type !== filters.type) return false;
-    if (filters.status === "active" && leave.status === "refused") return false;
-    if (filters.status !== "all" && filters.status !== "active" && leave.status !== filters.status) return false;
+    if (filters.employeeId !== 'all' && Number(leave.employeeId) !== Number(filters.employeeId)) return false;
+    if (filters.type !== 'all' && leave.type !== filters.type) return false;
+    if (filters.status === 'active' && leave.status === 'refused') return false;
+    if (filters.status !== 'all' && filters.status !== 'active' && leave.status !== filters.status) return false;
 
     if (query) {
       const meta = typeMeta(leave.type);
@@ -166,7 +183,9 @@
         leave.startDate,
         leave.endDate,
         leave.notes,
-      ].join(" ").toLowerCase();
+      ]
+        .join(' ')
+        .toLowerCase();
       if (!haystack.includes(query)) return false;
     }
 
@@ -179,18 +198,19 @@
 
   function activeLeaves() {
     return filteredLeaves()
-      .filter((leave) => leave.status !== "refused")
+      .filter((leave) => leave.status !== 'refused')
       .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.employeeName.localeCompare(b.employeeName));
   }
 
   function leavesForDate(date) {
     return activeLeaves()
       .filter((leave) => leave.startDate <= date && leave.endDate >= date)
-      .sort((a, b) => (
-        employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId)
-        || a.employeeName.localeCompare(b.employeeName)
-        || a.startDate.localeCompare(b.startDate)
-      ));
+      .sort(
+        (a, b) =>
+          employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId) ||
+          a.employeeName.localeCompare(b.employeeName) ||
+          a.startDate.localeCompare(b.startDate),
+      );
   }
 
   function employeeIdsForWeek(day) {
@@ -202,11 +222,12 @@
 
     return activeLeaves()
       .filter((leave) => leave.startDate <= last && leave.endDate >= first)
-      .sort((a, b) => (
-        employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId)
-        || a.employeeName.localeCompare(b.employeeName)
-        || a.startDate.localeCompare(b.startDate)
-      ))
+      .sort(
+        (a, b) =>
+          employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId) ||
+          a.employeeName.localeCompare(b.employeeName) ||
+          a.startDate.localeCompare(b.startDate),
+      )
       .map((leave) => Number(leave.employeeId))
       .filter((employeeId) => {
         if (seen.has(employeeId)) return false;
@@ -241,7 +262,7 @@
     const start = parseDate(leave.startDate);
     const end = parseDate(leave.endDate);
     const days = Math.max(1, Math.round((end - start) / 86400000) + 1);
-    return days === 1 && leave.period !== "full" ? 0.5 : days;
+    return days === 1 && leave.period !== 'full' ? 0.5 : days;
   }
 
   function overlapDays(leave, startDate, endDate) {
@@ -255,11 +276,11 @@
     if (to < from) return 0;
 
     const days = Math.max(1, Math.round((to - from) / 86400000) + 1);
-    return days === 1 && leave.period !== "full" ? 0.5 : days;
+    return days === 1 && leave.period !== 'full' ? 0.5 : days;
   }
 
   function formatDaysCount(value) {
-    return Number.isInteger(value) ? String(value) : String(value).replace(".", ",");
+    return Number.isInteger(value) ? String(value) : String(value).replace('.', ',');
   }
 
   function monthReportLeaves() {
@@ -267,24 +288,25 @@
 
     return filteredLeaves()
       .filter((leave) => leave.startDate <= last && leave.endDate >= first)
-      .sort((a, b) => (
-        a.startDate.localeCompare(b.startDate)
-        || a.endDate.localeCompare(b.endDate)
-        || employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId)
-        || a.employeeName.localeCompare(b.employeeName)
-      ));
+      .sort(
+        (a, b) =>
+          a.startDate.localeCompare(b.startDate) ||
+          a.endDate.localeCompare(b.endDate) ||
+          employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId) ||
+          a.employeeName.localeCompare(b.employeeName),
+      );
   }
 
   function openModal(leave) {
     state.modal = {
-      id: leave?.id || "",
-      employeeId: leave?.employeeId || selectedEmployee()?.id || employees()[0]?.id || "",
+      id: leave?.id || '',
+      employeeId: leave?.employeeId || selectedEmployee()?.id || employees()[0]?.id || '',
       startDate: leave?.startDate || formatDate(new Date()),
       endDate: leave?.endDate || leave?.startDate || formatDate(new Date()),
-      type: leave?.type || "conge",
-      period: leave?.period || "full",
-      status: leave?.status || "approved",
-      notes: leave?.notes || "",
+      type: leave?.type || 'conge',
+      period: leave?.period || 'full',
+      status: leave?.status || 'approved',
+      notes: leave?.notes || '',
     };
     render();
   }
@@ -309,12 +331,13 @@
 
   function reportLeavesForDate(date, leaves) {
     return leaves
-      .filter((leave) => leave.status !== "refused" && leave.startDate <= date && leave.endDate >= date)
-      .sort((a, b) => (
-        employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId)
-        || a.employeeName.localeCompare(b.employeeName)
-        || a.startDate.localeCompare(b.startDate)
-      ));
+      .filter((leave) => leave.status !== 'refused' && leave.startDate <= date && leave.endDate >= date)
+      .sort(
+        (a, b) =>
+          employeeSortIndex(a.employeeId) - employeeSortIndex(b.employeeId) ||
+          a.employeeName.localeCompare(b.employeeName) ||
+          a.startDate.localeCompare(b.startDate),
+      );
   }
 
   function exportMonthDays() {
@@ -332,7 +355,7 @@
 
   function exportEmployees(leaves) {
     const list = employees();
-    if (state.filters.employeeId !== "all") {
+    if (state.filters.employeeId !== 'all') {
       return list.filter((employee) => Number(employee.id) === Number(state.filters.employeeId));
     }
 
@@ -340,14 +363,17 @@
     if (!query) return list;
 
     const visibleEmployeeIds = new Set(leaves.map((leave) => Number(leave.employeeId)));
-    return list.filter((employee) => (
-      visibleEmployeeIds.has(Number(employee.id))
-      || String(employee.name || "").toLowerCase().includes(query)
-    ));
+    return list.filter(
+      (employee) =>
+        visibleEmployeeIds.has(Number(employee.id)) ||
+        String(employee.name || '')
+          .toLowerCase()
+          .includes(query),
+    );
   }
 
   function shortWeekday(date) {
-    return date.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", "");
+    return date.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
   }
 
   function isWeekend(date) {
@@ -355,32 +381,39 @@
   }
 
   function leaveTypeCode(type) {
-    return {
-      conge: "CP",
-      rtt: "RTT",
-      absence: "ABS",
-      formation: "FOR",
-      maladie: "MAL",
-    }[type] || String(type || "").slice(0, 3).toUpperCase() || "ABS";
+    return (
+      {
+        conge: 'CP',
+        rtt: 'RTT',
+        absence: 'ABS',
+        formation: 'FOR',
+        maladie: 'MAL',
+      }[type] ||
+      String(type || '')
+        .slice(0, 3)
+        .toUpperCase() ||
+      'ABS'
+    );
   }
 
   function periodShortLabel(period) {
-    return {
-      morning: "M",
-      afternoon: "AM",
-    }[period] || "";
+    return (
+      {
+        morning: 'M',
+        afternoon: 'AM',
+      }[period] || ''
+    );
   }
 
   function employeeMonthTotal(employee, leaves) {
     const { first, last } = monthBounds();
     return leaves
-      .filter((leave) => leave.status !== "refused" && Number(leave.employeeId) === Number(employee.id))
+      .filter((leave) => leave.status !== 'refused' && Number(leave.employeeId) === Number(employee.id))
       .reduce((sum, leave) => sum + overlapDays(leave, first, last), 0);
   }
 
   function exportCellLeaves(employee, date, leaves) {
-    return reportLeavesForDate(date, leaves)
-      .filter((leave) => Number(leave.employeeId) === Number(employee.id));
+    return reportLeavesForDate(date, leaves).filter((leave) => Number(leave.employeeId) === Number(employee.id));
   }
 
   function renderExportPlanning(leaves) {
@@ -398,50 +431,56 @@
           <colgroup>
             <col class="pdf-col-employee">
             <col class="pdf-col-total">
-            ${days.map(() => '<col class="pdf-col-day">').join("")}
+            ${days.map(() => '<col class="pdf-col-day">').join('')}
           </colgroup>
           <thead>
             <tr>
               <th class="pdf-employee-head" rowspan="2">Utilisateur</th>
               <th class="pdf-total-head" rowspan="2">Total</th>
-              ${days.map((day) => `<th class="pdf-weekday-head ${isWeekend(day) ? "is-weekend" : ""}">${esc(shortWeekday(day))}</th>`).join("")}
+              ${days.map((day) => `<th class="pdf-weekday-head ${isWeekend(day) ? 'is-weekend' : ''}">${esc(shortWeekday(day))}</th>`).join('')}
             </tr>
             <tr>
-              ${days.map((day) => `<th class="pdf-day-head ${isWeekend(day) ? "is-weekend" : ""}">${day.getDate()}</th>`).join("")}
+              ${days.map((day) => `<th class="pdf-day-head ${isWeekend(day) ? 'is-weekend' : ''}">${day.getDate()}</th>`).join('')}
             </tr>
           </thead>
           <tbody>
-            ${rows.map((employee) => {
-              const total = employeeMonthTotal(employee, leaves);
-              return `
+            ${rows
+              .map((employee) => {
+                const total = employeeMonthTotal(employee, leaves);
+                return `
                 <tr>
                   <th class="pdf-employee-cell">${esc(employee.name)}</th>
-                  <td class="pdf-total-cell">${total ? esc(formatDaysCount(total)) : ""}</td>
-                  ${days.map((day) => {
-                    const date = formatDate(day);
-                    const cellLeaves = exportCellLeaves(employee, date, leaves);
-                    const visible = cellLeaves.slice(0, 2);
-                    const more = cellLeaves.length - visible.length;
+                  <td class="pdf-total-cell">${total ? esc(formatDaysCount(total)) : ''}</td>
+                  ${days
+                    .map((day) => {
+                      const date = formatDate(day);
+                      const cellLeaves = exportCellLeaves(employee, date, leaves);
+                      const visible = cellLeaves.slice(0, 2);
+                      const more = cellLeaves.length - visible.length;
 
-                    return `
-                      <td class="pdf-date-cell ${isWeekend(day) ? "is-weekend" : ""} ${cellLeaves.length ? "has-leave" : ""}">
-                        ${visible.map((leave) => {
-                          const meta = typeMeta(leave.type);
-                          const color = normalizeColor(meta.color || "#38bdf8");
-                          const period = periodShortLabel(leave.period);
-                          return `
-                            <span class="pdf-absence-chip ${leave.status === "pending" ? "is-pending" : ""}" style="--absence-color:${esc(color)}">
-                              <b>${esc(leaveTypeCode(leave.type))}</b>${period ? `<small>${esc(period)}</small>` : ""}
+                      return `
+                      <td class="pdf-date-cell ${isWeekend(day) ? 'is-weekend' : ''} ${cellLeaves.length ? 'has-leave' : ''}">
+                        ${visible
+                          .map((leave) => {
+                            const meta = typeMeta(leave.type);
+                            const color = normalizeColor(meta.color || '#38bdf8');
+                            const period = periodShortLabel(leave.period);
+                            return `
+                            <span class="pdf-absence-chip ${leave.status === 'pending' ? 'is-pending' : ''}" style="--absence-color:${esc(color)}">
+                              <b>${esc(leaveTypeCode(leave.type))}</b>${period ? `<small>${esc(period)}</small>` : ''}
                             </span>
                           `;
-                        }).join("")}
-                        ${more > 0 ? `<span class="pdf-more">+${more}</span>` : ""}
+                          })
+                          .join('')}
+                        ${more > 0 ? `<span class="pdf-more">+${more}</span>` : ''}
                       </td>
                     `;
-                  }).join("")}
+                    })
+                    .join('')}
                 </tr>
               `;
-            }).join("")}
+              })
+              .join('')}
           </tbody>
         </table>
       </section>
@@ -449,22 +488,24 @@
   }
 
   function renderExportLegend(leaves) {
-    const activeTypes = new Set(leaves.filter((leave) => leave.status !== "refused").map((leave) => leave.type));
+    const activeTypes = new Set(leaves.filter((leave) => leave.status !== 'refused').map((leave) => leave.type));
     const types = (state.data?.types || []).filter((type) => activeTypes.has(type.value) || !activeTypes.size);
 
     return `
       <section class="pdf-legend">
         <strong>Légende</strong>
-        ${types.map((type) => {
-          const color = normalizeColor(type.color, "#38bdf8");
-          return `
+        ${types
+          .map((type) => {
+            const color = normalizeColor(type.color, '#38bdf8');
+            return `
             <span>
               <i style="background:${esc(color)}"></i>
               <b>${esc(leaveTypeCode(type.value))}</b>
               ${esc(type.label)}
             </span>
           `;
-        }).join("")}
+          })
+          .join('')}
         <span><em class="pdf-pending-mark"></em>En attente de validation</span>
       </section>
     `;
@@ -473,7 +514,7 @@
   function exportDocumentHtml() {
     const leaves = monthReportLeaves();
     const title = `Congés - ${activeSiteName()} - ${monthLabel(state.month)}`;
-    const generatedAt = new Date().toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+    const generatedAt = new Date().toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
     const days = exportMonthDays();
     const period = days.length
       ? `${dateLabel(formatDate(days[0]))} au ${dateLabel(formatDate(days[days.length - 1]))}`
@@ -555,7 +596,7 @@
   }
 
   function exportPdf() {
-    const printWindow = window.open("", "_blank", "width=1280,height=900");
+    const printWindow = window.open('', '_blank', 'width=1280,height=900');
     if (!printWindow) {
       alert("Impossible d'ouvrir l'export PDF. Autorisez les pop-ups pour ce CRM.");
       return;
@@ -571,44 +612,53 @@
   async function request(action, payload = null) {
     const params = new URLSearchParams({ action });
     const siteId = activeSiteId();
-    if (siteId) params.set("siteId", String(siteId));
+    if (siteId) params.set('siteId', String(siteId));
 
-    const options = { credentials: "same-origin" };
+    const options = { credentials: 'same-origin' };
     if (payload) {
       if (siteId && payload.siteId === undefined && payload.site_id === undefined) {
         payload = { ...payload, siteId: Number(siteId) };
       }
-      options.method = "POST";
-      options.headers = { "Content-Type": "application/json" };
+      options.method = 'POST';
+      options.headers = { 'Content-Type': 'application/json' };
       options.body = JSON.stringify(payload);
     }
     const response = await fetch(`${api}?${params.toString()}`, options);
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok === false) {
-      throw new Error(data.error || "API conges indisponible");
+      throw new Error(data.error || 'API conges indisponible');
     }
     return data;
   }
 
   async function load() {
+    if (!canRender()) return;
+
     root.innerHTML = '<div class="leave-card leave-loading">Chargement...</div>';
     styles();
     try {
-      state.data = await request("bootstrap");
+      const data = await request('bootstrap');
+      if (!canRender()) return;
+
+      state.data = data;
       syncEmployeeFilter();
       render();
     } catch (error) {
-      root.innerHTML = `<div class="leave-card leave-card-pad"><div class="leaves-notice">${esc(error instanceof Error ? error.message : "Chargement impossible")}</div></div>`;
+      if (!canRender()) return;
+
+      root.innerHTML = `<div class="leave-card leave-card-pad"><div class="leaves-notice">${esc(error instanceof Error ? error.message : 'Chargement impossible')}</div></div>`;
       styles();
     }
   }
 
   function styles() {
+    if (!root) return;
+
     const target = root instanceof ShadowRoot ? root : document.head;
-    let style = target.querySelector("#crm-conges-style");
+    let style = target.querySelector('#crm-conges-style');
     if (!style) {
-      style = document.createElement("style");
-      style.id = "crm-conges-style";
+      style = document.createElement('style');
+      style.id = 'crm-conges-style';
       target.appendChild(style);
     }
 
@@ -1007,25 +1057,30 @@
         #crm-leaves-module .leave-summary-card small { white-space:normal; }
       }
     `;
-    style.textContent = root instanceof ShadowRoot
-      ? css.replace(/\.dark #crm-leaves-module/g, ":host-context(.dark)").replace(/#crm-leaves-module/g, ":host")
-      : css;
+    style.textContent =
+      root instanceof ShadowRoot
+        ? css.replace(/\.dark #crm-leaves-module/g, ':host-context(.dark)').replace(/#crm-leaves-module/g, ':host')
+        : css;
   }
 
   function renderLegend() {
     const visibleEmployees = employees().slice(0, 6);
     const remaining = Math.max(0, employees().length - visibleEmployees.length);
-    const items = visibleEmployees.map((employee) => `
+    const items = visibleEmployees
+      .map(
+        (employee) => `
       <span class="leave-legend-item">
-        <span class="leave-legend-dot" style="--legend-color:${esc(normalizeColor(employee.color, "#38bdf8"))}"></span>
+        <span class="leave-legend-dot" style="--legend-color:${esc(normalizeColor(employee.color, '#38bdf8'))}"></span>
         <span>${esc(employee.name)}</span>
       </span>
-    `).join("");
+    `,
+      )
+      .join('');
 
     return `
       <div class="leave-legend" aria-label="Legende utilisateurs">
         ${items || '<span class="leave-legend-item"><span class="leave-legend-dot" style="--legend-color:#94a3b8"></span><span>Aucun utilisateur</span></span>'}
-        ${remaining ? `<span class="leave-legend-more">+${remaining}</span>` : ""}
+        ${remaining ? `<span class="leave-legend-more">+${remaining}</span>` : ''}
       </div>
     `;
   }
@@ -1038,9 +1093,7 @@
       if (!weekLanes.has(key)) weekLanes.set(key, employeeIdsForWeek(day));
     });
     const employee = selectedEmployee();
-    const subtitle = employee
-      ? `Planning conges - ${employee.name}`
-      : `Planning conges - ${activeSiteName()}`;
+    const subtitle = employee ? `Planning conges - ${employee.name}` : `Planning conges - ${activeSiteName()}`;
     return `
       <section class="leave-card leave-calendar" aria-label="Calendrier conges">
         <div class="leave-planning-head">
@@ -1057,10 +1110,10 @@
           <button type="button" class="leave-tab" data-today>Aujourd'hui</button>
         </div>
         <div class="leave-weekdays">
-          ${["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"].map((day) => `<span>${day}</span>`).join("")}
+          ${['LUN', 'MAR', 'MER', 'JEU', 'VEN', 'SAM', 'DIM'].map((day) => `<span>${day}</span>`).join('')}
         </div>
         <div class="leave-calendar-grid">
-          ${days.map((day) => renderDay(day, weekLanes.get(weekKey(day)) || [])).join("")}
+          ${days.map((day) => renderDay(day, weekLanes.get(weekKey(day)) || [])).join('')}
         </div>
         ${renderLegend()}
       </section>
@@ -1080,35 +1133,42 @@
     const today = date === formatDate(new Date());
     const selected = date === state.selectedDate;
     const classes = [
-      "leave-date",
-      otherMonth ? "is-other" : "",
-      sunday ? "is-sunday" : "",
-      today ? "is-today" : "",
-      selected ? "is-selected" : "",
-      leaves.length ? "has-absences" : "",
-    ].filter(Boolean).join(" ");
+      'leave-date',
+      otherMonth ? 'is-other' : '',
+      sunday ? 'is-sunday' : '',
+      today ? 'is-today' : '',
+      selected ? 'is-selected' : '',
+      leaves.length ? 'has-absences' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
     const visibleEmployeeIds = weekEmployeeIds.slice(0, 6);
-    const leaveLines = visibleEmployeeIds.map((employeeId) => {
-      const leave = leavesByEmployee.get(Number(employeeId));
-      if (!leave) return '<span class="leave-lane-spacer" aria-hidden="true"></span>';
+    const leaveLines = visibleEmployeeIds
+      .map((employeeId) => {
+        const leave = leavesByEmployee.get(Number(employeeId));
+        if (!leave) return '<span class="leave-lane-spacer" aria-hidden="true"></span>';
 
-      const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
-      const period = ["morning", "afternoon"].includes(leave.period) ? leave.period : "full";
-      const status = String(leave.status || "approved").replace(/[^a-z0-9_-]/gi, "") || "approved";
-      const label = `${leave.employeeName} - ${typeMeta(leave.type).label} - ${periodLabel(leave.period)}`;
-      const weekDayIndex = (day.getDay() + 6) % 7;
-      const continuationClasses = period === "full"
-        ? [
-            leave.startDate < date && weekDayIndex > 0 ? "is-continued-before" : "",
-            leave.endDate > date && weekDayIndex < 6 ? "is-continued-after" : "",
-          ].filter(Boolean).join(" ")
-        : "";
-      return `
+        const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || '#38bdf8');
+        const period = ['morning', 'afternoon'].includes(leave.period) ? leave.period : 'full';
+        const status = String(leave.status || 'approved').replace(/[^a-z0-9_-]/gi, '') || 'approved';
+        const label = `${leave.employeeName} - ${typeMeta(leave.type).label} - ${periodLabel(leave.period)}`;
+        const weekDayIndex = (day.getDay() + 6) % 7;
+        const continuationClasses =
+          period === 'full'
+            ? [
+                leave.startDate < date && weekDayIndex > 0 ? 'is-continued-before' : '',
+                leave.endDate > date && weekDayIndex < 6 ? 'is-continued-after' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+            : '';
+        return `
         <span class="leave-line is-${esc(period)} is-${esc(status)} ${esc(continuationClasses)}" style="--line-color:${esc(color)};--line-border:${esc(color)}66;--line-shadow:${esc(color)}24" title="${esc(label)}" aria-hidden="true"></span>
       `;
-    }).join("");
+      })
+      .join('');
     const ariaLabel = leaves.length
-      ? `${dateLabel(date)} - ${leaves.length} absent(s): ${leaves.map((leave) => leave.employeeName).join(", ")}`
+      ? `${dateLabel(date)} - ${leaves.length} absent(s): ${leaves.map((leave) => leave.employeeName).join(', ')}`
       : dateLabel(date);
 
     return `
@@ -1124,10 +1184,10 @@
   function renderSummary() {
     const usersCount = employees().length;
     const plannedDays = yearLeaves()
-      .filter((leave) => ["planned", "pending"].includes(leave.status))
+      .filter((leave) => ['planned', 'pending'].includes(leave.status))
       .reduce((sum, leave) => sum + daysCount(leave), 0);
     const usedDays = yearLeaves()
-      .filter((leave) => leave.status === "approved")
+      .filter((leave) => leave.status === 'approved')
       .reduce((sum, leave) => sum + daysCount(leave), 0);
 
     return `
@@ -1144,7 +1204,7 @@
     const last = `${state.month.getFullYear()}-12-31`;
     return (state.data?.leaves || [])
       .filter((leave) => Number(leave.employeeId) === Number(employeeId))
-      .filter((leave) => leave.status !== "refused" && leave.startDate <= last && leave.endDate >= first)
+      .filter((leave) => leave.status !== 'refused' && leave.startDate <= last && leave.endDate >= first)
       .reduce((sum, leave) => sum + overlapDays(leave, first, last), 0);
   }
 
@@ -1156,17 +1216,21 @@
         <div class="leave-card-head">
           <div>
             <h2 class="leave-card-title">Absents le ${esc(dateLabel(state.selectedDate))}</h2>
-            <p class="leave-card-subtitle">${items.length ? `${items.length} utilisateur(s) absent(s)` : "Aucune absence sur cette date"}</p>
+            <p class="leave-card-subtitle">${items.length ? `${items.length} utilisateur(s) absent(s)` : 'Aucune absence sur cette date'}</p>
           </div>
-          ${canManage ? '<button type="button" class="leave-add-day" data-add-day>+ Ajouter</button>' : ""}
+          ${canManage ? '<button type="button" class="leave-add-day" data-add-day>+ Ajouter</button>' : ''}
         </div>
         <div class="leave-day-list">
-          ${items.length ? items.map((leave) => {
-            const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || "#38bdf8");
-            const range = leave.startDate === leave.endDate
-              ? dateLabel(leave.startDate)
-              : `${dateLabel(leave.startDate)} au ${dateLabel(leave.endDate)}`;
-            return `
+          ${
+            items.length
+              ? items
+                  .map((leave) => {
+                    const color = normalizeColor(leave.employeeColor || typeMeta(leave.type).color || '#38bdf8');
+                    const range =
+                      leave.startDate === leave.endDate
+                        ? dateLabel(leave.startDate)
+                        : `${dateLabel(leave.startDate)} au ${dateLabel(leave.endDate)}`;
+                    return `
               <button type="button" class="leave-day-row" data-edit-leave="${leave.id}" style="--day-color:${esc(color)}">
                 <span class="leave-day-dot"></span>
                 <span>
@@ -1176,14 +1240,17 @@
                 ${canManage ? '<span class="leave-day-edit">Modifier</span>' : '<span></span>'}
               </button>
             `;
-          }).join("") : '<div class="leave-day-empty">Selectionne une autre date ou ajoute un conge sur ce jour.</div>'}
+                  })
+                  .join('')
+              : '<div class="leave-day-empty">Selectionne une autre date ou ajoute un conge sur ce jour.</div>'
+          }
         </div>
       </section>
     `;
   }
 
   function renderUsers() {
-    const selectedId = selectedEmployee()?.id || "all";
+    const selectedId = selectedEmployee()?.id || 'all';
     return `
       <section class="leave-users-card">
         <div class="leave-users-head">
@@ -1194,17 +1261,19 @@
           <span class="leave-users-count">${employees().length}</span>
         </div>
         <div class="leave-users-grid">
-          ${employees().map((employee) => {
-            const days = userDays(employee.id);
-            return `
-              <button type="button" class="leave-user-row ${Number(selectedId) === Number(employee.id) ? "is-active" : ""}" data-user-id="${employee.id}" style="--user-color:${esc(normalizeColor(employee.color, "#38bdf8"))}">
+          ${employees()
+            .map((employee) => {
+              const days = userDays(employee.id);
+              return `
+              <button type="button" class="leave-user-row ${Number(selectedId) === Number(employee.id) ? 'is-active' : ''}" data-user-id="${employee.id}" style="--user-color:${esc(normalizeColor(employee.color, '#38bdf8'))}">
                 <span class="leave-user-dot"></span>
                 <span class="leave-user-name">${esc(employee.name)}</span>
                 <span class="leave-user-count">${formatDaysCount(days)}</span>
               </button>
             `;
-          }).join("")}
-          <button type="button" class="leave-user-row leave-all-users ${selectedId === "all" ? "is-active" : ""}" data-user-id="all" style="--user-color:#a4a9b2">
+            })
+            .join('')}
+          <button type="button" class="leave-user-row leave-all-users ${selectedId === 'all' ? 'is-active' : ''}" data-user-id="all" style="--user-color:#a4a9b2">
             <span class="leave-user-dot"></span>
             <span class="leave-user-name">Tous</span>
             <span class="leave-user-count">${formatDaysCount(yearLeaves().reduce((sum, leave) => sum + daysCount(leave), 0))}</span>
@@ -1215,22 +1284,27 @@
   }
 
   function renderModal() {
-    if (!state.modal) return "";
+    if (!state.modal) return '';
     const form = state.modal;
     return `
       <div class="leaves-modal-backdrop" data-modal-backdrop>
         <div class="leaves-modal">
-          <div class="leaves-modal-head"><strong>${form.id ? "Modifier le conge" : "Ajouter un conge"}</strong><button type="button" class="leaves-button" data-close-modal>Fermer</button></div>
+          <div class="leaves-modal-head"><strong>${form.id ? 'Modifier le conge' : 'Ajouter un conge'}</strong><button type="button" class="leaves-button" data-close-modal>Fermer</button></div>
           <form class="leaves-form-grid" data-leave-form>
-            <input type="hidden" name="id" value="${esc(form.id || "")}">
-            <div class="leaves-field leaves-field-full"><label>Utilisateur</label><select name="employeeId" required>${employees().map((employee) => `<option value="${employee.id}" ${Number(form.employeeId) === Number(employee.id) ? "selected" : ""}>${esc(employee.name)}</option>`).join("")}</select></div>
+            <input type="hidden" name="id" value="${esc(form.id || '')}">
+            <div class="leaves-field leaves-field-full"><label>Utilisateur</label><select name="employeeId" required>${employees()
+              .map(
+                (employee) =>
+                  `<option value="${employee.id}" ${Number(form.employeeId) === Number(employee.id) ? 'selected' : ''}>${esc(employee.name)}</option>`,
+              )
+              .join('')}</select></div>
             <div class="leaves-field"><label>Debut</label><input type="date" name="startDate" value="${esc(form.startDate)}" required></div>
             <div class="leaves-field"><label>Fin</label><input type="date" name="endDate" value="${esc(form.endDate)}" required></div>
-            <div class="leaves-field"><label>Type</label><select name="type">${(state.data?.types || []).map((type) => `<option value="${esc(type.value)}" ${form.type === type.value ? "selected" : ""}>${esc(type.label)}</option>`).join("")}</select></div>
-            <div class="leaves-field"><label>Journee</label><select name="period">${(state.data?.periods || []).map((period) => `<option value="${esc(period.value)}" ${form.period === period.value ? "selected" : ""}>${esc(period.label)}</option>`).join("")}</select></div>
-            <div class="leaves-field"><label>Statut</label><select name="status"><option value="approved" ${form.status === "approved" ? "selected" : ""}>Valide</option><option value="planned" ${form.status === "planned" ? "selected" : ""}>Planifie</option><option value="pending" ${form.status === "pending" ? "selected" : ""}>A valider</option><option value="refused" ${form.status === "refused" ? "selected" : ""}>Refuse</option></select></div>
-            <div class="leaves-field leaves-field-full"><label>Notes</label><textarea name="notes">${esc(form.notes || "")}</textarea></div>
-            <div class="leaves-actions leaves-field-full"><button type="submit" class="leaves-button leaves-button-primary">Enregistrer</button>${form.id ? `<button type="button" class="leaves-button" data-delete="${form.id}">Supprimer</button>` : ""}</div>
+            <div class="leaves-field"><label>Type</label><select name="type">${(state.data?.types || []).map((type) => `<option value="${esc(type.value)}" ${form.type === type.value ? 'selected' : ''}>${esc(type.label)}</option>`).join('')}</select></div>
+            <div class="leaves-field"><label>Journee</label><select name="period">${(state.data?.periods || []).map((period) => `<option value="${esc(period.value)}" ${form.period === period.value ? 'selected' : ''}>${esc(period.label)}</option>`).join('')}</select></div>
+            <div class="leaves-field"><label>Statut</label><select name="status"><option value="approved" ${form.status === 'approved' ? 'selected' : ''}>Valide</option><option value="planned" ${form.status === 'planned' ? 'selected' : ''}>Planifie</option><option value="pending" ${form.status === 'pending' ? 'selected' : ''}>A valider</option><option value="refused" ${form.status === 'refused' ? 'selected' : ''}>Refuse</option></select></div>
+            <div class="leaves-field leaves-field-full"><label>Notes</label><textarea name="notes">${esc(form.notes || '')}</textarea></div>
+            <div class="leaves-actions leaves-field-full"><button type="submit" class="leaves-button leaves-button-primary">Enregistrer</button>${form.id ? `<button type="button" class="leaves-button" data-delete="${form.id}">Supprimer</button>` : ''}</div>
           </form>
         </div>
       </div>
@@ -1238,6 +1312,8 @@
   }
 
   function render() {
+    if (!canRender()) return;
+
     syncEmployeeFilter();
     root.innerHTML = `
       <div class="leaves-page">
@@ -1260,71 +1336,89 @@
   }
 
   function bind() {
-    root.querySelector("[data-export-pdf]")?.addEventListener("click", exportPdf);
-    root.querySelector("[data-prev]")?.addEventListener("click", () => {
+    root.querySelector('[data-export-pdf]')?.addEventListener('click', exportPdf);
+    root.querySelector('[data-prev]')?.addEventListener('click', () => {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() - 1, 1);
       state.selectedDate = formatDate(state.month);
       render();
     });
-    root.querySelector("[data-next]")?.addEventListener("click", () => {
+    root.querySelector('[data-next]')?.addEventListener('click', () => {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() + 1, 1);
       state.selectedDate = formatDate(state.month);
       render();
     });
-    root.querySelector("[data-today]")?.addEventListener("click", () => {
+    root.querySelector('[data-today]')?.addEventListener('click', () => {
       const today = new Date();
       state.month = new Date(today.getFullYear(), today.getMonth(), 1);
       state.selectedDate = formatDate(today);
       render();
     });
-    root.querySelector("[data-focus-selected]")?.addEventListener("click", () => {
-      root.querySelector(".leave-day-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    root.querySelector('[data-focus-selected]')?.addEventListener('click', () => {
+      root.querySelector('.leave-day-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
-    root.querySelectorAll("[data-user-id]").forEach((button) => button.addEventListener("click", () => {
-      state.filters.employeeId = button.dataset.userId || "all";
+    root.querySelectorAll('[data-user-id]').forEach((button) =>
+      button.addEventListener('click', () => {
+        state.filters.employeeId = button.dataset.userId || 'all';
+        render();
+      }),
+    );
+    root.querySelectorAll('[data-add-day]').forEach((button) =>
+      button.addEventListener('click', () =>
+        openModal({
+          employeeId: selectedEmployee()?.id || employees()[0]?.id,
+          startDate: state.selectedDate,
+          endDate: state.selectedDate,
+        }),
+      ),
+    );
+    root.querySelectorAll('[data-day]').forEach((button) =>
+      button.addEventListener('click', () => {
+        state.selectedDate = button.dataset.date || state.selectedDate;
+        render();
+      }),
+    );
+    root.querySelectorAll('[data-edit-leave]').forEach((button) =>
+      button.addEventListener('click', () => {
+        if (!state.data?.user?.canManage) return;
+        const leave = state.data.leaves.find((item) => Number(item.id) === Number(button.dataset.editLeave));
+        if (leave) openModal(leave);
+      }),
+    );
+    root.querySelector('[data-close-modal]')?.addEventListener('click', () => {
+      state.modal = null;
       render();
-    }));
-    root.querySelectorAll("[data-add-day]").forEach((button) => button.addEventListener("click", () => openModal({
-      employeeId: selectedEmployee()?.id || employees()[0]?.id,
-      startDate: state.selectedDate,
-      endDate: state.selectedDate,
-    })));
-    root.querySelectorAll("[data-day]").forEach((button) => button.addEventListener("click", () => {
-      state.selectedDate = button.dataset.date || state.selectedDate;
-      render();
-    }));
-    root.querySelectorAll("[data-edit-leave]").forEach((button) => button.addEventListener("click", () => {
-      if (!state.data?.user?.canManage) return;
-      const leave = state.data.leaves.find((item) => Number(item.id) === Number(button.dataset.editLeave));
-      if (leave) openModal(leave);
-    }));
-    root.querySelector("[data-close-modal]")?.addEventListener("click", () => { state.modal = null; render(); });
-    root.querySelector("[data-modal-backdrop]")?.addEventListener("click", (event) => { if (event.target === event.currentTarget) { state.modal = null; render(); } });
-    root.querySelector("[data-leave-form]")?.addEventListener("submit", async (event) => {
+    });
+    root.querySelector('[data-modal-backdrop]')?.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) {
+        state.modal = null;
+        render();
+      }
+    });
+    root.querySelector('[data-leave-form]')?.addEventListener('submit', async (event) => {
       event.preventDefault();
       const payload = Object.fromEntries(new FormData(event.currentTarget).entries());
       payload.id = payload.id ? Number(payload.id) : undefined;
       payload.employeeId = Number(payload.employeeId);
       try {
-        await request("save_leave", payload);
+        await request('save_leave', payload);
         state.modal = null;
-        state.data = await request("bootstrap");
+        state.data = await request('bootstrap');
         syncEmployeeFilter();
         render();
       } catch (error) {
-        alert(error instanceof Error ? error.message : "Enregistrement impossible");
+        alert(error instanceof Error ? error.message : 'Enregistrement impossible');
       }
     });
-    root.querySelector("[data-delete]")?.addEventListener("click", async (event) => {
-      if (!confirm("Supprimer ce conge ?")) return;
+    root.querySelector('[data-delete]')?.addEventListener('click', async (event) => {
+      if (!confirm('Supprimer ce conge ?')) return;
       try {
-        await request("delete_leave", { id: Number(event.currentTarget.dataset.delete) });
+        await request('delete_leave', { id: Number(event.currentTarget.dataset.delete) });
         state.modal = null;
-        state.data = await request("bootstrap");
+        state.data = await request('bootstrap');
         syncEmployeeFilter();
         render();
       } catch (error) {
-        alert(error instanceof Error ? error.message : "Suppression impossible");
+        alert(error instanceof Error ? error.message : 'Suppression impossible');
       }
     });
   }
@@ -1348,7 +1442,7 @@
       mountTimer = null;
     }
 
-    root = rootNode.shadowRoot || rootNode.attachShadow({ mode: "open" });
+    root = rootNode.shadowRoot || rootNode.attachShadow({ mode: 'open' });
     hostNode = rootNode;
     mountedRoots.add(rootNode);
     load();
@@ -1356,7 +1450,11 @@
   }
 
   function isLeavesRoute() {
-    return window.location.pathname.replace(/\/$/, "") === "/conges";
+    return window.location.pathname.replace(/\/$/, '') === '/conges';
+  }
+
+  function canRender() {
+    return Boolean(root && hostNode && isLeavesRoute() && document.getElementById(rootId) === hostNode);
   }
 
   function teardown() {
@@ -1387,27 +1485,30 @@
 
     if (boot(document.getElementById(rootId))) return;
 
-    mountTimer = window.setTimeout(() => {
-      mountTimer = null;
-      if (!isLeavesRoute()) return;
-      if (boot(document.getElementById(rootId))) return;
+    mountTimer = window.setTimeout(
+      () => {
+        mountTimer = null;
+        if (!isLeavesRoute()) return;
+        if (boot(document.getElementById(rootId))) return;
 
-      mountAttempts += 1;
-      if (mountAttempts < 18) scheduleBoot(false);
-    }, mountAttempts < 6 ? 60 : 150);
+        mountAttempts += 1;
+        if (mountAttempts < 18) scheduleBoot(false);
+      },
+      mountAttempts < 6 ? 60 : 150,
+    );
   }
 
-  window.addEventListener("popstate", () => scheduleBoot(true));
-  window.addEventListener("crm:navigation", () => scheduleBoot(true));
-  window.addEventListener("crm:route-changed", () => scheduleBoot(true));
+  window.addEventListener('popstate', () => scheduleBoot(true));
+  window.addEventListener('crm:navigation', () => scheduleBoot(true));
+  window.addEventListener('crm:route-changed', () => scheduleBoot(true));
   window.addEventListener(routeEvent, () => scheduleBoot(true));
-  window.addEventListener("crm:active-site-changed", () => {
+  window.addEventListener('crm:active-site-changed', () => {
     if (!isLeavesRoute() || !root) return;
     state.modal = null;
-    state.filters.employeeId = "all";
+    state.filters.employeeId = 'all';
     load();
   });
-  document.addEventListener("DOMContentLoaded", () => scheduleBoot(true));
+  document.addEventListener('DOMContentLoaded', () => scheduleBoot(true));
 
   scheduleBoot(true);
 })();

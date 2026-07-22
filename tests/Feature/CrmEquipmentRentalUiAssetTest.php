@@ -25,6 +25,11 @@ class CrmEquipmentRentalUiAssetTest extends TestCase
         $this->assertStringContainsString('rent-period-morning', $equipmentAsset);
         $this->assertStringContainsString('rent-period-afternoon', $equipmentAsset);
         $this->assertStringContainsString('rent-period-day', $equipmentAsset);
+        $this->assertStringContainsString('window.MartinSolsUi.renderProductGrid', $equipmentAsset);
+        $this->assertStringContainsString('window.MartinSolsUi.renderSegmentControl', $equipmentAsset);
+        $this->assertStringContainsString('value: "today"', $equipmentAsset);
+        $this->assertStringContainsString('data-view="today"', $equipmentAsset);
+        $this->assertStringContainsString('state.month = new Date(today.getFullYear(), today.getMonth(), 1)', $equipmentAsset);
         $this->assertStringContainsString('rentalPeriods', $equipmentAsset);
         $this->assertStringContainsString('periodPayload', $equipmentAsset);
         $this->assertStringContainsString('periodType: "day"', $equipmentAsset);

@@ -39,12 +39,16 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileExists(resource_path('frontend/crm/modules/hosts.ts'));
         $this->assertFileExists(resource_path('frontend/crm/router/menu.ts'));
         $this->assertFileExists(resource_path('frontend/crm/styles/shell.css'));
+        $this->assertFileExists(resource_path('frontend/crm/styles/native-ui.css'));
         $this->assertFileExists(resource_path('frontend/crm/styles/template-compat.css'));
         $this->assertFileExists(resource_path('frontend/crm/styles/template-compat/variables.css'));
         $this->assertFileExists(resource_path('frontend/crm/styles/template-compat/components.css'));
+        $this->assertFileExists(resource_path('frontend/crm/ui/native-ui.ts'));
 
         $this->assertStringContainsString("import './styles/template-compat.css';", $shell);
         $this->assertStringContainsString("import './styles/shell.css';", $shell);
+        $this->assertStringContainsString("import './styles/native-ui.css';", $shell);
+        $this->assertStringContainsString('installMartinSolsUi', $shell);
         $this->assertStringContainsString('installCrmModuleHostGuard', $shell);
         $this->assertStringContainsString('installNativeCrmShell', $shell);
         $this->assertStringContainsString('installCurrentCrmModuleRouteLoader', $shell);
@@ -99,6 +103,8 @@ class CrmFrontendSourceTest extends TestCase
         $templateCompatCss = (string) file_get_contents(resource_path('frontend/crm/styles/template-compat.css'));
         $templateVariablesCss = (string) file_get_contents(resource_path('frontend/crm/styles/template-compat/variables.css'));
         $templateComponentsCss = (string) file_get_contents(resource_path('frontend/crm/styles/template-compat/components.css'));
+        $nativeUi = (string) file_get_contents(resource_path('frontend/crm/ui/native-ui.ts'));
+        $nativeUiCss = (string) file_get_contents(resource_path('frontend/crm/styles/native-ui.css'));
 
         $this->assertStringContainsString("window.matchMedia('(max-width: 767.98px)')", $mobileFallback);
         $this->assertStringContainsString('shouldUseFallbackNavigation', $mobileFallback);
@@ -115,6 +121,26 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('--shadow-card:', $templateVariablesCss);
         $this->assertStringContainsString('.card', $templateComponentsCss);
         $this->assertStringContainsString('.btn-primary', $templateComponentsCss);
+        $this->assertStringContainsString('window.MartinSolsUi', $nativeUi);
+        $this->assertStringContainsString('renderSegmentControl', $nativeUi);
+        $this->assertStringContainsString('renderProductGrid', $nativeUi);
+        $this->assertStringContainsString('bindNavigation', $nativeUi);
+        $this->assertStringContainsString('setTemplateDefaults', $nativeUi);
+        $this->assertStringContainsString('crm-ui-route-transitioning', $nativeUi);
+        $this->assertStringContainsString("html.dataset.cardStyle = html.dataset.cardStyle || 'shadow'", $nativeUi);
+        $this->assertStringContainsString('--crm-header-height: 64px;', $shellCss);
+        $this->assertStringContainsString('margin-left: auto;', $shellCss);
+        $this->assertStringContainsString('html.crm-ui-route-transitioning .crm-native-content', $shellCss);
+        $this->assertStringContainsString('crm-template-fade-in', $shellCss);
+        $this->assertStringContainsString('body.ms-ui-modal-open', $nativeUiCss);
+        $this->assertStringContainsString('--ms-ui-shadow-card', $nativeUiCss);
+        $this->assertStringContainsString('.dash-card', $nativeUiCss);
+        $this->assertStringContainsString('.ms-ui-product-card', $nativeUiCss);
+        $this->assertStringContainsString('.resa-product-card', $nativeUiCss);
+        $this->assertStringContainsString('.rent-product-card', $nativeUiCss);
+        $this->assertStringContainsString('.ms-ui-segment', $nativeUiCss);
+        $this->assertStringContainsString('.resa-dialog', $nativeUiCss);
+        $this->assertStringContainsString('.rent-dialog', $nativeUiCss);
     }
 
     public function test_static_assets_keep_only_brand_and_pwa_files(): void

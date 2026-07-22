@@ -34,7 +34,7 @@ class CrmPwaAssetTest extends TestCase
         $serviceWorker = (string) file_get_contents(public_path('sw.js'));
 
         $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-", $serviceWorker);
-        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v202607220955'", $serviceWorker);
+        $this->assertStringContainsString("CACHE_VERSION = 'martin-sols-crm-v202607221330'", $serviceWorker);
         $this->assertStringContainsString('cache.add(url).catch(() => null)', $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'SKIP_WAITING'", $serviceWorker);
         $this->assertStringContainsString("event.data.type === 'GET_VERSION'", $serviceWorker);
@@ -231,6 +231,9 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root{opacity:0!important', $publicAppScript);
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root [class~="animate-spin"]', $publicAppScript);
         $this->assertStringContainsString('#brand-morph-loader.is-visible ~ #root [class*="loading"]', $publicAppScript);
+        $this->assertStringContainsString('#root [class*="loading"]:not([class*="error"]):not([class*="notice"])', $publicAppScript);
+        $this->assertStringContainsString('brand-loader-suppressed-loading', $publicAppScript);
+        $this->assertStringContainsString('suppressLoadingElement(candidate);', $publicAppScript);
         $this->assertStringNotContainsString('[class*="crm-card"]', $publicAppScript);
         $this->assertStringNotContainsString('[class*="crm-empty"]', $publicAppScript);
         $this->assertStringContainsString("window.addEventListener('crm:navigation', startRouteMonitor)", $publicAppScript);

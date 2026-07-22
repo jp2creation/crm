@@ -1,5 +1,6 @@
 import './styles/template-compat.css';
 import './styles/shell.css';
+import './styles/native-ui.css';
 import { installCrmApiClient } from './api/client';
 import { installCsrfFetch } from './api/csrf';
 import { installCrmShellGlobals, readCrmShellConfig } from './config';
@@ -21,6 +22,7 @@ import {
 } from './modules/register';
 import { installFallbackNavigation } from './router/menu';
 import { applyStoredTheme } from './theme';
+import { installMartinSolsUi } from './ui/native-ui';
 
 const crmShellConfig = readCrmShellConfig();
 
@@ -40,6 +42,7 @@ installCrmApiClient();
 installMobileAppSettings();
 installMobileEmbedBridge();
 installMobileFallbackNavigation();
+installMartinSolsUi();
 installNativeCrmShell();
 installCrmModuleHostGuard();
 installCurrentCrmModuleRouteLoader();

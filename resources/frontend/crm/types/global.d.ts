@@ -20,6 +20,7 @@ declare global {
     };
     MartinSolsCrmConfig?: CrmShellConfig;
     MartinSolsCrmLogout?: () => void;
+    MartinSolsUi?: MartinSolsUi;
     MartinSolsMobileApp?: {
       requestLocation: () => void;
     };
@@ -28,6 +29,7 @@ declare global {
     __martinSolsCrmLegacyTemplateNavigationBridge?: boolean;
     __martinSolsCrmModulesLoaded?: boolean;
     __martinSolsCrmRouteModuleLoaderInstalled?: boolean;
+    __martinSolsUiInstalled?: boolean;
   }
 }
 
@@ -99,4 +101,41 @@ export type CrmShellConfig = {
     siteId: number | null;
   };
   themeStorageKey: string;
+};
+
+export type MartinSolsUi = {
+  bindNavigation: () => void;
+  closeModal: (modal?: HTMLElement | null) => void;
+  escapeHtml: (value: unknown) => string;
+  icon: (name: string) => string;
+  openModal: (
+    content: string,
+    options?: {
+      closeLabel?: string;
+      labelledBy?: string;
+      onClose?: () => void;
+    },
+  ) => HTMLElement;
+  renderProductGrid: (
+    items: Array<{
+      active?: boolean;
+      busy?: boolean;
+      id: number | string;
+      imageUrl?: string | null;
+      meta?: string;
+      name: string;
+    }>,
+    options: {
+      actionName: string;
+      emptyLabel?: string;
+    },
+  ) => string;
+  renderSegmentControl: (
+    options: Array<{
+      active?: boolean;
+      label: string;
+      value: string;
+    }>,
+    name: string,
+  ) => string;
 };

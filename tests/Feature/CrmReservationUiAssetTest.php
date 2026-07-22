@@ -33,9 +33,16 @@ class CrmReservationUiAssetTest extends TestCase
         $this->assertStringContainsString('dayEndTime', $reservationAsset);
         $this->assertStringContainsString('reservationCellIsSelected', $reservationAsset);
         $this->assertStringContainsString('reservationSelectionCellLabel', $reservationAsset);
+        $this->assertStringContainsString('window.MartinSolsUi.renderProductGrid', $reservationAsset);
+        $this->assertStringContainsString('window.MartinSolsUi.renderSegmentControl', $reservationAsset);
+        $this->assertStringContainsString('value: "today"', $reservationAsset);
+        $this->assertStringContainsString('data-view="today"', $reservationAsset);
+        $this->assertStringContainsString('state.month = new Date(today.getFullYear(), today.getMonth(), 1)', $reservationAsset);
         $this->assertStringContainsString('Début choisi', $reservationAsset);
-        $this->assertStringContainsString('Fin choisie', $reservationAsset);
-        $this->assertStringContainsString('Sélectionné', $reservationAsset);
+        $this->assertStringContainsString('return "Fin";', $reservationAsset);
+        $this->assertStringContainsString('return "Inclus";', $reservationAsset);
+        $this->assertStringNotContainsString('Fin choisie', $reservationAsset);
+        $this->assertStringNotContainsString('return "Sélectionné";', $reservationAsset);
         $this->assertStringContainsString('#16a34a', $reservationAsset);
         $this->assertStringContainsString('#dc2626', $reservationAsset);
         $this->assertStringContainsString('Disponible', $reservationAsset);

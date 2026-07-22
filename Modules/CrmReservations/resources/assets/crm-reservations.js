@@ -318,7 +318,7 @@
           <span class="resa-badge">${vehicles.length}</span>
         </header>
         <div class="resa-card-body">
-          ${vehicles.length ? `<div class="resa-vehicles">${vehicles.map(renderVehicleCard).join("")}</div>` : `<div class="resa-empty">Aucun véhicule sur ce site.</div>`}
+          ${renderVehicleGrid(vehicles)}
         </div>
       </section>
       <section class="resa-card">
@@ -348,6 +348,27 @@
     `;
   }
 
+  function renderVehicleGrid(vehicles) {
+    if (window.MartinSolsUi?.renderProductGrid) {
+      return window.MartinSolsUi.renderProductGrid(
+        vehicles.map((vehicle) => ({
+          active: Number(vehicle.id) === Number(selectedVehicle()?.id),
+          busy: isVehicleBusy(vehicle),
+          id: vehicle.id,
+          imageUrl: vehicle.photoUrl || null,
+          meta: vehicle.description || vehicle.plateNumber || "",
+          name: vehicle.name || "Véhicule",
+        })),
+        {
+          actionName: "vehicle-id",
+          emptyLabel: "Aucun véhicule sur ce site.",
+        },
+      ).replace("ms-ui-product-grid", "ms-ui-product-grid resa-vehicles");
+    }
+
+    return vehicles.length ? `<div class="resa-vehicles">${vehicles.map(renderVehicleCard).join("")}</div>` : `<div class="resa-empty">Aucun véhicule sur ce site.</div>`;
+  }
+
   function renderVehicleCard(vehicle) {
     const busy = isVehicleBusy(vehicle);
     const initials = String(vehicle.name || "?")
@@ -372,13 +393,26 @@
   }
 
   function renderToolbar() {
-    return `
-      <div class="resa-toolbar">
+    const segment = window.MartinSolsUi?.renderSegmentControl
+      ? window.MartinSolsUi.renderSegmentControl(
+          [
+            { label: "Mois", value: "month", active: state.view === "month" },
+            { label: "Jour", value: "day", active: state.view === "day" },
+            { label: "Aujourd'hui", value: "today", active: state.view === "day" && state.selectedDate === formatDate(new Date()) },
+          ],
+          "Vue planning",
+        ).replace("ms-ui-segment", "ms-ui-segment resa-segment")
+      : `
         <div class="resa-segment" role="tablist" aria-label="Vue planning">
           <button type="button" data-view="month" class="${state.view === "month" ? "is-active" : ""}">Mois</button>
-          <button type="button" data-view="week" class="${state.view === "week" ? "is-active" : ""}">Semaine</button>
-          <button type="button" data-view="day" class="${state.view === "day" ? "is-active" : ""}">Aujourd'hui</button>
+          <button type="button" data-view="day" class="${state.view === "day" ? "is-active" : ""}">Jour</button>
+          <button type="button" data-view="today" class="${state.view === "day" && state.selectedDate === formatDate(new Date()) ? "is-active" : ""}">Aujourd'hui</button>
         </div>
+      `;
+
+    return `
+      <div class="resa-toolbar">
+        ${segment}
         <div class="resa-toolbar">
           <button class="resa-button" type="button" data-prev>${icon("chevron-left")}Précédent</button>
           <button class="resa-button" type="button" data-today>Aujourd'hui</button>
@@ -570,8 +604,17 @@
 
     root.querySelectorAll("[data-view]").forEach((button) => {
       button.addEventListener("click", () => {
+        if (button.dataset.view === "today") {
+          const today = new Date();
+          state.selectedDate = formatDate(today);
+          state.month = new Date(today.getFullYear(), today.getMonth(), 1);
+          state.view = "day";
+          state.selection = null;
+          render();
+          return;
+        }
+
         state.view = button.dataset.view === "week" ? "day" : button.dataset.view;
-        if (button.dataset.view === "day") state.selectedDate = formatDate(new Date());
         render();
       });
     });
@@ -819,9 +862,9 @@
     if (!selection?.startAt || !reservationCellIsSelected(slot)) return `Fin ${slot.end}`;
     if (!selection.endAt) return slot.startAt === selection.startAt ? "Début choisi" : `Fin ${slot.end}`;
     if (slot.startAt === selection.startAt) return "Début";
-    if (slot.endAt === selection.endAt) return "Fin choisie";
+    if (slot.endAt === selection.endAt) return "Fin";
 
-    return "Sélectionné";
+    return "Inclus";
   }
 
   function calendarDays(month) {

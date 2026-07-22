@@ -1,12 +1,12 @@
 (() => {
-  const api = "/api/remise-cheques";
-  const routePath = "/remise-cheques";
+  const api = '/api/remise-cheques';
+  const routePath = '/remise-cheques';
   const mountedRoots = new WeakSet();
   let root = null;
 
   const state = {
     data: null,
-    filters: { limit: "10", year: "", month: "" },
+    filters: { limit: '10', year: '', month: '' },
     selectedId: null,
     detailRemittance: null,
     remittanceModalOpen: false,
@@ -17,48 +17,49 @@
     saving: false,
     ocrBusy: false,
     ocrRunId: 0,
-    ocrStatus: "",
+    ocrStatus: '',
     photoViewer: null,
   };
 
-  const esc = (value) => String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  const esc = (value) =>
+    String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
 
   function today() {
     const date = new Date();
     return [
       date.getFullYear(),
-      String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0"),
-    ].join("-");
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
   }
 
   function emptyRemittanceDraft() {
     return {
-      id: "",
+      id: '',
       remittanceDate: today(),
-      reference: "",
-      bankName: "",
-      status: "draft",
-      notes: "",
+      reference: '',
+      bankName: '',
+      status: 'draft',
+      notes: '',
     };
   }
 
-  function emptyCheckDraft(remittanceId = "") {
+  function emptyCheckDraft(remittanceId = '') {
     return {
-      id: "",
+      id: '',
       remittanceId,
-      payerName: "",
-      invoiceNumber: "",
-      amount: "",
-      photoDataUrl: "",
-      photoName: "",
-      ocrText: "",
-      ocrConfidence: "",
+      payerName: '',
+      invoiceNumber: '',
+      amount: '',
+      photoDataUrl: '',
+      photoName: '',
+      ocrText: '',
+      ocrConfidence: '',
       ocrVisualChecks: emptyVisualChecks(),
       sortOrder: 100,
     };
@@ -76,40 +77,42 @@
     if (Number.isFinite(fromApi) && fromApi > 0) return fromApi;
 
     try {
-      const stored = Number(window.localStorage.getItem("crm:active-site-id") || 0);
+      const stored = Number(window.localStorage.getItem('crm:active-site-id') || 0);
       if (Number.isFinite(stored) && stored > 0) return stored;
     } catch (error) {
       // The backend will choose the first authorized site.
     }
 
     const selected = Number(state.data?.selectedSiteId || state.data?.user?.selectedSiteId || 0);
-    return Number.isFinite(selected) && selected > 0 ? selected : "";
+    return Number.isFinite(selected) && selected > 0 ? selected : '';
   }
 
   function activeSiteName() {
     const siteId = Number(state.data?.selectedSiteId || state.data?.user?.selectedSiteId || activeSiteId());
     const site = (state.data?.sites || []).find((item) => Number(item.id) === siteId);
-    return site?.name || "Site actif";
+    return site?.name || 'Site actif';
   }
 
   function money(value) {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: "EUR",
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR',
       maximumFractionDigits: 2,
     }).format(Number(value) || 0);
   }
 
   function dateLabel(value) {
-    if (!value) return "-";
+    if (!value) return '-';
     const date = new Date(`${value}T00:00:00`);
     if (Number.isNaN(date.getTime())) return value;
 
-    return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
   function parseMoney(value) {
-    const normalized = String(value ?? "").replace(/\s/g, "").replace(",", ".");
+    const normalized = String(value ?? '')
+      .replace(/\s/g, '')
+      .replace(',', '.');
     const number = Number(normalized);
     return Number.isFinite(number) ? Math.round(number * 100) / 100 : 0;
   }
@@ -124,7 +127,7 @@
   }
 
   function detailIdFromPath() {
-    const match = window.location.pathname.replace(/\/$/, "").match(/^\/remise-cheques\/(\d+)$/);
+    const match = window.location.pathname.replace(/\/$/, '').match(/^\/remise-cheques\/(\d+)$/);
     return match ? Number(match[1]) : null;
   }
 
@@ -142,8 +145,8 @@
 
   function navigateTo(url) {
     if (window.location.pathname + window.location.search === url) return false;
-    window.history.pushState({}, "", url);
-    window.dispatchEvent(new Event("crm:check-remittance-route-changed"));
+    window.history.pushState({}, '', url);
+    window.dispatchEvent(new Event('crm:check-remittance-route-changed'));
     return true;
   }
 
@@ -162,36 +165,39 @@
 
   async function getBootstrap() {
     const url = new URL(api, window.location.origin);
-    url.searchParams.set("action", "bootstrap");
+    url.searchParams.set('action', 'bootstrap');
 
     const siteId = activeSiteId();
-    if (siteId) url.searchParams.set("siteId", String(siteId));
-    if (state.filters.limit) url.searchParams.set("limit", state.filters.limit);
-    if (state.filters.year) url.searchParams.set("year", state.filters.year);
-    if (state.filters.month) url.searchParams.set("month", state.filters.month);
+    if (siteId) url.searchParams.set('siteId', String(siteId));
+    if (state.filters.limit) url.searchParams.set('limit', state.filters.limit);
+    if (state.filters.year) url.searchParams.set('year', state.filters.year);
+    if (state.filters.month) url.searchParams.set('month', state.filters.month);
 
-    return requestUrl(url.toString(), { method: "GET" });
+    return requestUrl(url.toString(), { method: 'GET' });
   }
 
   async function getRemittance(id) {
-    return request("show_remittance", { id: Number(id) });
+    return request('show_remittance', { id: Number(id) });
   }
 
   async function request(action, payload = {}) {
     const siteId = activeSiteId();
-    return requestUrl(`${api}?action=${encodeURIComponent(action)}${siteId ? `&siteId=${encodeURIComponent(siteId)}` : ""}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ siteId, ...payload }),
-    });
+    return requestUrl(
+      `${api}?action=${encodeURIComponent(action)}${siteId ? `&siteId=${encodeURIComponent(siteId)}` : ''}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ siteId, ...payload }),
+      },
+    );
   }
 
   async function requestUrl(url, options = {}) {
     const response = await fetch(url, {
-      credentials: "same-origin",
+      credentials: 'same-origin',
       headers: {
-        Accept: "application/json",
-        "X-Requested-With": "XMLHttpRequest",
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
         ...(options.headers || {}),
       },
       ...options,
@@ -201,11 +207,11 @@
     try {
       payload = await response.json();
     } catch (error) {
-      payload = { ok: false, error: "Réponse serveur invalide" };
+      payload = { ok: false, error: 'Réponse serveur invalide' };
     }
 
     if (!response.ok || payload?.ok === false) {
-      throw new Error(payload?.error || "Opération impossible");
+      throw new Error(payload?.error || 'Opération impossible');
     }
 
     return payload;
@@ -239,7 +245,7 @@
     } catch (error) {
       state.data = {
         ok: false,
-        error: error instanceof Error ? error.message : "Chargement impossible",
+        error: error instanceof Error ? error.message : 'Chargement impossible',
         remittances: [],
         summary: { remittanceCount: 0, checkCount: 0, totalAmount: 0 },
         user: { canManage: false },
@@ -271,7 +277,7 @@
       return;
     }
 
-    const error = state.data?.error || "";
+    const error = state.data?.error || '';
     const summary = state.data?.summary || { remittanceCount: 0, checkCount: 0, totalAmount: 0 };
     const remittances = state.data?.remittances || [];
     const selected = selectedRemittance();
@@ -282,16 +288,16 @@
       <div class="check-page">
         <header class="check-head">
           <div>
-            <h1>${detailMode ? esc(selected?.reference || "Remise de chèques") : "Remise de chèques"}</h1>
+            <h1>${detailMode ? esc(selected?.reference || 'Remise de chèques') : 'Remise de chèques'}</h1>
             <p>${detailMode ? `${esc(dateLabel(selected?.remittanceDate))} - ${esc(selected?.siteName || activeSiteName())}` : esc(activeSiteName())}</p>
           </div>
           <div class="check-actions">
-            ${detailMode ? `<button type="button" class="check-button" data-back-dashboard>${icon("arrowLeft")}<span>Tableau de bord</span></button>` : ""}
-            ${!detailMode && manage ? `<button type="button" class="check-button check-button-primary" data-new-remittance>${icon("plus")}<span>Nouvelle remise</span></button>` : ""}
+            ${detailMode ? `<button type="button" class="check-button" data-back-dashboard>${icon('arrowLeft')}<span>Tableau de bord</span></button>` : ''}
+            ${!detailMode && manage ? `<button type="button" class="check-button check-button-primary" data-new-remittance>${icon('plus')}<span>Nouvelle remise</span></button>` : ''}
           </div>
         </header>
 
-        ${error ? `<div class="check-notice">${esc(error)}</div>` : ""}
+        ${error ? `<div class="check-notice">${esc(error)}</div>` : ''}
 
         ${detailMode ? renderDetailBody(selected, manage) : renderDashboardBody(summary, remittances, manage)}
         ${renderRemittanceModal(manage)}
@@ -306,23 +312,23 @@
   function renderDashboardBody(summary, remittances, manage) {
     return `
         <section class="check-summary">
-          ${summaryCard("Remises", summary.remittanceCount || 0, "Filtre actif", "file", "#2563eb")}
-          ${summaryCard("Chèques", summary.checkCount || 0, "Nombre total", "creditCard", "#0f766e")}
-          ${summaryCard("Total", money(summary.totalAmount || 0), "Somme des remises", "banknote", "#95002e")}
-          ${summaryCard("Site", activeSiteName(), `${remittances.length} ligne(s)`, "building", "#7c3aed")}
+          ${summaryCard('Remises', summary.remittanceCount || 0, 'Filtre actif', 'file', '#2563eb')}
+          ${summaryCard('Chèques', summary.checkCount || 0, 'Nombre total', 'creditCard', '#0f766e')}
+          ${summaryCard('Total', money(summary.totalAmount || 0), 'Somme des remises', 'banknote', '#95002e')}
+          ${summaryCard('Site', activeSiteName(), `${remittances.length} ligne(s)`, 'building', '#7c3aed')}
         </section>
 
         <section class="check-card check-filters">
           <label>
             <span>Afficher</span>
             <select data-filter="limit">
-              ${[10, 20, 50, 100].map((limit) => `<option value="${limit}" ${String(limit) === String(state.filters.limit) ? "selected" : ""}>${limit} dernières</option>`).join("")}
+              ${[10, 20, 50, 100].map((limit) => `<option value="${limit}" ${String(limit) === String(state.filters.limit) ? 'selected' : ''}>${limit} dernières</option>`).join('')}
             </select>
           </label>
           <label>
             <span>Mois</span>
             <select data-filter="month">
-              <option value="" ${state.filters.month === "" ? "selected" : ""}>Tous les mois</option>
+              <option value="" ${state.filters.month === '' ? 'selected' : ''}>Tous les mois</option>
               ${monthOptions()}
             </select>
           </label>
@@ -351,7 +357,7 @@
           <div class="check-empty">
             <strong>Remise introuvable</strong>
             <span>Retournez au tableau de bord pour choisir une remise existante.</span>
-            <button type="button" class="check-button" data-back-dashboard>${icon("arrowLeft")}<span>Tableau de bord</span></button>
+            <button type="button" class="check-button" data-back-dashboard>${icon('arrowLeft')}<span>Tableau de bord</span></button>
           </div>
         </section>
       `;
@@ -363,9 +369,11 @@
   function monthOptions() {
     return Array.from({ length: 12 }, (_, index) => {
       const value = String(index + 1);
-      const label = new Date(`2026-${String(index + 1).padStart(2, "0")}-01T00:00:00`).toLocaleDateString("fr-FR", { month: "long" });
-      return `<option value="${value}" ${String(state.filters.month) === value ? "selected" : ""}>${esc(label)}</option>`;
-    }).join("");
+      const label = new Date(`2026-${String(index + 1).padStart(2, '0')}-01T00:00:00`).toLocaleDateString('fr-FR', {
+        month: 'long',
+      });
+      return `<option value="${value}" ${String(state.filters.month) === value ? 'selected' : ''}>${esc(label)}</option>`;
+    }).join('');
   }
 
   function summaryCard(label, value, detail, iconName, color) {
@@ -397,23 +405,27 @@
             </tr>
           </thead>
           <tbody>
-            ${remittances.map((remittance) => `
+            ${remittances
+              .map(
+                (remittance) => `
               <tr>
                 <td><button type="button" class="check-link" data-open-remittance="${esc(remittance.id)}">${esc(dateLabel(remittance.remittanceDate))}</button></td>
-                <td>${esc(remittance.reference || "-")}</td>
-                <td>${esc(remittance.bankName || "-")}</td>
+                <td>${esc(remittance.reference || '-')}</td>
+                <td>${esc(remittance.bankName || '-')}</td>
                 <td>${esc(remittance.checkCount || 0)}</td>
                 <td><strong>${esc(money(remittance.totalAmount || 0))}</strong></td>
-                <td><span class="check-status">${esc(remittance.statusLabel || "Brouillon")}</span></td>
+                <td><span class="check-status">${esc(remittance.statusLabel || 'Brouillon')}</span></td>
                 <td>
                   <div class="check-row-actions">
-                    <button type="button" class="check-mini-button check-icon-button" title="Voir" data-open-remittance="${esc(remittance.id)}">${icon("eye")}</button>
-                    ${manage ? `<button type="button" class="check-mini-button check-icon-button" title="Modifier" data-edit-remittance="${esc(remittance.id)}">${icon("edit")}</button>` : ""}
-                    ${manage ? `<button type="button" class="check-mini-button check-icon-button is-danger" title="Supprimer" data-delete-remittance="${esc(remittance.id)}">${icon("trash")}</button>` : ""}
+                    <button type="button" class="check-mini-button check-icon-button" title="Voir" data-open-remittance="${esc(remittance.id)}">${icon('eye')}</button>
+                    ${manage ? `<button type="button" class="check-mini-button check-icon-button" title="Modifier" data-edit-remittance="${esc(remittance.id)}">${icon('edit')}</button>` : ''}
+                    ${manage ? `<button type="button" class="check-mini-button check-icon-button is-danger" title="Supprimer" data-delete-remittance="${esc(remittance.id)}">${icon('trash')}</button>` : ''}
                   </div>
                 </td>
               </tr>
-            `).join("")}
+            `,
+              )
+              .join('')}
           </tbody>
         </table>
       </div>
@@ -425,7 +437,7 @@
       <div class="check-empty">
         <strong>Aucune remise</strong>
         <span>Les remises apparaîtront ici.</span>
-        ${manage ? `<button type="button" class="check-button check-button-primary" data-new-remittance>${icon("plus")}<span>Nouvelle remise</span></button>` : ""}
+        ${manage ? `<button type="button" class="check-button check-button-primary" data-new-remittance>${icon('plus')}<span>Nouvelle remise</span></button>` : ''}
       </div>
     `;
   }
@@ -435,18 +447,18 @@
       <section class="check-card check-detail">
         <div class="check-section-head">
           <div>
-            <h2>${esc(remittance.reference || "Remise de chèques")}</h2>
-            <span>${esc(dateLabel(remittance.remittanceDate))} - ${esc(remittance.statusLabel || "Brouillon")}</span>
+            <h2>${esc(remittance.reference || 'Remise de chèques')}</h2>
+            <span>${esc(dateLabel(remittance.remittanceDate))} - ${esc(remittance.statusLabel || 'Brouillon')}</span>
           </div>
           <div class="check-actions">
-            <button type="button" class="check-button" data-print-remittance="${esc(remittance.id)}">${icon("printer")}<span>Imprimer / PDF</span></button>
-            ${manage ? `<button type="button" class="check-button check-button-primary" data-new-check="${esc(remittance.id)}">${icon("camera")}<span>Ajouter un chèque</span></button>` : ""}
+            <button type="button" class="check-button" data-print-remittance="${esc(remittance.id)}">${icon('printer')}<span>Imprimer / PDF</span></button>
+            ${manage ? `<button type="button" class="check-button check-button-primary" data-new-check="${esc(remittance.id)}">${icon('camera')}<span>Ajouter un chèque</span></button>` : ''}
           </div>
         </div>
         <div class="check-total-strip">
           <span><small>Total remise</small><strong>${esc(money(remittance.totalAmount || 0))}</strong></span>
           <span><small>Nombre</small><strong>${esc(remittance.checkCount || 0)} chèque(s)</strong></span>
-          <span><small>Banque</small><strong>${esc(remittance.bankName || "-")}</strong></span>
+          <span><small>Banque</small><strong>${esc(remittance.bankName || '-')}</strong></span>
           <span><small>Site</small><strong>${esc(remittance.siteName || activeSiteName())}</strong></span>
         </div>
         ${renderChecks(remittance, manage)}
@@ -459,7 +471,7 @@
       return `
         <div class="check-empty is-compact">
           <strong>Aucun chèque ajouté</strong>
-          ${manage ? `<button type="button" class="check-button" data-new-check="${esc(remittance.id)}">${icon("plus")}<span>Ajouter</span></button>` : ""}
+          ${manage ? `<button type="button" class="check-button" data-new-check="${esc(remittance.id)}">${icon('plus')}<span>Ajouter</span></button>` : ''}
         </div>
       `;
     }
@@ -476,24 +488,28 @@
             </tr>
           </thead>
           <tbody>
-            ${remittance.checks.map((check) => `
+            ${remittance.checks
+              .map(
+                (check) => `
               <tr>
                 <td>
                   <div class="check-line-name">
-                    ${check.photoPath ? `<button type="button" class="check-photo-thumb" data-view-photo="${esc(check.photoPath)}" data-view-photo-title="${esc(check.payerName || "Chèque")}"><img src="${esc(check.photoPath)}" alt=""></button>` : `<span>${icon("creditCard")}</span>`}
-                    <strong>${esc(check.payerName || "-")}</strong>
+                    ${check.photoPath ? `<button type="button" class="check-photo-thumb" data-view-photo="${esc(check.photoPath)}" data-view-photo-title="${esc(check.payerName || 'Chèque')}"><img src="${esc(check.photoPath)}" alt=""></button>` : `<span>${icon('creditCard')}</span>`}
+                    <strong>${esc(check.payerName || '-')}</strong>
                   </div>
                 </td>
-                <td>${esc(check.invoiceNumber || "-")}</td>
+                <td>${esc(check.invoiceNumber || '-')}</td>
                 <td><strong>${esc(money(check.amount || 0))}</strong></td>
                 <td>
                   <div class="check-row-actions">
-                    ${manage ? `<button type="button" class="check-mini-button check-icon-button" title="Modifier" data-edit-check="${esc(check.id)}">${icon("edit")}</button>` : ""}
-                    ${manage ? `<button type="button" class="check-mini-button check-icon-button is-danger" title="Supprimer" data-delete-check="${esc(check.id)}">${icon("trash")}</button>` : ""}
+                    ${manage ? `<button type="button" class="check-mini-button check-icon-button" title="Modifier" data-edit-check="${esc(check.id)}">${icon('edit')}</button>` : ''}
+                    ${manage ? `<button type="button" class="check-mini-button check-icon-button is-danger" title="Supprimer" data-delete-check="${esc(check.id)}">${icon('trash')}</button>` : ''}
                   </div>
                 </td>
               </tr>
-            `).join("")}
+            `,
+              )
+              .join('')}
           </tbody>
         </table>
       </div>
@@ -501,12 +517,12 @@
   }
 
   function renderRemittanceModal(manage) {
-    if (!state.remittanceModalOpen || !manage) return "";
+    if (!state.remittanceModalOpen || !manage) return '';
     const draft = state.remittanceDraft;
     const statusOptions = state.data?.statusOptions || [
-      { value: "draft", label: "Brouillon" },
-      { value: "ready", label: "Prête à déposer" },
-      { value: "deposited", label: "Déposée" },
+      { value: 'draft', label: 'Brouillon' },
+      { value: 'ready', label: 'Prête à déposer' },
+      { value: 'deposited', label: 'Déposée' },
     ];
 
     return `
@@ -514,7 +530,7 @@
         <div class="check-modal check-small-modal" role="dialog" aria-modal="true" aria-label="Remise de chèques" data-modal>
           <div class="check-modal-head">
             <div>
-              <h2>${draft.id ? "Modifier la remise" : "Nouvelle remise"}</h2>
+              <h2>${draft.id ? 'Modifier la remise' : 'Nouvelle remise'}</h2>
               <p>${esc(activeSiteName())}</p>
             </div>
             <button type="button" class="check-mini-button" data-close-remittance>Fermer</button>
@@ -536,7 +552,7 @@
             <label>
               <span>Statut</span>
               <select name="status">
-                ${statusOptions.map((option) => `<option value="${esc(option.value)}" ${draft.status === option.value ? "selected" : ""}>${esc(option.label)}</option>`).join("")}
+                ${statusOptions.map((option) => `<option value="${esc(option.value)}" ${draft.status === option.value ? 'selected' : ''}>${esc(option.label)}</option>`).join('')}
               </select>
             </label>
             <label class="check-field-full">
@@ -545,7 +561,7 @@
             </label>
             <div class="check-modal-actions">
               <button type="button" class="check-button" data-close-remittance>Annuler</button>
-              <button type="submit" class="check-button check-button-primary">${draft.id ? "Enregistrer" : "Créer"}</button>
+              <button type="submit" class="check-button check-button-primary">${draft.id ? 'Enregistrer' : 'Créer'}</button>
             </div>
           </form>
         </div>
@@ -554,10 +570,10 @@
   }
 
   function renderCheckModal(manage) {
-    if (!state.checkModalOpen || !manage) return "";
+    if (!state.checkModalOpen || !manage) return '';
     const draft = state.checkDraft;
-    const preview = draft.photoDataUrl || draft.photoPath || "";
-    const ocrStatus = state.ocrStatus || (preview ? "Photo chargée." : "");
+    const preview = draft.photoDataUrl || draft.photoPath || '';
+    const ocrStatus = state.ocrStatus || (preview ? 'Photo chargée.' : '');
     const visualChecks = draft.ocrVisualChecks || emptyVisualChecks();
 
     return `
@@ -565,46 +581,50 @@
         <div class="check-modal" role="dialog" aria-modal="true" aria-label="Chèque" data-modal>
           <div class="check-modal-head">
             <div>
-              <h2>${draft.id ? "Modifier le chèque" : "Ajouter un chèque"}</h2>
-              <p>${esc(selectedRemittance()?.reference || "Remise active")}</p>
+              <h2>${draft.id ? 'Modifier le chèque' : 'Ajouter un chèque'}</h2>
+              <p>${esc(selectedRemittance()?.reference || 'Remise active')}</p>
             </div>
             <button type="button" class="check-mini-button" data-close-check>Fermer</button>
           </div>
           <div class="check-check-form">
-            ${checkInput("invoiceNumber", "Numéro facture", "text", draft.invoiceNumber, "Facture")}
-            ${checkInput("payerName", "Nom", "text", draft.payerName, "Client / émetteur")}
-            ${checkInput("amount", "Montant", "text", draft.amount, "0,00", "decimal")}
+            ${checkInput('invoiceNumber', 'Numéro facture', 'text', draft.invoiceNumber, 'Facture')}
+            ${checkInput('payerName', 'Nom', 'text', draft.payerName, 'Client / émetteur')}
+            ${checkInput('amount', 'Montant', 'text', draft.amount, '0,00', 'decimal')}
             <div class="check-photo-tools">
               <div class="check-photo-bar">
                 <label class="check-button check-button-primary check-photo-capture">
-                  ${icon("camera")}
-                  <span>${preview ? "Reprendre la photo" : "Prendre en photo le chèque"}</span>
+                  ${icon('camera')}
+                  <span>${preview ? 'Reprendre la photo' : 'Prendre en photo le chèque'}</span>
                   <input type="file" accept="image/*" capture="environment" data-photo-input>
                 </label>
-                ${preview ? `
-                  <button type="button" class="check-mini-button" data-run-ocr ${draft.photoDataUrl && !state.ocrBusy ? "" : "disabled"}>${state.ocrBusy ? "Lecture..." : "Relancer"}</button>
-                  <button type="button" class="check-mini-button" data-remove-photo ${state.ocrBusy ? "disabled" : ""}>Supprimer</button>
-                ` : ""}
+                ${
+                  preview
+                    ? `
+                  <button type="button" class="check-mini-button" data-run-ocr ${draft.photoDataUrl && !state.ocrBusy ? '' : 'disabled'}>${state.ocrBusy ? 'Lecture...' : 'Relancer'}</button>
+                  <button type="button" class="check-mini-button" data-remove-photo ${state.ocrBusy ? 'disabled' : ''}>Supprimer</button>
+                `
+                    : ''
+                }
               </div>
-              ${preview ? `<button type="button" class="check-photo-preview-button" data-view-photo="${esc(preview)}" data-view-photo-title="${esc(draft.payerName || "Chèque")}"><img class="check-photo-preview" src="${esc(preview)}" alt=""></button>` : ""}
-              ${ocrStatus ? `<div class="check-ocr-row"><span>${esc(ocrStatus)}</span></div>` : ""}
+              ${preview ? `<button type="button" class="check-photo-preview-button" data-view-photo="${esc(preview)}" data-view-photo-title="${esc(draft.payerName || 'Chèque')}"><img class="check-photo-preview" src="${esc(preview)}" alt=""></button>` : ''}
+              ${ocrStatus ? `<div class="check-ocr-row"><span>${esc(ocrStatus)}</span></div>` : ''}
               ${renderVisualChecks(visualChecks)}
             </div>
           </div>
           <div class="check-modal-actions">
             <button type="button" class="check-button" data-close-check>Annuler</button>
-            <button type="button" class="check-button check-button-primary" data-save-check>${draft.id ? "Modifier" : "Ajouter"}</button>
+            <button type="button" class="check-button check-button-primary" data-save-check>${draft.id ? 'Modifier' : 'Ajouter'}</button>
           </div>
         </div>
       </div>
     `;
   }
 
-  function checkInput(field, label, type, value, placeholder, inputmode = "") {
+  function checkInput(field, label, type, value, placeholder, inputmode = '') {
     return `
       <label>
         <span>${esc(label)}</span>
-        <input type="${esc(type)}" data-check-field="${esc(field)}" value="${esc(value)}" placeholder="${esc(placeholder)}" ${inputmode ? `inputmode="${esc(inputmode)}"` : ""}>
+        <input type="${esc(type)}" data-check-field="${esc(field)}" value="${esc(value)}" placeholder="${esc(placeholder)}" ${inputmode ? `inputmode="${esc(inputmode)}"` : ''}>
       </label>
     `;
   }
@@ -612,15 +632,15 @@
   function renderVisualChecks(checks) {
     return `
       <div class="check-readiness-grid">
-        ${renderVisualCheck("signature", "Signature", checks.signature)}
-        ${renderVisualCheck("order", "Destinataire", checks.order)}
+        ${renderVisualCheck('signature', 'Signature', checks.signature)}
+        ${renderVisualCheck('order', 'Destinataire', checks.order)}
       </div>
     `;
   }
 
   function renderVisualCheck(key, label, value) {
-    const stateName = value === true ? "ok" : (value === false ? "warn" : "idle");
-    const status = value === true ? "OK" : (value === false ? "À vérifier" : "Après détection");
+    const stateName = value === true ? 'ok' : value === false ? 'warn' : 'idle';
+    const status = value === true ? 'OK' : value === false ? 'À vérifier' : 'Après détection';
 
     return `
       <div class="check-readiness-item check-readiness-${stateName}" data-readiness="${esc(key)}">
@@ -635,13 +655,13 @@
 
   function renderPhotoViewer() {
     const viewer = state.photoViewer;
-    if (!viewer?.src) return "";
+    if (!viewer?.src) return '';
 
     return `
       <div class="check-photo-viewer-backdrop" data-close-photo-viewer>
         <div class="check-photo-viewer" role="dialog" aria-modal="true" aria-label="Photo du chèque">
           <div class="check-photo-viewer-head">
-            <strong>${esc(viewer.title || "Chèque")}</strong>
+            <strong>${esc(viewer.title || 'Chèque')}</strong>
             <button type="button" class="check-mini-button" data-close-photo-viewer>Fermer</button>
           </div>
           <img src="${esc(viewer.src)}" alt="">
@@ -651,109 +671,129 @@
   }
 
   function bind() {
-    root.querySelectorAll("[data-filter]").forEach((field) => field.addEventListener("change", () => {
-      state.filters[field.dataset.filter] = field.value;
-      load();
-    }));
-
-    root.querySelectorAll("input[data-filter]").forEach((field) => field.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
+    root.querySelectorAll('[data-filter]').forEach((field) =>
+      field.addEventListener('change', () => {
         state.filters[field.dataset.filter] = field.value;
         load();
-      }
-    }));
+      }),
+    );
 
-    root.querySelectorAll("input[data-filter]").forEach((field) => field.addEventListener("blur", () => {
-      state.filters[field.dataset.filter] = field.value;
-      load();
-    }));
-
-    root.querySelectorAll("[data-new-remittance]").forEach((button) => button.addEventListener("click", () => {
-      state.remittanceDraft = emptyRemittanceDraft();
-      state.remittanceModalOpen = true;
-      render();
-    }));
-
-    root.querySelectorAll("[data-back-dashboard]").forEach((button) => button.addEventListener("click", openDashboard));
-
-    root.querySelectorAll("[data-open-remittance]").forEach((button) => button.addEventListener("click", () => {
-      openRemittance(Number(button.dataset.openRemittance));
-    }));
-
-    root.querySelectorAll("[data-edit-remittance]").forEach((button) => button.addEventListener("click", () => {
-      const remittance = findRemittance(Number(button.dataset.editRemittance));
-      if (!remittance) return;
-      state.remittanceDraft = {
-        id: remittance.id,
-        remittanceDate: remittance.remittanceDate || today(),
-        reference: remittance.reference || "",
-        bankName: remittance.bankName || "",
-        status: remittance.status || "draft",
-        notes: remittance.notes || "",
-      };
-      state.remittanceModalOpen = true;
-      render();
-    }));
-
-    root.querySelectorAll("[data-delete-remittance]").forEach((button) => button.addEventListener("click", async () => {
-      const deletedId = Number(button.dataset.deleteRemittance);
-      if (!window.confirm("Supprimer cette remise de chèques ?")) return;
-      await withSaving(async () => {
-        await request("delete_remittance", { id: deletedId });
-        state.selectedId = null;
-        state.detailRemittance = null;
-        if (isDetailRoute() && Number(detailIdFromPath()) === deletedId) {
-          openDashboard();
-        } else {
-          await load();
+    root.querySelectorAll('input[data-filter]').forEach((field) =>
+      field.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          state.filters[field.dataset.filter] = field.value;
+          load();
         }
-      });
-    }));
+      }),
+    );
 
-    root.querySelectorAll("[data-new-check]").forEach((button) => button.addEventListener("click", () => {
-      state.checkDraft = emptyCheckDraft(Number(button.dataset.newCheck));
-      state.ocrStatus = "";
-      state.checkModalOpen = true;
-      render();
-      warmUpCheckOcr();
-    }));
+    root.querySelectorAll('input[data-filter]').forEach((field) =>
+      field.addEventListener('blur', () => {
+        state.filters[field.dataset.filter] = field.value;
+        load();
+      }),
+    );
 
-    root.querySelectorAll("[data-edit-check]").forEach((button) => button.addEventListener("click", () => {
-      const check = findCheck(Number(button.dataset.editCheck));
-      if (!check) return;
-      state.checkDraft = {
-        id: check.id,
-        remittanceId: check.remittanceId,
-        payerName: check.payerName || "",
-        invoiceNumber: check.invoiceNumber || "",
-        amount: String(check.amount || "").replace(".", ","),
-        photoPath: check.photoPath || "",
-        photoDataUrl: "",
-        photoName: check.originalName || "",
-        ocrText: check.ocrText || "",
-        ocrConfidence: check.ocrConfidence || "",
-        ocrVisualChecks: emptyVisualChecks(),
-        sortOrder: check.sortOrder || 100,
-      };
-      state.ocrStatus = "";
-      state.checkModalOpen = true;
-      render();
-      warmUpCheckOcr();
-    }));
+    root.querySelectorAll('[data-new-remittance]').forEach((button) =>
+      button.addEventListener('click', () => {
+        state.remittanceDraft = emptyRemittanceDraft();
+        state.remittanceModalOpen = true;
+        render();
+      }),
+    );
 
-    root.querySelectorAll("[data-delete-check]").forEach((button) => button.addEventListener("click", async () => {
-      if (!window.confirm("Supprimer ce chèque ?")) return;
-      await withSaving(async () => {
-        await request("delete_check", { id: Number(button.dataset.deleteCheck) });
-        await load();
-      });
-    }));
+    root.querySelectorAll('[data-back-dashboard]').forEach((button) => button.addEventListener('click', openDashboard));
 
-    root.querySelector("[data-remittance-form]")?.addEventListener("submit", async (event) => {
+    root.querySelectorAll('[data-open-remittance]').forEach((button) =>
+      button.addEventListener('click', () => {
+        openRemittance(Number(button.dataset.openRemittance));
+      }),
+    );
+
+    root.querySelectorAll('[data-edit-remittance]').forEach((button) =>
+      button.addEventListener('click', () => {
+        const remittance = findRemittance(Number(button.dataset.editRemittance));
+        if (!remittance) return;
+        state.remittanceDraft = {
+          id: remittance.id,
+          remittanceDate: remittance.remittanceDate || today(),
+          reference: remittance.reference || '',
+          bankName: remittance.bankName || '',
+          status: remittance.status || 'draft',
+          notes: remittance.notes || '',
+        };
+        state.remittanceModalOpen = true;
+        render();
+      }),
+    );
+
+    root.querySelectorAll('[data-delete-remittance]').forEach((button) =>
+      button.addEventListener('click', async () => {
+        const deletedId = Number(button.dataset.deleteRemittance);
+        if (!window.confirm('Supprimer cette remise de chèques ?')) return;
+        await withSaving(async () => {
+          await request('delete_remittance', { id: deletedId });
+          state.selectedId = null;
+          state.detailRemittance = null;
+          if (isDetailRoute() && Number(detailIdFromPath()) === deletedId) {
+            openDashboard();
+          } else {
+            await load();
+          }
+        });
+      }),
+    );
+
+    root.querySelectorAll('[data-new-check]').forEach((button) =>
+      button.addEventListener('click', () => {
+        state.checkDraft = emptyCheckDraft(Number(button.dataset.newCheck));
+        state.ocrStatus = '';
+        state.checkModalOpen = true;
+        render();
+        warmUpCheckOcr();
+      }),
+    );
+
+    root.querySelectorAll('[data-edit-check]').forEach((button) =>
+      button.addEventListener('click', () => {
+        const check = findCheck(Number(button.dataset.editCheck));
+        if (!check) return;
+        state.checkDraft = {
+          id: check.id,
+          remittanceId: check.remittanceId,
+          payerName: check.payerName || '',
+          invoiceNumber: check.invoiceNumber || '',
+          amount: String(check.amount || '').replace('.', ','),
+          photoPath: check.photoPath || '',
+          photoDataUrl: '',
+          photoName: check.originalName || '',
+          ocrText: check.ocrText || '',
+          ocrConfidence: check.ocrConfidence || '',
+          ocrVisualChecks: emptyVisualChecks(),
+          sortOrder: check.sortOrder || 100,
+        };
+        state.ocrStatus = '';
+        state.checkModalOpen = true;
+        render();
+        warmUpCheckOcr();
+      }),
+    );
+
+    root.querySelectorAll('[data-delete-check]').forEach((button) =>
+      button.addEventListener('click', async () => {
+        if (!window.confirm('Supprimer ce chèque ?')) return;
+        await withSaving(async () => {
+          await request('delete_check', { id: Number(button.dataset.deleteCheck) });
+          await load();
+        });
+      }),
+    );
+
+    root.querySelector('[data-remittance-form]')?.addEventListener('submit', async (event) => {
       event.preventDefault();
       const form = Object.fromEntries(new FormData(event.currentTarget).entries());
       await withSaving(async () => {
-        const response = await request("save_remittance", {
+        const response = await request('save_remittance', {
           id: form.id ? Number(form.id) : undefined,
           remittanceDate: form.remittanceDate,
           reference: form.reference,
@@ -770,47 +810,59 @@
       });
     });
 
-    root.querySelectorAll("[data-check-field]").forEach((field) => {
-      field.addEventListener("input", () => {
+    root.querySelectorAll('[data-check-field]').forEach((field) => {
+      field.addEventListener('input', () => {
         state.checkDraft[field.dataset.checkField] = field.value;
       });
     });
 
-    root.querySelector("[data-photo-input]")?.addEventListener("change", handlePhoto);
-    root.querySelector("[data-run-ocr]")?.addEventListener("click", runOcr);
-    root.querySelector("[data-remove-photo]")?.addEventListener("click", removeCheckPhoto);
-    root.querySelector("[data-save-check]")?.addEventListener("click", saveCheck);
+    root.querySelector('[data-photo-input]')?.addEventListener('change', handlePhoto);
+    root.querySelector('[data-run-ocr]')?.addEventListener('click', runOcr);
+    root.querySelector('[data-remove-photo]')?.addEventListener('click', removeCheckPhoto);
+    root.querySelector('[data-save-check]')?.addEventListener('click', saveCheck);
 
-    root.querySelectorAll("[data-view-photo]").forEach((button) => button.addEventListener("click", () => {
-      state.photoViewer = {
-        src: button.dataset.viewPhoto || "",
-        title: button.dataset.viewPhotoTitle || "Chèque",
-      };
-      render();
-    }));
+    root.querySelectorAll('[data-view-photo]').forEach((button) =>
+      button.addEventListener('click', () => {
+        state.photoViewer = {
+          src: button.dataset.viewPhoto || '',
+          title: button.dataset.viewPhotoTitle || 'Chèque',
+        };
+        render();
+      }),
+    );
 
-    root.querySelectorAll("[data-close-photo-viewer]").forEach((element) => element.addEventListener("click", (event) => {
-      if (event.target !== event.currentTarget && !event.currentTarget.matches("button")) return;
-      state.photoViewer = null;
-      render();
-    }));
+    root.querySelectorAll('[data-close-photo-viewer]').forEach((element) =>
+      element.addEventListener('click', (event) => {
+        if (event.target !== event.currentTarget && !event.currentTarget.matches('button')) return;
+        state.photoViewer = null;
+        render();
+      }),
+    );
 
-    root.querySelectorAll("[data-close-remittance]").forEach((element) => element.addEventListener("click", (event) => {
-      if (event.target !== event.currentTarget && !event.currentTarget.matches("button")) return;
-      state.remittanceModalOpen = false;
-      render();
-    }));
+    root.querySelectorAll('[data-close-remittance]').forEach((element) =>
+      element.addEventListener('click', (event) => {
+        if (event.target !== event.currentTarget && !event.currentTarget.matches('button')) return;
+        state.remittanceModalOpen = false;
+        render();
+      }),
+    );
 
-    root.querySelectorAll("[data-close-check]").forEach((element) => element.addEventListener("click", (event) => {
-      if (event.target !== event.currentTarget && !event.currentTarget.matches("button")) return;
-      state.checkModalOpen = false;
-      render();
-    }));
+    root.querySelectorAll('[data-close-check]').forEach((element) =>
+      element.addEventListener('click', (event) => {
+        if (event.target !== event.currentTarget && !event.currentTarget.matches('button')) return;
+        state.checkModalOpen = false;
+        render();
+      }),
+    );
 
-    root.querySelectorAll("[data-print-remittance]").forEach((button) => button.addEventListener("click", () => {
-      const remittance = (state.data?.remittances || []).find((item) => Number(item.id) === Number(button.dataset.printRemittance));
-      if (remittance) printRemittance(remittance);
-    }));
+    root.querySelectorAll('[data-print-remittance]').forEach((button) =>
+      button.addEventListener('click', () => {
+        const remittance = (state.data?.remittances || []).find(
+          (item) => Number(item.id) === Number(button.dataset.printRemittance),
+        );
+        if (remittance) printRemittance(remittance);
+      }),
+    );
   }
 
   function findRemittance(id) {
@@ -843,10 +895,10 @@
     reader.onload = () => {
       state.ocrRunId += 1;
       state.ocrBusy = false;
-      state.checkDraft.photoDataUrl = String(reader.result || "");
-      state.checkDraft.photoName = file.name || "cheque.jpg";
+      state.checkDraft.photoDataUrl = String(reader.result || '');
+      state.checkDraft.photoName = file.name || 'cheque.jpg';
       state.checkDraft.ocrVisualChecks = emptyVisualChecks();
-      state.ocrStatus = "Photo chargée. Détection en cours...";
+      state.ocrStatus = 'Photo chargée. Détection en cours...';
       render();
       window.setTimeout(() => runOcr(), 0);
     };
@@ -856,50 +908,50 @@
   function removeCheckPhoto() {
     state.ocrRunId += 1;
     state.ocrBusy = false;
-    state.checkDraft.photoDataUrl = "";
-    state.checkDraft.photoPath = "";
-    state.checkDraft.photoName = "";
-    state.checkDraft.ocrText = "";
-    state.checkDraft.ocrConfidence = "";
+    state.checkDraft.photoDataUrl = '';
+    state.checkDraft.photoPath = '';
+    state.checkDraft.photoName = '';
+    state.checkDraft.ocrText = '';
+    state.checkDraft.ocrConfidence = '';
     state.checkDraft.ocrVisualChecks = emptyVisualChecks();
-    state.ocrStatus = "";
+    state.ocrStatus = '';
     render();
   }
 
   async function saveCheck() {
     const draft = { ...state.checkDraft };
-    root.querySelectorAll("[data-check-field]").forEach((field) => {
+    root.querySelectorAll('[data-check-field]').forEach((field) => {
       draft[field.dataset.checkField] = field.value;
     });
 
     if (!draft.remittanceId) {
-      window.alert("Remise requise");
+      window.alert('Remise requise');
       return;
     }
 
-    if (!String(draft.invoiceNumber || "").trim()) {
-      window.alert("Numéro de facture requis");
+    if (!String(draft.invoiceNumber || '').trim()) {
+      window.alert('Numéro de facture requis');
       return;
     }
 
-    if (!String(draft.payerName || "").trim()) {
-      window.alert("Nom requis");
+    if (!String(draft.payerName || '').trim()) {
+      window.alert('Nom requis');
       return;
     }
 
     if (parseMoney(draft.amount) <= 0) {
-      window.alert("Montant requis");
+      window.alert('Montant requis');
       return;
     }
 
     await withSaving(async () => {
-      await request("save_check", {
+      await request('save_check', {
         id: draft.id ? Number(draft.id) : undefined,
         remittanceId: Number(draft.remittanceId),
         payerName: draft.payerName,
         invoiceNumber: draft.invoiceNumber,
         amount: draft.amount,
-        photoDataUrl: draft.photoDataUrl || "",
+        photoDataUrl: draft.photoDataUrl || '',
         photoName: draft.photoName,
         ocrText: draft.ocrText,
         ocrConfidence: draft.ocrConfidence,
@@ -921,7 +973,7 @@
 
     try {
       state.ocrBusy = true;
-      state.ocrStatus = "Préparation de la photo...";
+      state.ocrStatus = 'Préparation de la photo...';
       render();
 
       const Tesseract = await ensureTesseract();
@@ -930,40 +982,44 @@
       const visualChecks = { ...(images.visualChecks || emptyVisualChecks()) };
       state.checkDraft.ocrVisualChecks = visualChecks;
 
-      state.ocrStatus = "Lecture du montant...";
+      state.ocrStatus = 'Lecture du montant...';
       render();
       const amountResults = [];
       for (let index = 0; index < images.amounts.length; index += 1) {
-        state.ocrStatus = images.amounts.length > 1
-          ? `Lecture du montant (${index + 1}/${images.amounts.length})...`
-          : "Lecture du montant...";
+        state.ocrStatus =
+          images.amounts.length > 1
+            ? `Lecture du montant (${index + 1}/${images.amounts.length})...`
+            : 'Lecture du montant...';
         render();
-        amountResults.push(await recognizeCheckImage(Tesseract, images.amounts[index], "eng", {
-          ...(images.amounts[index].ocrOptions || {}),
-          tessedit_char_whitelist: "0123456789,. €EUR",
-          preserve_interword_spaces: "1",
-        }));
+        amountResults.push(
+          await recognizeCheckImage(Tesseract, images.amounts[index], 'eng', {
+            ...(images.amounts[index].ocrOptions || {}),
+            tessedit_char_whitelist: '0123456789,. €EUR',
+            preserve_interword_spaces: '1',
+          }),
+        );
         if (!stillCurrent()) return;
       }
 
-      state.ocrStatus = "Lecture du nom...";
+      state.ocrStatus = 'Lecture du nom...';
       render();
       const nameResults = [];
       for (let index = 0; index < images.names.length; index += 1) {
-        state.ocrStatus = images.names.length > 1
-          ? `Lecture du nom (${index + 1}/${images.names.length})...`
-          : "Lecture du nom...";
+        state.ocrStatus =
+          images.names.length > 1 ? `Lecture du nom (${index + 1}/${images.names.length})...` : 'Lecture du nom...';
         render();
-        nameResults.push(await recognizeCheckImage(Tesseract, images.names[index], "fra+eng", {
-          preserve_interword_spaces: "1",
-        }));
+        nameResults.push(
+          await recognizeCheckImage(Tesseract, images.names[index], 'fra+eng', {
+            preserve_interword_spaces: '1',
+          }),
+        );
         if (!stillCurrent()) return;
       }
 
-      state.ocrStatus = "Vérification globale...";
+      state.ocrStatus = 'Vérification globale...';
       render();
-      const fullResult = await recognizeCheckImage(Tesseract, images.full, "fra+eng", {
-        preserve_interword_spaces: "1",
+      const fullResult = await recognizeCheckImage(Tesseract, images.full, 'fra+eng', {
+        preserve_interword_spaces: '1',
       });
       if (!stillCurrent()) return;
 
@@ -972,33 +1028,41 @@
         nameResults,
         full: fullResult,
       });
-      visualChecks.order = Boolean(visualChecks.order || detectOrderLabel([
-        ...amountResults.map((result) => result.text || ""),
-        ...nameResults.map((result) => result.text || ""),
-        fullResult.text || "",
-      ].join("\n")));
+      visualChecks.order = Boolean(
+        visualChecks.order ||
+        detectOrderLabel(
+          [
+            ...amountResults.map((result) => result.text || ''),
+            ...nameResults.map((result) => result.text || ''),
+            fullResult.text || '',
+          ].join('\n'),
+        ),
+      );
       state.checkDraft.ocrVisualChecks = visualChecks;
 
       state.checkDraft.ocrText = [
         `[orientation] rotation ${images.rotation}°`,
-        "[contrôles visuels]",
-        `Signature: ${visualChecks.signature ? "oui" : "à vérifier"}`,
-        `Destinataire: ${visualChecks.order ? "oui" : "à vérifier"}`,
+        '[contrôles visuels]',
+        `Signature: ${visualChecks.signature ? 'oui' : 'à vérifier'}`,
+        `Destinataire: ${visualChecks.order ? 'oui' : 'à vérifier'}`,
         ...amountResults.flatMap((result, index) => [`[zone montant ${index + 1}]`, result.text]),
         ...nameResults.flatMap((result, index) => [`[zone nom ${index + 1}]`, result.text]),
-        "[lecture globale]",
+        '[lecture globale]',
         fullResult.text,
-      ].join("\n");
+      ].join('\n');
       state.checkDraft.ocrConfidence = parsed.confidence;
       if (parsed.payerName) state.checkDraft.payerName = resolveDetectedPayerName(parsed.payerName);
       if (parsed.amount) state.checkDraft.amount = parsed.amount;
-      state.ocrStatus = parsed.payerName && parsed.amount
-        ? "Nom et montant détectés."
-        : (parsed.amount || parsed.payerName ? "Détection partielle. Vérifiez les champs." : "Nom et montant non détectés, saisie manuelle possible.");
+      state.ocrStatus =
+        parsed.payerName && parsed.amount
+          ? 'Nom et montant détectés.'
+          : parsed.amount || parsed.payerName
+            ? 'Détection partielle. Vérifiez les champs.'
+            : 'Nom et montant non détectés, saisie manuelle possible.';
     } catch (error) {
-      console.error("[crm-check-ocr]", error);
+      console.error('[crm-check-ocr]', error);
       if (stillCurrent()) {
-        state.ocrStatus = "OCR indisponible, saisie manuelle";
+        state.ocrStatus = 'OCR indisponible, saisie manuelle';
       }
     } finally {
       if (stillCurrent()) {
@@ -1011,10 +1075,10 @@
   async function runBestCheckOcr(sourcePhoto, stillCurrent) {
     try {
       state.ocrBusy = true;
-      state.ocrStatus = "Analyse OCR serveur...";
+      state.ocrStatus = 'Analyse OCR serveur...';
       render();
 
-      const response = await request("detect_check_ocr", {
+      const response = await request('detect_check_ocr', {
         remittanceId: state.checkDraft.remittanceId,
         photoDataUrl: sourcePhoto,
         knownPayerNames: knownPayerNames(),
@@ -1022,20 +1086,21 @@
       if (!stillCurrent()) return;
 
       if (response.engineAvailable && applyServerOcrResult(response)) {
-        state.ocrStatus = response.payerName && response.amount
-          ? "Nom et montant detectes par le serveur."
-          : "Detection serveur partielle. Verifiez les champs.";
+        state.ocrStatus =
+          response.payerName && response.amount
+            ? 'Nom et montant detectes par le serveur.'
+            : 'Detection serveur partielle. Verifiez les champs.';
         state.ocrBusy = false;
         render();
         return;
       }
 
-      state.ocrStatus = "OCR serveur indisponible, lecture locale...";
+      state.ocrStatus = 'OCR serveur indisponible, lecture locale...';
       render();
     } catch (error) {
-      console.warn("[crm-check-server-ocr]", error);
+      console.warn('[crm-check-server-ocr]', error);
       if (!stillCurrent()) return;
-      state.ocrStatus = "OCR serveur indisponible, lecture locale...";
+      state.ocrStatus = 'OCR serveur indisponible, lecture locale...';
       render();
     }
 
@@ -1050,14 +1115,18 @@
       ...(result.visualChecks || {}),
     };
     state.checkDraft.ocrVisualChecks = visualChecks;
-    state.checkDraft.ocrText = result.ocrText || [
-      "[ocr serveur]",
-      result.engine ? `Moteur: ${result.engine}` : "",
-      result.payerName ? `Nom: ${result.payerName}` : "",
-      result.amount ? `Montant: ${result.amount}` : "",
-      result.micr ? `CMC-7: ${result.micr}` : "",
-    ].filter(Boolean).join("\n");
-    state.checkDraft.ocrConfidence = result.ocrConfidence || "";
+    state.checkDraft.ocrText =
+      result.ocrText ||
+      [
+        '[ocr serveur]',
+        result.engine ? `Moteur: ${result.engine}` : '',
+        result.payerName ? `Nom: ${result.payerName}` : '',
+        result.amount ? `Montant: ${result.amount}` : '',
+        result.micr ? `CMC-7: ${result.micr}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
+    state.checkDraft.ocrConfidence = result.ocrConfidence || '';
 
     if (result.payerName) {
       state.checkDraft.payerName = resolveDetectedPayerName(result.payerName);
@@ -1073,7 +1142,7 @@
   async function runFastCheckOcr(sourcePhoto, stillCurrent) {
     try {
       state.ocrBusy = true;
-      state.ocrStatus = "Preparation de la photo...";
+      state.ocrStatus = 'Preparation de la photo...';
       render();
 
       const Tesseract = await ensureTesseract();
@@ -1083,12 +1152,12 @@
       const visualChecks = { ...(images.visualChecks || emptyVisualChecks()) };
       state.checkDraft.ocrVisualChecks = visualChecks;
 
-      state.ocrStatus = "Lecture rapide du montant...";
+      state.ocrStatus = 'Lecture rapide du montant...';
       render();
       const amountResults = [];
       if (images.inkAmount?.amount) {
         amountResults.push({
-          role: "amount",
+          role: 'amount',
           priority: 180,
           text: `${images.inkAmount.amount} EUR`,
           confidence: images.inkAmount.confidence || 75,
@@ -1096,53 +1165,59 @@
         });
       }
       if (!amountResults.length) {
-        amountResults.push(await recognizeCheckImage(Tesseract, images.amounts[0], "eng", {
-          ...(images.amounts[0].ocrOptions || {}),
-          tessedit_char_whitelist: "0123456789,. €EUR",
-          preserve_interword_spaces: "1",
-        }));
+        amountResults.push(
+          await recognizeCheckImage(Tesseract, images.amounts[0], 'eng', {
+            ...(images.amounts[0].ocrOptions || {}),
+            tessedit_char_whitelist: '0123456789,. €EUR',
+            preserve_interword_spaces: '1',
+          }),
+        );
       }
       if (!stillCurrent()) return;
 
       let parsed = parseCheckOcr({ amountResults, nameResults: [], full: null });
       if (parsed.amount) {
         state.checkDraft.amount = parsed.amount;
-        state.ocrStatus = "Montant detecte. Lecture du nom...";
+        state.ocrStatus = 'Montant detecte. Lecture du nom...';
         render();
       }
 
-      state.ocrStatus = "Lecture rapide du nom...";
+      state.ocrStatus = 'Lecture rapide du nom...';
       render();
       const nameResults = [
-        await recognizeCheckImage(Tesseract, images.names[0], "eng", {
+        await recognizeCheckImage(Tesseract, images.names[0], 'eng', {
           ...(images.names[0].ocrOptions || {}),
           tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-.",
-          preserve_interword_spaces: "1",
+          preserve_interword_spaces: '1',
         }),
       ];
       if (!stillCurrent()) return;
 
       parsed = parseCheckOcr({ amountResults, nameResults, full: null });
       if ((!parsed.amount || !parsed.payerName) && (images.amounts[1] || images.names[1])) {
-        state.ocrStatus = "Verification rapide...";
+        state.ocrStatus = 'Verification rapide...';
         render();
 
         for (let index = 1; !parsed.amount && index < images.amounts.length; index += 1) {
-          amountResults.push(await recognizeCheckImage(Tesseract, images.amounts[index], "eng", {
-            ...(images.amounts[index].ocrOptions || {}),
-            tessedit_char_whitelist: "0123456789,. €EUR",
-            preserve_interword_spaces: "1",
-          }));
+          amountResults.push(
+            await recognizeCheckImage(Tesseract, images.amounts[index], 'eng', {
+              ...(images.amounts[index].ocrOptions || {}),
+              tessedit_char_whitelist: '0123456789,. €EUR',
+              preserve_interword_spaces: '1',
+            }),
+          );
           if (!stillCurrent()) return;
           parsed = parseCheckOcr({ amountResults, nameResults, full: null });
         }
 
         for (let index = 1; index < images.names.length; index += 1) {
-          nameResults.push(await recognizeCheckImage(Tesseract, images.names[index], "eng", {
-            ...(images.names[index].ocrOptions || {}),
-            tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-.",
-            preserve_interword_spaces: "1",
-          }));
+          nameResults.push(
+            await recognizeCheckImage(Tesseract, images.names[index], 'eng', {
+              ...(images.names[index].ocrOptions || {}),
+              tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '-.",
+              preserve_interword_spaces: '1',
+            }),
+          );
           if (!stillCurrent()) return;
           parsed = parseCheckOcr({ amountResults, nameResults, full: null });
         }
@@ -1150,22 +1225,25 @@
 
       state.checkDraft.ocrText = [
         `[orientation] rotation ${images.rotation} deg`,
-        "[controles visuels]",
-        `Signature: ${visualChecks.signature ? "oui" : "a verifier"}`,
-        `Destinataire: ${visualChecks.order ? "oui" : "a verifier"}`,
+        '[controles visuels]',
+        `Signature: ${visualChecks.signature ? 'oui' : 'a verifier'}`,
+        `Destinataire: ${visualChecks.order ? 'oui' : 'a verifier'}`,
         ...amountResults.flatMap((result, index) => [`[zone montant ${index + 1}]`, result.text]),
         ...nameResults.flatMap((result, index) => [`[zone nom ${index + 1}]`, result.text]),
-      ].join("\n");
+      ].join('\n');
       state.checkDraft.ocrConfidence = parsed.confidence;
       if (parsed.payerName) state.checkDraft.payerName = resolveDetectedPayerName(parsed.payerName);
       if (parsed.amount) state.checkDraft.amount = parsed.amount;
-      state.ocrStatus = parsed.payerName && parsed.amount
-        ? "Nom et montant detectes."
-        : (parsed.amount || parsed.payerName ? "Detection partielle. Verifiez les champs." : "Nom et montant non detectes, saisie manuelle possible.");
+      state.ocrStatus =
+        parsed.payerName && parsed.amount
+          ? 'Nom et montant detectes.'
+          : parsed.amount || parsed.payerName
+            ? 'Detection partielle. Verifiez les champs.'
+            : 'Nom et montant non detectes, saisie manuelle possible.';
     } catch (error) {
-      console.error("[crm-check-ocr]", error);
+      console.error('[crm-check-ocr]', error);
       if (stillCurrent()) {
-        state.ocrStatus = "OCR indisponible, saisie manuelle";
+        state.ocrStatus = 'OCR indisponible, saisie manuelle';
       }
     } finally {
       if (stillCurrent()) {
@@ -1179,9 +1257,9 @@
     if (window.__crmCheckOcrWarmup) return window.__crmCheckOcrWarmup;
 
     window.__crmCheckOcrWarmup = ensureTesseract()
-      .then((Tesseract) => ensureCheckOcrWorker(Tesseract, "eng"))
+      .then((Tesseract) => ensureCheckOcrWorker(Tesseract, 'eng'))
       .catch((error) => {
-        console.warn("[crm-check-ocr-warmup]", error);
+        console.warn('[crm-check-ocr-warmup]', error);
         return null;
       });
 
@@ -1189,9 +1267,9 @@
   }
 
   const OCR_ENGINE_OPTIONS = {
-    workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js",
-    corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd.wasm.js",
-    langPath: "https://tessdata.projectnaptha.com/4.0.0",
+    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
+    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd.wasm.js',
+    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
   };
 
   function ensureTesseract() {
@@ -1199,11 +1277,11 @@
     if (window.__crmCheckTesseractPromise) return window.__crmCheckTesseractPromise;
 
     window.__crmCheckTesseractPromise = new Promise((resolve, reject) => {
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
       script.async = true;
-      script.onload = () => window.Tesseract ? resolve(window.Tesseract) : reject(new Error("OCR introuvable"));
-      script.onerror = () => reject(new Error("OCR indisponible"));
+      script.onload = () => (window.Tesseract ? resolve(window.Tesseract) : reject(new Error('OCR introuvable')));
+      script.onerror = () => reject(new Error('OCR indisponible'));
       document.head.appendChild(script);
     });
 
@@ -1211,7 +1289,7 @@
   }
 
   async function ensureCheckOcrWorker(Tesseract, language) {
-    const key = language || "eng";
+    const key = language || 'eng';
     window.__crmCheckOcrWorkers = window.__crmCheckOcrWorkers || {};
     const cached = window.__crmCheckOcrWorkers[key];
     if (cached?.worker) return cached;
@@ -1220,7 +1298,7 @@
     const holder = {
       worker: null,
       queue: Promise.resolve(),
-      lastParameters: "",
+      lastParameters: '',
     };
 
     holder.promise = (async () => {
@@ -1246,9 +1324,9 @@
         const result = await Tesseract.recognize(image.dataUrl, language, ocrOptions);
 
         return {
-          role: image.role || "",
+          role: image.role || '',
           priority: Number(image.priority || 0),
-          text: result?.data?.text || "",
+          text: result?.data?.text || '',
           confidence: Math.round(Number(result?.data?.confidence || 0) * 100) / 100,
           lines: normalizeOcrLines(result?.data?.lines || []),
         };
@@ -1269,20 +1347,20 @@
       const result = await task;
 
       return {
-        role: image.role || "",
+        role: image.role || '',
         priority: Number(image.priority || 0),
-        text: result?.data?.text || "",
+        text: result?.data?.text || '',
         confidence: Math.round(Number(result?.data?.confidence || 0) * 100) / 100,
         lines: normalizeOcrLines(result?.data?.lines || []),
       };
     } catch (error) {
-      const fallbackLanguage = language.includes("fra") ? "eng" : language;
+      const fallbackLanguage = language.includes('fra') ? 'eng' : language;
       const fallback = await Tesseract.recognize(image.dataUrl, fallbackLanguage, ocrOptions);
 
       return {
-        role: image.role || "",
+        role: image.role || '',
         priority: Number(image.priority || 0),
-        text: fallback?.data?.text || "",
+        text: fallback?.data?.text || '',
         confidence: Math.round(Number(fallback?.data?.confidence || 0) * 100) / 100,
         lines: normalizeOcrLines(fallback?.data?.lines || []),
       };
@@ -1299,14 +1377,79 @@
       inkAmount: detectHandwrittenAmount(oriented.canvas),
       full: null,
       amounts: [
-        renderOcrImage(oriented.canvas, { x: 0.78, y: 0.34, width: 0.20, height: 0.24 }, { minWidth: 900, maxWidth: 1300, threshold: true, role: "amount", priority: 135, ocrOptions: { tessedit_pageseg_mode: "7", user_defined_dpi: "240" } }),
-        renderOcrImage(oriented.canvas, { x: 0.74, y: 0.29, width: 0.25, height: 0.32 }, { minWidth: 950, maxWidth: 1350, threshold: true, role: "amount", priority: 115, ocrOptions: { tessedit_pageseg_mode: "6", user_defined_dpi: "240" } }),
-        renderOcrImage(oriented.canvas, { x: 0.80, y: 0.38, width: 0.17, height: 0.15 }, { minWidth: 850, maxWidth: 1200, blueInk: true, role: "amount", priority: 95, ocrOptions: { tessedit_pageseg_mode: "7", user_defined_dpi: "240" } }),
+        renderOcrImage(
+          oriented.canvas,
+          { x: 0.78, y: 0.34, width: 0.2, height: 0.24 },
+          {
+            minWidth: 900,
+            maxWidth: 1300,
+            threshold: true,
+            role: 'amount',
+            priority: 135,
+            ocrOptions: { tessedit_pageseg_mode: '7', user_defined_dpi: '240' },
+          },
+        ),
+        renderOcrImage(
+          oriented.canvas,
+          { x: 0.74, y: 0.29, width: 0.25, height: 0.32 },
+          {
+            minWidth: 950,
+            maxWidth: 1350,
+            threshold: true,
+            role: 'amount',
+            priority: 115,
+            ocrOptions: { tessedit_pageseg_mode: '6', user_defined_dpi: '240' },
+          },
+        ),
+        renderOcrImage(
+          oriented.canvas,
+          { x: 0.8, y: 0.38, width: 0.17, height: 0.15 },
+          {
+            minWidth: 850,
+            maxWidth: 1200,
+            blueInk: true,
+            role: 'amount',
+            priority: 95,
+            ocrOptions: { tessedit_pageseg_mode: '7', user_defined_dpi: '240' },
+          },
+        ),
       ],
       names: [
-        renderOcrImage(oriented.canvas, { x: 0.36, y: 0.56, width: 0.34, height: 0.25 }, { minWidth: 1000, maxWidth: 1450, threshold: true, role: "payer", priority: 130, ocrOptions: { tessedit_pageseg_mode: "6", user_defined_dpi: "240" } }),
-        renderOcrImage(oriented.canvas, { x: 0.31, y: 0.50, width: 0.43, height: 0.34 }, { minWidth: 1050, maxWidth: 1500, threshold: true, role: "payer", priority: 105, ocrOptions: { tessedit_pageseg_mode: "6", user_defined_dpi: "240" } }),
-        renderOcrImage(oriented.canvas, { x: 0.32, y: 0.42, width: 0.46, height: 0.42 }, { minWidth: 1000, maxWidth: 1450, role: "payer", priority: 75, ocrOptions: { tessedit_pageseg_mode: "6", user_defined_dpi: "220" } }),
+        renderOcrImage(
+          oriented.canvas,
+          { x: 0.36, y: 0.56, width: 0.34, height: 0.25 },
+          {
+            minWidth: 1000,
+            maxWidth: 1450,
+            threshold: true,
+            role: 'payer',
+            priority: 130,
+            ocrOptions: { tessedit_pageseg_mode: '6', user_defined_dpi: '240' },
+          },
+        ),
+        renderOcrImage(
+          oriented.canvas,
+          { x: 0.31, y: 0.5, width: 0.43, height: 0.34 },
+          {
+            minWidth: 1050,
+            maxWidth: 1500,
+            threshold: true,
+            role: 'payer',
+            priority: 105,
+            ocrOptions: { tessedit_pageseg_mode: '6', user_defined_dpi: '240' },
+          },
+        ),
+        renderOcrImage(
+          oriented.canvas,
+          { x: 0.32, y: 0.42, width: 0.46, height: 0.42 },
+          {
+            minWidth: 1000,
+            maxWidth: 1450,
+            role: 'payer',
+            priority: 75,
+            ocrOptions: { tessedit_pageseg_mode: '6', user_defined_dpi: '220' },
+          },
+        ),
       ],
     };
   }
@@ -1341,12 +1484,12 @@
     const sourceWidth = image.naturalWidth || image.width;
     const sourceHeight = image.naturalHeight || image.height;
     const rightAngle = rotation === 90 || rotation === 270;
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = rightAngle ? sourceHeight : sourceWidth;
     canvas.height = rightAngle ? sourceWidth : sourceHeight;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (rotation === 90) {
@@ -1368,23 +1511,19 @@
   function scoreCheckOrientation(canvas) {
     const sampleWidth = 420;
     const sampleHeight = Math.max(1, Math.round(canvas.height * (sampleWidth / canvas.width)));
-    const sample = document.createElement("canvas");
+    const sample = document.createElement('canvas');
     sample.width = sampleWidth;
     sample.height = sampleHeight;
-    const ctx = sample.getContext("2d", { willReadFrequently: true });
+    const ctx = sample.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(canvas, 0, 0, sampleWidth, sampleHeight);
 
     const bottom = darkPixelRatio(ctx, sampleWidth, sampleHeight, 0.05, 0.78, 0.78, 0.16);
     const top = darkPixelRatio(ctx, sampleWidth, sampleHeight, 0.05, 0.04, 0.78, 0.16);
-    const rightAmountZone = darkPixelRatio(ctx, sampleWidth, sampleHeight, 0.68, 0.20, 0.27, 0.34);
-    const centerPayerZone = darkPixelRatio(ctx, sampleWidth, sampleHeight, 0.32, 0.42, 0.40, 0.34);
+    const rightAmountZone = darkPixelRatio(ctx, sampleWidth, sampleHeight, 0.68, 0.2, 0.27, 0.34);
+    const centerPayerZone = darkPixelRatio(ctx, sampleWidth, sampleHeight, 0.32, 0.42, 0.4, 0.34);
     const landscapeScore = canvas.width > canvas.height ? 120 : -120;
 
-    return landscapeScore
-      + ((bottom - top) * 900)
-      + (bottom * 420)
-      + (rightAmountZone * 140)
-      + (centerPayerZone * 100);
+    return landscapeScore + (bottom - top) * 900 + bottom * 420 + rightAmountZone * 140 + centerPayerZone * 100;
   }
 
   function darkPixelRatio(ctx, canvasWidth, canvasHeight, x, y, width, height) {
@@ -1397,7 +1536,7 @@
     let dark = 0;
 
     for (let index = 0; index < data.length; index += 4) {
-      const gray = (data[index] * 0.299) + (data[index + 1] * 0.587) + (data[index + 2] * 0.114);
+      const gray = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
       if (gray < 115) dark += 1;
     }
 
@@ -1407,21 +1546,25 @@
   function analyzeCheckVisualReadiness(canvas) {
     return {
       signature: detectInkInZone(canvas, { x: 0.66, y: 0.52, width: 0.31, height: 0.34 }, 0.006),
-      order: detectLargeHandwritingInZone(canvas, { x: 0.10, y: 0.48, width: 0.58, height: 0.14 }, {
-        minArea: 1200,
-        minWidth: 85,
-        minHeight: 28,
-      }),
+      order: detectLargeHandwritingInZone(
+        canvas,
+        { x: 0.1, y: 0.48, width: 0.58, height: 0.14 },
+        {
+          minArea: 1200,
+          minWidth: 85,
+          minHeight: 28,
+        },
+      ),
     };
   }
 
   function detectInkInZone(canvas, zone, minRatio) {
     const sampleWidth = 560;
     const sampleHeight = Math.max(1, Math.round(canvas.height * (sampleWidth / canvas.width)));
-    const sample = document.createElement("canvas");
+    const sample = document.createElement('canvas');
     sample.width = sampleWidth;
     sample.height = sampleHeight;
-    const ctx = sample.getContext("2d", { willReadFrequently: true });
+    const ctx = sample.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(canvas, 0, 0, sampleWidth, sampleHeight);
 
     const sx = Math.max(0, Math.round(sampleWidth * zone.x));
@@ -1436,22 +1579,22 @@
       const red = data[index];
       const green = data[index + 1];
       const blue = data[index + 2];
-      const gray = (red * 0.299) + (green * 0.587) + (blue * 0.114);
-      const blueInk = gray < 205 && blue > 65 && blue > red * 0.70 && (blue - green > 10 || red - green > 8);
+      const gray = red * 0.299 + green * 0.587 + blue * 0.114;
+      const blueInk = gray < 205 && blue > 65 && blue > red * 0.7 && (blue - green > 10 || red - green > 8);
       const darkInk = gray < 82;
 
       if (blueInk || darkInk) ink += 1;
     }
 
-    return (ink / Math.max(1, data.length / 4)) >= minRatio;
+    return ink / Math.max(1, data.length / 4) >= minRatio;
   }
 
   function detectOrderLabel(text) {
     const normalized = normalizeFrenchOcrText(text);
 
-    return /MARTIN\s*SOLS/.test(normalized)
-      || /MART[1I]N\s*S[O0]LS/.test(normalized)
-      || /MARTIN\s*S0LS/.test(normalized);
+    return (
+      /MARTIN\s*SOLS/.test(normalized) || /MART[1I]N\s*S[O0]LS/.test(normalized) || /MARTIN\s*S0LS/.test(normalized)
+    );
   }
 
   function detectLargeHandwritingInZone(canvas, zone, limits) {
@@ -1459,10 +1602,12 @@
     return amountInkComponents(sample).some((component) => {
       const ratio = component.width / Math.max(1, component.height);
 
-      return component.area >= limits.minArea
-        && component.width >= limits.minWidth
-        && component.height >= limits.minHeight
-        && ratio >= 1.05;
+      return (
+        component.area >= limits.minArea &&
+        component.width >= limits.minWidth &&
+        component.height >= limits.minHeight &&
+        ratio >= 1.05
+      );
     });
   }
 
@@ -1486,31 +1631,30 @@
   function readHandwrittenAmountZone(canvas, zone, index) {
     const sample = amountInkSample(canvas, zone);
     const components = amountInkComponents(sample)
-      .filter((component) => (
-        component.area > 70
-        && component.height > sample.height * 0.22
-        && component.width > sample.width * 0.025
-      ))
+      .filter(
+        (component) =>
+          component.area > 70 && component.height > sample.height * 0.22 && component.width > sample.width * 0.025,
+      )
       .sort((a, b) => a.x0 - b.x0);
     if (!components.length) return null;
 
     const maxHeight = Math.max(...components.map((component) => component.height));
     const boxes = components
-      .filter((component) => !(component.width / Math.max(1, component.height) > 1.15 && component.height < maxHeight * 0.85))
+      .filter(
+        (component) => !(component.width / Math.max(1, component.height) > 1.15 && component.height < maxHeight * 0.85),
+      )
       .flatMap((component) => splitAmountComponent(sample, component))
       .filter((box) => box.height >= maxHeight * 0.45)
       .filter((box) => !(box.width / Math.max(1, box.height) > 1.15 && box.height < maxHeight * 0.85))
       .sort((a, b) => a.x0 - b.x0)
       .slice(0, 5);
 
-    const digits = boxes
-      .map((box) => classifyAmountDigit(sample, box, maxHeight))
-      .filter(Boolean);
+    const digits = boxes.map((box) => classifyAmountDigit(sample, box, maxHeight)).filter(Boolean);
     if (digits.length < 2) return null;
 
     return {
-      amount: digits.map((digit) => digit.value).join(""),
-      confidence: Math.round((digits.reduce((sum, digit) => sum + digit.confidence, 0) / digits.length) - (index * 3)),
+      amount: digits.map((digit) => digit.value).join(''),
+      confidence: Math.round(digits.reduce((sum, digit) => sum + digit.confidence, 0) / digits.length - index * 3),
     };
   }
 
@@ -1519,10 +1663,10 @@
     const height = Math.max(1, Math.round(canvas.height * zone.height));
     const sx = Math.max(0, Math.round(canvas.width * zone.x));
     const sy = Math.max(0, Math.round(canvas.height * zone.y));
-    const sample = document.createElement("canvas");
+    const sample = document.createElement('canvas');
     sample.width = width;
     sample.height = height;
-    const ctx = sample.getContext("2d", { willReadFrequently: true });
+    const ctx = sample.getContext('2d', { willReadFrequently: true });
     ctx.drawImage(canvas, sx, sy, width, height, 0, 0, width, height);
     const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
@@ -1534,8 +1678,8 @@
         const red = data[offset];
         const green = data[offset + 1];
         const blue = data[offset + 2];
-        const gray = (red * 0.299) + (green * 0.587) + (blue * 0.114);
-        const neutralDark = gray < 120 && (Math.max(red, green, blue) - Math.min(red, green, blue)) < 95;
+        const gray = red * 0.299 + green * 0.587 + blue * 0.114;
+        const neutralDark = gray < 120 && Math.max(red, green, blue) - Math.min(red, green, blue) < 95;
         if (neutralDark) ink[y * width + x] = 1;
       }
     }
@@ -1619,9 +1763,9 @@
   }
 
   function bestAmountSplitColumn(sample, box) {
-    const start = Math.round(box.x0 + (box.width * 0.42));
-    const end = Math.round(box.x0 + (box.width * 0.64));
-    let bestX = Math.round(box.x0 + (box.width * 0.56));
+    const start = Math.round(box.x0 + box.width * 0.42);
+    const end = Math.round(box.x0 + box.width * 0.64);
+    let bestX = Math.round(box.x0 + box.width * 0.56);
     let bestScore = Infinity;
 
     for (let x = start; x <= end; x += 1) {
@@ -1684,41 +1828,41 @@
     const bottom = amountZoneDensity(sample, box, 0.15, 0.85, 0.75, 1);
 
     if (ratio < 0.34 && right > 0.08) {
-      return { value: "1", confidence: 72 };
+      return { value: '1', confidence: 72 };
     }
 
     if (middle < 0.05 && top > 0.09 && bottom > 0.08 && (left > 0.08 || right > 0.07)) {
-      return { value: "0", confidence: 84 };
+      return { value: '0', confidence: 84 };
     }
 
     if (left < 0.09 && right > 0.13 && middle > 0.08) {
-      return { value: "3", confidence: 82 };
+      return { value: '3', confidence: 82 };
     }
 
     if (middle > 0.22 && left > 0.08 && right > 0.1) {
-      return { value: "8", confidence: 84 };
+      return { value: '8', confidence: 84 };
     }
 
     if (top > 0.16 && bottom < 0.09 && right >= left) {
-      return { value: "7", confidence: 68 };
+      return { value: '7', confidence: 68 };
     }
 
     if (top > 0.12 && bottom > 0.12 && left > 0.1 && right < 0.12) {
-      return { value: "6", confidence: 66 };
+      return { value: '6', confidence: 66 };
     }
 
     if (top > 0.12 && middle > 0.1 && bottom < 0.11 && right > 0.1) {
-      return { value: "9", confidence: 64 };
+      return { value: '9', confidence: 64 };
     }
 
     return null;
   }
 
   function amountZoneDensity(sample, box, xStart, xEnd, yStart, yEnd) {
-    const x0 = Math.max(box.x0, Math.floor(box.x0 + (box.width * xStart)));
-    const x1 = Math.min(box.x1, Math.floor(box.x0 + (box.width * xEnd)));
-    const y0 = Math.max(box.y0, Math.floor(box.y0 + (box.height * yStart)));
-    const y1 = Math.min(box.y1, Math.floor(box.y0 + (box.height * yEnd)));
+    const x0 = Math.max(box.x0, Math.floor(box.x0 + box.width * xStart));
+    const x1 = Math.min(box.x1, Math.floor(box.x0 + box.width * xEnd));
+    const y0 = Math.max(box.y0, Math.floor(box.y0 + box.height * yStart));
+    const y1 = Math.min(box.y1, Math.floor(box.y0 + box.height * yEnd));
     let total = 0;
     let ink = 0;
 
@@ -1733,14 +1877,14 @@
   }
 
   function normalizeFrenchOcrText(value) {
-    return String(value || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
       .toUpperCase()
-      .replace(/[|]/g, "I")
-      .replace(/[0]/g, "O")
-      .replace(/[^A-Z0-9]+/g, " ")
-      .replace(/\s+/g, " ")
+      .replace(/[|]/g, 'I')
+      .replace(/[0]/g, 'O')
+      .replace(/[^A-Z0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
@@ -1748,7 +1892,7 @@
     return new Promise((resolve, reject) => {
       const image = new Image();
       image.onload = () => resolve(image);
-      image.onerror = () => reject(new Error("Image illisible"));
+      image.onerror = () => reject(new Error('Image illisible'));
       image.src = dataUrl;
     });
   }
@@ -1765,15 +1909,15 @@
     const targetWidth = Math.min(maxWidth, Math.max(minWidth, sw * 2));
     const scale = targetWidth / Math.max(1, sw);
     const targetHeight = Math.max(1, Math.round(sh * scale));
-    const canvas = document.createElement("canvas");
+    const canvas = document.createElement('canvas');
     canvas.width = Math.round(targetWidth);
     canvas.height = targetHeight;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = '#fff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
+    ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(image, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -1785,17 +1929,14 @@
       const red = data[index];
       const green = data[index + 1];
       const blue = data[index + 2];
-      const gray = (data[index] * 0.299) + (data[index + 1] * 0.587) + (data[index + 2] * 0.114);
-      let value = Math.max(0, Math.min(255, ((gray - 128) * 1.85) + 128));
+      const gray = data[index] * 0.299 + data[index + 1] * 0.587 + data[index + 2] * 0.114;
+      let value = Math.max(0, Math.min(255, (gray - 128) * 1.85 + 128));
 
       if (blueInk) {
-        const isBlueInk = gray < 205
-          && blue > 70
-          && (blue - green > 12 || red - green > 10)
-          && blue > red * 0.72;
+        const isBlueInk = gray < 205 && blue > 70 && (blue - green > 12 || red - green > 10) && blue > red * 0.72;
         value = isBlueInk ? 0 : 255;
       } else if (threshold) {
-        value = value > 168 ? 255 : (value < 92 ? 0 : value);
+        value = value > 168 ? 255 : value < 92 ? 0 : value;
       }
 
       data[index] = value;
@@ -1806,10 +1947,10 @@
     ctx.putImageData(imageData, 0, 0);
 
     return {
-      dataUrl: canvas.toDataURL("image/png"),
+      dataUrl: canvas.toDataURL('image/png'),
       width: canvas.width,
       height: canvas.height,
-      role: options.role || "",
+      role: options.role || '',
       priority: Number(options.priority || 0),
       ocrOptions: options.ocrOptions || null,
     };
@@ -1818,15 +1959,17 @@
   function parseCheckOcr(results) {
     const amountResults = results.amountResults || (results.amount ? [results.amount] : []);
     const nameResults = results.nameResults || (results.name ? [results.name] : []);
-    const amountText = amountResults.map((result) => result?.text || "").join("\n");
-    const nameText = nameResults.map((result) => result?.text || "").join("\n");
-    const nameLines = nameResults.flatMap((result) => (result?.lines || []).map((line) => ({
-      ...line,
-      source: result?.role || "name",
-      priority: Number(result?.priority || 0),
-    })));
-    const amount = parseOcrAmount(amountText, results.full?.text || "");
-    const payerName = parseOcrName(nameLines, results.full?.lines || [], nameText, results.full?.text || "");
+    const amountText = amountResults.map((result) => result?.text || '').join('\n');
+    const nameText = nameResults.map((result) => result?.text || '').join('\n');
+    const nameLines = nameResults.flatMap((result) =>
+      (result?.lines || []).map((line) => ({
+        ...line,
+        source: result?.role || 'name',
+        priority: Number(result?.priority || 0),
+      })),
+    );
+    const amount = parseOcrAmount(amountText, results.full?.text || '');
+    const payerName = parseOcrName(nameLines, results.full?.lines || [], nameText, results.full?.text || '');
     const confidences = [...amountResults, ...nameResults, results.full]
       .map((result) => Number(result?.confidence || 0))
       .filter((value) => value > 0);
@@ -1837,44 +1980,46 @@
     return { amount, payerName, confidence };
   }
 
-  function parseOcrAmount(amountText, fullText = "") {
-    const candidates = [
-      ...amountCandidates(amountText, 100),
-      ...amountCandidates(fullText, 20),
-    ].filter((candidate) => candidate.value > 0 && candidate.value < 100000);
+  function parseOcrAmount(amountText, fullText = '') {
+    const candidates = [...amountCandidates(amountText, 100), ...amountCandidates(fullText, 20)].filter(
+      (candidate) => candidate.value > 0 && candidate.value < 100000,
+    );
 
-    if (!candidates.length) return "";
+    if (!candidates.length) return '';
 
     candidates.sort((a, b) => b.score - a.score || b.value - a.value);
 
-    return candidates[0].value.toFixed(2).replace(".", ",");
+    return candidates[0].value.toFixed(2).replace('.', ',');
   }
 
   function amountCandidates(text, sourceScore) {
-    const normalized = String(text || "")
-      .replace(/[Oo](?=[0-9])/g, "0")
-      .replace(/(?<=[0-9])[Oo]/g, "0")
-      .replace(/[€]/g, " EUR ")
-      .replace(/[€]/g, " EUR ");
+    const normalized = String(text || '')
+      .replace(/[Oo](?=[0-9])/g, '0')
+      .replace(/(?<=[0-9])[Oo]/g, '0')
+      .replace(/[€]/g, ' EUR ')
+      .replace(/[€]/g, ' EUR ');
     const candidates = [];
     const decimalPattern = /(?:EUR|EUROS?)?\s*([0-9][0-9 .'\u00a0]{0,10}[,.][0-9]{2})\s*(?:EUR|EUROS?)?/gi;
-    const thousandSpacedDecimalPattern = /(?:EUR|EUROS?)?\s*([0-9]{1,3}(?:[ '\u00a0][0-9]{3})+)\s+([0-9]{2})\s*(?:EUR|EUROS?)?/gi;
+    const thousandSpacedDecimalPattern =
+      /(?:EUR|EUROS?)?\s*([0-9]{1,3}(?:[ '\u00a0][0-9]{3})+)\s+([0-9]{2})\s*(?:EUR|EUROS?)?/gi;
     const spacedDecimalPattern = /(?:EUR|EUROS?)?\s*([0-9]{1,5})\s+([0-9]{2})\s*(?:EUR|EUROS?)?/gi;
-    const integerCurrencyPattern = /(?:EUR|EUROS?)\s*([0-9][0-9 .'\u00a0]{1,10})|([0-9][0-9 .'\u00a0]{1,10})\s*(?:EUR|EUROS?)/gi;
+    const integerCurrencyPattern =
+      /(?:EUR|EUROS?)\s*([0-9][0-9 .'\u00a0]{1,10})|([0-9][0-9 .'\u00a0]{1,10})\s*(?:EUR|EUROS?)/gi;
 
     for (const match of normalized.matchAll(decimalPattern)) {
-      const raw = match[1].replace(/[ '\u00a0.]/g, "").replace(",", ".");
+      const raw = match[1].replace(/[ '\u00a0.]/g, '').replace(',', '.');
       const value = Math.round(Number(raw) * 100) / 100;
       if (!Number.isFinite(value)) continue;
 
       candidates.push({
         value,
-        score: sourceScore + 40 + Math.min(24, raw.split(".")[0].length * 6) + (/(EUR|EUROS?)/i.test(match[0]) ? 15 : 0),
+        score:
+          sourceScore + 40 + Math.min(24, raw.split('.')[0].length * 6) + (/(EUR|EUROS?)/i.test(match[0]) ? 15 : 0),
       });
     }
 
     for (const match of normalized.matchAll(thousandSpacedDecimalPattern)) {
-      const raw = `${match[1].replace(/[ '\u00a0]/g, "")}.${match[2]}`;
+      const raw = `${match[1].replace(/[ '\u00a0]/g, '')}.${match[2]}`;
       const value = Math.round(Number(raw) * 100) / 100;
       if (!Number.isFinite(value)) continue;
 
@@ -1899,7 +2044,7 @@
     }
 
     for (const match of normalized.matchAll(integerCurrencyPattern)) {
-      const raw = (match[1] || match[2] || "").replace(/[ '\u00a0.]/g, "");
+      const raw = (match[1] || match[2] || '').replace(/[ '\u00a0.]/g, '');
       if (!raw || raw.length > 6) continue;
       if (sourceScore >= 80 && raw.length < 3) continue;
       const value = Number(raw);
@@ -1928,17 +2073,14 @@
       }
     }
 
-    return [
-      ...candidates,
-      ...fuzzyAmountCandidates(normalized, sourceScore),
-    ];
+    return [...candidates, ...fuzzyAmountCandidates(normalized, sourceScore)];
   }
 
   function fuzzyAmountCandidates(text, sourceScore) {
     if (sourceScore < 80) return [];
 
     const candidates = [];
-    const chunks = String(text || "")
+    const chunks = String(text || '')
       .toUpperCase()
       .split(/\r?\n/)
       .flatMap((line) => line.match(/[0-9OQIDCSEBGZAITL|., '\u00a0-]{4,22}/g) || []);
@@ -1948,9 +2090,7 @@
       if (!/[,.]|\s[0-9OQIDCSEBGZAITL|]{1,2}\s*$/i.test(chunk)) continue;
 
       for (const variant of amountTextVariants(chunk)) {
-        const normalized = variant.text
-          .replace(/[ '\u00a0-]/g, "")
-          .replace(",", ".");
+        const normalized = variant.text.replace(/[ '\u00a0-]/g, '').replace(',', '.');
         if (/^[0-9]{5,}/.test(normalized)) continue;
         const match = normalized.match(/^([0-9]{2,6})\.([0-9]{2})$/);
         if (!match) continue;
@@ -1970,33 +2110,37 @@
 
   function amountTextVariants(value) {
     const map = {
-      O: [{ value: "0", score: 1 }],
-      Q: [{ value: "0", score: 1 }],
-      D: [{ value: "0", score: 0.8 }],
-      I: [{ value: "1", score: 1 }],
-      L: [{ value: "1", score: 0.8 }],
-      "|": [{ value: "1", score: 0.8 }],
-      Z: [{ value: "2", score: 1 }],
-      C: [{ value: "2", score: 1 }],
-      E: [{ value: "3", score: 1 }],
-      A: [{ value: "4", score: 0.8 }],
-      S: [{ value: "2", score: 0.9 }, { value: "5", score: 0.35 }, { value: "6", score: 0.5 }],
-      B: [{ value: "8", score: 0.8 }],
-      G: [{ value: "6", score: 0.8 }],
-      T: [{ value: "7", score: 0.7 }],
+      O: [{ value: '0', score: 1 }],
+      Q: [{ value: '0', score: 1 }],
+      D: [{ value: '0', score: 0.8 }],
+      I: [{ value: '1', score: 1 }],
+      L: [{ value: '1', score: 0.8 }],
+      '|': [{ value: '1', score: 0.8 }],
+      Z: [{ value: '2', score: 1 }],
+      C: [{ value: '2', score: 1 }],
+      E: [{ value: '3', score: 1 }],
+      A: [{ value: '4', score: 0.8 }],
+      S: [
+        { value: '2', score: 0.9 },
+        { value: '5', score: 0.35 },
+        { value: '6', score: 0.5 },
+      ],
+      B: [{ value: '8', score: 0.8 }],
+      G: [{ value: '6', score: 0.8 }],
+      T: [{ value: '7', score: 0.7 }],
     };
-    let variants = [{ text: "", score: 0, previousRaw: "" }];
+    let variants = [{ text: '', score: 0, previousRaw: '' }];
 
-    for (const char of String(value || "").toUpperCase()) {
+    for (const char of String(value || '').toUpperCase()) {
       const replacements = /[0-9., '\u00a0-]/.test(char)
         ? [{ value: char, score: 1 }]
-        : (map[char] || [{ value: "", score: 0 }]);
+        : map[char] || [{ value: '', score: 0 }];
       const next = [];
       for (const prefix of variants) {
         for (const replacement of replacements) {
           let score = prefix.score + replacement.score;
-          if (char === "S" && prefix.previousRaw === "C" && replacement.value === "6") score += 0.9;
-          if (char === "S" && prefix.previousRaw === "E" && replacement.value === "2") score += 0.9;
+          if (char === 'S' && prefix.previousRaw === 'C' && replacement.value === '6') score += 0.9;
+          if (char === 'S' && prefix.previousRaw === 'E' && replacement.value === '2') score += 0.9;
           next.push({
             text: prefix.text + replacement.value,
             score,
@@ -2021,13 +2165,10 @@
   }
 
   function parseOcrName(nameLines, fullLines, nameText, fullText) {
-    const fromLines = [
-      ...nameLines,
-      ...fullLines.map((line) => ({ ...line, source: "full", priority: 0 })),
-    ];
-    const fromText = `${nameText || ""}\n${fullText || ""}`
+    const fromLines = [...nameLines, ...fullLines.map((line) => ({ ...line, source: 'full', priority: 0 }))];
+    const fromText = `${nameText || ''}\n${fullText || ''}`
       .split(/\r?\n/)
-      .map((text) => ({ text, source: "text", priority: 0 }));
+      .map((text) => ({ text, source: 'text', priority: 0 }));
     const candidates = [...fromLines, ...fromText]
       .flatMap((line) => expandNameCandidateLine(line))
       .map((line) => scoreNameCandidate(line))
@@ -2035,15 +2176,15 @@
 
     candidates.sort((a, b) => b.score - a.score);
 
-    return candidates[0]?.text || "";
+    return candidates[0]?.text || '';
   }
 
   function resolveDetectedPayerName(value) {
-    let candidate = cleanNameCandidate(value || "")
-      .replace(/\b(?:vle|ville)\b$/i, "")
-      .replace(/\s+/g, " ")
+    let candidate = cleanNameCandidate(value || '')
+      .replace(/\b(?:vle|ville)\b$/i, '')
+      .replace(/\s+/g, ' ')
       .trim();
-    if (!candidate) return "";
+    if (!candidate) return '';
 
     const known = knownPayerNames();
     const normalizedCandidate = normalizeNameForMatch(candidate);
@@ -2056,9 +2197,12 @@
         break;
       }
 
-      const containsScore = normalizedKnown.includes(normalizedCandidate) && normalizedCandidate.length >= 7
-        ? 0.96
-        : (normalizedCandidate.includes(normalizedKnown) && normalizedKnown.length >= 7 ? 0.9 : 0);
+      const containsScore =
+        normalizedKnown.includes(normalizedCandidate) && normalizedCandidate.length >= 7
+          ? 0.96
+          : normalizedCandidate.includes(normalizedKnown) && normalizedKnown.length >= 7
+            ? 0.9
+            : 0;
       const score = containsScore || nameSimilarity(normalizedCandidate, normalizedKnown);
       if (!best || score > best.score) best = { name, score };
     }
@@ -2071,7 +2215,7 @@
   function knownPayerNames() {
     const names = new Set();
     const add = (value) => {
-      const cleaned = cleanNameCandidate(value || "");
+      const cleaned = cleanNameCandidate(value || '');
       if (cleaned.length >= 4) names.add(cleaned);
     };
 
@@ -2087,18 +2231,18 @@
   }
 
   function normalizeNameForMatch(value) {
-    return String(value || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
       .toUpperCase()
-      .replace(/\b(?:VLE|VILLE)\b/g, "")
-      .replace(/[^A-Z0-9]/g, "");
+      .replace(/\b(?:VLE|VILLE)\b/g, '')
+      .replace(/[^A-Z0-9]/g, '');
   }
 
   function nameSimilarity(a, b) {
     if (!a || !b) return 0;
     const distance = levenshteinDistance(a, b);
-    return 1 - (distance / Math.max(a.length, b.length, 1));
+    return 1 - distance / Math.max(a.length, b.length, 1);
   }
 
   function levenshteinDistance(a, b) {
@@ -2108,9 +2252,8 @@
     for (let i = 1; i <= a.length; i += 1) {
       current[0] = i;
       for (let j = 1; j <= b.length; j += 1) {
-        current[j] = a[i - 1] === b[j - 1]
-          ? previous[j - 1]
-          : Math.min(previous[j - 1] + 1, previous[j] + 1, current[j - 1] + 1);
+        current[j] =
+          a[i - 1] === b[j - 1] ? previous[j - 1] : Math.min(previous[j - 1] + 1, previous[j] + 1, current[j - 1] + 1);
       }
       for (let j = 0; j <= b.length; j += 1) previous[j] = current[j];
     }
@@ -2119,9 +2262,11 @@
   }
 
   function expandNameCandidateLine(line) {
-    const text = cleanOcrLine(line.text || "");
+    const text = cleanOcrLine(line.text || '');
     const guidedSegments = [
-      ...(text.match(/(?:ordre\s+de|l['\u2019]ordre\s+de)\s+(.+)$/i)?.[1] ? [text.match(/(?:ordre\s+de|l['\u2019]ordre\s+de)\s+(.+)$/i)[1]] : []),
+      ...(text.match(/(?:ordre\s+de|l['\u2019]ordre\s+de)\s+(.+)$/i)?.[1]
+        ? [text.match(/(?:ordre\s+de|l['\u2019]ordre\s+de)\s+(.+)$/i)[1]]
+        : []),
       ...(text.match(/martin\s+sols\s+(.+)$/i)?.[1] ? [text.match(/martin\s+sols\s+(.+)$/i)[1]] : []),
       ...(text.match(/payez\s+(.+)$/i)?.[1] ? [text.match(/payez\s+(.+)$/i)[1]] : []),
     ];
@@ -2148,17 +2293,18 @@
   function normalizeOcrLines(lines) {
     return lines
       .map((line) => ({
-        text: cleanOcrLine(line?.text || ""),
+        text: cleanOcrLine(line?.text || ''),
         bbox: line?.bbox || null,
       }))
-      .filter((line) => line.text !== "");
+      .filter((line) => line.text !== '');
   }
 
   function scoreNameCandidate(line) {
-    let text = cleanNameCandidate(line.text || "");
+    let text = cleanNameCandidate(line.text || '');
     if (!text) return null;
 
-    const blocked = /(banque|ch[eè]que|payez|ordre|euro|iban|bic|signature|signatur|montant|date|france|code|compte|client|guichet|rib|payable|endossable|somme|lettres?|toutes?|tontes|mnfe|martin\s+sols|caisse|epargne|aquitaine|poitou|charentes|cic|sud\s+ouest|cr[eé]dit|agricole|mutuel|populaire|postale|soci[eé]t[eé]\s+g[eé]n[eé]rale|bnp|lcl|tel\.?|t[eé]l\.?|t[eé]l[eé]phone|rue|route|avenue|boulevard|\bbd\b|chemin|impasse|all[eé]e|place|quartier|lieu\s+dit|r[eé]sidence|lotissement|\bza\b|\bzi\b|\bbp\b|cedex|\bcs\b|ch[eè]que\s+n|\bpau\b|mazerolles|morlaas|maucor|adour|germe|bart[eé]cagnia|grabots|pelut)/i;
+    const blocked =
+      /(banque|ch[eè]que|payez|ordre|euro|iban|bic|signature|signatur|montant|date|france|code|compte|client|guichet|rib|payable|endossable|somme|lettres?|toutes?|tontes|mnfe|martin\s+sols|caisse|epargne|aquitaine|poitou|charentes|cic|sud\s+ouest|cr[eé]dit|agricole|mutuel|populaire|postale|soci[eé]t[eé]\s+g[eé]n[eé]rale|bnp|lcl|tel\.?|t[eé]l\.?|t[eé]l[eé]phone|rue|route|avenue|boulevard|\bbd\b|chemin|impasse|all[eé]e|place|quartier|lieu\s+dit|r[eé]sidence|lotissement|\bza\b|\bzi\b|\bbp\b|cedex|\bcs\b|ch[eè]que\s+n|\bpau\b|mazerolles|morlaas|maucor|adour|germe|bart[eé]cagnia|grabots|pelut)/i;
     if (blocked.test(text)) return null;
     if (/\b[0-9]{1,4}\s+(?:rue|route|avenue|boulevard|bd|chemin|impasse|allee|all[eé]e)\b/i.test(text)) return null;
     if (!/[A-Za-zÀ-ÿ]/.test(text)) return null;
@@ -2167,19 +2313,24 @@
 
     const words = text.split(/\s+/).filter(Boolean);
     if (words.length > 7) return null;
-    if (words.length === 1 && /^[A-ZÀ-Ÿ-]+$/.test(text) && !/^(m|me|mme|mr|monsieur|madame|sarl|sas|eurl|sasu|ets)\b/i.test(text)) return null;
-    if (Math.max(...words.map((word) => word.replace(/[^A-Za-zÀ-ÿ]/g, "").length)) < 5) return null;
+    if (
+      words.length === 1 &&
+      /^[A-ZÀ-Ÿ-]+$/.test(text) &&
+      !/^(m|me|mme|mr|monsieur|madame|sarl|sas|eurl|sasu|ets)\b/i.test(text)
+    )
+      return null;
+    if (Math.max(...words.map((word) => word.replace(/[^A-Za-zÀ-ÿ]/g, '').length)) < 5) return null;
 
     let score = 0;
     score += Number(line.priority || 0);
-    score += line.source === "payer" ? 42 : (line.source === "body" || line.source === "name" ? 18 : 6);
+    score += line.source === 'payer' ? 42 : line.source === 'body' || line.source === 'name' ? 18 : 6;
     score += Math.min(text.length, 32);
     score += words.length >= 2 ? 18 : 0;
     score += /^(m|me|mme|mr|monsieur|madame|sarl|sas|eurl|sasu|ets)\b/i.test(text) ? 18 : 0;
     score += /^(me|mme|mr|monsieur|madame)\b/i.test(text) ? 55 : 0;
     score += /\b(ei|eirl|sarl|sas|eurl|sasu)\b/i.test(text) ? 10 : 0;
     score += /^[A-ZÀ-Ÿ0-9 &'().-]+$/.test(text) ? 8 : 0;
-    score += line.source === "payer" && /^[A-ZÀ-Ÿ &'().-]+$/.test(text) && words.length >= 2 ? 24 : 0;
+    score += line.source === 'payer' && /^[A-ZÀ-Ÿ &'().-]+$/.test(text) && words.length >= 2 ? 24 : 0;
 
     if (line.bbox) {
       const x0 = Number(line.bbox.x0 || 0);
@@ -2192,18 +2343,20 @@
   }
 
   function cleanOcrLine(value) {
-    return String(value || "").replace(/\s+/g, " ").trim();
+    return String(value || '')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   function cleanNameCandidate(value) {
     return cleanOcrLine(value)
-      .replace(/^[^A-Za-zÀ-ÿ]+/, "")
-      .replace(/[^A-Za-zÀ-ÿ0-9 &'’().-]+/g, " ")
-      .replace(/\b(?:a|à)\s+l['’]ordre\s+de\b.*$/i, "")
-      .replace(/\b(?:payez|payer)\b.*$/i, "")
-      .replace(/\s+\d{1,2}$/g, "")
-      .replace(/\s+(?:la|le)$/i, "")
-      .replace(/\s+/g, " ")
+      .replace(/^[^A-Za-zÀ-ÿ]+/, '')
+      .replace(/[^A-Za-zÀ-ÿ0-9 &'’().-]+/g, ' ')
+      .replace(/\b(?:a|à)\s+l['’]ordre\s+de\b.*$/i, '')
+      .replace(/\b(?:payez|payer)\b.*$/i, '')
+      .replace(/\s+\d{1,2}$/g, '')
+      .replace(/\s+(?:la|le)$/i, '')
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
@@ -2213,7 +2366,7 @@
       setBusy(true);
       await callback();
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Opération impossible");
+      window.alert(error instanceof Error ? error.message : 'Opération impossible');
     } finally {
       state.saving = false;
       setBusy(false);
@@ -2222,29 +2375,33 @@
   }
 
   function setBusy(isBusy) {
-    root?.querySelectorAll("button,input,select,textarea").forEach((element) => {
+    root?.querySelectorAll('button,input,select,textarea').forEach((element) => {
       if (isBusy) {
-        element.dataset.wasDisabled = element.disabled ? "1" : "0";
+        element.dataset.wasDisabled = element.disabled ? '1' : '0';
         element.disabled = true;
-      } else if (element.dataset.wasDisabled === "0") {
+      } else if (element.dataset.wasDisabled === '0') {
         element.disabled = false;
       }
     });
   }
 
   function printRemittance(remittance) {
-    const rows = (remittance.checks || []).map((check, index) => `
+    const rows = (remittance.checks || [])
+      .map(
+        (check, index) => `
       <tr>
         <td>${index + 1}</td>
-        <td>${esc(check.payerName || "")}</td>
-        <td>${esc(check.invoiceNumber || "")}</td>
+        <td>${esc(check.payerName || '')}</td>
+        <td>${esc(check.invoiceNumber || '')}</td>
         <td class="amount">${esc(money(check.amount || 0))}</td>
       </tr>
-    `).join("");
+    `,
+      )
+      .join('');
 
-    const win = window.open("", "_blank");
+    const win = window.open('', '_blank');
     if (!win) {
-      window.alert("Ouverture impression bloquée");
+      window.alert('Ouverture impression bloquée');
       return;
     }
 
@@ -2253,7 +2410,7 @@
       <html lang="fr">
         <head>
           <meta charset="UTF-8">
-          <title>${esc(remittance.reference || "Remise de chèques")}</title>
+          <title>${esc(remittance.reference || 'Remise de chèques')}</title>
           <style>
             body{font-family:Arial,sans-serif;color:#0f172a;margin:32px}
             header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #95002e;padding-bottom:18px;margin-bottom:24px}
@@ -2274,9 +2431,9 @@
           <header>
             <div>
               <h1>Remise de chèques</h1>
-              <p>${esc(remittance.reference || "")}</p>
+              <p>${esc(remittance.reference || '')}</p>
               <p>${esc(activeSiteName())} - ${esc(dateLabel(remittance.remittanceDate))}</p>
-              <p>${esc(remittance.bankName || "")}</p>
+              <p>${esc(remittance.bankName || '')}</p>
             </div>
             <div class="total">
               <span>${esc(remittance.checkCount || 0)} chèque(s)</span>
@@ -2306,27 +2463,27 @@
   }
 
   function isRoute() {
-    const path = window.location.pathname.replace(/\/$/, "");
+    const path = window.location.pathname.replace(/\/$/, '');
     return path === routePath || path.startsWith(`${routePath}/`);
   }
 
   function findOutlet() {
-    const explicit = document.getElementById("crm-check-remittance-module");
+    const explicit = document.getElementById('crm-check-remittance-module');
     if (explicit) return explicit;
 
-    const layout = document.querySelector(".layout-container.layout-page") || document.querySelector(".layout-page");
+    const layout = document.querySelector('.layout-container.layout-page') || document.querySelector('.layout-page');
     if (layout) return layout;
 
-    const mains = [...document.querySelectorAll("main")].filter((element) => !element.closest("aside"));
+    const mains = [...document.querySelectorAll('main')].filter((element) => !element.closest('aside'));
     if (mains.length) return mains[mains.length - 1];
 
-    return document.getElementById("root");
+    return document.getElementById('root');
   }
 
   function ensureHost() {
     if (!isRoute()) return;
 
-    let host = document.getElementById("crm-check-remittance-module");
+    let host = document.getElementById('crm-check-remittance-module');
     if (!host) {
       return;
     }
@@ -2341,10 +2498,10 @@
     if (window.__crmCheckRemittanceRouteWatcher) return;
     window.__crmCheckRemittanceRouteWatcher = true;
 
-    window.addEventListener("popstate", () => window.dispatchEvent(new Event("crm:check-remittance-route-changed")));
-    window.addEventListener("crm:navigation", () => window.setTimeout(syncRoute, 0));
-    window.addEventListener("crm:route-changed", () => window.setTimeout(ensureHost, 0));
-    window.addEventListener("crm:check-remittance-route-changed", () => window.setTimeout(syncRoute, 0));
+    window.addEventListener('popstate', () => window.dispatchEvent(new Event('crm:check-remittance-route-changed')));
+    window.addEventListener('crm:navigation', () => window.setTimeout(syncRoute, 0));
+    window.addEventListener('crm:route-changed', () => window.setTimeout(ensureHost, 0));
+    window.addEventListener('crm:check-remittance-route-changed', () => window.setTimeout(syncRoute, 0));
   }
 
   function syncRoute() {
@@ -2354,9 +2511,9 @@
   }
 
   function styles() {
-    if (document.getElementById("crm-check-remittance-style")) return;
-    const style = document.createElement("style");
-    style.id = "crm-check-remittance-style";
+    if (document.getElementById('crm-check-remittance-style')) return;
+    const style = document.createElement('style');
+    style.id = 'crm-check-remittance-style';
     style.textContent = `
       .layout-container.layout-page:has(#crm-check-remittance-module),
       .layout-page:has(#crm-check-remittance-module){width:100%;max-width:100%;min-width:0;overflow-x:hidden}
@@ -2411,6 +2568,7 @@
       #crm-check-remittance-module .check-empty{display:grid;gap:.55rem;justify-items:start;padding:1.1rem}
       #crm-check-remittance-module .check-empty strong{font-size:1rem}
       #crm-check-remittance-module .check-empty span{color:var(--color-secondary-500,#64748b);font-size:.86rem;font-weight:750}
+      #crm-check-remittance-module .check-button-primary span{color:#fff;font-weight:600}
       #crm-check-remittance-module .check-empty.is-compact{border-top:1px solid var(--color-surface-200,#e2e8f0)}
       #crm-check-remittance-module .check-total-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;padding:1rem;border-bottom:1px solid var(--color-surface-200,#e2e8f0)}
       #crm-check-remittance-module .check-total-strip span{display:grid;gap:.15rem;border:1px solid var(--color-surface-200,#e2e8f0);border-radius:.5rem;background:var(--color-surface-50,#f8fafc);padding:.55rem .65rem;min-width:0}
@@ -2499,12 +2657,12 @@
   }
 
   watchRouteChanges();
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener('DOMContentLoaded', () => {
     ensureHost();
     const observer = new MutationObserver(() => ensureHost());
     observer.observe(document.documentElement, { childList: true, subtree: true });
   });
-  window.addEventListener("crm:active-site-changed", () => {
+  window.addEventListener('crm:active-site-changed', () => {
     if (isRoute() && root && mountedRoots.has(root)) load();
   });
   ensureHost();
