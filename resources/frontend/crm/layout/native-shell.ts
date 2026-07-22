@@ -8,6 +8,7 @@ type CrmProfile = {
   firstName?: string;
   lastName?: string;
   name?: string;
+  navigation?: CrmFallbackNavigation;
   photoUrl?: string;
   role?: string;
 };
@@ -95,21 +96,69 @@ function initials(value: string): string {
   return letters || 'MS';
 }
 
-function iconFor(item: CrmMenuItem): string {
+function iconSvg(path: string): string {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${path}</svg>`;
+}
+
+function iconForKey(iconKey?: string): string {
   const icons: Record<string, string> = {
-    article: 'DC',
-    banknote: 'AC',
-    calendar: 'CA',
-    creditCard: 'CB',
-    dashboard: 'DB',
-    package: 'LM',
-    settings: 'AD',
-    table: 'TR',
-    truck: 'RV',
-    users: 'EQ',
+    article: iconSvg('<path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v5h5"></path><path d="M10 12h6M10 16h5"></path>'),
+    banknote: iconSvg('<rect x="3" y="6" width="18" height="12" rx="2"></rect><circle cx="12" cy="12" r="2.5"></circle><path d="M6 9h1M17 15h1"></path>'),
+    bus: iconSvg('<rect x="5" y="3" width="14" height="14" rx="3"></rect><path d="M8 7h8M8 11h8M8 17v2M16 17v2"></path><circle cx="8.5" cy="14" r=".5"></circle><circle cx="15.5" cy="14" r=".5"></circle>'),
+    calendar: iconSvg('<rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M4 10h16"></path>'),
+    category: iconSvg('<rect x="4" y="4" width="6" height="6" rx="1.5"></rect><rect x="14" y="4" width="6" height="6" rx="1.5"></rect><rect x="4" y="14" width="6" height="6" rx="1.5"></rect><rect x="14" y="14" width="6" height="6" rx="1.5"></rect>'),
+    checklist: iconSvg('<path d="m8 7 1.6 1.6L13 5"></path><path d="M16 7h4"></path><path d="m8 15 1.6 1.6L13 13"></path><path d="M16 15h4"></path><path d="M4 7h.01M4 15h.01"></path>'),
+    creditCard: iconSvg('<rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18M7 15h4"></path>'),
+    dashboard: iconSvg('<rect x="4" y="4" width="6" height="6" rx="1.5"></rect><rect x="14" y="4" width="6" height="6" rx="1.5"></rect><rect x="4" y="14" width="6" height="6" rx="1.5"></rect><rect x="14" y="14" width="6" height="6" rx="1.5"></rect>'),
+    fileText: iconSvg('<path d="M7 3h7l4 4v14H7z"></path><path d="M14 3v5h5"></path><path d="M10 13h6M10 17h4"></path>'),
+    package: iconSvg('<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"></path><path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path>'),
+    ruler: iconSvg('<path d="M4 17 17 4l3 3L7 20z"></path><path d="m14 7 3 3M11 10l2 2M8 13l3 3"></path>'),
+    settings: iconSvg('<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"></path><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"></path>'),
+    table: iconSvg('<path d="M4 6h16M4 12h16M4 18h16"></path><path d="M8 6v12M16 6v12"></path>'),
+    truck: iconSvg('<path d="M3 7h11v8H3z"></path><path d="M14 10h3l3 3v2h-6z"></path><circle cx="7" cy="18" r="2"></circle><circle cx="17" cy="18" r="2"></circle>'),
+    users: iconSvg('<path d="M16 11a4 4 0 1 0-8 0"></path><path d="M4 21a8 8 0 0 1 16 0"></path><path d="M18 8a3 3 0 0 1 3 3M6 8a3 3 0 0 0-3 3"></path>'),
   };
 
-  return icons[item.iconKey] || initials(item.label || item.itemKey);
+  return icons[iconKey || ''] || iconSvg('<circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path>');
+}
+
+function iconFor(item: CrmMenuItem): string {
+  return iconForKey(item.iconKey);
+}
+
+function chevronIcon(): string {
+  return iconSvg('<path d="m6 9 6 6 6-6"></path>');
+}
+
+function moduleFor(item: CrmMenuItem): CrmModule | undefined {
+  const slug = item.itemKey.startsWith('module:') ? item.itemKey.slice(7) : '';
+
+  return navigation().modules.find((module: CrmModule) => module.slug === slug);
+}
+
+function badgeHtml(item: CrmMenuItem): string {
+  const module = moduleFor(item);
+
+  if (!module?.showMenuBadge || !module.menuBadge) {
+    return '';
+  }
+
+  return `<span class="crm-native-nav-badge">${esc(module.menuBadge)}</span>`;
+}
+
+function isSubmenuGroup(group: CrmMenuGroup, items: CrmMenuItem[]): boolean {
+  const sectionGroups = new Set(['home', 'apps', 'accounting', 'internal']);
+
+  return items.length > 1 && !sectionGroups.has(group.menuKey);
+}
+
+function groupIconKey(group: CrmMenuGroup): string {
+  const icons: Record<string, string> = {
+    commercial: 'dashboard',
+    documents: 'article',
+  };
+
+  return icons[group.menuKey] || 'category';
 }
 
 function menuGroupsHtml(): string {
@@ -122,35 +171,67 @@ function menuGroupsHtml(): string {
     .map((group: CrmMenuGroup) => {
       const items = navigation()
         .menuItems.filter((item: CrmMenuItem) => item && item.active !== false && item.groupKey === group.menuKey)
-        .sort((a: CrmMenuItem, b: CrmMenuItem) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
-        .map((item: CrmMenuItem) => menuItemHtml(item, routes[item.itemKey] || '#'))
-        .join('');
+        .sort((a: CrmMenuItem, b: CrmMenuItem) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0));
 
-      if (!items) {
+      if (items.length === 0) {
         return '';
+      }
+
+      if (isSubmenuGroup(group, items)) {
+        return [
+          '<section class="crm-native-nav-group crm-native-nav-group-nested">',
+          submenuHtml(group, items, routes),
+          '</section>',
+        ].join('');
       }
 
       return [
         '<section class="crm-native-nav-group">',
         `<p class="crm-native-nav-title">${esc(group.title || group.menuKey || 'CRM')}</p>`,
-        items,
+        items.map((item: CrmMenuItem) => menuItemHtml(item, routes[item.itemKey] || '#')).join(''),
         '</section>',
       ].join('');
     })
     .join('');
 }
 
-function menuItemHtml(item: CrmMenuItem, path: string): string {
+function submenuHtml(group: CrmMenuGroup, items: CrmMenuItem[], routes: Record<string, string>): string {
+  const active = items.some((item: CrmMenuItem) => isActivePath(routes[item.itemKey] || '#'));
+
+  return [
+    `<div class="crm-native-nav-submenu${active ? ' is-open' : ''}" data-crm-native-submenu>`,
+    `<button class="crm-native-nav-link crm-native-nav-button${active ? ' is-active' : ''}" type="button" data-crm-native-submenu-toggle aria-expanded="${active ? 'true' : 'false'}">`,
+    `<span class="crm-native-nav-icon">${iconForKey(groupIconKey(group))}</span>`,
+    `<span class="crm-native-nav-label">${esc(group.title || group.menuKey || 'CRM')}</span>`,
+    `<span class="crm-native-nav-chevron">${chevronIcon()}</span>`,
+    '</button>',
+    '<div class="crm-native-nav-subitems">',
+    items.map((item: CrmMenuItem) => menuItemHtml(item, routes[item.itemKey] || '#', true)).join(''),
+    '</div>',
+    '</div>',
+  ].join('');
+}
+
+function menuItemHtml(item: CrmMenuItem, path: string, nested = false): string {
   const external = /^https?:\/\//.test(path);
   const active = isActivePath(path);
   const target = external ? ' target="_blank" rel="noopener noreferrer"' : '';
 
   return [
-    `<a class="crm-native-nav-link${active ? ' is-active' : ''}" href="${esc(path)}"${target}>`,
-    `<span class="crm-native-nav-icon">${esc(iconFor(item))}</span>`,
+    `<a class="crm-native-nav-link${nested ? ' crm-native-nav-subitem' : ''}${active ? ' is-active' : ''}" href="${esc(path)}"${target}>`,
+    `<span class="crm-native-nav-icon">${iconFor(item)}</span>`,
     `<span class="crm-native-nav-label">${esc(item.label || 'CRM')}</span>`,
+    badgeHtml(item),
     '</a>',
   ].join('');
+}
+
+function updateNavigationMarkup(): void {
+  const nav = document.querySelector<HTMLElement>('.crm-native-nav');
+
+  if (nav) {
+    nav.innerHTML = menuGroupsHtml();
+  }
 }
 
 function hostHtml(route: CrmHostRoute | null): string {
@@ -300,6 +381,7 @@ function renderNativeShell(): void {
   if (!root.querySelector(nativeShellSelector)) {
     root.innerHTML = shellHtml(route);
   } else {
+    updateNavigationMarkup();
     ensureHost(route);
     updateActiveLinks();
   }
@@ -326,7 +408,15 @@ async function loadProfile(): Promise<void> {
       return;
     }
 
-    hydrateProfile(payload.profile as CrmProfile);
+    const profile = payload.profile as CrmProfile;
+
+    if (profile.navigation) {
+      window.CRM_NAV_FALLBACK = profile.navigation;
+      updateNavigationMarkup();
+      updateActiveLinks();
+    }
+
+    hydrateProfile(profile);
   } catch {
     // The profile is decorative in the shell; module access still decides auth.
   }
@@ -385,6 +475,17 @@ function installEvents(): void {
       if (target?.closest('[data-crm-native-sidebar-close]')) {
         event.preventDefault();
         closeSidebar();
+        return;
+      }
+
+      const submenuButton = target?.closest<HTMLElement>('[data-crm-native-submenu-toggle]');
+      if (submenuButton) {
+        event.preventDefault();
+        const submenu = submenuButton.closest<HTMLElement>('[data-crm-native-submenu]');
+        const open = !submenu?.classList.contains('is-open');
+
+        submenu?.classList.toggle('is-open', open);
+        submenuButton.setAttribute('aria-expanded', open ? 'true' : 'false');
         return;
       }
 

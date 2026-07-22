@@ -1207,6 +1207,56 @@ class AdministrationService
             'role' => $user->role,
             'canEditIdentity' => $user->role === 'admin' || $this->hasPermission($user, 'platform.manage_users'),
             'connectedDevices' => $this->connectedDevices($user),
+            'navigation' => $this->profileNavigationPayload($user),
+        ];
+    }
+
+    /**
+     * @return array{modules: array<int, array<string, mixed>>, menuGroups: array<int, array<string, mixed>>, menuItems: array<int, array<string, mixed>>}
+     */
+    private function profileNavigationPayload(CrmUser $user): array
+    {
+        $moduleIds = $this->access->moduleIds($user);
+
+        if ($moduleIds === []) {
+            return [
+                'modules' => [],
+                'menuGroups' => [],
+                'menuItems' => [],
+            ];
+        }
+
+        $modules = CrmModule::query()
+            ->active()
+            ->whereIn('id', $moduleIds)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $itemKeys = $modules
+            ->map(fn (CrmModule $module): string => 'module:'.$module->slug)
+            ->values()
+            ->all();
+
+        $menuItems = CrmMenuItem::query()
+            ->where('active', true)
+            ->whereIn('item_key', $itemKeys)
+            ->orderBy('group_key')
+            ->orderBy('sort_order')
+            ->orderBy('label')
+            ->get();
+
+        $menuGroups = CrmMenuGroup::query()
+            ->where('active', true)
+            ->whereIn('menu_key', $menuItems->pluck('group_key')->unique()->values()->all())
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
+
+        return [
+            'modules' => $modules->map(fn (CrmModule $module): array => $this->moduleRow($module))->values()->all(),
+            'menuGroups' => $menuGroups->map(fn (CrmMenuGroup $group): array => $this->menuGroupRow($group))->values()->all(),
+            'menuItems' => $menuItems->map(fn (CrmMenuItem $item): array => $this->menuItemRow($item))->values()->all(),
         ];
     }
 

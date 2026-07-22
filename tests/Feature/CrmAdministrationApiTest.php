@@ -38,7 +38,7 @@ class CrmAdministrationApiTest extends TestCase
     {
         [$account, $crmUser] = $this->createAdminUser();
 
-        $this->actingAs($account)
+        $readProfile = $this->actingAs($account)
             ->getJson('/api/administration?action=profile')
             ->assertOk()
             ->assertJsonPath('ok', true)
@@ -46,7 +46,16 @@ class CrmAdministrationApiTest extends TestCase
             ->assertJsonPath('profile.firstName', 'Jean-Philippe')
             ->assertJsonPath('profile.email', $account->email)
             ->assertJsonPath('profile.photoUrl', '/assets/logo/logomark.png')
-            ->assertJsonPath('profile.canEditIdentity', true);
+            ->assertJsonPath('profile.canEditIdentity', true)
+            ->json('profile');
+
+        $reservationItem = collect($readProfile['navigation']['menuItems'])
+            ->firstWhere('itemKey', 'module:reservations');
+        $documentsGroup = collect($readProfile['navigation']['menuGroups'])
+            ->firstWhere('menuKey', 'documents');
+
+        $this->assertSame('truck', $reservationItem['iconKey'] ?? null);
+        $this->assertSame('Documents', $documentsGroup['title'] ?? null);
 
         $profile = $this->actingAs($account)
             ->postJson('/api/administration?action=save_profile', [

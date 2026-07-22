@@ -64,6 +64,12 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('layout-sidebar crm-native-sidebar', $nativeShell);
         $this->assertStringContainsString('layout-header crm-native-header', $nativeShell);
         $this->assertStringContainsString("fetch('/api/administration?action=profile'", $nativeShell);
+        $this->assertStringContainsString('profile.navigation', $nativeShell);
+        $this->assertStringContainsString('window.CRM_NAV_FALLBACK = profile.navigation', $nativeShell);
+        $this->assertStringContainsString('data-crm-native-submenu-toggle', $nativeShell);
+        $this->assertStringContainsString('iconForKey', $nativeShell);
+        $this->assertStringContainsString("new Set(['home', 'apps', 'accounting', 'internal'])", $nativeShell);
+        $this->assertStringContainsString("commercial: 'dashboard'", $nativeShell);
         $this->assertStringContainsString('isLegacyAdminexRoute()', $legacyAdminex);
         $this->assertStringContainsString('return false;', $legacyAdminex);
         $this->assertStringNotContainsString('appendModuleScript', $legacyAdminex);

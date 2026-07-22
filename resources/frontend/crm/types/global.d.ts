@@ -76,6 +76,8 @@ export type CrmModule = {
   sortOrder: number;
 };
 
+export type CrmProfileNavigation = CrmFallbackNavigation;
+
 export type CrmRequestOptions = Omit<RequestInit, 'body'> & {
   body?: BodyInit | Record<string, unknown> | null;
 };

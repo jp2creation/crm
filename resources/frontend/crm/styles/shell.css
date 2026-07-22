@@ -82,6 +82,14 @@
     transform 0.16s ease;
 }
 
+.crm-native-nav-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
 .crm-native-nav-link:hover {
   background: rgb(149 0 46 / 0.06);
   color: rgb(149 0 46);
@@ -106,6 +114,16 @@
   font-weight: 950;
 }
 
+.crm-native-nav-icon svg {
+  width: 1.16rem;
+  height: 1.16rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .crm-native-nav-link.is-active .crm-native-nav-icon {
   background: rgb(255 255 255 / 0.16);
   color: #fff;
@@ -116,6 +134,75 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.crm-native-nav-badge {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgb(149 0 46 / 0.1);
+  padding: 0.2rem 0.52rem;
+  color: rgb(149 0 46);
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+.crm-native-nav-link.is-active .crm-native-nav-badge {
+  background: rgb(255 255 255 / 0.18);
+  color: #fff;
+}
+
+.crm-native-nav-chevron {
+  display: inline-grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  color: currentColor;
+  transition: transform 0.16s ease;
+}
+
+.crm-native-nav-chevron svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.crm-native-nav-submenu.is-open .crm-native-nav-chevron {
+  transform: rotate(180deg);
+}
+
+.crm-native-nav-subitems {
+  display: none;
+  margin: 0.25rem 0 0.3rem 1rem;
+  padding-left: 0.8rem;
+  border-left: 1px solid rgb(226 232 240);
+}
+
+.crm-native-nav-submenu.is-open .crm-native-nav-subitems {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.crm-native-nav-subitem {
+  min-height: 2.45rem;
+  border-radius: 0.45rem;
+  padding: 0.48rem 0.55rem;
+  font-size: 0.86rem;
+}
+
+.crm-native-nav-subitem .crm-native-nav-icon {
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 0.4rem;
+}
+
+.crm-native-nav-subitem .crm-native-nav-icon svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .crm-native-logout {
