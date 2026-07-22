@@ -1001,7 +1001,7 @@ class AdministrationService
     private function moduleSeed(): array
     {
         return [
-            ['Tableau de bord', 'dashboard', 'Synthese et acces rapides du CRM', '/dashboard/crm', 0, true],
+            ['Tableau de bord', 'dashboard', 'Synthese et acces rapides du CRM', '/', 0, true],
             ['Réservations véhicules', 'reservations', 'Planning et réservations des véhicules', '/reservations', 10, true],
             ['Location matériel', 'locations-materiel', 'Planning et locations du matériel interne', '/locations-materiel', 15, true],
             ['Équipe', 'equipes', 'Annuaire des membres par site', '/equipes', 16, true],

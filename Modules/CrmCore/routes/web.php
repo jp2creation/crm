@@ -16,7 +16,7 @@ Route::redirect('/dashboard/crm', '/')
     ->middleware('auth')
     ->name('crm.dashboard');
 
-Route::redirect('/dashboard', '/dashboard/crm')
+Route::redirect('/dashboard', '/')
     ->middleware('auth')
     ->name('crm.dashboard.legacy');
 

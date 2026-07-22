@@ -10,7 +10,7 @@
   var installStyleId = 'crm-pwa-install-style';
   var updateReloading = false;
   var hadServiceWorkerController = false;
-  var installAllowedPaths = ['/', '/login', '/dashboard/crm'];
+  var installAllowedPaths = ['/', '/login'];
 
   function dispatch(name, detail) {
     try {
@@ -21,8 +21,7 @@
   }
 
   function isStandalone() {
-    return window.matchMedia('(display-mode: standalone)').matches
-      || window.navigator.standalone === true;
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   }
 
   function currentPath() {
@@ -30,9 +29,9 @@
   }
 
   function isMobileShell() {
-    return document.body && (
-      document.body.classList.contains('crm-mobile-app')
-      || document.body.classList.contains('crm-mobile-embed')
+    return (
+      document.body &&
+      (document.body.classList.contains('crm-mobile-app') || document.body.classList.contains('crm-mobile-embed'))
     );
   }
 
@@ -50,7 +49,8 @@
     navigator.serviceWorker.addEventListener('controllerchange', reloadForUpdatedWorker);
     navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
-    navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/', updateViaCache: 'none' })
       .then(function (registration) {
         watchRegistration(registration);
 
@@ -116,7 +116,8 @@
       return;
     }
 
-    navigator.serviceWorker.getRegistration('/')
+    navigator.serviceWorker
+      .getRegistration('/')
       .then(function (registration) {
         if (registration) {
           registration.update().catch(function () {});
@@ -132,16 +133,17 @@
 
     var style = document.createElement('style');
     style.id = installStyleId;
-    style.textContent = ''
-      + '#crm-pwa-install-button{--pwa-primary:rgb(var(--theme-primary,149 0 46));position:fixed;right:18px;bottom:18px;z-index:9999;display:grid;grid-template-columns:3rem 1px minmax(0,1fr) 1.45rem;align-items:center;gap:1rem;width:min(390px,calc(100vw - 32px));min-height:4.45rem;border:1px solid rgba(149,0,46,.22);border-radius:1.15rem;background:linear-gradient(135deg,#fff 0%,#fff7fb 100%);color:#0f172a;padding:.72rem 1rem .72rem .75rem;font:850 1rem/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 18px 46px rgba(15,23,42,.13);cursor:pointer;opacity:.97;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;}'
-      + '#crm-pwa-install-button:hover{transform:translateY(-1px);border-color:rgba(149,0,46,.42);background:linear-gradient(135deg,#fff 0%,#fff1f7 100%);box-shadow:0 22px 54px rgba(15,23,42,.16);opacity:1;}'
-      + '#crm-pwa-install-button:focus-visible{outline:3px solid rgba(149,0,46,.18);outline-offset:3px;}'
-      + '#crm-pwa-install-button .crm-pwa-install-icon{display:grid;place-items:center;width:3rem;height:3rem;border-radius:999px;background:rgba(149,0,46,.1);color:var(--pwa-primary);}'
-      + '#crm-pwa-install-button .crm-pwa-install-icon svg,#crm-pwa-install-button .crm-pwa-install-chevron svg{width:1.5rem;height:1.5rem;fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}'
-      + '#crm-pwa-install-button .crm-pwa-install-divider{display:block;width:1px;height:2.25rem;background:rgba(15,23,42,.1);}'
-      + '#crm-pwa-install-button .crm-pwa-install-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;letter-spacing:0;}'
-      + '#crm-pwa-install-button .crm-pwa-install-chevron{display:grid;place-items:center;color:var(--pwa-primary);}'
-      + '@media (max-width: 640px){#crm-pwa-install-button{right:14px;bottom:78px;width:calc(100vw - 28px);grid-template-columns:2.75rem 1px minmax(0,1fr) 1.35rem;gap:.82rem;min-height:4.05rem;border-radius:1rem;padding:.65rem .85rem .65rem .65rem;font-size:.95rem;box-shadow:0 14px 34px rgba(15,23,42,.14);}#crm-pwa-install-button .crm-pwa-install-icon{width:2.75rem;height:2.75rem;}#crm-pwa-install-button .crm-pwa-install-divider{height:2rem;}}';
+    style.textContent =
+      '' +
+      '#crm-pwa-install-button{--pwa-primary:rgb(var(--theme-primary,149 0 46));position:fixed;right:18px;bottom:18px;z-index:9999;display:grid;grid-template-columns:3rem 1px minmax(0,1fr) 1.45rem;align-items:center;gap:1rem;width:min(390px,calc(100vw - 32px));min-height:4.45rem;border:1px solid rgba(149,0,46,.22);border-radius:1.15rem;background:linear-gradient(135deg,#fff 0%,#fff7fb 100%);color:#0f172a;padding:.72rem 1rem .72rem .75rem;font:850 1rem/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 18px 46px rgba(15,23,42,.13);cursor:pointer;opacity:.97;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;}' +
+      '#crm-pwa-install-button:hover{transform:translateY(-1px);border-color:rgba(149,0,46,.42);background:linear-gradient(135deg,#fff 0%,#fff1f7 100%);box-shadow:0 22px 54px rgba(15,23,42,.16);opacity:1;}' +
+      '#crm-pwa-install-button:focus-visible{outline:3px solid rgba(149,0,46,.18);outline-offset:3px;}' +
+      '#crm-pwa-install-button .crm-pwa-install-icon{display:grid;place-items:center;width:3rem;height:3rem;border-radius:999px;background:rgba(149,0,46,.1);color:var(--pwa-primary);}' +
+      '#crm-pwa-install-button .crm-pwa-install-icon svg,#crm-pwa-install-button .crm-pwa-install-chevron svg{width:1.5rem;height:1.5rem;fill:none;stroke:currentColor;stroke-width:2.25;stroke-linecap:round;stroke-linejoin:round;}' +
+      '#crm-pwa-install-button .crm-pwa-install-divider{display:block;width:1px;height:2.25rem;background:rgba(15,23,42,.1);}' +
+      '#crm-pwa-install-button .crm-pwa-install-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;letter-spacing:0;}' +
+      '#crm-pwa-install-button .crm-pwa-install-chevron{display:grid;place-items:center;color:var(--pwa-primary);}' +
+      '@media (max-width: 640px){#crm-pwa-install-button{right:14px;bottom:78px;width:calc(100vw - 28px);grid-template-columns:2.75rem 1px minmax(0,1fr) 1.35rem;gap:.82rem;min-height:4.05rem;border-radius:1rem;padding:.65rem .85rem .65rem .65rem;font-size:.95rem;box-shadow:0 14px 34px rgba(15,23,42,.14);}#crm-pwa-install-button .crm-pwa-install-icon{width:2.75rem;height:2.75rem;}#crm-pwa-install-button .crm-pwa-install-divider{height:2rem;}}';
 
     document.head.appendChild(style);
   }
@@ -172,11 +174,12 @@
       document.body.appendChild(button);
     }
 
-    button.innerHTML = ''
-      + '<span class="crm-pwa-install-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 19h14"></path></svg></span>'
-      + '<span class="crm-pwa-install-divider" aria-hidden="true"></span>'
-      + '<span class="crm-pwa-install-label">Installer l&apos;application</span>'
-      + '<span class="crm-pwa-install-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></span>';
+    button.innerHTML =
+      '' +
+      '<span class="crm-pwa-install-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 19h14"></path></svg></span>' +
+      '<span class="crm-pwa-install-divider" aria-hidden="true"></span>' +
+      '<span class="crm-pwa-install-label">Installer l&apos;application</span>' +
+      '<span class="crm-pwa-install-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></span>';
     button.title = "Installer l'application";
     button.setAttribute('aria-label', "Installer l'application");
     button.hidden = false;
@@ -243,7 +246,7 @@
     },
     install: promptInstall,
     refreshInstallButton: renderInstallButton,
-    checkForUpdates: checkForUpdates
+    checkForUpdates: checkForUpdates,
   };
 
   if (document.readyState === 'loading') {

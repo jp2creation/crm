@@ -15,6 +15,7 @@ class CrmFrontendSourceTest extends TestCase
         $legacyTemplate = (string) file_get_contents(resource_path('frontend/crm/legacy/template-compat.ts'));
         $hosts = (string) file_get_contents(resource_path('frontend/crm/modules/hosts.ts'));
         $modules = (string) file_get_contents(resource_path('frontend/crm/modules/register.ts'));
+        $menu = (string) file_get_contents(resource_path('frontend/crm/router/menu.ts'));
 
         $this->assertStringContainsString("@vite(config('crm_frontend.vite_entries'))", $blade);
         $this->assertStringContainsString('id="crm-shell-config"', $blade);
@@ -65,6 +66,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('iconForKey', $nativeShell);
         $this->assertStringContainsString("iconForKey('logout')", $nativeShell);
         $this->assertStringContainsString('crm-native-nav-label">Se déconnecter', $nativeShell);
+        $this->assertStringContainsString('href="/">Tableau de bord</a>', $nativeShell);
+        $this->assertStringContainsString('crm-native-brand" href="/"', $nativeShell);
         $this->assertStringContainsString("new Set(['home', 'apps', 'accounting', 'internal'])", $nativeShell);
         $this->assertStringContainsString("commercial: 'dashboard'", $nativeShell);
         $this->assertStringContainsString('isLegacyTemplateRoute()', $legacyTemplate);
@@ -88,6 +91,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString("administration: () => import('../../../../Modules/CrmAdministration/resources/assets/crm-administration.js')", $modules);
         $this->assertStringContainsString("equipmentRentals: () => import('../../../../Modules/CrmEquipmentRentals/resources/assets/crm-equipment-rentals.js')", $modules);
         $this->assertStringContainsString("reservations: () => import('../../../../Modules/CrmReservations/resources/assets/crm-reservations.js')", $modules);
+        $this->assertStringContainsString("{ name: 'Tableau de bord', slug: 'dashboard', routePath: '/', active: true, sortOrder: 0 }", $menu);
         $this->assertStringContainsString("tapisRomus: () => import('../../../../Modules/CrmTapisRomus/resources/assets/crm-tapis-romus.js')", $modules);
         $this->assertStringContainsString("cashControl: () => import('../../../../Modules/CrmCashControl/resources/assets/crm-controle-caisse.js')", $modules);
         $this->assertStringNotContainsString('mountLegacyReactComponent', $modules);

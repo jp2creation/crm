@@ -279,7 +279,7 @@ class CrmAdministrationApiTest extends TestCase
         ]);
         $this->assertDatabaseHas('crm_modules', [
             'slug' => 'dashboard',
-            'route_path' => '/dashboard/crm',
+            'route_path' => '/',
             'active' => true,
         ]);
         $this->assertDatabaseHas('crm_menu_items', [

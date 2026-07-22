@@ -38,7 +38,7 @@ class ExampleTest extends TestCase
         $this->assertStringNotContainsString('localStorage.setItem(storageKey, password', $html);
     }
 
-    public function test_authenticated_user_can_refresh_crm_dashboard_route(): void
+    public function test_authenticated_user_can_refresh_legacy_crm_dashboard_route(): void
     {
         $this->actingAs(User::factory()->make())
             ->get('/dashboard/crm')

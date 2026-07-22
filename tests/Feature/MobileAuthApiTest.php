@@ -104,7 +104,7 @@ class MobileAuthApiTest extends TestCase
         $dashboardWebSessionPath = parse_url((string) $dashboardWebSessionUrl, PHP_URL_PATH);
 
         $this->get($dashboardWebSessionPath)
-            ->assertRedirect('/dashboard/crm?mobile_app=1&mobile_site_id='.$crmUser->sites()->first()->id);
+            ->assertRedirect('/?mobile_app=1&mobile_site_id='.$crmUser->sites()->first()->id);
 
         $this->flushSession();
 

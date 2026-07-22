@@ -73,7 +73,7 @@ function isActivePath(path: string): boolean {
   const current = normalizedPath();
   const target = normalizedPath(path);
 
-  if (target === '/dashboard/crm' && current === '/') {
+  if ((target === '/dashboard' || target === '/dashboard/crm') && current === '/') {
     return true;
   }
 
@@ -265,7 +265,7 @@ function hostHtml(route: CrmHostRoute | null): string {
       '<section class="crm-native-empty">',
       '<h1>Page non disponible</h1>',
       '<p>Cette page n’est pas encore reliée à la nouvelle coque CRM.</p>',
-      '<a class="crm-native-button" href="/dashboard/crm">Tableau de bord</a>',
+      '<a class="crm-native-button" href="/">Tableau de bord</a>',
       '</section>',
     ].join('');
   }
@@ -302,7 +302,7 @@ function headerHtml(profile?: CrmProfile): string {
     '<button class="crm-native-menu-button" type="button" data-crm-native-sidebar-toggle aria-label="Ouvrir le menu">',
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>',
     '</button>',
-    '<a class="crm-native-mobile-brand" href="/dashboard/crm">',
+    '<a class="crm-native-mobile-brand" href="/">',
     `<img src="${esc(logoUrl())}" alt="Martin Sols">`,
     '</a>',
     '<div class="ms-auto crm-native-header-actions">',
@@ -331,7 +331,7 @@ function shellHtml(route: CrmHostRoute | null): string {
   return [
     '<div class="crm-native-shell" data-crm-native-shell>',
     '<aside class="layout-sidebar crm-native-sidebar" aria-label="Menu CRM">',
-    '<a class="crm-native-brand" href="/dashboard/crm">',
+    '<a class="crm-native-brand" href="/">',
     `<img src="${esc(logoUrl())}" alt="Martin Sols">`,
     '</a>',
     `<nav class="crm-native-nav">${menuGroupsHtml()}</nav>`,

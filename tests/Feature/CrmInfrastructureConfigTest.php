@@ -41,7 +41,7 @@ class CrmInfrastructureConfigTest extends TestCase
         $this->actingAs($user)
             ->followingRedirects()
             ->withHeader('User-Agent', 'Chrome Test Agent')
-            ->get('/dashboard/crm')
+            ->get('/')
             ->assertSuccessful();
 
         $this->assertDatabaseHas('sessions', [

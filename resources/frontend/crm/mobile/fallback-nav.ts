@@ -99,7 +99,7 @@ function isActive(path: string): boolean {
     return false;
   }
 
-  if (target === '/dashboard/crm' && current === '/') {
+  if ((target === '/dashboard' || target === '/dashboard/crm') && current === '/') {
     return true;
   }
 
@@ -225,7 +225,7 @@ function ensureFallback(): void {
     [
       `<header id="${fallbackId}" class="crm-mobile-fallback-header">`,
       `<button class="crm-mobile-fallback-menu-button" type="button" data-crm-mobile-fallback-open aria-label="Menu CRM">${menuIcon()}</button>`,
-      '<a class="crm-mobile-fallback-brand" href="/dashboard/crm?mobile_app=1">',
+      '<a class="crm-mobile-fallback-brand" href="/?mobile_app=1">',
       `<img src="${esc(logoUrl())}" alt="Martin Sols">`,
       '</a>',
       '<span style="width:42px;height:42px" aria-hidden="true"></span>',

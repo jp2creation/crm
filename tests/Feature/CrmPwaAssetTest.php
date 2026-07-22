@@ -145,7 +145,7 @@ class CrmPwaAssetTest extends TestCase
         $this->assertStringContainsString('hadServiceWorkerController = Boolean(navigator.serviceWorker.controller)', $publicScript);
         $this->assertStringContainsString('window.location.reload()', $publicScript);
         $this->assertStringContainsString('checkForUpdates: checkForUpdates', $publicScript);
-        $this->assertStringContainsString("installAllowedPaths = ['/', '/login', '/dashboard/crm']", $publicScript);
+        $this->assertStringContainsString("installAllowedPaths = ['/', '/login']", $publicScript);
         $this->assertStringContainsString('isInstallButtonAllowedPath', $publicScript);
         $this->assertStringContainsString('isMobileShell', $publicScript);
         $this->assertStringContainsString("window.addEventListener('crm:navigation', routeChanged)", $publicScript);

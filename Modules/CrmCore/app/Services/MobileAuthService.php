@@ -399,7 +399,7 @@ class MobileAuthService
         $parts = parse_url($path);
         $targetPath = (string) ($parts['path'] ?? '/');
 
-        if ($embed && $targetPath === '/dashboard/crm') {
+        if ($targetPath === '/dashboard' || $targetPath === '/dashboard/crm') {
             $targetPath = '/';
         }
 

@@ -62,13 +62,13 @@ class CrmPlatformFoundationTest extends TestCase
         app(CrmNotificationService::class)->notify($user, 'system_alert', [
             'title' => 'Alerte CRM',
             'body' => 'Controle a effectuer.',
-            'actionUrl' => '/dashboard/crm',
+            'actionUrl' => '/',
         ], ['database', 'pwa']);
 
         $notification = $user->notifications()->firstOrFail();
 
         $this->assertSame('Alerte CRM', $notification->data['subject']);
-        $this->assertSame('/dashboard/crm', $notification->data['pwa']['url']);
+        $this->assertSame('/', $notification->data['pwa']['url']);
         $this->assertDatabaseHas('notification_logs', [
             'channel' => 'database',
             'notifiable_type' => User::class,

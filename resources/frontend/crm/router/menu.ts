@@ -2,7 +2,7 @@ import type { CrmFallbackNavigation } from '../types/global';
 
 export const fallbackNavigation: CrmFallbackNavigation = {
   modules: [
-    { name: 'Tableau de bord', slug: 'dashboard', routePath: '/dashboard/crm', active: true, sortOrder: 0 },
+    { name: 'Tableau de bord', slug: 'dashboard', routePath: '/', active: true, sortOrder: 0 },
     {
       name: 'Réservations véhicules',
       slug: 'reservations',

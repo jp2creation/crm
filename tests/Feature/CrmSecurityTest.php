@@ -282,7 +282,7 @@ class CrmSecurityTest extends TestCase
         $response = app(BlockLegacyPhpApiPaths::class)->handle(
             $request,
             fn (): RedirectResponse => new RedirectResponse(
-                'https://crm.jp2.fr/dashboard/crm',
+                'https://crm.jp2.fr/',
                 308,
             ),
         );

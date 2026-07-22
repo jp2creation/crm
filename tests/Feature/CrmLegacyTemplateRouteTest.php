@@ -19,7 +19,7 @@ class CrmLegacyTemplateRouteTest extends TestCase
         foreach (['/app/ecommerce/products', '/features/query-builder', '/forms/layout', '/tables/simple', '/charts/line', '/pages/pricing'] as $path) {
             $this->actingAs(User::factory()->make())
                 ->get($path)
-                ->assertRedirect('/dashboard/crm');
+                ->assertRedirect('/');
         }
     }
 
@@ -27,6 +27,6 @@ class CrmLegacyTemplateRouteTest extends TestCase
     {
         $this->actingAs(User::factory()->make())
             ->get('/dashboard')
-            ->assertRedirect('/dashboard/crm');
+            ->assertRedirect('/');
     }
 }

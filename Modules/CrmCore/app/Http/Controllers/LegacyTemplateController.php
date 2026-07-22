@@ -10,6 +10,6 @@ class LegacyTemplateController extends Controller
 {
     public function __invoke(Request $request): RedirectResponse
     {
-        return redirect()->to($request->user() ? '/dashboard/crm' : '/login');
+        return redirect()->to($request->user() ? '/' : '/login');
     }
 }
