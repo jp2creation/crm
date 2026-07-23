@@ -58,6 +58,34 @@
     return profile?.photoUrl || DEFAULT_PHOTO;
   }
 
+  function publishProfile(profile) {
+    if (!profile) return;
+
+    const src = photoUrl(profile);
+    const displayName = profile.displayName || profile.name || 'Utilisateur';
+
+    document.querySelectorAll('[data-crm-native-profile-photo]').forEach((node) => {
+      if (!(node instanceof HTMLImageElement)) return;
+
+      node.src = src;
+      node.alt = displayName;
+    });
+
+    document.querySelectorAll('[data-crm-native-profile-initials]').forEach((node) => {
+      node.textContent = initials(profile);
+    });
+
+    document.querySelectorAll('[data-crm-native-profile-name]').forEach((node) => {
+      node.textContent = displayName;
+    });
+
+    document.querySelectorAll('[data-crm-native-profile-role]').forEach((node) => {
+      node.textContent = roleLabel(profile.role);
+    });
+
+    window.dispatchEvent(new CustomEvent('crm:profile-updated', { detail: { profile } }));
+  }
+
   async function api(action, payload) {
     const options = {
       credentials: 'same-origin',
@@ -123,6 +151,8 @@
     document.querySelectorAll('[data-crm-native-profile-hidden]').forEach((node) => {
       node.removeAttribute('data-crm-native-profile-hidden');
     });
+
+    publishProfile(cachedProfile);
   }
 
   function outlet() {

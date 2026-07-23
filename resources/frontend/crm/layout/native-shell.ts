@@ -16,6 +16,7 @@ type CrmProfile = {
 const nativeShellSelector = '[data-crm-native-shell]';
 let installed = false;
 let profileLoaded = false;
+let currentProfile: CrmProfile | undefined;
 
 function rootElement(): HTMLElement | null {
   return document.getElementById('root');
@@ -433,6 +434,7 @@ async function loadProfile(): Promise<void> {
     }
 
     const profile = payload.profile as CrmProfile;
+    currentProfile = profile;
 
     if (profile.navigation) {
       window.CRM_NAV_FALLBACK = profile.navigation;
@@ -447,6 +449,8 @@ async function loadProfile(): Promise<void> {
 }
 
 function hydrateProfile(profile: CrmProfile): void {
+  currentProfile = profile;
+
   const photo = document.querySelector<HTMLImageElement>('[data-crm-native-profile-photo]');
   const initialsNode = document.querySelector<HTMLElement>('[data-crm-native-profile-initials]');
   const nameNode = document.querySelector<HTMLElement>('[data-crm-native-profile-name]');
@@ -533,7 +537,18 @@ function installEvents(): void {
 
   window.addEventListener('crm:route-changed', () => {
     renderNativeShell();
+    if (currentProfile) {
+      hydrateProfile(currentProfile);
+    }
     closeSidebar();
+  });
+
+  window.addEventListener('crm:profile-updated', (event) => {
+    const profile = event instanceof CustomEvent ? (event.detail?.profile as CrmProfile | undefined) : undefined;
+
+    if (profile) {
+      hydrateProfile(profile);
+    }
   });
 }
 
