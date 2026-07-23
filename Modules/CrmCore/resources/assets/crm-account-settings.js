@@ -59,6 +59,10 @@
     return profile?.photoUrl || DEFAULT_PHOTO;
   }
 
+  function csrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  }
+
   function profileSignature(profile) {
     if (!profile) return '';
 
@@ -134,6 +138,7 @@
   }
 
   async function api(action, payload) {
+    const token = csrfToken();
     const options = {
       credentials: 'same-origin',
       headers: {
@@ -141,6 +146,10 @@
       },
       method: payload ? 'POST' : 'GET',
     };
+
+    if (token) {
+      options.headers['X-CSRF-TOKEN'] = token;
+    }
 
     if (payload) {
       options.headers['Content-Type'] = 'application/json';

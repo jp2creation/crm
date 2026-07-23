@@ -105,6 +105,7 @@ class CrmAccountSettingsTest extends TestCase
         $this->assertStringContainsString("new CustomEvent('crm:profile-updated'", $source);
         $this->assertStringContainsString('lastPublishedProfileSignature', $source);
         $this->assertStringContainsString('dataset.crmImageSrc', $source);
+        $this->assertStringContainsString("'X-CSRF-TOKEN'", $source);
         $this->assertStringContainsString('[data-crm-native-profile-photo]', $source);
         $this->assertStringContainsString('function setImageSource(image: HTMLImageElement | null', $shell);
         $this->assertStringContainsString('onerror="this.onerror=null;this.src=', $shell);
