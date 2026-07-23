@@ -9,6 +9,7 @@
   let accountMountedPath = '';
   let lastProfileError = null;
   let lastProfileErrorAt = 0;
+  let lastPublishedProfileSignature = '';
 
   function isAccountRoute() {
     return window.location.pathname.replace(/\/+$/, '') === ACCOUNT_PATH;
@@ -58,29 +59,75 @@
     return profile?.photoUrl || DEFAULT_PHOTO;
   }
 
-  function publishProfile(profile) {
+  function profileSignature(profile) {
+    if (!profile) return '';
+
+    return [
+      profile.id || '',
+      photoUrl(profile),
+      profile.displayName || profile.name || '',
+      profile.role || '',
+    ].join('|');
+  }
+
+  function setText(node, value) {
+    if (!node) return;
+
+    const next = String(value ?? '');
+    if (node.textContent !== next) {
+      node.textContent = next;
+    }
+  }
+
+  function setImageSource(image, src, alt) {
+    if (!(image instanceof HTMLImageElement)) return;
+
+    const nextSrc = String(src || DEFAULT_PHOTO);
+    const nextAlt = String(alt || 'Profil');
+
+    image.onerror = () => {
+      image.onerror = null;
+      setImageSource(image, DEFAULT_PHOTO, nextAlt);
+    };
+
+    if (image.dataset.crmImageSrc !== nextSrc && image.getAttribute('src') !== nextSrc) {
+      image.src = nextSrc;
+    }
+
+    image.dataset.crmImageSrc = nextSrc;
+
+    if (image.alt !== nextAlt) {
+      image.alt = nextAlt;
+    }
+  }
+
+  function publishProfile(profile, force) {
     if (!profile) return;
+
+    const signature = profileSignature(profile);
+    if (!force && signature && signature === lastPublishedProfileSignature) {
+      return;
+    }
+
+    lastPublishedProfileSignature = signature;
 
     const src = photoUrl(profile);
     const displayName = profile.displayName || profile.name || 'Utilisateur';
 
     document.querySelectorAll('[data-crm-native-profile-photo]').forEach((node) => {
-      if (!(node instanceof HTMLImageElement)) return;
-
-      node.src = src;
-      node.alt = displayName;
+      setImageSource(node, src, displayName);
     });
 
     document.querySelectorAll('[data-crm-native-profile-initials]').forEach((node) => {
-      node.textContent = initials(profile);
+      setText(node, initials(profile));
     });
 
     document.querySelectorAll('[data-crm-native-profile-name]').forEach((node) => {
-      node.textContent = displayName;
+      setText(node, displayName);
     });
 
     document.querySelectorAll('[data-crm-native-profile-role]').forEach((node) => {
-      node.textContent = roleLabel(profile.role);
+      setText(node, roleLabel(profile.role));
     });
 
     window.dispatchEvent(new CustomEvent('crm:profile-updated', { detail: { profile } }));
@@ -139,20 +186,20 @@
     }
 
     if (cachedProfile) {
-      hydrateHeader(cachedProfile);
+      hydrateHeader(cachedProfile, force);
     }
 
     return cachedProfile;
   }
 
-  function hydrateHeader() {
+  function hydrateHeader(profile, force) {
     document.getElementById('crm-header-profile-overlay')?.remove();
 
     document.querySelectorAll('[data-crm-native-profile-hidden]').forEach((node) => {
       node.removeAttribute('data-crm-native-profile-hidden');
     });
 
-    publishProfile(cachedProfile);
+    publishProfile(profile || cachedProfile, force);
   }
 
   function outlet() {
@@ -640,7 +687,7 @@
 
       try {
         pendingPhotoDataUrl = await readFileAsDataUrl(file);
-        if (preview) preview.src = pendingPhotoDataUrl;
+        setImageSource(preview, pendingPhotoDataUrl, profile.displayName || profile.name || 'Profil');
         setStatus(target, 'Photo pr\u00eate \u00e0 enregistrer.');
       } catch (error) {
         setStatus(target, error.message || 'Photo illisible', true);
@@ -708,15 +755,20 @@
   function setNativeValue(control, value) {
     if (!control) return;
 
+    const next = String(value ?? '');
+    if (control.value === next) {
+      return;
+    }
+
     const prototype = control.tagName === 'TEXTAREA'
       ? window.HTMLTextAreaElement.prototype
       : window.HTMLInputElement.prototype;
     const descriptor = Object.getOwnPropertyDescriptor(prototype, 'value');
 
     if (descriptor?.set) {
-      descriptor.set.call(control, String(value ?? ''));
+      descriptor.set.call(control, next);
     } else {
-      control.value = String(value ?? '');
+      control.value = next;
     }
 
     control.dispatchEvent(new Event('input', { bubbles: true }));
@@ -726,8 +778,15 @@
   function setNativeReadonly(control, readonly) {
     if (!control) return;
 
-    control.toggleAttribute('readonly', Boolean(readonly));
-    control.dataset.crmNativeReadonly = readonly ? '1' : '0';
+    const nextReadonly = Boolean(readonly);
+    if (control.readOnly !== nextReadonly) {
+      control.toggleAttribute('readonly', nextReadonly);
+    }
+
+    const nextValue = nextReadonly ? '1' : '0';
+    if (control.dataset.crmNativeReadonly !== nextValue) {
+      control.dataset.crmNativeReadonly = nextValue;
+    }
   }
 
   function ensureNativeStatus(root) {
@@ -751,7 +810,7 @@
     const status = ensureNativeStatus(root);
     if (!status) return;
 
-    status.textContent = message || '';
+    setText(status, message || '');
     status.style.color = error ? '#b91c1c' : '#16a34a';
   }
 
@@ -960,7 +1019,7 @@
 
         try {
           pendingPhotoDataUrl = await readFileAsDataUrl(file);
-          if (preview) preview.src = pendingPhotoDataUrl;
+          setImageSource(preview, pendingPhotoDataUrl, profile.displayName || profile.name || 'Profil');
           setNativeStatus(root, 'Photo prête à enregistrer.');
         } catch (error) {
           setNativeStatus(root, error.message || 'Photo illisible', true);
@@ -1028,14 +1087,7 @@
     const src = pendingPhotoDataUrl || photoUrl(profile);
     const image = nativePhotoImage(root);
 
-    if (image) {
-      image.src = src;
-      image.alt = profile.displayName || profile.name || 'Profil';
-      image.onerror = () => {
-        image.onerror = null;
-        image.src = DEFAULT_PHOTO;
-      };
-    }
+    setImageSource(image, src, profile.displayName || profile.name || 'Profil');
 
     setNativeValue(nativeField(root, 'Prénom'), profile.firstName || '');
     setNativeValue(nativeField(root, 'Nom'), profile.lastName || '');

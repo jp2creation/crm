@@ -296,6 +296,36 @@ function profilePhoto(profile?: CrmProfile): string {
   return profile?.photoUrl || '/assets/logo/logomark.png';
 }
 
+function setTextContent(node: HTMLElement | null, value: string): void {
+  if (node && node.textContent !== value) {
+    node.textContent = value;
+  }
+}
+
+function setImageSource(image: HTMLImageElement | null, src: string, alt: string): void {
+  if (!image) {
+    return;
+  }
+
+  const fallback = '/assets/logo/logomark.png';
+  const nextSrc = src || fallback;
+
+  image.onerror = () => {
+    image.onerror = null;
+    setImageSource(image, fallback, alt);
+  };
+
+  if (image.dataset.crmImageSrc !== nextSrc && image.getAttribute('src') !== nextSrc) {
+    image.src = nextSrc;
+  }
+
+  image.dataset.crmImageSrc = nextSrc;
+
+  if (image.alt !== alt) {
+    image.alt = alt;
+  }
+}
+
 function headerHtml(profile?: CrmProfile): string {
   return [
     '<header class="layout-header crm-native-header">',
@@ -318,7 +348,7 @@ function headerHtml(profile?: CrmProfile): string {
     `<small data-crm-native-profile-role>${esc(profileRole(profile))}</small>`,
     '</span>',
     '<span class="crm-native-avatar">',
-    `<img data-crm-native-profile-photo src="${esc(profilePhoto(profile))}" alt="${esc(profileName(profile))}">`,
+    `<img data-crm-native-profile-photo src="${esc(profilePhoto(profile))}" alt="${esc(profileName(profile))}" onerror="this.onerror=null;this.src='/assets/logo/logomark.png'">`,
     `<b data-crm-native-profile-initials>${esc(profileInitials(profile))}</b>`,
     '</span>',
     '</a>',
@@ -456,22 +486,10 @@ function hydrateProfile(profile: CrmProfile): void {
   const nameNode = document.querySelector<HTMLElement>('[data-crm-native-profile-name]');
   const roleNode = document.querySelector<HTMLElement>('[data-crm-native-profile-role]');
 
-  if (photo) {
-    photo.src = profilePhoto(profile);
-    photo.alt = profileName(profile);
-  }
-
-  if (initialsNode) {
-    initialsNode.textContent = profileInitials(profile);
-  }
-
-  if (nameNode) {
-    nameNode.textContent = profileName(profile);
-  }
-
-  if (roleNode) {
-    roleNode.textContent = profileRole(profile);
-  }
+  setImageSource(photo, profilePhoto(profile), profileName(profile));
+  setTextContent(initialsNode, profileInitials(profile));
+  setTextContent(nameNode, profileName(profile));
+  setTextContent(roleNode, profileRole(profile));
 }
 
 function closeSidebar(): void {

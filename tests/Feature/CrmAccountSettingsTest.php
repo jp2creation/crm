@@ -103,7 +103,11 @@ class CrmAccountSettingsTest extends TestCase
         $shell = (string) file_get_contents(resource_path('frontend/crm/layout/native-shell.ts'));
 
         $this->assertStringContainsString("new CustomEvent('crm:profile-updated'", $source);
+        $this->assertStringContainsString('lastPublishedProfileSignature', $source);
+        $this->assertStringContainsString('dataset.crmImageSrc', $source);
         $this->assertStringContainsString('[data-crm-native-profile-photo]', $source);
+        $this->assertStringContainsString('function setImageSource(image: HTMLImageElement | null', $shell);
+        $this->assertStringContainsString('onerror="this.onerror=null;this.src=', $shell);
         $this->assertStringContainsString("window.addEventListener('crm:profile-updated'", $shell);
     }
 
