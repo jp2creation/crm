@@ -45,19 +45,6 @@
     return labels[role] || 'Utilisateur';
   }
 
-  function initials(profile) {
-    const source = profile?.displayName || profile?.name || 'Utilisateur';
-    const parts = source
-      .split(/\s+/)
-      .map((part) => part.trim())
-      .filter(Boolean);
-
-    if (parts.length === 0) return 'U';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-
-    return `${parts[0][0] || ''}${parts[parts.length - 1][0] || ''}`.toUpperCase();
-  }
-
   function photoUrl(profile) {
     return profile?.photoUrl || DEFAULT_PHOTO;
   }
@@ -128,10 +115,6 @@
 
     document.querySelectorAll('[data-crm-native-profile-photo]').forEach((node) => {
       setImageSource(node, src, displayName);
-    });
-
-    document.querySelectorAll('[data-crm-native-profile-initials]').forEach((node) => {
-      setText(node, initials(profile));
     });
 
     document.querySelectorAll('[data-crm-native-profile-name]').forEach((node) => {
@@ -1250,7 +1233,15 @@
   } else {
     scheduleBoot();
   }
-  document.addEventListener('click', () => scheduleBoot(), true);
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+
+    if (target?.closest('[data-crm-native-user-wrap]')) {
+      return;
+    }
+
+    scheduleBoot();
+  }, true);
   window.addEventListener('popstate', () => scheduleBoot());
 
   if (!window.__crmAccountSettingsRouteWatcher) {

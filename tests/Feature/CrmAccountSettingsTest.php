@@ -118,6 +118,8 @@ class CrmAccountSettingsTest extends TestCase
         $this->assertStringContainsString('[data-crm-native-profile-photo]', $source);
         $this->assertStringContainsString('mountedTarget?.dataset.crmAccountSettingsMounted', $source);
         $this->assertStringContainsString('failedProfileImageSources', $shell);
+        $this->assertStringContainsString('profileStorageKey', $shell);
+        $this->assertStringContainsString('window.sessionStorage?.setItem', $shell);
         $this->assertStringContainsString('crm-native-user-menu-head', $shell);
         $this->assertStringContainsString('function setImageSource(image: HTMLImageElement | null', $shell);
         $this->assertStringContainsString('onerror="this.onerror=null;this.src=', $shell);
@@ -128,6 +130,9 @@ class CrmAccountSettingsTest extends TestCase
         $this->assertStringContainsString("iconForKey('profile')", $shell);
         $this->assertStringContainsString("iconForKey('logout')", $shell);
         $this->assertStringContainsString('setUserMenuOpen(false)', $shell);
+        $this->assertStringContainsString("target?.closest('[data-crm-native-user-wrap]')", $source);
+        $this->assertStringNotContainsString('data-crm-native-profile-initials', $source);
+        $this->assertStringNotContainsString('data-crm-native-profile-initials', $shell);
     }
 
     public function test_profile_api_normalizes_legacy_storage_photo_urls(): void

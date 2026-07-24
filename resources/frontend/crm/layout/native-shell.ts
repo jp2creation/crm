@@ -14,9 +14,10 @@ type CrmProfile = {
 };
 
 const nativeShellSelector = '[data-crm-native-shell]';
+const profileStorageKey = 'martin-sols-crm-profile';
 let installed = false;
 let profileLoaded = false;
-let currentProfile: CrmProfile | undefined;
+let currentProfile: CrmProfile | undefined = readStoredProfile();
 
 function rootElement(): HTMLElement | null {
   return document.getElementById('root');
@@ -85,18 +86,6 @@ function isAccountSettingsPath(): boolean {
   return normalizedPath() === '/pages/account-settings';
 }
 
-function initials(value: string): string {
-  const letters = value
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('');
-
-  return letters || 'MS';
-}
-
 function iconSvg(path: string): string {
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${path}</svg>`;
 }
@@ -148,6 +137,52 @@ function iconForKey(iconKey?: string): string {
 }
 
 const failedProfileImageSources = new Set<string>();
+
+function normalizePhotoUrl(src?: string): string {
+  const value = String(src || '').trim();
+
+  if (value.startsWith('/storage/assets/uploads/')) {
+    return `/uploads/${value.slice('/storage/'.length)}`;
+  }
+
+  return value;
+}
+
+function readStoredProfile(): CrmProfile | undefined {
+  try {
+    const raw = window.sessionStorage?.getItem(profileStorageKey);
+    const profile = raw ? (JSON.parse(raw) as CrmProfile) : undefined;
+
+    if (!profile || typeof profile !== 'object') {
+      return undefined;
+    }
+
+    return {
+      displayName: profile.displayName,
+      name: profile.name,
+      photoUrl: normalizePhotoUrl(profile.photoUrl),
+      role: profile.role,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
+function storeProfile(profile: CrmProfile): void {
+  try {
+    window.sessionStorage?.setItem(
+      profileStorageKey,
+      JSON.stringify({
+        displayName: profile.displayName,
+        name: profile.name,
+        photoUrl: normalizePhotoUrl(profile.photoUrl),
+        role: profile.role,
+      }),
+    );
+  } catch {
+    // The profile cache is only used to avoid a visual flash in the shell.
+  }
+}
 
 function iconFor(item: CrmMenuItem): string {
   return iconForKey(item.iconKey);
@@ -283,10 +318,6 @@ function routeNeedsHost(route: CrmHostRoute | null): route is CrmHostRoute {
   return Boolean(route);
 }
 
-function profileInitials(profile?: CrmProfile): string {
-  return initials(profile?.displayName || profile?.name || 'Jean-Philippe');
-}
-
 function profileName(profile?: CrmProfile): string {
   return profile?.displayName || profile?.name || 'Jean-Philippe';
 }
@@ -298,7 +329,7 @@ function profileRole(profile?: CrmProfile): string {
 }
 
 function profilePhoto(profile?: CrmProfile): string {
-  return profile?.photoUrl || '/assets/logo/logomark.png';
+  return normalizePhotoUrl(profile?.photoUrl) || '/assets/logo/logomark.png';
 }
 
 function setTextContent(node: HTMLElement | null, value: string): void {
@@ -337,6 +368,8 @@ function setImageSource(image: HTMLImageElement | null, src: string, alt: string
 }
 
 function headerHtml(profile?: CrmProfile): string {
+  const shellProfile = profile || currentProfile;
+
   return [
     '<header class="layout-header crm-native-header">',
     '<div class="layout-container layout-page crm-native-header-inner">',
@@ -355,23 +388,21 @@ function headerHtml(profile?: CrmProfile): string {
     '<div class="crm-native-user-wrap" data-crm-native-user-wrap>',
     '<button class="crm-native-user" type="button" data-crm-native-user-menu-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Menu du compte">',
     '<span class="crm-native-user-text">',
-    `<strong data-crm-native-profile-name>${esc(profileName(profile))}</strong>`,
-    `<small data-crm-native-profile-role>${esc(profileRole(profile))}</small>`,
+    `<strong data-crm-native-profile-name>${esc(profileName(shellProfile))}</strong>`,
+    `<small data-crm-native-profile-role>${esc(profileRole(shellProfile))}</small>`,
     '</span>',
     '<span class="crm-native-avatar">',
-    `<img data-crm-native-profile-photo src="${esc(profilePhoto(profile))}" alt="${esc(profileName(profile))}" onerror="this.onerror=null;this.src='/assets/logo/logomark.png'">`,
-    `<b data-crm-native-profile-initials>${esc(profileInitials(profile))}</b>`,
+    `<img data-crm-native-profile-photo src="${esc(profilePhoto(shellProfile))}" alt="${esc(profileName(shellProfile))}" onerror="this.onerror=null;this.src='/assets/logo/logomark.png'">`,
     '</span>',
     '</button>',
     '<div class="crm-native-user-menu" data-crm-native-user-menu hidden role="menu" aria-label="Menu utilisateur">',
     '<div class="crm-native-user-menu-head">',
     '<span class="crm-native-user-menu-avatar">',
-    `<img data-crm-native-profile-photo src="${esc(profilePhoto(profile))}" alt="${esc(profileName(profile))}" onerror="this.onerror=null;this.src='/assets/logo/logomark.png'">`,
-    `<b data-crm-native-profile-initials>${esc(profileInitials(profile))}</b>`,
+    `<img data-crm-native-profile-photo src="${esc(profilePhoto(shellProfile))}" alt="${esc(profileName(shellProfile))}" onerror="this.onerror=null;this.src='/assets/logo/logomark.png'">`,
     '</span>',
     '<span class="crm-native-user-menu-meta">',
-    `<strong data-crm-native-profile-name>${esc(profileName(profile))}</strong>`,
-    `<small data-crm-native-profile-role>${esc(profileRole(profile))}</small>`,
+    `<strong data-crm-native-profile-name>${esc(profileName(shellProfile))}</strong>`,
+    `<small data-crm-native-profile-role>${esc(profileRole(shellProfile))}</small>`,
     '</span>',
     '</div>',
     '<div class="crm-native-user-menu-separator" aria-hidden="true"></div>',
@@ -406,7 +437,7 @@ function shellHtml(route: CrmHostRoute | null): string {
     '</aside>',
     '<button class="crm-native-backdrop" type="button" data-crm-native-sidebar-close aria-label="Fermer le menu"></button>',
     '<div class="crm-native-body">',
-    headerHtml(),
+    headerHtml(currentProfile),
     '<main class="crm-native-main">',
     '<div class="layout-container layout-page crm-native-content">',
     hostHtml(route),
@@ -498,6 +529,7 @@ async function loadProfile(): Promise<void> {
 
     const profile = payload.profile as CrmProfile;
     currentProfile = profile;
+    storeProfile(profile);
 
     if (profile.navigation) {
       window.CRM_NAV_FALLBACK = profile.navigation;
@@ -513,13 +545,10 @@ async function loadProfile(): Promise<void> {
 
 function hydrateProfile(profile: CrmProfile): void {
   currentProfile = profile;
+  storeProfile(profile);
 
   document.querySelectorAll<HTMLImageElement>('[data-crm-native-profile-photo]').forEach((photo) => {
     setImageSource(photo, profilePhoto(profile), profileName(profile));
-  });
-
-  document.querySelectorAll<HTMLElement>('[data-crm-native-profile-initials]').forEach((initialsNode) => {
-    setTextContent(initialsNode, profileInitials(profile));
   });
 
   document.querySelectorAll<HTMLElement>('[data-crm-native-profile-name]').forEach((nameNode) => {
@@ -610,6 +639,11 @@ function installEvents(): void {
       if (target?.closest('[data-crm-native-logout]')) {
         event.preventDefault();
         setUserMenuOpen(false);
+        try {
+          window.sessionStorage?.removeItem(profileStorageKey);
+        } catch {
+          // Nothing to clean when storage is unavailable.
+        }
         window.MartinSolsCrmLogout?.();
       }
     },
