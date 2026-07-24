@@ -703,11 +703,25 @@ public class MainActivity extends Activity {
             .apply();
     }
 
-    private void openDeviceSecuritySettings() {
+    private boolean openDeviceSecuritySettings() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && openSettingsActivity(Settings.ACTION_BIOMETRIC_ENROLL)) {
+            return true;
+        }
+
+        if (openSettingsActivity(Settings.ACTION_SECURITY_SETTINGS)) {
+            return true;
+        }
+
+        return openSettingsActivity(Settings.ACTION_SETTINGS);
+    }
+
+    private boolean openSettingsActivity(String action) {
         try {
-            startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS));
-        } catch (ActivityNotFoundException exception) {
-            startActivity(new Intent(Settings.ACTION_SETTINGS));
+            startActivity(new Intent(action));
+
+            return true;
+        } catch (Exception exception) {
+            return false;
         }
     }
 
@@ -1751,17 +1765,13 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void checkForUpdates() {
-            if (!isTrustedCrmPage()) {
-                return;
-            }
-
-            handler.post(new Runnable() {
+        public String checkForUpdates() {
+            return runTrustedNativeAction(new Runnable() {
                 @Override
                 public void run() {
                     checkForAppUpdate(true);
                 }
-            });
+            }, "Recherche de mise a jour lancee.");
         }
 
         @JavascriptInterface
@@ -1784,50 +1794,89 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public void clearMobileSession() {
-            if (!isTrustedCrmPage()) {
-                return;
-            }
-
-            clearSavedMobileSession();
-            dispatchNativeAuthStatusChanged();
-        }
-
-        @JavascriptInterface
-        public void openDeviceSecuritySettings() {
-            if (!isTrustedCrmPage()) {
-                return;
-            }
-
-            handler.post(new Runnable() {
+        public String clearMobileSession() {
+            return runTrustedNativeAction(new Runnable() {
                 @Override
                 public void run() {
-                    MainActivity.this.openDeviceSecuritySettings();
+                    clearSavedMobileSession();
+                    dispatchNativeAuthStatusChanged();
                 }
-            });
+            }, "Connexion rapide supprimee.");
         }
 
         @JavascriptInterface
-        public void setAppCode() {
+        public String openDeviceSecuritySettings() {
             if (!isTrustedCrmPage()) {
-                return;
+                return nativeActionResult(false, "Page CRM non autorisee.");
             }
 
-            handler.post(new Runnable() {
+            try {
+                boolean opened = MainActivity.this.openDeviceSecuritySettings();
+
+                return nativeActionResult(
+                    opened,
+                    opened
+                        ? "Ouverture des reglages de securite Android."
+                        : "Reglages Android indisponibles."
+                );
+            } catch (Exception exception) {
+                return nativeActionResult(false, "Reglages Android indisponibles.");
+            }
+        }
+
+        @JavascriptInterface
+        public String setAppCode() {
+            return runTrustedNativeAction(new Runnable() {
                 @Override
                 public void run() {
                     showSetAppCodeDialog();
                 }
-            });
+            }, "Ouverture du code app Martin Sols.");
         }
 
         @JavascriptInterface
-        public void clearAppCode() {
+        public String clearAppCode() {
+            return runTrustedNativeAction(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.this.clearAppCode();
+                }
+            }, "Code app supprime.");
+        }
+
+        private String runTrustedNativeAction(Runnable action, String message) {
             if (!isTrustedCrmPage()) {
-                return;
+                return nativeActionResult(false, "Page CRM non autorisee.");
             }
 
-            MainActivity.this.clearAppCode();
+            try {
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            action.run();
+                        } catch (Exception exception) {
+                        }
+                    }
+                });
+
+                return nativeActionResult(true, message);
+            } catch (Exception exception) {
+                return nativeActionResult(false, "Action Android indisponible.");
+            }
+        }
+
+        private String nativeActionResult(boolean ok, String message) {
+            JSONObject result = new JSONObject();
+
+            try {
+                result.put("ok", ok);
+                result.put("message", message);
+            } catch (JSONException exception) {
+                return ok ? "{\"ok\":true}" : "{\"ok\":false}";
+            }
+
+            return result.toString();
         }
     }
 

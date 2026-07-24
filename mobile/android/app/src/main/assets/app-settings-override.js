@@ -133,7 +133,7 @@
       ]),
       group('Sécurité', [
         actionRow('Sécurité de l’appareil', 'Empreinte, visage ou code Android', 'shield', 'data-ms-native-device-security', '<span class="ms-native-settings-pill" data-ms-native-device-status>À configurer</span>'),
-        actionRow('Code app Martin Sols', 'Code local de 4 à 8 chiffres', 'lock', 'data-ms-native-set-app-code', '<button class="ms-native-settings-action" type="button" data-ms-native-set-app-code-action>Définir</button>'),
+        actionRow('Code app Martin Sols', 'Code local de 4 à 8 chiffres', 'lock', 'data-ms-native-set-app-code', '<span class="ms-native-settings-action" data-ms-native-set-app-code-action>Définir</span>'),
         staticRow('État du code app', 'Protection locale Martin Sols', 'code', 'data-ms-native-app-code-status', 'Non défini'),
         actionRow('Supprimer le code app', 'Retirer le code local Martin Sols', 'key', 'data-ms-native-clear-app-code', '›'),
       ]),
@@ -322,15 +322,29 @@
 
   function callNative(methodName, feedback) {
     var nativeBridge = bridge();
+    var result;
 
     if (!nativeBridge) {
       showNotice('Action native indisponible. Ferme puis rouvre le CRM.', true);
       return false;
     }
 
+    if (!nativeBridge[methodName]) {
+      showNotice('Action native indisponible dans cette version de l’app.', true);
+      return false;
+    }
+
     try {
-      nativeBridge[methodName]();
-      showNotice(feedback || 'Action envoyée à Android.', false);
+      result = nativeBridge[methodName]();
+      result = nativeResult(result);
+
+      if (result && result.ok === false) {
+        showNotice(result.message || 'Action Android refusée.', true);
+
+        return false;
+      }
+
+      showNotice(result && result.message ? result.message : feedback || 'Action envoyée à Android.', false);
       window.setTimeout(renderPanel, 450);
       window.setTimeout(renderPanel, 1200);
 
@@ -339,6 +353,22 @@
       showNotice('Action impossible : ' + (error && error.message ? error.message : 'réessaie après redémarrage de l’app.'), true);
 
       return false;
+    }
+  }
+
+  function nativeResult(value) {
+    if (!value) {
+      return null;
+    }
+
+    if (typeof value === 'object') {
+      return value;
+    }
+
+    try {
+      return JSON.parse(String(value));
+    } catch (error) {
+      return null;
     }
   }
 
@@ -380,7 +410,6 @@
     var checkUpdateButton = query('[data-ms-native-check-update]');
     var deviceSecurityButton = query('[data-ms-native-device-security]');
     var setAppCodeButton = query('[data-ms-native-set-app-code]');
-    var setAppCodeAction = query('[data-ms-native-set-app-code-action]');
     var clearAppCodeButton = query('[data-ms-native-clear-app-code]');
     var clearAuthButton = query('[data-ms-native-clear-auth]');
 
@@ -406,14 +435,6 @@
 
     if (setAppCodeButton) {
       setAppCodeButton.addEventListener('click', function () {
-        callNative('setAppCode', 'Ouverture du code app Martin Sols.');
-      });
-    }
-
-    if (setAppCodeAction) {
-      setAppCodeAction.addEventListener('click', function (event) {
-        event.preventDefault();
-        event.stopPropagation();
         callNative('setAppCode', 'Ouverture du code app Martin Sols.');
       });
     }

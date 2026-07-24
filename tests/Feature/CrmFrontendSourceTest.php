@@ -267,7 +267,9 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('Autorisation Android requise', $mainActivity);
         $this->assertStringContainsString('Autorisation non accordee', $mainActivity);
         $this->assertStringContainsString('Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES', $mainActivity);
+        $this->assertStringContainsString('Settings.ACTION_BIOMETRIC_ENROLL', $mainActivity);
         $this->assertStringContainsString('Settings.ACTION_SECURITY_SETTINGS', $mainActivity);
+        $this->assertStringContainsString('Settings.ACTION_SETTINGS', $mainActivity);
         $this->assertStringContainsString('DownloadManager.Request request = new DownloadManager.Request(Uri.parse(update.apkUrl));', $mainActivity);
         $this->assertStringContainsString('DownloadManager.ACTION_DOWNLOAD_COMPLETE', $mainActivity);
         $this->assertStringContainsString('downloadManager.getUriForDownloadedFile(updateDownloadId)', $mainActivity);
@@ -277,10 +279,13 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('PBKDF2WithHmacSHA256', $mainActivity);
         $this->assertStringContainsString('private void showSetAppCodeDialog()', $mainActivity);
         $this->assertStringContainsString('private void showAppCodePrompt(String requestId)', $mainActivity);
-        $this->assertStringContainsString('private void openDeviceSecuritySettings()', $mainActivity);
-        $this->assertStringContainsString('public void setAppCode()', $mainActivity);
-        $this->assertStringContainsString('public void clearAppCode()', $mainActivity);
-        $this->assertStringContainsString('public void openDeviceSecuritySettings()', $mainActivity);
+        $this->assertStringContainsString('private boolean openDeviceSecuritySettings()', $mainActivity);
+        $this->assertStringContainsString('private boolean openSettingsActivity(String action)', $mainActivity);
+        $this->assertStringContainsString('public String setAppCode()', $mainActivity);
+        $this->assertStringContainsString('public String clearAppCode()', $mainActivity);
+        $this->assertStringContainsString('public String openDeviceSecuritySettings()', $mainActivity);
+        $this->assertStringContainsString('private String runTrustedNativeAction(Runnable action, String message)', $mainActivity);
+        $this->assertStringContainsString('private String nativeActionResult(boolean ok, String message)', $mainActivity);
         $this->assertStringContainsString('APP_SETTINGS_OVERRIDE_ASSET = "app-settings-override.js"', $mainActivity);
         $this->assertStringContainsString('private void injectAppSettingsOverride(WebView targetWebView)', $mainActivity);
         $this->assertStringContainsString('targetWebView.evaluateJavascript(readText(getAssets().open(APP_SETTINGS_OVERRIDE_ASSET)), null)', $mainActivity);
@@ -302,6 +307,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString("callNative('openDeviceSecuritySettings'", $androidSettingsOverride);
         $this->assertStringContainsString("callNative('clearAppCode'", $androidSettingsOverride);
         $this->assertStringContainsString("callNative('clearMobileSession'", $androidSettingsOverride);
+        $this->assertStringContainsString('function nativeResult(value)', $androidSettingsOverride);
+        $this->assertStringContainsString('result.ok === false', $androidSettingsOverride);
         $this->assertStringContainsString('private static final class AppUpdate', $mainActivity);
         $this->assertStringContainsString('ACCESS_FINE_LOCATION', $androidManifest);
         $this->assertStringContainsString('ACCESS_COARSE_LOCATION', $androidManifest);
@@ -350,8 +357,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('CapacitorHttp', $mobileApp);
         $this->assertStringContainsString("document.documentElement.classList.add('crm-native-handoff')", $mobileApp);
         $this->assertStringContainsString("app.innerHTML = ''", $mobileApp);
-        $this->assertStringContainsString('versionCode 52', $androidBuild);
-        $this->assertStringContainsString('versionName "1.50"', $androidBuild);
+        $this->assertStringContainsString('versionCode 53', $androidBuild);
+        $this->assertStringContainsString('versionName "1.51"', $androidBuild);
         $this->assertStringContainsString('buildConfig = true', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PATH', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PASSWORD', $androidBuild);
