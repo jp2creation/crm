@@ -194,7 +194,7 @@
 
       .app-install.is-android {
         border-color: rgba(66, 133, 244, 0.22);
-        background: linear-gradient(135deg, rgba(66, 133, 244, 0.06), rgba(52, 168, 83, 0.07));
+        background: #fff;
         --install-bg: #fff;
         --install-border: #dadce0;
         --install-color: #3c4043;
