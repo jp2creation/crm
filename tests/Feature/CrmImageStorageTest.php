@@ -14,7 +14,7 @@ class CrmImageStorageTest extends TestCase
 
         $stored = app(CrmImageStorage::class)->storeDataUrl($this->crmPngDataUrl(12, 8), 'profiles');
 
-        $this->assertStringStartsWith('/storage/assets/uploads/profiles/', $stored['url']);
+        $this->assertStringStartsWith('/uploads/assets/uploads/profiles/', $stored['url']);
         $this->assertStringEndsWith('.webp', $stored['url']);
         $this->assertSame('image/webp', $stored['mime']);
         $this->assertSame(12, $stored['width']);
