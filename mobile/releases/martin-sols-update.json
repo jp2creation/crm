@@ -10,11 +10,11 @@
     "releaseNotes": "Nouvelle page Paramètres de l app en plein écran avec sécurité visible, code app, biométrie Android, localisation et mises à jour."
   },
   "ios": {
-    "version": "1.0.0",
-    "buildNumber": 1,
+    "version": "1.37",
+    "buildNumber": 39,
     "installUrl": "",
     "distribution": "app-store-or-testflight",
-    "releaseNotes": "iOS doit passer par App Store, TestFlight, MDM ou distribution entreprise."
+    "releaseNotes": "Ajout du pont natif iPhone/iPad pour les Parametres de l app, la version et les futures mises a jour."
   },
   "macos": {
     "version": "1.37",

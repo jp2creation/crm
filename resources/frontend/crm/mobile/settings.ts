@@ -122,7 +122,7 @@ function mobileAuthSessionLabel(status: MobileAuthStatus): string {
     return 'À activer au prochain login';
   }
 
-  return 'Non configurée';
+  return status.label || 'Non configurée';
 }
 
 function platformLabel(): string {
@@ -148,18 +148,26 @@ function platformLabel(): string {
   return 'Application web';
 }
 
+function isApplePlatform(label: string): boolean {
+  return label === 'iPhone' || label === 'iPad' || label === 'macOS';
+}
+
 function settingsIcon(name: string): string {
   const icons: Record<string, string> = {
     back: '<path d="m15 18-6-6 6-6"></path>',
     code: '<path d="M7 8h10M7 12h10M7 16h6"></path><rect x="4" y="4" width="16" height="16" rx="4"></rect>',
     device: '<rect x="7" y="2.75" width="10" height="18.5" rx="2.5"></rect><path d="M10.5 18h3"></path>',
     face: '<circle cx="12" cy="12" r="8"></circle><path d="M9 10h.01M15 10h.01M9.5 15a4 4 0 0 0 5 0"></path>',
-    fingerprint: '<path d="M8.5 11.5a3.5 3.5 0 0 1 7 0c0 2.8-1.1 4.9-2.7 6.7"></path><path d="M6.5 14.8c.3-2.9.2-4.5 1.4-6a5.3 5.3 0 0 1 8.4-.1c1.3 1.7 1.4 3.2 1.1 5.8"></path><path d="M11.5 12c0 3-.7 5-2 6.8M14 12.3c0 2.4-.6 4.1-1.7 5.4"></path>',
+    fingerprint:
+      '<path d="M8.5 11.5a3.5 3.5 0 0 1 7 0c0 2.8-1.1 4.9-2.7 6.7"></path><path d="M6.5 14.8c.3-2.9.2-4.5 1.4-6a5.3 5.3 0 0 1 8.4-.1c1.3 1.7 1.4 3.2 1.1 5.8"></path><path d="M11.5 12c0 3-.7 5-2 6.8M14 12.3c0 2.4-.6 4.1-1.7 5.4"></path>',
     key: '<path d="M15 7a4 4 0 1 1-1.2 2.85L6 17.65V21H2v-4h3.35l7.8-7.8A4 4 0 0 1 15 7Z"></path><path d="M17 7h.01"></path>',
-    location: '<path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"></path><circle cx="12" cy="10" r="2"></circle>',
+    location:
+      '<path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"></path><circle cx="12" cy="10" r="2"></circle>',
     lock: '<rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path>',
-    refresh: '<path d="M20 11a8 8 0 0 0-14.4-4.8L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.4 4.8L20 16"></path><path d="M20 20v-4h-4"></path>',
-    satellite: '<path d="M12 18a6 6 0 0 0 0-12"></path><path d="M16.2 20.2a10 10 0 0 0 0-16.4"></path><path d="M8 9.5 4.5 13 8 16.5 11.5 13 8 9.5Z"></path><path d="m10.5 14.5 2 2"></path>',
+    refresh:
+      '<path d="M20 11a8 8 0 0 0-14.4-4.8L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.4 4.8L20 16"></path><path d="M20 20v-4h-4"></path>',
+    satellite:
+      '<path d="M12 18a6 6 0 0 0 0-12"></path><path d="M16.2 20.2a10 10 0 0 0 0-16.4"></path><path d="M8 9.5 4.5 13 8 16.5 11.5 13 8 9.5Z"></path><path d="m10.5 14.5 2 2"></path>',
     shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="m9 12 2 2 4-4"></path>',
     wifi: '<path d="M5 12.5a10 10 0 0 1 14 0"></path><path d="M8.5 16a5 5 0 0 1 7 0"></path><path d="M12 19h.01"></path>',
   };
@@ -239,8 +247,8 @@ function mountSettingsMarkup(): boolean {
               </div>
               <div>
                 <span class="crm-mobile-app-settings-method-icon">${settingsIcon('key')}</span>
-                <strong>Code Android</strong>
-                <small data-crm-mobile-device-code-status>Android</small>
+                <strong>Code appareil</strong>
+                <small data-crm-mobile-device-code-status>À configurer</small>
               </div>
             </div>
 
@@ -267,7 +275,7 @@ function mountSettingsMarkup(): boolean {
                 <span class="crm-mobile-app-settings-row-icon">${settingsIcon('fingerprint')}</span>
                 <span class="crm-mobile-app-settings-row-copy">
                   <strong>Empreinte, visage ou code</strong>
-                  <small>Ouvrir la sécurité Android</small>
+                  <small data-crm-mobile-device-security-detail>Ouvrir la sécurité de l'appareil</small>
                 </span>
                 <em>›</em>
               </button>
@@ -331,7 +339,7 @@ function mountSettingsMarkup(): boolean {
               <span class="crm-mobile-app-settings-row-icon">${settingsIcon('refresh')}</span>
               <span class="crm-mobile-app-settings-row-copy">
                 <strong>Rechercher une mise à jour</strong>
-                <small>Vérifier le paquet disponible</small>
+                <small>Vérifier la version disponible</small>
               </span>
               <em>›</em>
             </button>
@@ -395,6 +403,7 @@ export function installMobileAppSettings(): void {
   const checkUpdate = document.querySelector<HTMLButtonElement>('[data-crm-mobile-check-update]');
   const clearAuth = document.querySelector<HTMLButtonElement>('[data-crm-mobile-clear-auth]');
   const deviceSecurity = document.querySelector<HTMLButtonElement>('[data-crm-mobile-device-security]');
+  const deviceSecurityDetail = document.querySelector<HTMLElement>('[data-crm-mobile-device-security-detail]');
   const setAppCode = document.querySelector<HTMLButtonElement>('[data-crm-mobile-set-app-code]');
   const setAppCodeLabel = document.querySelector<HTMLElement>('[data-crm-mobile-set-app-code-label]');
   const clearAppCode = document.querySelector<HTMLButtonElement>('[data-crm-mobile-clear-app-code]');
@@ -448,8 +457,11 @@ export function installMobileAppSettings(): void {
       locationStatus.textContent = locationLabel();
     }
 
+    const currentPlatformLabel = platformLabel();
+    const applePlatform = isApplePlatform(currentPlatformLabel);
+
     if (platformStatus) {
-      platformStatus.textContent = platformLabel();
+      platformStatus.textContent = currentPlatformLabel;
     }
 
     if (appVersion) {
@@ -460,7 +472,12 @@ export function installMobileAppSettings(): void {
     const isDeviceSecurityReady = Boolean(currentAuthStatus.deviceSecure);
     const hasAppCode = Boolean(currentAuthStatus.appCodeConfigured);
     const hasQuickLogin = Boolean(currentAuthStatus.hasSession);
-    const androidSecurityLabel = isDeviceSecurityReady ? 'Configuré' : 'À configurer';
+    const deviceSecurityStateLabel =
+      currentAuthStatus.available === false && currentAuthStatus.label
+        ? currentAuthStatus.label
+        : isDeviceSecurityReady
+          ? 'Configuré'
+          : 'À configurer';
 
     if (authStatus) {
       authStatus.textContent = mobileAuthLabel(currentAuthStatus);
@@ -475,20 +492,25 @@ export function installMobileAppSettings(): void {
     }
 
     if (authSummary) {
-      authSummary.textContent = hasQuickLogin || hasAppCode || isDeviceSecurityReady ? 'Protégé' : 'À configurer';
+      authSummary.textContent =
+        hasQuickLogin || hasAppCode || isDeviceSecurityReady
+          ? 'Protégé'
+          : currentAuthStatus.available === false && currentAuthStatus.label
+            ? currentAuthStatus.label
+            : 'À configurer';
       authSummary.classList.toggle('is-ready', hasQuickLogin || hasAppCode || isDeviceSecurityReady);
     }
 
     if (fingerprintStatus) {
-      fingerprintStatus.textContent = androidSecurityLabel;
+      fingerprintStatus.textContent = deviceSecurityStateLabel;
     }
 
     if (faceStatus) {
-      faceStatus.textContent = androidSecurityLabel;
+      faceStatus.textContent = deviceSecurityStateLabel;
     }
 
     if (deviceCodeStatus) {
-      deviceCodeStatus.textContent = androidSecurityLabel;
+      deviceCodeStatus.textContent = deviceSecurityStateLabel;
     }
 
     if (authSectionStatus) {
@@ -505,6 +527,10 @@ export function installMobileAppSettings(): void {
 
     if (deviceSecurity) {
       deviceSecurity.disabled = !nativeBridge()?.openDeviceSecuritySettings;
+    }
+
+    if (deviceSecurityDetail) {
+      deviceSecurityDetail.textContent = applePlatform ? 'Ouvrir les réglages iOS' : 'Ouvrir la sécurité Android';
     }
 
     if (setAppCode) {
