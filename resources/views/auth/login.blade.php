@@ -80,11 +80,11 @@
 
       .app-install {
         display: grid;
-        gap: 14px;
-        padding: 16px;
-        border: 1px solid rgba(165, 0, 52, 0.14);
-        border-radius: 14px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(250, 244, 247, 0.96));
+        gap: 8px;
+        padding: 9px;
+        border: 1px solid rgba(220, 226, 234, 0.95);
+        border-radius: 12px;
+        background: #f8fafc;
       }
 
       .app-install[hidden] {
@@ -93,88 +93,171 @@
 
       .app-install__head {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 16px;
+        gap: 10px;
       }
 
-      .app-install__eyebrow {
-        margin: 0 0 4px;
+      .app-install__copy {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .app-install__mark {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 auto;
+        border-radius: 10px;
+        background: rgba(165, 0, 52, 0.08);
         color: var(--primary);
-        font-size: 0.74rem;
+      }
+
+      .app-install__mark svg,
+      .app-install__badge svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2.4;
+      }
+
+      .app-install__mark > span,
+      .app-install__badge span:first-child > span {
+        font-size: 1.12rem;
         font-weight: 900;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
+        line-height: 1;
       }
 
       .app-install__title {
-        margin: 0;
+        display: block;
         color: var(--ink);
-        font-size: 1.06rem;
+        font-size: 0.89rem;
         font-weight: 900;
         line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
-      .app-install__text,
+      .app-install__text {
+        display: block;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
       .app-install__help {
         margin: 0;
         color: var(--muted);
-        font-size: 0.9rem;
+        font-size: 0.76rem;
         font-weight: 700;
-        line-height: 1.45;
+        line-height: 1.35;
+      }
+
+      .app-install__help:empty {
+        display: none;
       }
 
       .app-install__badge {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        min-height: 58px;
-        padding: 10px 18px;
-        border: 1px solid #121826;
-        border-radius: 12px;
-        background: #121826;
-        color: #fff;
+        gap: 7px;
+        min-height: 38px;
+        padding: 7px 11px;
+        border: 1px solid var(--install-border, rgba(16, 32, 51, 0.14));
+        border-radius: 999px;
+        background: var(--install-bg, #fff);
+        color: var(--install-color, var(--ink));
         text-decoration: none;
-        box-shadow: 0 14px 30px rgba(16, 32, 51, 0.16);
+        box-shadow: 0 10px 24px var(--install-shadow, rgba(16, 32, 51, 0.1));
       }
 
-      .app-install__badge.is-ios,
-      .app-install__badge.is-macos {
+      .app-install.is-android {
+        border-color: rgba(61, 220, 132, 0.42);
+        background: rgba(61, 220, 132, 0.08);
+        --install-bg: #3ddc84;
+        --install-border: #3ddc84;
+        --install-color: #062a17;
+        --install-shadow: rgba(61, 220, 132, 0.22);
+      }
+
+      .app-install.is-android .app-install__mark {
+        background: rgba(61, 220, 132, 0.22);
+        color: #0a7d43;
+      }
+
+      .app-install.is-ios,
+      .app-install.is-macos {
+        border-color: rgba(0, 0, 0, 0.18);
+        --install-bg: #000;
+        --install-border: #000;
+        --install-color: #fff;
+        --install-shadow: rgba(0, 0, 0, 0.14);
+      }
+
+      .app-install.is-ios .app-install__mark,
+      .app-install.is-macos .app-install__mark {
         background: #000;
-        border-color: #000;
+        color: #fff;
       }
 
-      .app-install__badge.is-web {
-        background: #fff;
-        border-color: var(--line);
-        color: var(--ink);
+      .app-install.is-web {
+        border-color: rgba(66, 133, 244, 0.34);
+        background: rgba(66, 133, 244, 0.06);
+        --install-bg: #4285f4;
+        --install-border: #4285f4;
+        --install-color: #fff;
+        --install-shadow: rgba(66, 133, 244, 0.18);
+      }
+
+      .app-install.is-web .app-install__mark {
+        background: rgba(66, 133, 244, 0.16);
+        color: #1a73e8;
+      }
+
+      .app-install__badge:focus {
+        outline: 4px solid rgba(165, 0, 52, 0.16);
+        outline-offset: 2px;
       }
 
       .app-install__badge span:first-child {
         display: grid;
         place-items: center;
-        width: 28px;
-        height: 28px;
-        font-size: 1.45rem;
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
       }
 
-      .app-install__badge small,
-      .app-install__badge strong {
-        display: block;
-        line-height: 1.1;
+      .app-install__badge > span:last-child {
+        display: grid;
+        gap: 1px;
       }
 
       .app-install__badge small {
-        font-size: 0.74rem;
-        font-weight: 700;
-        opacity: 0.82;
+        color: currentColor;
+        font-size: 0.62rem;
+        font-weight: 750;
+        line-height: 1;
+        opacity: 0.76;
       }
 
       .app-install__badge strong {
-        margin-top: 3px;
-        font-size: 1.02rem;
-        font-weight: 900;
+        color: currentColor;
+        font-size: 0.82rem;
+        font-weight: 950;
+        line-height: 1;
+        white-space: nowrap;
       }
 
       form {
@@ -295,12 +378,12 @@
           min-height: 48px;
         }
 
-        .app-install__head {
-          display: grid;
+        .app-install {
+          padding: 8px;
         }
 
         .app-install__badge {
-          width: 100%;
+          min-width: 116px;
         }
 
         button {
@@ -315,6 +398,14 @@
 
         .login-card {
           padding: 22px;
+        }
+
+        .app-install__head {
+          display: grid;
+        }
+
+        .app-install__badge {
+          width: 100%;
         }
       }
     </style>
@@ -335,34 +426,6 @@
         <div class="brand">
           <img src="{{ asset('martin-sols-logo.png') }}" alt="Martin Sols" />
         </div>
-
-        <section
-          class="app-install"
-          data-login-app-install
-          data-android-url="{{ $loginInstallLinks['androidApkUrl'] ?? '' }}"
-          data-ios-url="{{ $loginInstallLinks['iosInstallUrl'] ?? '' }}"
-          data-macos-url="{{ $loginInstallLinks['macosPkgUrl'] ?? '' }}"
-          aria-label="Installer l'application Martin Sols"
-          hidden
-        >
-          <div class="app-install__head">
-            <div>
-              <p class="app-install__eyebrow">Application</p>
-              <h2 class="app-install__title" data-login-app-title>Installer Martin Sols</h2>
-            </div>
-            <a class="app-install__badge" href="#" data-login-app-button rel="noopener">
-              <span data-login-app-icon aria-hidden="true"></span>
-              <span>
-                <small data-login-app-small>Télécharger</small>
-                <strong data-login-app-label>L'application</strong>
-              </span>
-            </a>
-          </div>
-          <p class="app-install__text" data-login-app-text>
-            Accès plus rapide, plein écran et meilleure stabilité sur chantier.
-          </p>
-          <p class="app-install__help" data-login-app-help></p>
-        </section>
 
         <form method="post" action="{{ route('login') }}" autocomplete="on" data-login-form>
           @csrf
@@ -407,6 +470,34 @@
 
           <button type="submit">Se connecter</button>
         </form>
+
+        <section
+          class="app-install"
+          data-login-app-install
+          data-android-url="{{ $loginInstallLinks['androidApkUrl'] ?? '' }}"
+          data-ios-url="{{ $loginInstallLinks['iosInstallUrl'] ?? '' }}"
+          data-macos-url="{{ $loginInstallLinks['macosPkgUrl'] ?? '' }}"
+          aria-label="Installer l'application Martin Sols"
+          hidden
+        >
+          <div class="app-install__head">
+            <div class="app-install__copy">
+              <span class="app-install__mark" data-login-app-mark aria-hidden="true"></span>
+              <span>
+                <strong class="app-install__title" data-login-app-title>Installer Martin Sols</strong>
+                <small class="app-install__text" data-login-app-text>Accès direct au CRM</small>
+              </span>
+            </div>
+            <a class="app-install__badge" href="#" data-login-app-button rel="noopener">
+              <span data-login-app-icon aria-hidden="true"></span>
+              <span>
+                <small data-login-app-small>Installer</small>
+                <strong data-login-app-label>App</strong>
+              </span>
+            </a>
+          </div>
+          <p class="app-install__help" data-login-app-help></p>
+        </section>
       </section>
     </main>
     @include('partials.pwa-scripts')
@@ -464,6 +555,7 @@
         const small = card.querySelector('[data-login-app-small]');
         const label = card.querySelector('[data-login-app-label]');
         const icon = card.querySelector('[data-login-app-icon]');
+        const mark = card.querySelector('[data-login-app-mark]');
         const params = new URLSearchParams(window.location.search);
 
         const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches === true
@@ -474,7 +566,7 @@
           || Boolean(window.MartinSolsNativeApp)
           || window.Capacitor?.isNativePlatform?.() === true;
 
-        if (isStandalone || isNativeApp || !button || !title || !text || !help || !small || !label || !icon) {
+        if (isStandalone || isNativeApp || !button || !title || !text || !help || !small || !label || !icon || !mark) {
           card.remove();
 
           return;
@@ -489,8 +581,15 @@
         const androidUrl = card.dataset.androidUrl || '';
         const iosUrl = card.dataset.iosUrl || '';
         const macosUrl = card.dataset.macosUrl || '';
+        const icons = {
+          android: '<svg viewBox="0 0 24 24"><path d="M7.5 9.5h9a2 2 0 0 1 2 2v5.75a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2V11.5a2 2 0 0 1 2-2Z"></path><path d="M8 6.5 6.5 4.75"></path><path d="m16 6.5 1.5-1.75"></path><path d="M8.5 9.5a3.5 3.5 0 0 1 7 0"></path><path d="M9 14h.01"></path><path d="M15 14h.01"></path></svg>',
+          apple: '<span aria-hidden="true"></span>',
+          web: '<svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"></path><path d="M3.6 9h16.8"></path><path d="M3.6 15h16.8"></path><path d="M12 3c2.2 2.4 3.3 5.4 3.3 9S14.2 18.6 12 21"></path><path d="M12 3C9.8 5.4 8.7 8.4 8.7 12s1.1 6.6 3.3 9"></path></svg>',
+          download: '<svg viewBox="0 0 24 24"><path d="M12 3v11"></path><path d="m7.5 9.5 4.5 4.5 4.5-4.5"></path><path d="M5 18.5h14"></path></svg>',
+        };
 
         const configure = (kind, options) => {
+          card.className = `app-install is-${kind}`;
           button.className = `app-install__badge is-${kind}`;
           button.href = options.href || '#';
           button.toggleAttribute('download', options.download === true);
@@ -499,7 +598,8 @@
           help.textContent = options.help;
           small.textContent = options.small;
           label.textContent = options.label;
-          icon.textContent = options.icon;
+          icon.innerHTML = options.icon;
+          mark.innerHTML = options.mark || options.icon;
           button.onclick = options.onClick || null;
           card.hidden = false;
         };
@@ -508,12 +608,13 @@
           configure('android', {
             href: androidUrl,
             download: true,
-            icon: '▶',
+            icon: icons.download,
+            mark: icons.android,
             small: 'Télécharger',
             label: 'APK Android',
-            title: 'Installer l’app Android',
-            text: 'Télécharge le fichier APK Martin Sols, puis autorise l’installation depuis Chrome si Android le demande.',
-            help: 'Application distribuée hors Play Store.',
+            title: 'Application Android',
+            text: 'APK hors Play Store',
+            help: '',
           });
 
           return;
@@ -522,12 +623,13 @@
         if (isIos) {
           configure('ios', {
             href: iosUrl || '#',
-            icon: '',
-            small: iosUrl ? 'Installer via' : 'Ajouter à',
-            label: iosUrl ? 'iPhone' : 'l’écran d’accueil',
-            title: 'Installer sur iPhone',
-            text: 'Utilise la version web installable pour ouvrir le CRM comme une app.',
-            help: 'Depuis Safari : bouton Partager, puis Ajouter à l’écran d’accueil.',
+            icon: icons.apple,
+            mark: icons.apple,
+            small: iosUrl ? 'Installer via' : 'Ajouter',
+            label: iosUrl ? 'iPhone' : 'iPhone',
+            title: 'Sur iPhone',
+            text: 'Ajout écran d’accueil',
+            help: '',
             onClick: iosUrl ? null : (event) => {
               event.preventDefault();
               help.textContent = 'Safari > Partager > Ajouter à l’écran d’accueil. Le CRM s’ouvrira ensuite en plein écran.';
@@ -541,12 +643,13 @@
           configure('macos', {
             href: macosUrl,
             download: true,
-            icon: '',
+            icon: icons.download,
+            mark: icons.apple,
             small: 'Télécharger',
             label: 'macOS',
-            title: 'Installer l’app Mac',
-            text: 'Télécharge le paquet Martin Sols pour utiliser le CRM comme application Mac.',
-            help: 'Application distribuée hors App Store.',
+            title: 'Application Mac',
+            text: 'Paquet hors App Store',
+            help: '',
           });
 
           return;
@@ -554,12 +657,13 @@
 
         configure('web', {
           href: '#',
-          icon: '⌄',
+          icon: icons.download,
+          mark: icons.web,
           small: 'Installer',
-          label: 'Application web',
-          title: 'Installer Martin Sols',
-          text: 'Chrome et Edge peuvent installer le CRM en application, sans passer par un store.',
-          help: 'Utilise le bouton pour lancer l’installation si ton navigateur la propose.',
+          label: 'PWA',
+          title: 'Application web',
+          text: 'Chrome / Edge',
+          help: '',
           onClick: (event) => {
             event.preventDefault();
 
