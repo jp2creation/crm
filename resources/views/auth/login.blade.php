@@ -127,6 +127,15 @@
         stroke-width: 2.4;
       }
 
+      .app-install__brand-logo {
+        fill: currentColor;
+        stroke: none;
+      }
+
+      .app-install__brand-logo path {
+        stroke: none;
+      }
+
       .app-install__mark > span,
       .app-install__badge span:first-child > span {
         font-size: 1.12rem;
@@ -184,17 +193,18 @@
       }
 
       .app-install.is-android {
-        border-color: rgba(61, 220, 132, 0.42);
-        background: rgba(61, 220, 132, 0.08);
-        --install-bg: #3ddc84;
-        --install-border: #3ddc84;
-        --install-color: #062a17;
-        --install-shadow: rgba(61, 220, 132, 0.22);
+        border-color: rgba(66, 133, 244, 0.22);
+        background: linear-gradient(135deg, rgba(66, 133, 244, 0.06), rgba(52, 168, 83, 0.07));
+        --install-bg: #fff;
+        --install-border: #dadce0;
+        --install-color: #3c4043;
+        --install-shadow: rgba(60, 64, 67, 0.12);
       }
 
       .app-install.is-android .app-install__mark {
-        background: rgba(61, 220, 132, 0.22);
-        color: #0a7d43;
+        background: #fff;
+        color: #3c4043;
+        box-shadow: inset 0 0 0 1px #dadce0;
       }
 
       .app-install.is-ios,
@@ -213,17 +223,18 @@
       }
 
       .app-install.is-web {
-        border-color: rgba(66, 133, 244, 0.34);
-        background: rgba(66, 133, 244, 0.06);
-        --install-bg: #4285f4;
-        --install-border: #4285f4;
-        --install-color: #fff;
-        --install-shadow: rgba(66, 133, 244, 0.18);
+        border-color: rgba(66, 133, 244, 0.26);
+        background: linear-gradient(135deg, rgba(66, 133, 244, 0.06), rgba(251, 188, 5, 0.08));
+        --install-bg: #fff;
+        --install-border: #dadce0;
+        --install-color: #3c4043;
+        --install-shadow: rgba(60, 64, 67, 0.12);
       }
 
       .app-install.is-web .app-install__mark {
-        background: rgba(66, 133, 244, 0.16);
-        color: #1a73e8;
+        background: #fff;
+        color: #3c4043;
+        box-shadow: inset 0 0 0 1px #dadce0;
       }
 
       .app-install__badge:focus {
@@ -582,9 +593,9 @@
         const iosUrl = card.dataset.iosUrl || '';
         const macosUrl = card.dataset.macosUrl || '';
         const icons = {
-          android: '<svg viewBox="0 0 24 24"><path d="M7.5 9.5h9a2 2 0 0 1 2 2v5.75a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2V11.5a2 2 0 0 1 2-2Z"></path><path d="M8 6.5 6.5 4.75"></path><path d="m16 6.5 1.5-1.75"></path><path d="M8.5 9.5a3.5 3.5 0 0 1 7 0"></path><path d="M9 14h.01"></path><path d="M15 14h.01"></path></svg>',
+          google: '<svg class="app-install__brand-logo" viewBox="0 0 24 24"><path fill="#4285f4" d="M21.6 12.23c0-.74-.07-1.45-.19-2.14H12v4.05h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.32 2.98-7.44Z"></path><path fill="#34a853" d="M12 22c2.7 0 4.97-.89 6.62-2.33l-3.24-2.51c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.6-4.12H3.06v2.59A10 10 0 0 0 12 22Z"></path><path fill="#fbbc05" d="M6.4 14a6 6 0 0 1 0-3.82V7.59H3.06a10 10 0 0 0 0 8.82L6.4 14Z"></path><path fill="#ea4335" d="M12 5.89c1.47 0 2.8.5 3.84 1.5l2.86-2.86A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.94 5.59l3.34 2.59C7.2 7.82 9.4 5.89 12 5.89Z"></path></svg>',
           apple: '<span aria-hidden="true"></span>',
-          web: '<svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z"></path><path d="M3.6 9h16.8"></path><path d="M3.6 15h16.8"></path><path d="M12 3c2.2 2.4 3.3 5.4 3.3 9S14.2 18.6 12 21"></path><path d="M12 3C9.8 5.4 8.7 8.4 8.7 12s1.1 6.6 3.3 9"></path></svg>',
+          chrome: '<svg class="app-install__brand-logo" viewBox="0 0 24 24"><path fill="#ea4335" d="M12 12h9.75A9.75 9.75 0 0 0 3.56 7.13L8.4 15.5A4.3 4.3 0 0 1 12 7.7h8.77A9.75 9.75 0 0 0 12 2.25a9.74 9.74 0 0 0-8.44 4.88L8.4 15.5A4.3 4.3 0 0 1 12 12Z"></path><path fill="#fbbc04" d="M3.56 7.13A9.75 9.75 0 0 0 12 21.75l4.84-8.38A4.3 4.3 0 0 1 8.4 15.5L3.56 7.13Z"></path><path fill="#34a853" d="M12 21.75A9.75 9.75 0 0 0 21.75 12H12a4.3 4.3 0 0 1 4.84 1.37L12 21.75Z"></path><circle cx="12" cy="12" r="4.1" fill="#4285f4"></circle><circle cx="12" cy="12" r="2.35" fill="#fff"></circle></svg>',
           download: '<svg viewBox="0 0 24 24"><path d="M12 3v11"></path><path d="m7.5 9.5 4.5 4.5 4.5-4.5"></path><path d="M5 18.5h14"></path></svg>',
         };
 
@@ -608,8 +619,8 @@
           configure('android', {
             href: androidUrl,
             download: true,
-            icon: icons.download,
-            mark: icons.android,
+            icon: icons.google,
+            mark: icons.google,
             small: 'Télécharger',
             label: 'APK Android',
             title: 'Application Android',
@@ -643,7 +654,7 @@
           configure('macos', {
             href: macosUrl,
             download: true,
-            icon: icons.download,
+            icon: icons.apple,
             mark: icons.apple,
             small: 'Télécharger',
             label: 'macOS',
@@ -657,8 +668,8 @@
 
         configure('web', {
           href: '#',
-          icon: icons.download,
-          mark: icons.web,
+          icon: icons.chrome,
+          mark: icons.chrome,
           small: 'Installer',
           label: 'PWA',
           title: 'Application web',
