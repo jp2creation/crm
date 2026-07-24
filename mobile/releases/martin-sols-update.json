@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 40,
-    "versionName": "1.38",
+    "versionCode": 41,
+    "versionName": "1.39",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.38/Martin_Sols_1.38.apk",
-    "sha256": "d661c821f3f21710be9977a1f04737b4fa05e473aa171d3e415c0466fc86c521",
-    "releaseNotes": "Test de mise a jour automatique depuis GitHub."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.39/Martin_Sols_1.39.apk",
+    "sha256": "25352f0d127f9af461ea7d44d78056cbcb2cd62cc04021e6553f80d7a8149732",
+    "releaseNotes": "Ajout de la barre de progression et des messages d erreur pendant la mise a jour Android."
   },
   "ios": {
     "version": "1.0.0",
