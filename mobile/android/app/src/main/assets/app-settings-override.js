@@ -8,6 +8,7 @@
   var storageKey = 'martin-sols-native-settings';
   var lastLocation = null;
   var locationLoading = false;
+  var quickLoginLoading = false;
   var noticeTimer = null;
 
   function bridge() {
@@ -138,6 +139,7 @@
         actionRow('Supprimer le code app', 'Retirer le code local Martin Sols', 'key', 'data-ms-native-clear-app-code', '›'),
       ]),
       group('Connexion rapide', [
+        actionRow('Activer la connexion rapide', 'Enregistrer cette session sur ce téléphone', 'fingerprint', 'data-ms-native-enable-auth', '<span class="ms-native-settings-action" data-ms-native-enable-auth-action>Activer</span>'),
         staticRow('Session enregistrée', 'Ouverture sans retaper le mot de passe', 'fingerprint', 'data-ms-native-auth-status', 'Non configurée'),
         actionRow('Supprimer la connexion rapide', 'Effacer la session protégée', 'key', 'data-ms-native-clear-auth', '›'),
       ]),
@@ -223,15 +225,15 @@
   }
 
   function authLabel(status) {
-    if (status.hasSession && status.label) {
-      return status.label;
+    if (status.hasSession) {
+      return 'Active';
     }
 
     if (status.available) {
-      return status.label || 'Disponible';
+      return 'À activer';
     }
 
-    return status.message || status.label || 'Non configurée';
+    return 'Non configurée';
   }
 
   function locationLabel() {
@@ -284,9 +286,11 @@
     setPill('[data-ms-native-device-status]', deviceReady ? 'Configuré' : 'À configurer', deviceReady, !deviceReady);
     setPill('[data-ms-native-location-status]', locationLabel(), Boolean(lastLocation || settings.locationEnabled), false);
     setButtonDisabled('[data-ms-native-test-location]', locationLoading || !settings.locationEnabled);
+    setButtonDisabled('[data-ms-native-enable-auth]', quickLoginLoading || hasQuickLogin || !status.available);
     setButtonDisabled('[data-ms-native-clear-app-code]', !hasAppCode);
     setButtonDisabled('[data-ms-native-clear-auth]', !hasQuickLogin);
     setText('[data-ms-native-set-app-code-action]', hasAppCode ? 'Modifier' : 'Définir');
+    setText('[data-ms-native-enable-auth-action]', quickLoginLoading ? 'Activation...' : (hasQuickLogin ? 'Active' : 'Activer'));
   }
 
   function setButtonDisabled(selector, disabled) {
@@ -372,7 +376,171 @@
     }
   }
 
+  function csrfToken() {
+    var meta = document.querySelector('meta[name="csrf-token"]');
+
+    return meta ? meta.content || '' : '';
+  }
+
+  function nativeDeviceName() {
+    var nativeBridge = bridge();
+
+    if (!nativeBridge || !nativeBridge.getVersionName) {
+      return 'Martin Sols Android';
+    }
+
+    try {
+      return 'Martin Sols Android ' + nativeBridge.getVersionName();
+    } catch (error) {
+      return 'Martin Sols Android';
+    }
+  }
+
+  function saveNativeSession(session) {
+    var nativeBridge = bridge();
+
+    if (!nativeBridge || !nativeBridge.saveMobileSession) {
+      throw new Error('Stockage natif indisponible.');
+    }
+
+    var result = nativeResult(nativeBridge.saveMobileSession(JSON.stringify(session)));
+
+    if (result && result.ok === false) {
+      throw new Error(result.error || result.message || 'Connexion rapide refusee.');
+    }
+  }
+
+  function createNativeSession() {
+    var headers = {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    };
+    var token = csrfToken();
+
+    if (token) {
+      headers['X-CSRF-TOKEN'] = token;
+    }
+
+    return fetch('/api/mobile/native-session', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: headers,
+      body: JSON.stringify({
+        device_name: nativeDeviceName(),
+      }),
+    }).then(function (response) {
+      return response.json().catch(function () {
+        return {};
+      }).then(function (payload) {
+        if (!response.ok || payload.ok !== true || !payload.token || !payload.refreshToken) {
+          throw new Error(payload.error || 'Session rapide impossible.');
+        }
+
+        return payload;
+      });
+    });
+  }
+
+  function enableQuickLogin() {
+    var status = getAuthStatus();
+
+    if (!status.available) {
+      showNotice('Configure d’abord un code app ou la sécurité Android.', true);
+      return;
+    }
+
+    quickLoginLoading = true;
+    showNotice('Activation de la connexion rapide...', false);
+    renderPanel();
+
+    createNativeSession().then(function (session) {
+      saveNativeSession(session);
+      quickLoginLoading = false;
+      showNotice('Connexion rapide activée sur ce téléphone.', false);
+      renderPanel();
+    }).catch(function (error) {
+      quickLoginLoading = false;
+      showNotice(error && error.message ? error.message : 'Connexion rapide impossible.', true);
+      renderPanel();
+    });
+  }
+
+  function requestNativeLocation() {
+    var nativeBridge = bridge();
+    var requestId = 'location-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    var timeout;
+
+    if (!nativeBridge || !nativeBridge.requestLocation) {
+      return false;
+    }
+
+    function cleanup() {
+      window.clearTimeout(timeout);
+      window.removeEventListener('martin-sols:native-location-result', onResult);
+    }
+
+    function onResult(event) {
+      var detail = event.detail || {};
+
+      if (detail.requestId !== requestId) {
+        return;
+      }
+
+      cleanup();
+      locationLoading = false;
+
+      if (detail.ok === true && detail.location) {
+        lastLocation = {
+          accuracy: Number(detail.location.accuracy) || 0,
+          latitude: Number(detail.location.latitude) || 0,
+          longitude: Number(detail.location.longitude) || 0,
+          timestamp: Number(detail.location.timestamp) || Date.now(),
+        };
+        showNotice('Localisation récupérée : précision ' + Math.round(lastLocation.accuracy) + ' m.', false);
+        renderPanel();
+        return;
+      }
+
+      showNotice(detail.error || 'Localisation Android indisponible.', true);
+      renderPanel();
+    }
+
+    locationLoading = true;
+    showNotice('Recherche de la position...', false);
+    renderPanel();
+
+    window.addEventListener('martin-sols:native-location-result', onResult);
+    timeout = window.setTimeout(function () {
+      cleanup();
+      locationLoading = false;
+      showNotice('Localisation trop longue. Vérifie que le GPS Android est actif.', true);
+      renderPanel();
+    }, 17000);
+
+    try {
+      var result = nativeResult(nativeBridge.requestLocation(requestId, Boolean(settings.highAccuracyLocation)));
+
+      if (result && result.ok === false) {
+        cleanup();
+        locationLoading = false;
+        showNotice(result.message || 'Localisation Android refusée.', true);
+        renderPanel();
+      }
+    } catch (error) {
+      cleanup();
+      locationLoading = false;
+      showNotice(error && error.message ? error.message : 'Localisation Android indisponible.', true);
+      renderPanel();
+    }
+
+    return true;
+  }
+
   function requestLocation() {
+    if (requestNativeLocation()) {
+      return;
+    }
+
     if (!navigator.geolocation) {
       showNotice('Localisation indisponible sur ce téléphone.', true);
       return;
@@ -409,6 +577,7 @@
     var testLocationButton = query('[data-ms-native-test-location]');
     var checkUpdateButton = query('[data-ms-native-check-update]');
     var deviceSecurityButton = query('[data-ms-native-device-security]');
+    var enableAuthButton = query('[data-ms-native-enable-auth]');
     var setAppCodeButton = query('[data-ms-native-set-app-code]');
     var clearAppCodeButton = query('[data-ms-native-clear-app-code]');
     var clearAuthButton = query('[data-ms-native-clear-auth]');
@@ -437,6 +606,10 @@
       setAppCodeButton.addEventListener('click', function () {
         callNative('setAppCode', 'Ouverture du code app Martin Sols.');
       });
+    }
+
+    if (enableAuthButton) {
+      enableAuthButton.addEventListener('click', enableQuickLogin);
     }
 
     if (clearAppCodeButton) {

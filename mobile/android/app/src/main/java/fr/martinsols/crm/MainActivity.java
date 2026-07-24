@@ -18,6 +18,9 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.biometrics.BiometricPrompt;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
@@ -89,6 +92,7 @@ public class MainActivity extends Activity {
     private static final int APP_CODE_HASH_BITS = 256;
     private static final int APP_CODE_SALT_BYTES = 16;
     private static final long SPLASH_DURATION_MS = 5500L;
+    private static final long NATIVE_LOCATION_TIMEOUT_MS = 15000L;
     private static final long UPDATE_CHECK_DELAY_MS = 1500L;
     private static final long UPDATE_PROGRESS_INTERVAL_MS = 450L;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 2101;
@@ -129,6 +133,10 @@ public class MainActivity extends Activity {
     private GeolocationPermissions.Callback pendingGeolocationCallback;
     private String pendingGeolocationOrigin = "";
     private String pendingDeviceCredentialRequestId = "";
+    private String pendingNativeLocationRequestId = "";
+    private boolean pendingNativeLocationHighAccuracy;
+    private LocationListener nativeLocationListener;
+    private Runnable nativeLocationTimeout;
     private CancellationSignal biometricCancellationSignal;
     private volatile boolean trustedCrmPageActive;
     private boolean updateCheckStarted;
@@ -242,6 +250,19 @@ public class MainActivity extends Activity {
         if (callback != null && origin.length() > 0) {
             callback.invoke(origin, hasLocationPermission(), false);
         }
+
+        if (pendingNativeLocationRequestId.length() > 0) {
+            String requestId = pendingNativeLocationRequestId;
+            boolean highAccuracy = pendingNativeLocationHighAccuracy;
+
+            if (hasLocationPermission()) {
+                resolveNativeLocation(requestId, highAccuracy);
+                return;
+            }
+
+            cancelNativeLocationRequest();
+            dispatchNativeLocationResult(requestId, null, "Autorisation GPS refusee par Android.");
+        }
     }
 
     @Override
@@ -259,6 +280,7 @@ public class MainActivity extends Activity {
         handler.removeCallbacks(hideSplash);
         handler.removeCallbacks(updateDownloadProgress);
         cancelBiometricPrompt();
+        cancelNativeLocationRequest();
         unregisterUpdateDownloadReceiver();
         dismissUpdateProgressDialog();
         releaseSplashPlayer();
@@ -509,6 +531,242 @@ public class MainActivity extends Activity {
 
         return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
             || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean hasFineLocationPermission() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+            || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestNativeLocation(String requestId, boolean highAccuracy) {
+        if (requestId == null || requestId.length() == 0) {
+            dispatchNativeLocationResult("", null, "Demande GPS invalide.");
+
+            return;
+        }
+
+        cancelNativeLocationRequest();
+
+        pendingNativeLocationRequestId = requestId;
+        pendingNativeLocationHighAccuracy = highAccuracy;
+
+        if (!hasLocationPermission() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(new String[] {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            }, LOCATION_PERMISSION_REQUEST_CODE);
+
+            return;
+        }
+
+        resolveNativeLocation(requestId, highAccuracy);
+    }
+
+    private void resolveNativeLocation(String requestId, boolean highAccuracy) {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if (locationManager == null || !hasLocationPermission()) {
+            cancelNativeLocationRequest();
+            dispatchNativeLocationResult(requestId, null, "Localisation Android indisponible.");
+
+            return;
+        }
+
+        Location fallbackLocation = bestLastKnownLocation(locationManager);
+        String provider = nativeLocationProvider(locationManager, highAccuracy);
+
+        if (provider.length() == 0) {
+            cancelNativeLocationRequest();
+
+            if (fallbackLocation != null) {
+                dispatchNativeLocationResult(requestId, fallbackLocation, "");
+                return;
+            }
+
+            dispatchNativeLocationResult(requestId, null, "GPS Android desactive sur ce telephone.");
+
+            return;
+        }
+
+        nativeLocationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                completeNativeLocationRequest(requestId, location, "");
+            }
+
+            @Override
+            public void onProviderDisabled(String disabledProvider) {
+            }
+
+            @Override
+            public void onProviderEnabled(String enabledProvider) {
+            }
+
+            @Override
+            public void onStatusChanged(String changedProvider, int status, Bundle extras) {
+            }
+        };
+
+        nativeLocationTimeout = new Runnable() {
+            @Override
+            public void run() {
+                if (!requestId.equals(pendingNativeLocationRequestId)) {
+                    return;
+                }
+
+                if (fallbackLocation != null) {
+                    completeNativeLocationRequest(requestId, fallbackLocation, "");
+                    return;
+                }
+
+                completeNativeLocationRequest(requestId, null, "Position GPS introuvable. Verifie que la localisation Android est activee.");
+            }
+        };
+
+        try {
+            locationManager.requestSingleUpdate(provider, nativeLocationListener, Looper.getMainLooper());
+            handler.postDelayed(nativeLocationTimeout, NATIVE_LOCATION_TIMEOUT_MS);
+        } catch (IllegalArgumentException | SecurityException exception) {
+            cancelNativeLocationRequest();
+            dispatchNativeLocationResult(requestId, fallbackLocation, fallbackLocation == null ? "Localisation Android refusee." : "");
+        }
+    }
+
+    private String nativeLocationProvider(LocationManager locationManager, boolean highAccuracy) {
+        if (highAccuracy && hasFineLocationPermission() && isProviderEnabled(locationManager, LocationManager.GPS_PROVIDER)) {
+            return LocationManager.GPS_PROVIDER;
+        }
+
+        if (isProviderEnabled(locationManager, LocationManager.NETWORK_PROVIDER)) {
+            return LocationManager.NETWORK_PROVIDER;
+        }
+
+        if (hasFineLocationPermission() && isProviderEnabled(locationManager, LocationManager.GPS_PROVIDER)) {
+            return LocationManager.GPS_PROVIDER;
+        }
+
+        return "";
+    }
+
+    private boolean isProviderEnabled(LocationManager locationManager, String provider) {
+        try {
+            return locationManager.isProviderEnabled(provider);
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private Location bestLastKnownLocation(LocationManager locationManager) {
+        Location bestLocation = null;
+
+        try {
+            for (String provider : locationManager.getProviders(true)) {
+                Location location = locationManager.getLastKnownLocation(provider);
+
+                if (isBetterLocation(location, bestLocation)) {
+                    bestLocation = location;
+                }
+            }
+        } catch (SecurityException exception) {
+            return null;
+        }
+
+        return bestLocation;
+    }
+
+    private boolean isBetterLocation(Location location, Location currentBestLocation) {
+        if (location == null) {
+            return false;
+        }
+
+        if (currentBestLocation == null) {
+            return true;
+        }
+
+        long timeDelta = location.getTime() - currentBestLocation.getTime();
+        boolean isSignificantlyNewer = timeDelta > 120000L;
+        boolean isSignificantlyOlder = timeDelta < -120000L;
+
+        if (isSignificantlyNewer) {
+            return true;
+        }
+
+        if (isSignificantlyOlder) {
+            return false;
+        }
+
+        float accuracyDelta = location.getAccuracy() - currentBestLocation.getAccuracy();
+
+        return accuracyDelta < 0 || (timeDelta > 0 && accuracyDelta <= 0);
+    }
+
+    private void completeNativeLocationRequest(String requestId, Location location, String error) {
+        if (!requestId.equals(pendingNativeLocationRequestId)) {
+            return;
+        }
+
+        cancelNativeLocationRequest();
+        dispatchNativeLocationResult(requestId, location, error);
+    }
+
+    private void cancelNativeLocationRequest() {
+        if (nativeLocationTimeout != null) {
+            handler.removeCallbacks(nativeLocationTimeout);
+            nativeLocationTimeout = null;
+        }
+
+        if (nativeLocationListener != null) {
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+            if (locationManager != null) {
+                try {
+                    locationManager.removeUpdates(nativeLocationListener);
+                } catch (SecurityException exception) {
+                }
+            }
+
+            nativeLocationListener = null;
+        }
+
+        pendingNativeLocationRequestId = "";
+        pendingNativeLocationHighAccuracy = false;
+    }
+
+    private void dispatchNativeLocationResult(String requestId, Location location, String error) {
+        if (webView == null) {
+            return;
+        }
+
+        JSONObject detail = new JSONObject();
+
+        try {
+            detail.put("requestId", requestId == null ? "" : requestId);
+            detail.put("ok", location != null);
+
+            if (location != null) {
+                JSONObject payload = new JSONObject();
+                payload.put("accuracy", location.hasAccuracy() ? location.getAccuracy() : 0);
+                payload.put("latitude", location.getLatitude());
+                payload.put("longitude", location.getLongitude());
+                payload.put("timestamp", location.getTime() > 0 ? location.getTime() : System.currentTimeMillis());
+                detail.put("location", payload);
+            } else {
+                detail.put("error", error == null || error.length() == 0 ? "Localisation indisponible." : error);
+            }
+        } catch (JSONException exception) {
+            return;
+        }
+
+        String script = "window.dispatchEvent(new CustomEvent('martin-sols:native-location-result',{detail:" + detail + "}));";
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (webView != null) {
+                    webView.evaluateJavascript(script, null);
+                }
+            }
+        });
     }
 
     private void handleGeolocationPermissionPrompt(String origin, GeolocationPermissions.Callback callback) {
@@ -1848,6 +2106,16 @@ public class MainActivity extends Activity {
                     dispatchNativeAuthStatusChanged();
                 }
             }, "Connexion rapide supprimee.");
+        }
+
+        @JavascriptInterface
+        public String requestLocation(String requestId, boolean highAccuracy) {
+            return runTrustedNativeAction(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.this.requestNativeLocation(requestId == null ? "" : requestId, highAccuracy);
+                }
+            }, "Recherche de localisation lancee.");
         }
 
         @JavascriptInterface

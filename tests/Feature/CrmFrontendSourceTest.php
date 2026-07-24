@@ -186,6 +186,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('private static final float INTRO_VIDEO_HEIGHT_FRACTION = 0.62f;', $mainActivity);
         $this->assertStringContainsString('private static final int INTRO_VIDEO_MAX_WIDTH_DP = 260;', $mainActivity);
         $this->assertStringContainsString('private static final int UPDATE_PROGRESS_MAX = 100;', $mainActivity);
+        $this->assertStringContainsString('private static final long NATIVE_LOCATION_TIMEOUT_MS = 15000L;', $mainActivity);
         $this->assertStringContainsString('requestWindowFeature(Window.FEATURE_NO_TITLE);', $mainActivity);
         $this->assertStringContainsString('rootView = new FrameLayout(this);', $mainActivity);
         $this->assertStringContainsString('webView = new WebView(this);', $mainActivity);
@@ -212,6 +213,10 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('settings.setGeolocationEnabled(false);', $mainActivity);
         $this->assertStringContainsString('onGeolocationPermissionsShowPrompt', $mainActivity);
         $this->assertStringContainsString('GeolocationPermissions.Callback', $mainActivity);
+        $this->assertStringContainsString('LocationManager', $mainActivity);
+        $this->assertStringContainsString('private void requestNativeLocation(String requestId, boolean highAccuracy)', $mainActivity);
+        $this->assertStringContainsString('private void dispatchNativeLocationResult(String requestId, Location location, String error)', $mainActivity);
+        $this->assertStringContainsString('martin-sols:native-location-result', $mainActivity);
         $this->assertStringContainsString('requestInitialLocationPermission()', $mainActivity);
         $this->assertStringContainsString('BiometricPrompt.Builder', $mainActivity);
         $this->assertStringContainsString('KeyguardManager', $mainActivity);
@@ -295,6 +300,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('public String setAppCode()', $mainActivity);
         $this->assertStringContainsString('public String clearAppCode()', $mainActivity);
         $this->assertStringContainsString('public String openDeviceSecuritySettings()', $mainActivity);
+        $this->assertStringContainsString('public String requestLocation(String requestId, boolean highAccuracy)', $mainActivity);
         $this->assertStringContainsString('private String runTrustedNativeAction(Runnable action, String message)', $mainActivity);
         $this->assertStringContainsString('if (!MainActivity.this.openDeviceSecuritySettings())', $mainActivity);
         $this->assertStringContainsString('private void showNativeActionFailure(String message)', $mainActivity);
@@ -315,6 +321,10 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('Paramétrage de l’application', $androidSettingsOverride);
         $this->assertStringContainsString('Sécurité de l’appareil', $androidSettingsOverride);
         $this->assertStringContainsString('Code app Martin Sols', $androidSettingsOverride);
+        $this->assertStringContainsString('Activer la connexion rapide', $androidSettingsOverride);
+        $this->assertStringContainsString('/api/mobile/native-session', $androidSettingsOverride);
+        $this->assertStringContainsString('function requestNativeLocation()', $androidSettingsOverride);
+        $this->assertStringContainsString('nativeBridge.requestLocation(requestId, Boolean(settings.highAccuracyLocation))', $androidSettingsOverride);
         $this->assertStringContainsString('Localisation terrain', $androidSettingsOverride);
         $this->assertStringContainsString('Rechercher une mise à jour', $androidSettingsOverride);
         $this->assertStringContainsString("callNative('checkForUpdates'", $androidSettingsOverride);
@@ -372,8 +382,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('CapacitorHttp', $mobileApp);
         $this->assertStringContainsString("document.documentElement.classList.add('crm-native-handoff')", $mobileApp);
         $this->assertStringContainsString("app.innerHTML = ''", $mobileApp);
-        $this->assertStringContainsString('versionCode 55', $androidBuild);
-        $this->assertStringContainsString('versionName "1.53"', $androidBuild);
+        $this->assertStringContainsString('versionCode 56', $androidBuild);
+        $this->assertStringContainsString('versionName "1.54"', $androidBuild);
         $this->assertStringContainsString('buildConfig = true', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PATH', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PASSWORD', $androidBuild);
@@ -445,6 +455,9 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('platformLabel()', $mobileSettings);
         $this->assertStringContainsString('settingsIcon(', $mobileSettings);
         $this->assertStringContainsString('getMobileAuthStatus', $mobileSettings);
+        $this->assertStringContainsString('/api/mobile/native-session', $mobileSettings);
+        $this->assertStringContainsString('requestLocation?: (requestId: string, highAccuracy: boolean) => string;', $mobileSettings);
+        $this->assertStringContainsString('martin-sols:native-location-result', $mobileSettings);
         $this->assertStringContainsString('clearMobileSession', $mobileSettings);
         $this->assertStringContainsString('setAppCode', $mobileSettings);
         $this->assertStringContainsString('clearAppCode', $mobileSettings);
