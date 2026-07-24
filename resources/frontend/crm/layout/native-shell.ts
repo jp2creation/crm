@@ -342,7 +342,8 @@ function headerHtml(profile?: CrmProfile): string {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>',
     '<span></span>',
     '</a>',
-    '<a class="crm-native-user" href="/pages/account-settings" aria-label="Paramètres du compte">',
+    '<div class="crm-native-user-wrap" data-crm-native-user-wrap>',
+    '<button class="crm-native-user" type="button" data-crm-native-user-menu-toggle aria-haspopup="menu" aria-expanded="false" aria-label="Menu du compte">',
     '<span class="crm-native-user-text">',
     `<strong data-crm-native-profile-name>${esc(profileName(profile))}</strong>`,
     `<small data-crm-native-profile-role>${esc(profileRole(profile))}</small>`,
@@ -351,7 +352,18 @@ function headerHtml(profile?: CrmProfile): string {
     `<img data-crm-native-profile-photo src="${esc(profilePhoto(profile))}" alt="${esc(profileName(profile))}" onerror="this.onerror=null;this.src='/assets/logo/logomark.png'">`,
     `<b data-crm-native-profile-initials>${esc(profileInitials(profile))}</b>`,
     '</span>',
+    '</button>',
+    '<div class="crm-native-user-menu" data-crm-native-user-menu hidden role="menu" aria-label="Menu utilisateur">',
+    '<a class="crm-native-user-menu-item" href="/pages/account-settings" role="menuitem">',
+    `<span class="crm-native-user-menu-icon">${iconForKey('settings')}</span>`,
+    '<span><strong>Paramètres</strong><small>Compte utilisateur</small></span>',
     '</a>',
+    '<button class="crm-native-user-menu-item" type="button" data-crm-native-logout role="menuitem">',
+    `<span class="crm-native-user-menu-icon">${iconForKey('logout')}</span>`,
+    '<span><strong>Se déconnecter</strong><small>Quitter le CRM</small></span>',
+    '</button>',
+    '</div>',
+    '</div>',
     '</div>',
     '</div>',
     '</header>',
@@ -500,6 +512,23 @@ function toggleSidebar(): void {
   document.body.classList.toggle('crm-native-sidebar-open');
 }
 
+function setUserMenuOpen(open: boolean): void {
+  document.querySelectorAll<HTMLElement>('[data-crm-native-user-menu]').forEach((menu) => {
+    menu.hidden = !open;
+    menu.classList.toggle('is-open', open);
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-crm-native-user-menu-toggle]').forEach((button) => {
+    button.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+}
+
+function toggleUserMenu(): void {
+  const menu = document.querySelector<HTMLElement>('[data-crm-native-user-menu]');
+
+  setUserMenuOpen(!menu || menu.hidden);
+}
+
 function installEvents(): void {
   if (installed) {
     return;
@@ -524,6 +553,22 @@ function installEvents(): void {
         return;
       }
 
+      const userMenuToggle = target?.closest<HTMLElement>('[data-crm-native-user-menu-toggle]');
+      if (userMenuToggle) {
+        event.preventDefault();
+        toggleUserMenu();
+        return;
+      }
+
+      if (target?.closest('[data-crm-native-user-menu] a')) {
+        setUserMenuOpen(false);
+        return;
+      }
+
+      if (target && !target.closest('[data-crm-native-user-wrap]')) {
+        setUserMenuOpen(false);
+      }
+
       const submenuButton = target?.closest<HTMLElement>('[data-crm-native-submenu-toggle]');
       if (submenuButton) {
         event.preventDefault();
@@ -537,20 +582,29 @@ function installEvents(): void {
 
       if (target?.closest('[data-crm-native-logout]')) {
         event.preventDefault();
+        setUserMenuOpen(false);
         window.MartinSolsCrmLogout?.();
       }
     },
     true,
   );
 
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      setUserMenuOpen(false);
+    }
+  });
+
   window.addEventListener('popstate', () => {
     renderNativeShell();
     closeSidebar();
+    setUserMenuOpen(false);
   });
 
   window.addEventListener('crm:navigation', () => {
     renderNativeShell();
     closeSidebar();
+    setUserMenuOpen(false);
   });
 
   window.addEventListener('crm:route-changed', () => {
@@ -559,6 +613,7 @@ function installEvents(): void {
       hydrateProfile(currentProfile);
     }
     closeSidebar();
+    setUserMenuOpen(false);
   });
 
   window.addEventListener('crm:profile-updated', (event) => {

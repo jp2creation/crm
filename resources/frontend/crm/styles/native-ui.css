@@ -31,6 +31,143 @@ body.ms-ui-modal-open {
   overflow: hidden;
 }
 
+.crm-native-user-wrap {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.crm-native-user {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.crm-native-user:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--ms-ui-primary) 22%, transparent);
+  outline-offset: 4px;
+}
+
+.crm-native-user-menu {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  z-index: var(--z-dropdown, 1000);
+  width: min(18.5rem, calc(100vw - 1.5rem));
+  padding: 0.45rem;
+  border: 1px solid var(--ms-ui-border);
+  border-radius: 0.85rem;
+  background: var(--ms-ui-surface);
+  box-shadow: 0 24px 55px rgb(15 23 42 / 0.14), 0 0 0 1px rgb(15 23 42 / 0.03);
+  transform-origin: top right;
+}
+
+.crm-native-user-menu[hidden] {
+  display: none !important;
+}
+
+.crm-native-user-menu::before {
+  position: absolute;
+  top: -0.35rem;
+  right: 1.15rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-top: 1px solid var(--ms-ui-border);
+  border-left: 1px solid var(--ms-ui-border);
+  background: var(--ms-ui-surface);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.crm-native-user-menu-item {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border: 0;
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--ms-ui-text);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.72rem 0.75rem;
+  text-align: left;
+  text-decoration: none;
+  transition: background-color 0.18s var(--ms-ui-ease), color 0.18s var(--ms-ui-ease), transform 0.18s var(--ms-ui-ease);
+}
+
+.crm-native-user-menu-item:hover,
+.crm-native-user-menu-item:focus-visible {
+  background: color-mix(in srgb, var(--ms-ui-primary) 8%, #fff);
+  color: var(--ms-ui-primary);
+  outline: none;
+}
+
+.crm-native-user-menu-item:active {
+  transform: scale(0.985);
+}
+
+.crm-native-user-menu-icon {
+  display: inline-grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--ms-ui-primary) 8%, #fff);
+  color: var(--ms-ui-primary);
+}
+
+.crm-native-user-menu-icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.crm-native-user-menu-item strong,
+.crm-native-user-menu-item small {
+  display: block;
+}
+
+.crm-native-user-menu-item strong {
+  color: inherit;
+  font-size: 0.92rem;
+  font-weight: 760;
+  line-height: 1.2;
+}
+
+.crm-native-user-menu-item small {
+  margin-top: 0.12rem;
+  color: var(--ms-ui-muted);
+  font-size: 0.76rem;
+  font-weight: 560;
+  line-height: 1.2;
+}
+
+@media (max-width: 640px) {
+  .crm-native-user-wrap {
+    position: static;
+  }
+
+  .crm-native-user-menu {
+    position: fixed;
+    top: calc(var(--crm-header-height, 4.5rem) + 0.55rem);
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+  }
+
+  body.crm-mobile-app .crm-native-user-menu {
+    top: 4.8rem;
+  }
+}
+
 .crm-native-content > [id$='-module'],
 .crm-native-content > #crm-pages-root {
   min-width: 0;

@@ -1122,6 +1122,17 @@
 
     try {
       const profile = await loadProfile(forceRender);
+      const mountedTarget = document.getElementById('crm-account-settings-module');
+
+      if (!forceRender
+        && mountedTarget?.dataset.crmAccountSettingsMounted === '1'
+        && accountMountedPath === window.location.pathname
+        && cachedProfile
+      ) {
+        hydrateHeader(cachedProfile);
+        return;
+      }
+
       if (!hydrateNativeAccountPage(profile)) {
         renderAccount(profile);
       }
