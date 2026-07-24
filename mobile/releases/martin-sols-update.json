@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 47,
-    "versionName": "1.45",
+    "versionCode": 48,
+    "versionName": "1.46",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.45/Martin_Sols_1.45.apk",
-    "sha256": "c470581e493f30afa631c3c187b408c1f5f34608c3eea9a4a7539d37ff183730",
-    "releaseNotes": "Activation GPS WebView et connexion rapide par empreinte, visage ou code appareil."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.46/Martin_Sols_1.46.apk",
+    "sha256": "f51553e490400bfe36fea7980e8c77c48b73cfac16036cf641a3ecd671df0d8b",
+    "releaseNotes": "Paramètres sécurité visibles avec empreinte, visage, code Android et code app Martin Sols."
   },
   "ios": {
     "version": "1.0.0",
