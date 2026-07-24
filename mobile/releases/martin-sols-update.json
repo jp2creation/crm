@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 52,
-    "versionName": "1.50",
+    "versionCode": 53,
+    "versionName": "1.51",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.50/Martin_Sols_1.50.apk",
-    "sha256": "aebc2ba91923acc0243084f3d94ed0f6be85291ab9719b9b77f67b98945639bd",
-    "releaseNotes": "Version 1.50 stable : parametrage de l app plus compact, actions Android corrigees pour code app, securite, localisation et mises a jour."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.51/Martin_Sols_1.51.apk",
+    "sha256": "506c5e69a7b25a99cf15cd27b2da998e16723f77ead27a5be4a02122f449ca8f",
+    "releaseNotes": "Version 1.51 stable : correction des actions Parametres de l app. Les boutons Android retournent un statut fiable et les reglages securite utilisent les fallbacks biometrie, securite puis parametres."
   },
   "ios": {
     "version": "1.0.0",
