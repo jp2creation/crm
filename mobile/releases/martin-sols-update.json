@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 48,
-    "versionName": "1.46",
+    "versionCode": 49,
+    "versionName": "1.47",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.46/Martin_Sols_1.46.apk",
-    "sha256": "f51553e490400bfe36fea7980e8c77c48b73cfac16036cf641a3ecd671df0d8b",
-    "releaseNotes": "Paramètres sécurité visibles avec empreinte, visage, code Android et code app Martin Sols."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.47/Martin_Sols_1.47.apk",
+    "sha256": "71fed821a6075bf2b60e019d5a21c98907a4b05a34b12a75e6880bbe19192aa8",
+    "releaseNotes": "Nouvelle page Paramètres de l app en plein écran avec sécurité visible, code app, biométrie Android, localisation et mises à jour."
   },
   "ios": {
     "version": "1.0.0",
