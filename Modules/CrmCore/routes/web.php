@@ -6,11 +6,17 @@ use Modules\CrmCore\Http\Controllers\DashboardApiController;
 use Modules\CrmCore\Http\Controllers\LegacyCrmPathRedirectController;
 use Modules\CrmCore\Http\Controllers\LegacyTemplateController;
 use Modules\CrmCore\Http\Controllers\MobileAuthController;
+use Modules\CrmCore\Http\Controllers\PublicUploadController;
 use Modules\CrmCore\Http\Controllers\PwaAssetController;
 
 Route::get('/manifest.json', [PwaAssetController::class, 'manifest'])->name('crm.pwa.manifest');
 Route::get('/sw.js', [PwaAssetController::class, 'serviceWorker'])->name('crm.pwa.service-worker');
 Route::get('/offline.html', [PwaAssetController::class, 'offline'])->name('crm.pwa.offline');
+
+Route::get('/uploads/{publicUploadPath}', PublicUploadController::class)
+    ->middleware('auth')
+    ->where('publicUploadPath', 'assets/uploads/.*')
+    ->name('crm.uploads.show');
 
 Route::redirect('/dashboard/crm', '/')
     ->middleware('auth')

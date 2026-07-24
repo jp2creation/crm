@@ -67,6 +67,13 @@ class UploadedCrmFileCleaner
             );
         }
 
+        if (str_starts_with($relativePath, 'uploads/assets/uploads/')) {
+            return array_map(
+                fn (string $uploadPath): array => ['disk' => 'public', 'path' => $uploadPath],
+                $this->relatedPaths(substr($relativePath, strlen('uploads/'))),
+            );
+        }
+
         if (str_starts_with($relativePath, 'assets/uploads/')) {
             return array_map(
                 fn (string $uploadPath): array => ['disk' => 'legacy-public', 'path' => $uploadPath],

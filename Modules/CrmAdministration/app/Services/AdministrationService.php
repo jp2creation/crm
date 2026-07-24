@@ -1203,7 +1203,7 @@ class AdministrationService
             'email' => trim((string) $user->email) ?: (trim((string) ($user->account?->email ?? '')) ?: 'contact@jp2creation.fr'),
             'phone' => trim((string) $user->phone),
             'bio' => trim((string) $user->bio) ?: ($user->role === 'admin' ? 'Administrateur CRM Martin Sols' : ''),
-            'photoUrl' => trim((string) $user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
+            'photoUrl' => $this->images->normalizePublicUrl($user->photo_url) ?: self::DEFAULT_PROFILE_PHOTO,
             'role' => $user->role,
             'canEditIdentity' => $user->role === 'admin' || $this->hasPermission($user, 'platform.manage_users'),
             'connectedDevices' => $this->connectedDevices($user),

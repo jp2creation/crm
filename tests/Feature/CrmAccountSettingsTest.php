@@ -83,13 +83,18 @@ class CrmAccountSettingsTest extends TestCase
 
         $photoUrl = (string) $response->json('profile.photoUrl');
 
-        $this->assertStringStartsWith('/storage/assets/uploads/profiles/', $photoUrl);
+        $this->assertStringStartsWith('/uploads/assets/uploads/profiles/', $photoUrl);
         $this->assertStringEndsWith('.webp', $photoUrl);
 
-        $photoPath = substr($photoUrl, strlen('/storage/'));
+        $photoPath = substr($photoUrl, strlen('/uploads/'));
 
         Storage::disk('public')->assertExists($photoPath);
         Storage::disk('public')->assertExists(str_replace('.webp', '-thumb.webp', $photoPath));
+
+        $this->actingAs($account)
+            ->get($photoUrl)
+            ->assertOk()
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
 
         $this->assertDatabaseHas('crm_users', [
             'user_id' => $account->id,
@@ -123,6 +128,21 @@ class CrmAccountSettingsTest extends TestCase
         $this->assertStringContainsString("iconForKey('profile')", $shell);
         $this->assertStringContainsString("iconForKey('logout')", $shell);
         $this->assertStringContainsString('setUserMenuOpen(false)', $shell);
+    }
+
+    public function test_profile_api_normalizes_legacy_storage_photo_urls(): void
+    {
+        [$account, $crmUser] = $this->createCrmAccount();
+
+        $crmUser->forceFill([
+            'photo_url' => '/storage/assets/uploads/profiles/avatar.webp',
+        ])->save();
+
+        $this->actingAs($account)
+            ->getJson('/api/administration?action=profile')
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->assertJsonPath('profile.photoUrl', '/uploads/assets/uploads/profiles/avatar.webp');
     }
 
     /**

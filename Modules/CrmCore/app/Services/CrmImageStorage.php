@@ -99,6 +99,27 @@ class CrmImageStorage
         $this->cleaner->deletePublicUpload($path);
     }
 
+    public function normalizePublicUrl(?string $url): string
+    {
+        $url = trim((string) $url);
+
+        if ($url === '') {
+            return '';
+        }
+
+        $path = ltrim(str_replace('\\', '/', (string) (parse_url($url, PHP_URL_PATH) ?: $url)), '/');
+
+        if (str_starts_with($path, 'storage/assets/uploads/')) {
+            return '/uploads/'.substr($path, strlen('storage/'));
+        }
+
+        if (str_starts_with($path, 'uploads/assets/uploads/')) {
+            return '/'.$path;
+        }
+
+        return $url;
+    }
+
     private function decodeDataUrl(string $dataUrl, string $label, int $maxBytes): string
     {
         $dataUrl = trim($dataUrl);
@@ -235,7 +256,7 @@ class CrmImageStorage
 
     private function url(string $path): string
     {
-        return '/storage/'.str_replace('\\', '/', ltrim($path, '/'));
+        return '/uploads/'.str_replace('\\', '/', ltrim($path, '/'));
     }
 
     private function label(mixed $value): string
