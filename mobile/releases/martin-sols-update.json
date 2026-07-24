@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 44,
-    "versionName": "1.42",
+    "versionCode": 45,
+    "versionName": "1.43",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.42/Martin_Sols_1.42.apk",
-    "sha256": "d671bd58c78b6ae6e2103a69e76a7a3e0523c7c26c4f58f6a0ffc9595bc28a88",
-    "releaseNotes": "Reduction du logo dans l icone adaptive Android pour afficher le rond blanc."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.43/Martin_Sols_1.43.apk",
+    "sha256": "3ff42a5a09f8c34d972bb0e9c3cb80188da5c069acc8588026cf506df279a989",
+    "releaseNotes": "Ajout des Parametres de l app dans le menu utilisateur avec acces aux mises a jour et aux futurs reglages."
   },
   "ios": {
     "version": "1.0.0",
