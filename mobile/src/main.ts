@@ -7,7 +7,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 
 const openingAnimationUrl = new URL('./assets/opening-animation.gif', import.meta.url).href;
 const openingAnimationDurationMs = 5500;
-const defaultCrmUrl = 'https://crm.jp2.fr/?source=pwa';
+const defaultCrmUrl = 'https://crm.jp2.fr/?mobile_app=1';
 const crmUrl = normalizeCrmUrl(import.meta.env.VITE_CRM_URL || import.meta.env.VITE_API_BASE_URL || defaultCrmUrl);
 const appRoot = document.querySelector<HTMLDivElement>('#app');
 
@@ -112,8 +112,8 @@ function normalizeCrmUrl(value: string): string {
   try {
     const url = new URL(trimmed);
 
-    if (url.hostname === 'crm.jp2.fr' && !url.searchParams.has('source')) {
-      url.searchParams.set('source', 'pwa');
+    if (url.hostname === 'crm.jp2.fr' && !url.searchParams.has('mobile_app') && !url.searchParams.has('source')) {
+      url.searchParams.set('mobile_app', '1');
     }
 
     return url.href;

@@ -85,6 +85,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('data-crm-mobile-settings-toggle', $nativeShell);
         $this->assertStringContainsString('Paramètres de l’app', $nativeShell);
         $this->assertStringContainsString('window.MartinSolsCrmConfig?.mobile.app === true', $nativeShell);
+        $this->assertStringContainsString('Boolean(window.MartinSolsNativeApp)', $nativeShell);
         $this->assertStringContainsString('href="/">Tableau de bord</a>', $nativeShell);
         $this->assertStringContainsString('crm-native-brand" href="/"', $nativeShell);
         $this->assertStringContainsString("new Set(['home', 'apps', 'accounting', 'internal'])", $nativeShell);
@@ -171,7 +172,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('setMediaController', $mainActivity);
         $this->assertStringNotContainsString('VideoView', $mainActivity);
         $this->assertStringContainsString('public class MainActivity extends Activity', $mainActivity);
-        $this->assertStringContainsString('private static final String CRM_URL = "https://crm.jp2.fr/?source=pwa";', $mainActivity);
+        $this->assertStringContainsString('private static final String CRM_URL = "https://crm.jp2.fr/?mobile_app=1";', $mainActivity);
         $this->assertStringContainsString('private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/jp2creation/crm/main/mobile/releases/martin-sols-update.json";', $mainActivity);
         $this->assertStringContainsString('private static final String APK_MIME_TYPE = "application/vnd.android.package-archive";', $mainActivity);
         $this->assertStringContainsString('private static final long SPLASH_DURATION_MS = 5500L;', $mainActivity);
@@ -286,9 +287,9 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileDoesNotExist(base_path('mobile/android/app/src/main/res/xml/config.xml'));
         $this->assertFileDoesNotExist(base_path('mobile/android/app/src/main/res/xml/file_paths.xml'));
         $this->assertStringContainsString("const openingAnimationUrl = new URL('./assets/opening-animation.gif', import.meta.url).href", $mobileApp);
-        $this->assertStringContainsString("const defaultCrmUrl = 'https://crm.jp2.fr/?source=pwa'", $mobileApp);
+        $this->assertStringContainsString("const defaultCrmUrl = 'https://crm.jp2.fr/?mobile_app=1'", $mobileApp);
         $this->assertStringContainsString('function normalizeCrmUrl(value: string): string', $mobileApp);
-        $this->assertStringContainsString("url.searchParams.set('source', 'pwa')", $mobileApp);
+        $this->assertStringContainsString("url.searchParams.set('mobile_app', '1')", $mobileApp);
         $this->assertStringContainsString('const openingAnimationDurationMs = 5500', $mobileApp);
         $this->assertStringContainsString('const startupIntro = renderStartup()', $mobileApp);
         $this->assertStringContainsString('class="startup-intro-media"', $mobileApp);
@@ -306,8 +307,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('CapacitorHttp', $mobileApp);
         $this->assertStringContainsString("document.documentElement.classList.add('crm-native-handoff')", $mobileApp);
         $this->assertStringContainsString("app.innerHTML = ''", $mobileApp);
-        $this->assertStringContainsString('versionCode 45', $androidBuild);
-        $this->assertStringContainsString('versionName "1.43"', $androidBuild);
+        $this->assertStringContainsString('versionCode 46', $androidBuild);
+        $this->assertStringContainsString('versionName "1.44"', $androidBuild);
         $this->assertStringContainsString('buildConfig = true', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PATH', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PASSWORD', $androidBuild);
@@ -351,6 +352,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('startup-copy', $mobileApp);
         $this->assertStringContainsString('data-crm-mobile-check-update', $mobileSettings);
         $this->assertStringContainsString('window.MartinSolsNativeApp', $mobileSettings);
+        $this->assertStringContainsString('Boolean(window.MartinSolsNativeApp)', $mobileSettings);
         $this->assertStringContainsString('checkForUpdates: requestUpdateCheck', $mobileSettings);
         $this->assertStringNotContainsString('crm-mobile-app-settings-trigger', $mobileSettings);
         $this->assertStringNotContainsString('.startup-copy', $mobileStyles);

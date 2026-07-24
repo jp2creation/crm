@@ -333,7 +333,11 @@ function profilePhoto(profile?: CrmProfile): string {
 }
 
 function isMobileApp(): boolean {
-  return window.MartinSolsCrmConfig?.mobile.app === true || document.body.classList.contains('crm-mobile-app');
+  return (
+    window.MartinSolsCrmConfig?.mobile.app === true ||
+    Boolean(window.MartinSolsNativeApp) ||
+    document.body.classList.contains('crm-mobile-app')
+  );
 }
 
 function mobileAppSettingsMenuItemHtml(): string {

@@ -50,7 +50,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends Activity {
-    private static final String CRM_URL = "https://crm.jp2.fr/?source=pwa";
+    private static final String CRM_URL = "https://crm.jp2.fr/?mobile_app=1";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/jp2creation/crm/main/mobile/releases/martin-sols-update.json";
     private static final String APK_MIME_TYPE = "application/vnd.android.package-archive";
     private static final long SPLASH_DURATION_MS = 5500L;
