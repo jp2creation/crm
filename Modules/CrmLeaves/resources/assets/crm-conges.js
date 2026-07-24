@@ -329,6 +329,17 @@
     `;
   }
 
+  function icon(name) {
+    const icons = {
+      users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/>',
+      check: '<path d="M20 6 9 17l-5-5"/>',
+      today: '<path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M3 10h18"/><path d="M8 15h.01"/><path d="M12 15h.01"/><path d="M16 15h.01"/>',
+    };
+
+    return `<svg class="leave-summary-icon-svg" viewBox="0 0 24 24" aria-hidden="true">${icons[name] || icons.calendar}</svg>`;
+  }
+
   function reportLeavesForDate(date, leaves) {
     return leaves
       .filter((leave) => leave.status !== 'refused' && leave.startDate <= date && leave.endDate >= date)
@@ -679,11 +690,13 @@
       #crm-leaves-module .leaves-button-export:hover { color:#fff; background:rgb(var(--theme-primary)); filter:brightness(.97); }
       #crm-leaves-module .leaves-button-export span:first-child { display:grid; place-items:center; width:1.5rem; height:1.5rem; border-radius:.45rem; background:rgba(255,255,255,.18); font-size:.62rem; font-weight:950; }
       #crm-leaves-module .leave-loading { min-height:16rem; display:grid; place-items:center; color:var(--color-secondary-500,#64748b); font-weight:800; }
-      #crm-leaves-module .leave-summary { display:grid; grid-template-columns:repeat(1,minmax(0,1fr)); gap:1rem; }
-      #crm-leaves-module .leave-summary-card { border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.75rem; background:#fff; padding:1rem; }
-      #crm-leaves-module .leave-summary-card span { display:block; color:var(--color-secondary-500,#64748b); font-size:.75rem; font-weight:800; }
-      #crm-leaves-module .leave-summary-card strong { display:block; margin:.25rem 0; color:var(--color-secondary-900,#0f172a); font-size:1.5rem; font-weight:850; line-height:1.1; letter-spacing:0; }
-      #crm-leaves-module .leave-summary-card small { display:block; color:var(--color-secondary-400,#94a3b8); font-size:.72rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      #crm-leaves-module .leave-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem; }
+      #crm-leaves-module .leave-summary-card { display:grid; grid-template-columns:2.55rem minmax(0,1fr); align-items:center; gap:.75rem; min-width:0; border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.75rem; background:#fff; padding:.9rem; }
+      #crm-leaves-module .leave-summary-icon { display:grid; place-items:center; width:2.55rem; height:2.55rem; border-radius:.55rem; background:color-mix(in srgb,var(--leave-summary-color,#95002e) 14%,white); color:var(--leave-summary-color,#95002e); }
+      #crm-leaves-module .leave-summary-icon-svg { width:1.1rem; height:1.1rem; fill:none; stroke:currentColor; stroke-width:2.15; stroke-linecap:round; stroke-linejoin:round; }
+      #crm-leaves-module .leave-summary-card small { display:block; color:var(--color-secondary-500,#64748b); font-size:.73rem; font-weight:900; text-transform:uppercase; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      #crm-leaves-module .leave-summary-card strong { display:block; margin:.18rem 0; color:var(--color-secondary-900,#0f172a); font-size:1.2rem; font-weight:950; line-height:1.08; letter-spacing:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      #crm-leaves-module .leave-summary-card em { display:block; color:var(--color-secondary-400,#94a3b8); font-size:.72rem; font-style:normal; font-weight:750; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
       #crm-leaves-module .leave-workspace { display:grid; gap:1.5rem; }
       #crm-leaves-module .leave-card { border:1px solid var(--color-surface-200,#e2e8f0); border-radius:.75rem; background:#fff; overflow:hidden; }
       #crm-leaves-module .leave-card-pad { padding:1rem; }
@@ -767,13 +780,12 @@
       .dark #crm-leaves-module .leave-date.has-absences:not(.is-selected) { background:linear-gradient(180deg,var(--color-surface-900,#0f172a) 0%,var(--color-surface-800,#1e293b) 100%); }
       @media (min-width:640px) {
         #crm-leaves-module .leaves-header { flex-direction:row; align-items:flex-start; justify-content:space-between; }
-        #crm-leaves-module .leave-summary { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        #crm-leaves-module .leave-summary { grid-template-columns:repeat(4,minmax(0,1fr)); }
         #crm-leaves-module .leave-month-nav { flex-direction:row; align-items:center; justify-content:space-between; }
         #crm-leaves-module .leave-users-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
       }
       @media (min-width:1180px) {
-        #crm-leaves-module .leave-workspace { grid-template-columns:minmax(0,1fr) minmax(22rem,28rem); align-items:start; }
-        #crm-leaves-module .leave-side { display:grid; gap:1rem; }
+        #crm-leaves-module .leave-workspace { grid-template-columns:minmax(0,1fr); align-items:start; }
       }
       @media (max-width:760px) {
         #crm-leaves-module .leave-date { --line-x-pad:.32rem; min-height:5.35rem; padding:.42rem .32rem; }
@@ -784,8 +796,7 @@
       }
       #crm-leaves-module .leaves-page { gap:1.15rem; }
       #crm-leaves-module .leave-workspace { display:grid; grid-template-columns:minmax(0,1fr); gap:1.2rem; align-items:start; }
-      #crm-leaves-module .leave-main-column,
-      #crm-leaves-module .leave-side { display:grid; min-width:0; gap:1.2rem; }
+      #crm-leaves-module .leave-main-column { display:grid; min-width:0; gap:1.2rem; }
       #crm-leaves-module .leave-card,
       #crm-leaves-module .leave-day-card,
       #crm-leaves-module .leave-users-card,
@@ -957,14 +968,12 @@
         padding:.7rem .75rem;
       }
       #crm-leaves-module .leave-summary {
-        grid-template-columns:repeat(3,minmax(0,1fr));
         gap:.75rem;
       }
       #crm-leaves-module .leave-summary-card {
-        min-width:0;
         padding:.95rem;
       }
-      #crm-leaves-module .leave-summary-card strong { font-size:1.35rem; }
+      #crm-leaves-module .leave-summary-card strong { font-size:1.25rem; }
       .dark #crm-leaves-module .leave-tab,
       .dark #crm-leaves-module .leave-nav-button,
       .dark #crm-leaves-module .leave-legend-more {
@@ -977,17 +986,12 @@
         background:var(--color-surface-900,#0f172a);
       }
       @media (min-width:1180px) {
-        #crm-leaves-module .leave-workspace {
-          grid-template-columns:minmax(0,1fr) minmax(21rem,25rem);
-          gap:1.2rem;
-        }
-        #crm-leaves-module .leave-summary { grid-template-columns:1fr; }
+        #crm-leaves-module .leave-workspace { gap:1.2rem; }
         #crm-leaves-module .leave-date { min-height:7rem; }
       }
       @media (max-width:760px) {
         #crm-leaves-module .leaves-page { gap:1rem; }
-        #crm-leaves-module .leave-main-column,
-        #crm-leaves-module .leave-side { gap:1rem; }
+        #crm-leaves-module .leave-main-column { gap:1rem; }
         #crm-leaves-module .leave-planning-head {
           grid-template-columns:2.75rem minmax(0,1fr) 2.75rem;
           gap:.55rem;
@@ -1046,15 +1050,21 @@
           padding:1rem;
         }
         #crm-leaves-module .leave-summary {
-          grid-template-columns:repeat(3,minmax(0,1fr));
+          grid-template-columns:repeat(2,minmax(0,1fr));
           gap:.55rem;
         }
         #crm-leaves-module .leave-summary-card {
+          grid-template-columns:2.35rem minmax(0,1fr);
+          gap:.55rem;
           padding:.75rem .65rem;
           border-radius:.85rem;
         }
+        #crm-leaves-module .leave-summary-icon {
+          width:2.35rem;
+          height:2.35rem;
+        }
         #crm-leaves-module .leave-summary-card strong { font-size:1.05rem; }
-        #crm-leaves-module .leave-summary-card small { white-space:normal; }
+        #crm-leaves-module .leave-summary-card em { white-space:normal; }
       }
     `;
     style.textContent =
@@ -1183,18 +1193,62 @@
 
   function renderSummary() {
     const usersCount = employees().length;
-    const plannedDays = yearLeaves()
+    const plannedDays = monthLeaves()
       .filter((leave) => ['planned', 'pending'].includes(leave.status))
       .reduce((sum, leave) => sum + daysCount(leave), 0);
     const usedDays = yearLeaves()
       .filter((leave) => leave.status === 'approved')
       .reduce((sum, leave) => sum + daysCount(leave), 0);
+    const today = formatDate(new Date());
+    const todayCount = leavesForDate(today).length;
+
+    const cards = [
+      {
+        label: 'Utilisateurs',
+        value: usersCount,
+        detail: activeSiteName(),
+        icon: 'users',
+        tone: '#2563eb',
+      },
+      {
+        label: 'Planifies',
+        value: `${formatDaysCount(plannedDays)} j`,
+        detail: monthLabel(state.month),
+        icon: 'calendar',
+        tone: '#f59e0b',
+      },
+      {
+        label: 'Poses',
+        value: `${formatDaysCount(usedDays)} j`,
+        detail: `Annee ${state.month.getFullYear()}`,
+        icon: 'check',
+        tone: 'rgb(var(--theme-primary,149 0 46))',
+      },
+      {
+        label: "Aujourd'hui",
+        value: todayCount,
+        detail: todayCount > 1 ? 'Absents ce jour' : 'Absent ce jour',
+        icon: 'today',
+        tone: '#0f766e',
+      },
+    ];
 
     return `
       <div class="leave-summary">
-        <div class="leave-summary-card"><span>Utilisateurs</span><strong>${usersCount}</strong><small>${esc(activeSiteName())}</small></div>
-        <div class="leave-summary-card"><span>Planifies</span><strong>${formatDaysCount(plannedDays)} j</strong><small>${monthLabel(state.month)}</small></div>
-        <div class="leave-summary-card"><span>Poses</span><strong>${formatDaysCount(usedDays)} j</strong><small>Annee ${state.month.getFullYear()}</small></div>
+        ${cards
+          .map(
+            (card) => `
+          <article class="leave-summary-card" style="--leave-summary-color:${esc(card.tone)}">
+            <span class="leave-summary-icon">${icon(card.icon)}</span>
+            <div>
+              <small>${esc(card.label)}</small>
+              <strong>${esc(card.value)}</strong>
+              <em>${esc(card.detail)}</em>
+            </div>
+          </article>
+        `,
+          )
+          .join('')}
       </div>
     `;
   }
@@ -1318,15 +1372,12 @@
     root.innerHTML = `
       <div class="leaves-page">
         ${renderHeader()}
+        ${renderSummary()}
         <div class="leave-workspace">
           <div class="leave-main-column">
             ${renderCalendar()}
             ${renderSelectedDay()}
           </div>
-          <aside class="leave-side">
-            ${renderUsers()}
-            ${renderSummary()}
-          </aside>
         </div>
         ${renderModal()}
       </div>
