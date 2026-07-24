@@ -297,8 +297,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('CapacitorHttp', $mobileApp);
         $this->assertStringContainsString("document.documentElement.classList.add('crm-native-handoff')", $mobileApp);
         $this->assertStringContainsString("app.innerHTML = ''", $mobileApp);
-        $this->assertStringContainsString('versionCode 41', $androidBuild);
-        $this->assertStringContainsString('versionName "1.39"', $androidBuild);
+        $this->assertStringContainsString('versionCode 42', $androidBuild);
+        $this->assertStringContainsString('versionName "1.40"', $androidBuild);
         $this->assertStringContainsString('buildConfig = true', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PATH', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PASSWORD', $androidBuild);
