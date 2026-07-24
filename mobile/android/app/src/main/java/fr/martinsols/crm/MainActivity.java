@@ -1707,7 +1707,7 @@ public class MainActivity extends Activity {
             injectAppSettingsOverride(view);
         }
 
-        private static boolean isWebUrl(Uri uri) {
+        private boolean isWebUrl(Uri uri) {
             String scheme = uri.getScheme();
 
             return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);

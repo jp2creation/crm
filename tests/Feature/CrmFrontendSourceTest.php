@@ -205,7 +205,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('SYSTEM_UI_FLAG_LIGHT_STATUS_BAR', $mainActivity);
         $this->assertStringContainsString('if (isWebUrl(request.getUrl()))', $mainActivity);
         $this->assertStringContainsString('public boolean shouldOverrideUrlLoading(WebView view, String url)', $mainActivity);
-        $this->assertStringContainsString('private static boolean isWebUrl(Uri uri)', $mainActivity);
+        $this->assertStringContainsString('private boolean isWebUrl(Uri uri)', $mainActivity);
         $this->assertStringContainsString('settings.setJavaScriptEnabled(true);', $mainActivity);
         $this->assertStringContainsString('settings.setGeolocationEnabled(true);', $mainActivity);
         $this->assertStringNotContainsString('settings.setGeolocationEnabled(false);', $mainActivity);
