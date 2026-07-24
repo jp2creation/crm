@@ -81,9 +81,10 @@
       .app-install {
         display: grid;
         gap: 8px;
-        padding: 0;
-        border: 0;
-        background: transparent;
+        padding: 9px;
+        border: 1px solid rgba(220, 226, 234, 0.95);
+        border-radius: 12px;
+        background: #f8fafc;
       }
 
       .app-install[hidden] {
@@ -91,7 +92,77 @@
       }
 
       .app-install__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .app-install__copy {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+      }
+
+      .app-install__mark {
         display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 auto;
+        border-radius: 10px;
+        background: rgba(165, 0, 52, 0.08);
+        color: var(--primary);
+      }
+
+      .app-install__mark svg,
+      .app-install__badge svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2.4;
+      }
+
+      .app-install__brand-logo {
+        fill: currentColor;
+        stroke: none;
+      }
+
+      .app-install__brand-logo path {
+        stroke: none;
+      }
+
+      .app-install__mark > span,
+      .app-install__badge span:first-child > span {
+        font-size: 1.12rem;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .app-install__title {
+        display: block;
+        color: var(--ink);
+        font-size: 0.89rem;
+        font-weight: 900;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .app-install__text {
+        display: block;
+        color: var(--muted);
+        font-size: 0.76rem;
+        font-weight: 700;
+        line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .app-install__help {
@@ -110,29 +181,60 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 48px;
-        width: 100%;
-        padding: 13px 18px;
-        border: 1px solid rgba(165, 0, 52, 0.22);
-        border-radius: 12px;
-        background: #fff;
-        color: var(--primary);
+        gap: 7px;
+        min-height: 38px;
+        padding: 7px 11px;
+        border: 1px solid var(--install-border, rgba(16, 32, 51, 0.14));
+        border-radius: 999px;
+        background: var(--install-bg, #fff);
+        color: var(--install-color, var(--ink));
         text-decoration: none;
-        box-shadow: 0 10px 24px rgba(165, 0, 52, 0.08);
-        transition:
-          background 0.18s ease,
-          border-color 0.18s ease,
-          color 0.18s ease,
-          transform 0.18s ease,
-          box-shadow 0.18s ease;
+        box-shadow: 0 10px 24px var(--install-shadow, rgba(16, 32, 51, 0.1));
       }
 
-      .app-install__badge:hover {
-        border-color: var(--primary);
-        background: rgba(165, 0, 52, 0.04);
-        color: var(--primary-dark);
-        transform: translateY(-1px);
-        box-shadow: 0 14px 30px rgba(165, 0, 52, 0.12);
+      .app-install.is-android {
+        border-color: rgba(66, 133, 244, 0.22);
+        background: linear-gradient(135deg, rgba(66, 133, 244, 0.06), rgba(52, 168, 83, 0.07));
+        --install-bg: #fff;
+        --install-border: #dadce0;
+        --install-color: #3c4043;
+        --install-shadow: rgba(60, 64, 67, 0.12);
+      }
+
+      .app-install.is-android .app-install__mark {
+        background: #fff;
+        color: #3c4043;
+        box-shadow: inset 0 0 0 1px #dadce0;
+      }
+
+      .app-install.is-ios,
+      .app-install.is-macos {
+        border-color: rgba(0, 0, 0, 0.18);
+        --install-bg: #000;
+        --install-border: #000;
+        --install-color: #fff;
+        --install-shadow: rgba(0, 0, 0, 0.14);
+      }
+
+      .app-install.is-ios .app-install__mark,
+      .app-install.is-macos .app-install__mark {
+        background: #000;
+        color: #fff;
+      }
+
+      .app-install.is-web {
+        border-color: rgba(66, 133, 244, 0.26);
+        background: linear-gradient(135deg, rgba(66, 133, 244, 0.06), rgba(251, 188, 5, 0.08));
+        --install-bg: #fff;
+        --install-border: #dadce0;
+        --install-color: #3c4043;
+        --install-shadow: rgba(60, 64, 67, 0.12);
+      }
+
+      .app-install.is-web .app-install__mark {
+        background: #fff;
+        color: #3c4043;
+        box-shadow: inset 0 0 0 1px #dadce0;
       }
 
       .app-install__badge:focus {
@@ -140,10 +242,31 @@
         outline-offset: 2px;
       }
 
-      .app-install__badge span {
+      .app-install__badge span:first-child {
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
+      }
+
+      .app-install__badge > span:last-child {
+        display: grid;
+        gap: 1px;
+      }
+
+      .app-install__badge small {
         color: currentColor;
-        font-size: 0.9rem;
-        font-weight: 900;
+        font-size: 0.62rem;
+        font-weight: 750;
+        line-height: 1;
+        opacity: 0.76;
+      }
+
+      .app-install__badge strong {
+        color: currentColor;
+        font-size: 0.82rem;
+        font-weight: 950;
         line-height: 1;
         white-space: nowrap;
       }
@@ -267,7 +390,11 @@
         }
 
         .app-install {
-          gap: 6px;
+          padding: 8px;
+        }
+
+        .app-install__badge {
+          min-width: 116px;
         }
 
         button {
@@ -282,6 +409,10 @@
 
         .login-card {
           padding: 22px;
+        }
+
+        .app-install__head {
+          display: grid;
         }
 
         .app-install__badge {
@@ -361,8 +492,19 @@
           hidden
         >
           <div class="app-install__head">
+            <div class="app-install__copy">
+              <span class="app-install__mark" data-login-app-mark aria-hidden="true"></span>
+              <span>
+                <strong class="app-install__title" data-login-app-title>Installer Martin Sols</strong>
+                <small class="app-install__text" data-login-app-text>Accès direct au CRM</small>
+              </span>
+            </div>
             <a class="app-install__badge" href="#" data-login-app-button rel="noopener">
-              <span data-login-app-label>Installer l'application</span>
+              <span data-login-app-icon aria-hidden="true"></span>
+              <span>
+                <small data-login-app-small>Installer</small>
+                <strong data-login-app-label>App</strong>
+              </span>
             </a>
           </div>
           <p class="app-install__help" data-login-app-help></p>
@@ -418,8 +560,13 @@
         }
 
         const button = card.querySelector('[data-login-app-button]');
+        const title = card.querySelector('[data-login-app-title]');
+        const text = card.querySelector('[data-login-app-text]');
         const help = card.querySelector('[data-login-app-help]');
+        const small = card.querySelector('[data-login-app-small]');
         const label = card.querySelector('[data-login-app-label]');
+        const icon = card.querySelector('[data-login-app-icon]');
+        const mark = card.querySelector('[data-login-app-mark]');
         const params = new URLSearchParams(window.location.search);
 
         const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches === true
@@ -430,7 +577,7 @@
           || Boolean(window.MartinSolsNativeApp)
           || window.Capacitor?.isNativePlatform?.() === true;
 
-        if (isStandalone || isNativeApp || !button || !help || !label) {
+        if (isStandalone || isNativeApp || !button || !title || !text || !help || !small || !label || !icon || !mark) {
           card.remove();
 
           return;
@@ -447,14 +594,25 @@
         const androidUrl = card.dataset.androidUrl || '';
         const iosUrl = card.dataset.iosUrl || '';
         const macosUrl = card.dataset.macosUrl || '';
+        const icons = {
+          google: '<svg class="app-install__brand-logo" viewBox="0 0 24 24"><path fill="#4285f4" d="M21.6 12.23c0-.74-.07-1.45-.19-2.14H12v4.05h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.32 2.98-7.44Z"></path><path fill="#34a853" d="M12 22c2.7 0 4.97-.89 6.62-2.33l-3.24-2.51c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.6-4.12H3.06v2.59A10 10 0 0 0 12 22Z"></path><path fill="#fbbc05" d="M6.4 14a6 6 0 0 1 0-3.82V7.59H3.06a10 10 0 0 0 0 8.82L6.4 14Z"></path><path fill="#ea4335" d="M12 5.89c1.47 0 2.8.5 3.84 1.5l2.86-2.86A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.94 5.59l3.34 2.59C7.2 7.82 9.4 5.89 12 5.89Z"></path></svg>',
+          apple: '<span aria-hidden="true"></span>',
+          chrome: '<svg class="app-install__brand-logo" viewBox="0 0 24 24"><path fill="#ea4335" d="M12 12h9.75A9.75 9.75 0 0 0 3.56 7.13L8.4 15.5A4.3 4.3 0 0 1 12 7.7h8.77A9.75 9.75 0 0 0 12 2.25a9.74 9.74 0 0 0-8.44 4.88L8.4 15.5A4.3 4.3 0 0 1 12 12Z"></path><path fill="#fbbc04" d="M3.56 7.13A9.75 9.75 0 0 0 12 21.75l4.84-8.38A4.3 4.3 0 0 1 8.4 15.5L3.56 7.13Z"></path><path fill="#34a853" d="M12 21.75A9.75 9.75 0 0 0 21.75 12H12a4.3 4.3 0 0 1 4.84 1.37L12 21.75Z"></path><circle cx="12" cy="12" r="4.1" fill="#4285f4"></circle><circle cx="12" cy="12" r="2.35" fill="#fff"></circle></svg>',
+          download: '<svg viewBox="0 0 24 24"><path d="M12 3v11"></path><path d="m7.5 9.5 4.5 4.5 4.5-4.5"></path><path d="M5 18.5h14"></path></svg>',
+        };
 
         const configure = (kind, options) => {
           card.className = `app-install is-${kind}`;
           button.className = `app-install__badge is-${kind}`;
           button.href = options.href || '#';
           button.toggleAttribute('download', options.download === true);
+          title.textContent = options.title;
+          text.textContent = options.text;
           help.textContent = options.help;
+          small.textContent = options.small;
           label.textContent = options.label;
+          icon.innerHTML = options.icon;
+          mark.innerHTML = options.mark || options.icon;
           button.onclick = options.onClick || null;
           card.hidden = false;
         };
@@ -463,7 +621,12 @@
           configure('android', {
             href: androidUrl,
             download: true,
-            label: 'Télécharger APK Android',
+            icon: icons.google,
+            mark: icons.google,
+            small: 'Télécharger',
+            label: 'APK Android',
+            title: 'Application Android',
+            text: 'APK hors Play Store',
             help: '',
           });
 
@@ -473,7 +636,12 @@
         if (isIos) {
           configure('ios', {
             href: iosUrl || '#',
-            label: iosUrl ? 'Installer sur iPhone' : 'Ajouter sur iPhone',
+            icon: icons.apple,
+            mark: icons.apple,
+            small: iosUrl ? 'Installer via' : 'Ajouter',
+            label: iosUrl ? 'iPhone' : 'iPhone',
+            title: 'Sur iPhone',
+            text: 'Ajout écran d’accueil',
             help: '',
             onClick: iosUrl ? null : (event) => {
               event.preventDefault();
@@ -488,7 +656,12 @@
           configure('macos', {
             href: macosUrl || '#',
             download: Boolean(macosUrl),
-            label: macosUrl ? 'Télécharger l’application Mac' : 'Bientôt disponible',
+            icon: icons.apple,
+            mark: icons.apple,
+            small: macosUrl ? 'Télécharger' : 'Bientôt',
+            label: 'macOS',
+            title: 'Application Mac',
+            text: macosUrl ? 'Paquet hors App Store' : 'Mac détecté',
             help: '',
             onClick: macosUrl ? null : (event) => {
               event.preventDefault();
@@ -501,7 +674,12 @@
 
         configure('web', {
           href: '#',
-          label: 'Installer l’application web',
+          icon: icons.chrome,
+          mark: icons.chrome,
+          small: 'Installer',
+          label: 'PWA',
+          title: 'Application web',
+          text: 'Chrome / Edge',
           help: '',
           onClick: (event) => {
             event.preventDefault();

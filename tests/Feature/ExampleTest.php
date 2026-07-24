@@ -17,14 +17,11 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/login')
             ->assertOk()
-            ->assertDontSee('Installer Martin Sols')
-            ->assertSee('Télécharger APK Android')
+            ->assertSee('Installer Martin Sols')
+            ->assertSee('APK Android')
             ->assertSee('Martin.Sols.pkg')
-            ->assertSee('Télécharger l’application Mac')
-            ->assertDontSee('Application Mac')
-            ->assertDontSee('Mac détecté')
-            ->assertDontSee('Application web')
-            ->assertDontSee('Chrome / Edge')
+            ->assertSee('Application Mac')
+            ->assertSee('Mac détecté')
             ->assertDontSee('Connexion équipe')
             ->assertDontSee('Sécurité anti-robot')
             ->assertDontSee('Connexion CRM');
