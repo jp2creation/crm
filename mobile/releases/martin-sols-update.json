@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 55,
-    "versionName": "1.53",
+    "versionCode": 56,
+    "versionName": "1.54",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.53/Martin_Sols_1.53.apk",
-    "sha256": "9780b8017821ce5fb2dbb7779deeb5b30fd816beacb6693d616612e6936254a9",
-    "releaseNotes": "Version 1.53 stable : correction complete des Parametres de l app. La recherche de mise a jour lit l API GitHub fraiche avant le cache Raw, et les actions Android des reglages securite/code passent toutes par le thread UI natif."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.54/Martin_Sols_1.54.apk",
+    "sha256": "856a105515ce7e8c4992bdbd48e57fc7b6637b1b917e6da768b65ad22b3f31f1",
+    "releaseNotes": "Version 1.54 stable : correction de la localisation native des Parametres de l app et activation de la connexion rapide depuis le CRM connecte."
   },
   "ios": {
     "version": "1.0.0",
