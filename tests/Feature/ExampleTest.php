@@ -17,8 +17,10 @@ class ExampleTest extends TestCase
     {
         $this->get('/login')
             ->assertOk()
-            ->assertSee('Connexion équipe')
-            ->assertSee('Sécurité anti-robot')
+            ->assertSee('Installer Martin Sols')
+            ->assertSee('APK Android')
+            ->assertDontSee('Connexion équipe')
+            ->assertDontSee('Sécurité anti-robot')
             ->assertDontSee('Connexion CRM');
     }
 

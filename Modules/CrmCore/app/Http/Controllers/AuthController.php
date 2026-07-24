@@ -12,14 +12,14 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Modules\CrmCore\Http\Requests\LoginRequest;
-use Modules\CrmCore\Support\LoginCaptcha;
 
 class AuthController extends Controller
 {
     public function show(Request $request): View
     {
         return view('auth.login', [
-            'loginCaptcha' => LoginCaptcha::ensure($request),
+            'loginInstallLinks' => $this->loginInstallLinks(),
+            'loginIsMobileApp' => $request->boolean('mobile_app') || $request->boolean('mobile_embed'),
         ]);
     }
 
@@ -31,7 +31,6 @@ class AuthController extends Controller
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
-            LoginCaptcha::regenerate($request);
 
             throw ValidationException::withMessages([
                 'email' => "Trop de tentatives. Reessayez dans {$seconds} secondes.",
@@ -40,7 +39,6 @@ class AuthController extends Controller
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey, 60);
-            LoginCaptcha::regenerate($request);
 
             throw ValidationException::withMessages([
                 'email' => 'Identifiants invalides.',
@@ -48,7 +46,6 @@ class AuthController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
-        LoginCaptcha::forget($request);
         $request->session()->regenerate();
         $this->stripMobileEmbedFromIntendedUrl($request);
 
@@ -113,5 +110,35 @@ class AuthController extends Controller
             : '';
 
         $request->session()->put('url.intended', $path.($queryString !== '' ? '?'.$queryString : '').$fragment);
+    }
+
+    /**
+     * @return array{androidApkUrl: string, iosInstallUrl: string, macosPkgUrl: string}
+     */
+    private function loginInstallLinks(): array
+    {
+        $fallback = [
+            'androidApkUrl' => '',
+            'iosInstallUrl' => '',
+            'macosPkgUrl' => '',
+        ];
+
+        $manifestPath = base_path('mobile/releases/martin-sols-update.json');
+
+        if (! is_file($manifestPath)) {
+            return $fallback;
+        }
+
+        $manifest = json_decode((string) file_get_contents($manifestPath), true);
+
+        if (! is_array($manifest)) {
+            return $fallback;
+        }
+
+        return [
+            'androidApkUrl' => (string) data_get($manifest, 'android.apkUrl', ''),
+            'iosInstallUrl' => (string) data_get($manifest, 'ios.installUrl', ''),
+            'macosPkgUrl' => (string) data_get($manifest, 'macos.pkgUrl', ''),
+        ];
     }
 }
