@@ -153,7 +153,9 @@ function settingsIcon(name: string): string {
     back: '<path d="m15 18-6-6 6-6"></path>',
     code: '<path d="M7 8h10M7 12h10M7 16h6"></path><rect x="4" y="4" width="16" height="16" rx="4"></rect>',
     device: '<rect x="7" y="2.75" width="10" height="18.5" rx="2.5"></rect><path d="M10.5 18h3"></path>',
+    face: '<circle cx="12" cy="12" r="8"></circle><path d="M9 10h.01M15 10h.01M9.5 15a4 4 0 0 0 5 0"></path>',
     fingerprint: '<path d="M8.5 11.5a3.5 3.5 0 0 1 7 0c0 2.8-1.1 4.9-2.7 6.7"></path><path d="M6.5 14.8c.3-2.9.2-4.5 1.4-6a5.3 5.3 0 0 1 8.4-.1c1.3 1.7 1.4 3.2 1.1 5.8"></path><path d="M11.5 12c0 3-.7 5-2 6.8M14 12.3c0 2.4-.6 4.1-1.7 5.4"></path>',
+    key: '<path d="M15 7a4 4 0 1 1-1.2 2.85L6 17.65V21H2v-4h3.35l7.8-7.8A4 4 0 0 1 15 7Z"></path><path d="M17 7h.01"></path>',
     location: '<path d="M12 21s6-5.2 6-11a6 6 0 1 0-12 0c0 5.8 6 11 6 11Z"></path><circle cx="12" cy="10" r="2"></circle>',
     lock: '<rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path>',
     refresh: '<path d="M20 11a8 8 0 0 0-14.4-4.8L4 8"></path><path d="M4 4v4h4"></path><path d="M4 13a8 8 0 0 0 14.4 4.8L20 16"></path><path d="M20 20v-4h-4"></path>',
@@ -192,11 +194,12 @@ function mountSettingsMarkup(): boolean {
         <div class="crm-mobile-app-settings-content">
           <section class="crm-mobile-app-settings-hero">
             <span class="crm-mobile-app-settings-hero-icon">${settingsIcon('device')}</span>
-            <div>
+            <div class="crm-mobile-app-settings-hero-copy">
               <p>Martin Sols CRM</p>
               <h3>Paramètres de l’app</h3>
               <small>Version <strong data-crm-mobile-app-version>App mobile</strong></small>
             </div>
+            <span class="crm-mobile-app-settings-pill" data-crm-mobile-auth-summary>Non sécurisé</span>
           </section>
 
           <section class="crm-mobile-app-settings-status" aria-label="État de l'application">
@@ -210,62 +213,61 @@ function mountSettingsMarkup(): boolean {
               <span>Localisation</span>
               <strong data-crm-mobile-location-status>Désactivée</strong>
             </div>
+            <div>
+              <span class="crm-mobile-app-settings-card-icon">${settingsIcon('shield')}</span>
+              <span>Sécurité</span>
+              <strong data-crm-mobile-auth-section-status>Non configurée</strong>
+            </div>
           </section>
 
-          <section class="crm-mobile-app-settings-section crm-mobile-app-settings-switches" aria-label="Préférences">
-            <h3>Préférences</h3>
-            <label class="crm-mobile-app-settings-row crm-mobile-app-settings-switch">
-              <span class="crm-mobile-app-settings-row-icon">${settingsIcon('location')}</span>
-              <span class="crm-mobile-app-settings-row-copy">
-                <strong>Localisation</strong>
-                <small>Autoriser les modules CRM à utiliser la position</small>
-              </span>
-              <input data-crm-mobile-location-enabled type="checkbox">
-              <i aria-hidden="true"></i>
-            </label>
-            <label class="crm-mobile-app-settings-row crm-mobile-app-settings-switch">
-              <span class="crm-mobile-app-settings-row-icon">${settingsIcon('satellite')}</span>
-              <span class="crm-mobile-app-settings-row-copy">
-                <strong>Haute précision</strong>
-                <small>Améliorer la localisation sur chantier</small>
-              </span>
-              <input data-crm-mobile-location-accuracy type="checkbox">
-              <i aria-hidden="true"></i>
-            </label>
-          </section>
+          <section class="crm-mobile-app-settings-section crm-mobile-app-settings-security">
+            <div class="crm-mobile-app-settings-section-heading">
+              <h3>Sécurité de l’app</h3>
+              <p>Connexion rapide et protection locale</p>
+            </div>
 
-          <section class="crm-mobile-app-settings-section">
-            <h3>Sécurité</h3>
+            <div class="crm-mobile-app-settings-methods" aria-label="Méthodes de sécurité">
+              <div>
+                <span class="crm-mobile-app-settings-method-icon">${settingsIcon('fingerprint')}</span>
+                <strong>Empreinte</strong>
+                <small data-crm-mobile-fingerprint-status>Android</small>
+              </div>
+              <div>
+                <span class="crm-mobile-app-settings-method-icon">${settingsIcon('face')}</span>
+                <strong>Visage</strong>
+                <small data-crm-mobile-face-status>Android</small>
+              </div>
+              <div>
+                <span class="crm-mobile-app-settings-method-icon">${settingsIcon('key')}</span>
+                <strong>Code Android</strong>
+                <small data-crm-mobile-device-code-status>Android</small>
+              </div>
+            </div>
+
+            <button class="crm-mobile-app-settings-feature-button" type="button" data-crm-mobile-set-app-code>
+              <span class="crm-mobile-app-settings-feature-icon">${settingsIcon('lock')}</span>
+              <span>
+                <strong data-crm-mobile-set-app-code-label>Définir un code app</strong>
+                <small data-crm-mobile-app-code-detail>Code app Martin Sols non défini</small>
+              </span>
+              <em data-crm-mobile-app-code-status>Non défini</em>
+            </button>
+
             <div class="crm-mobile-app-settings-row is-static">
               <span class="crm-mobile-app-settings-row-icon">${settingsIcon('shield')}</span>
               <span class="crm-mobile-app-settings-row-copy">
                 <strong>Connexion rapide</strong>
-                <small data-crm-mobile-auth-section-status>Non configurée</small>
+                <small>Session CRM protégée par la sécurité locale</small>
               </span>
               <em data-crm-mobile-auth-status>Non configurée</em>
             </div>
-            <div class="crm-mobile-app-settings-row is-static">
-              <span class="crm-mobile-app-settings-row-icon">${settingsIcon('code')}</span>
-              <span class="crm-mobile-app-settings-row-copy">
-                <strong>Code app</strong>
-                <small>Protection locale de l’application</small>
-              </span>
-              <em data-crm-mobile-app-code-status>Non défini</em>
-            </div>
+
             <div class="crm-mobile-app-settings-button-grid">
               <button class="crm-mobile-app-settings-row is-button" type="button" data-crm-mobile-device-security>
                 <span class="crm-mobile-app-settings-row-icon">${settingsIcon('fingerprint')}</span>
                 <span class="crm-mobile-app-settings-row-copy">
                   <strong>Empreinte, visage ou code</strong>
                   <small>Ouvrir la sécurité Android</small>
-                </span>
-                <em>›</em>
-              </button>
-              <button class="crm-mobile-app-settings-row is-button" type="button" data-crm-mobile-set-app-code>
-                <span class="crm-mobile-app-settings-row-icon">${settingsIcon('lock')}</span>
-                <span class="crm-mobile-app-settings-row-copy">
-                  <strong data-crm-mobile-set-app-code-label>Définir un code app</strong>
-                  <small>Activer ou modifier le code</small>
                 </span>
                 <em>›</em>
               </button>
@@ -288,8 +290,36 @@ function mountSettingsMarkup(): boolean {
             </div>
           </section>
 
+          <section class="crm-mobile-app-settings-section crm-mobile-app-settings-switches" aria-label="Préférences">
+            <div class="crm-mobile-app-settings-section-heading">
+              <h3>Préférences</h3>
+              <p>Services autorisés dans l’app</p>
+            </div>
+            <label class="crm-mobile-app-settings-row crm-mobile-app-settings-switch">
+              <span class="crm-mobile-app-settings-row-icon">${settingsIcon('location')}</span>
+              <span class="crm-mobile-app-settings-row-copy">
+                <strong>Localisation</strong>
+                <small>Autoriser les modules CRM à utiliser la position</small>
+              </span>
+              <input data-crm-mobile-location-enabled type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+            <label class="crm-mobile-app-settings-row crm-mobile-app-settings-switch">
+              <span class="crm-mobile-app-settings-row-icon">${settingsIcon('satellite')}</span>
+              <span class="crm-mobile-app-settings-row-copy">
+                <strong>Haute précision</strong>
+                <small>Améliorer la localisation sur chantier</small>
+              </span>
+              <input data-crm-mobile-location-accuracy type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+          </section>
+
           <section class="crm-mobile-app-settings-section">
-            <h3>Maintenance</h3>
+            <div class="crm-mobile-app-settings-section-heading">
+              <h3>Maintenance</h3>
+              <p>Mises à jour et informations</p>
+            </div>
             <div class="crm-mobile-app-settings-row is-static">
               <span class="crm-mobile-app-settings-row-icon">${settingsIcon('refresh')}</span>
               <span class="crm-mobile-app-settings-row-copy">
@@ -311,6 +341,14 @@ function mountSettingsMarkup(): boolean {
                 <strong>Plateforme</strong>
                 <small data-crm-mobile-platform>Android WebView</small>
               </span>
+            </div>
+            <div class="crm-mobile-app-settings-row is-static">
+              <span class="crm-mobile-app-settings-row-icon">${settingsIcon('device')}</span>
+              <span class="crm-mobile-app-settings-row-copy">
+                <strong>Réglages à venir</strong>
+                <small>Les futurs paramètres seront ajoutés ici</small>
+              </span>
+              <em>Prévu</em>
             </div>
           </section>
 
@@ -345,7 +383,12 @@ export function installMobileAppSettings(): void {
   const appVersion = document.querySelector<HTMLElement>('[data-crm-mobile-app-version]');
   const authStatus = document.querySelector<HTMLElement>('[data-crm-mobile-auth-status]');
   const appCodeStatus = document.querySelector<HTMLElement>('[data-crm-mobile-app-code-status]');
+  const appCodeDetail = document.querySelector<HTMLElement>('[data-crm-mobile-app-code-detail]');
+  const authSummary = document.querySelector<HTMLElement>('[data-crm-mobile-auth-summary]');
   const authSectionStatus = document.querySelector<HTMLElement>('[data-crm-mobile-auth-section-status]');
+  const fingerprintStatus = document.querySelector<HTMLElement>('[data-crm-mobile-fingerprint-status]');
+  const faceStatus = document.querySelector<HTMLElement>('[data-crm-mobile-face-status]');
+  const deviceCodeStatus = document.querySelector<HTMLElement>('[data-crm-mobile-device-code-status]');
   const updateStatus = document.querySelector<HTMLElement>('[data-crm-mobile-update-status]');
   const errorBox = document.querySelector<HTMLElement>('[data-crm-mobile-settings-error]');
   const testLocation = document.querySelector<HTMLButtonElement>('[data-crm-mobile-test-location]');
@@ -414,13 +457,38 @@ export function installMobileAppSettings(): void {
     }
 
     const currentAuthStatus = mobileAuthStatus();
+    const isDeviceSecurityReady = Boolean(currentAuthStatus.deviceSecure);
+    const hasAppCode = Boolean(currentAuthStatus.appCodeConfigured);
+    const hasQuickLogin = Boolean(currentAuthStatus.hasSession);
+    const androidSecurityLabel = isDeviceSecurityReady ? 'Configuré' : 'À configurer';
 
     if (authStatus) {
       authStatus.textContent = mobileAuthLabel(currentAuthStatus);
     }
 
     if (appCodeStatus) {
-      appCodeStatus.textContent = currentAuthStatus.appCodeConfigured ? 'Défini' : 'Non défini';
+      appCodeStatus.textContent = hasAppCode ? 'Défini' : 'Non défini';
+    }
+
+    if (appCodeDetail) {
+      appCodeDetail.textContent = hasAppCode ? 'Code app Martin Sols actif' : 'Créer un code app de 4 à 8 chiffres';
+    }
+
+    if (authSummary) {
+      authSummary.textContent = hasQuickLogin || hasAppCode || isDeviceSecurityReady ? 'Protégé' : 'À configurer';
+      authSummary.classList.toggle('is-ready', hasQuickLogin || hasAppCode || isDeviceSecurityReady);
+    }
+
+    if (fingerprintStatus) {
+      fingerprintStatus.textContent = androidSecurityLabel;
+    }
+
+    if (faceStatus) {
+      faceStatus.textContent = androidSecurityLabel;
+    }
+
+    if (deviceCodeStatus) {
+      deviceCodeStatus.textContent = androidSecurityLabel;
     }
 
     if (authSectionStatus) {
@@ -444,11 +512,11 @@ export function installMobileAppSettings(): void {
     }
 
     if (setAppCodeLabel) {
-      setAppCodeLabel.textContent = currentAuthStatus.appCodeConfigured ? 'Modifier le code app' : 'Définir un code app';
+      setAppCodeLabel.textContent = hasAppCode ? 'Modifier le code app' : 'Définir un code app';
     }
 
     if (clearAppCode) {
-      clearAppCode.disabled = !currentAuthStatus.appCodeConfigured || !nativeBridge()?.clearAppCode;
+      clearAppCode.disabled = !hasAppCode || !nativeBridge()?.clearAppCode;
     }
   };
 
