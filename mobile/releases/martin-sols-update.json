@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 42,
-    "versionName": "1.40",
+    "versionCode": 43,
+    "versionName": "1.41",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.40/Martin_Sols_1.40.apk",
-    "sha256": "85b6e21113d1e06ae79068620d1897ce86dea4204b4a0ac855720cdf93f55d36",
-    "releaseNotes": "Version de test pour verifier la barre de progression depuis la 1.39."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.41/Martin_Sols_1.41.apk",
+    "sha256": "56d0b45ea76e0d64fbdc0a591c75d81e41224c20dd2a0a24f658ce9c39f51429",
+    "releaseNotes": "Mise a jour de l icone Martin Sols avec le rendu rond blanc."
   },
   "ios": {
     "version": "1.0.0",
