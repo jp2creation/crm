@@ -105,16 +105,22 @@ class CrmAccountSettingsTest extends TestCase
         $this->assertStringContainsString("new CustomEvent('crm:profile-updated'", $source);
         $this->assertStringContainsString('lastPublishedProfileSignature', $source);
         $this->assertStringContainsString('dataset.crmImageSrc', $source);
+        $this->assertStringContainsString('failedProfileImageSources', $source);
+        $this->assertStringContainsString('prepareProfilePhotoDataUrl', $source);
+        $this->assertStringContainsString('canvas.toDataURL(\'image/webp\'', $source);
+        $this->assertStringContainsString('canvas.toDataURL(\'image/jpeg\'', $source);
         $this->assertStringContainsString("'X-CSRF-TOKEN'", $source);
         $this->assertStringContainsString('[data-crm-native-profile-photo]', $source);
         $this->assertStringContainsString('mountedTarget?.dataset.crmAccountSettingsMounted', $source);
+        $this->assertStringContainsString('failedProfileImageSources', $shell);
+        $this->assertStringContainsString('crm-native-user-menu-head', $shell);
         $this->assertStringContainsString('function setImageSource(image: HTMLImageElement | null', $shell);
         $this->assertStringContainsString('onerror="this.onerror=null;this.src=', $shell);
         $this->assertStringContainsString("window.addEventListener('crm:profile-updated'", $shell);
         $this->assertStringContainsString('data-crm-native-user-menu-toggle', $shell);
         $this->assertStringContainsString('data-crm-native-user-menu', $shell);
         $this->assertStringContainsString('href="/pages/account-settings"', $shell);
-        $this->assertStringContainsString("iconForKey('settings')", $shell);
+        $this->assertStringContainsString("iconForKey('profile')", $shell);
         $this->assertStringContainsString("iconForKey('logout')", $shell);
         $this->assertStringContainsString('setUserMenuOpen(false)', $shell);
     }

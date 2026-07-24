@@ -2,6 +2,8 @@
   const ACCOUNT_PATH = '/pages/account-settings';
   const API_URLS = ['/api/administration'];
   const DEFAULT_PHOTO = '/assets/logo/logomark.png';
+  const MAX_PROFILE_PHOTO_INPUT_BYTES = 25 * 1024 * 1024;
+  const PROFILE_PHOTO_SIZE = 640;
 
   let cachedProfile = null;
   let pendingPhotoDataUrl = '';
@@ -10,6 +12,7 @@
   let lastProfileError = null;
   let lastProfileErrorAt = 0;
   let lastPublishedProfileSignature = '';
+  const failedProfileImageSources = new Set();
 
   function isAccountRoute() {
     return window.location.pathname.replace(/\/+$/, '') === ACCOUNT_PATH;
@@ -86,10 +89,15 @@
   function setImageSource(image, src, alt) {
     if (!(image instanceof HTMLImageElement)) return;
 
-    const nextSrc = String(src || DEFAULT_PHOTO);
+    const requestedSrc = String(src || DEFAULT_PHOTO);
+    const nextSrc = failedProfileImageSources.has(requestedSrc) ? DEFAULT_PHOTO : requestedSrc;
     const nextAlt = String(alt || 'Profil');
 
     image.onerror = () => {
+      if (nextSrc !== DEFAULT_PHOTO) {
+        failedProfileImageSources.add(nextSrc);
+      }
+
       image.onerror = null;
       setImageSource(image, DEFAULT_PHOTO, nextAlt);
     };
@@ -672,6 +680,69 @@
     });
   }
 
+  function loadImageFromDataUrl(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Photo illisible'));
+      image.src = dataUrl;
+    });
+  }
+
+  async function prepareProfilePhotoDataUrl(file) {
+    if (!file || !String(file.type || '').startsWith('image/')) {
+      throw new Error('Format image invalide');
+    }
+
+    if (file.size > MAX_PROFILE_PHOTO_INPUT_BYTES) {
+      throw new Error('Photo trop lourde');
+    }
+
+    const sourceDataUrl = await readFileAsDataUrl(file);
+    const image = await loadImageFromDataUrl(sourceDataUrl);
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+
+    if (!sourceWidth || !sourceHeight) {
+      throw new Error('Photo illisible');
+    }
+
+    const cropSize = Math.min(sourceWidth, sourceHeight);
+    const sourceX = Math.max(0, Math.floor((sourceWidth - cropSize) / 2));
+    const sourceY = Math.max(0, Math.floor((sourceHeight - cropSize) / 2));
+    const canvas = document.createElement('canvas');
+    canvas.width = PROFILE_PHOTO_SIZE;
+    canvas.height = PROFILE_PHOTO_SIZE;
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return sourceDataUrl;
+    }
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.fillStyle = '#fff';
+    context.fillRect(0, 0, PROFILE_PHOTO_SIZE, PROFILE_PHOTO_SIZE);
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      cropSize,
+      cropSize,
+      0,
+      0,
+      PROFILE_PHOTO_SIZE,
+      PROFILE_PHOTO_SIZE,
+    );
+
+    const webpDataUrl = canvas.toDataURL('image/webp', 0.86);
+    if (webpDataUrl.startsWith('data:image/webp')) {
+      return webpDataUrl;
+    }
+
+    return canvas.toDataURL('image/jpeg', 0.88);
+  }
+
   function setStatus(target, message, error) {
     const node = target.querySelector('[data-crm-account-status]');
     if (!node) return;
@@ -695,7 +766,8 @@
       if (!file) return;
 
       try {
-        pendingPhotoDataUrl = await readFileAsDataUrl(file);
+        setStatus(target, 'Préparation de la photo...');
+        pendingPhotoDataUrl = await prepareProfilePhotoDataUrl(file);
         setImageSource(preview, pendingPhotoDataUrl, profile.displayName || profile.name || 'Profil');
         setStatus(target, 'Photo pr\u00eate \u00e0 enregistrer.');
       } catch (error) {
@@ -1027,7 +1099,8 @@
         if (!file) return;
 
         try {
-          pendingPhotoDataUrl = await readFileAsDataUrl(file);
+          setNativeStatus(root, 'Préparation de la photo...');
+          pendingPhotoDataUrl = await prepareProfilePhotoDataUrl(file);
           setImageSource(preview, pendingPhotoDataUrl, profile.displayName || profile.name || 'Profil');
           setNativeStatus(root, 'Photo prête à enregistrer.');
         } catch (error) {

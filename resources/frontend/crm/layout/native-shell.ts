@@ -128,6 +128,9 @@ function iconForKey(iconKey?: string): string {
       '<path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M21 19V5a2 2 0 0 0-2-2h-6"></path><path d="M13 21h6a2 2 0 0 0 2-2"></path>',
     ),
     package: iconSvg('<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"></path><path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path>'),
+    profile: iconSvg(
+      '<path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M4 21a8 8 0 0 1 16 0"></path>',
+    ),
     ruler: iconSvg('<path d="M4 17 17 4l3 3L7 20z"></path><path d="m14 7 3 3M11 10l2 2M8 13l3 3"></path>'),
     settings: iconSvg(
       '<path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"></path><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"></path>',
@@ -143,6 +146,8 @@ function iconForKey(iconKey?: string): string {
 
   return icons[iconKey || ''] || iconSvg('<circle cx="12" cy="12" r="8"></circle><path d="M12 8v4l3 2"></path>');
 }
+
+const failedProfileImageSources = new Set<string>();
 
 function iconFor(item: CrmMenuItem): string {
   return iconForKey(item.iconKey);
@@ -308,9 +313,14 @@ function setImageSource(image: HTMLImageElement | null, src: string, alt: string
   }
 
   const fallback = '/assets/logo/logomark.png';
-  const nextSrc = src || fallback;
+  const requestedSrc = src || fallback;
+  const nextSrc = failedProfileImageSources.has(requestedSrc) ? fallback : requestedSrc;
 
   image.onerror = () => {
+    if (nextSrc !== fallback) {
+      failedProfileImageSources.add(nextSrc);
+    }
+
     image.onerror = null;
     setImageSource(image, fallback, alt);
   };
@@ -354,11 +364,22 @@ function headerHtml(profile?: CrmProfile): string {
     '</span>',
     '</button>',
     '<div class="crm-native-user-menu" data-crm-native-user-menu hidden role="menu" aria-label="Menu utilisateur">',
+    '<div class="crm-native-user-menu-head">',
+    '<span class="crm-native-user-menu-avatar">',
+    `<img data-crm-native-profile-photo src="${esc(profilePhoto(profile))}" alt="${esc(profileName(profile))}" onerror="this.onerror=null;this.src='/assets/logo/logomark.png'">`,
+    `<b data-crm-native-profile-initials>${esc(profileInitials(profile))}</b>`,
+    '</span>',
+    '<span class="crm-native-user-menu-meta">',
+    `<strong data-crm-native-profile-name>${esc(profileName(profile))}</strong>`,
+    `<small data-crm-native-profile-role>${esc(profileRole(profile))}</small>`,
+    '</span>',
+    '</div>',
+    '<div class="crm-native-user-menu-separator" aria-hidden="true"></div>',
     '<a class="crm-native-user-menu-item" href="/pages/account-settings" role="menuitem">',
-    `<span class="crm-native-user-menu-icon">${iconForKey('settings')}</span>`,
+    `<span class="crm-native-user-menu-icon">${iconForKey('profile')}</span>`,
     '<span><strong>Paramètres</strong><small>Compte utilisateur</small></span>',
     '</a>',
-    '<button class="crm-native-user-menu-item" type="button" data-crm-native-logout role="menuitem">',
+    '<button class="crm-native-user-menu-item crm-native-user-menu-danger" type="button" data-crm-native-logout role="menuitem">',
     `<span class="crm-native-user-menu-icon">${iconForKey('logout')}</span>`,
     '<span><strong>Se déconnecter</strong><small>Quitter le CRM</small></span>',
     '</button>',
@@ -493,15 +514,21 @@ async function loadProfile(): Promise<void> {
 function hydrateProfile(profile: CrmProfile): void {
   currentProfile = profile;
 
-  const photo = document.querySelector<HTMLImageElement>('[data-crm-native-profile-photo]');
-  const initialsNode = document.querySelector<HTMLElement>('[data-crm-native-profile-initials]');
-  const nameNode = document.querySelector<HTMLElement>('[data-crm-native-profile-name]');
-  const roleNode = document.querySelector<HTMLElement>('[data-crm-native-profile-role]');
+  document.querySelectorAll<HTMLImageElement>('[data-crm-native-profile-photo]').forEach((photo) => {
+    setImageSource(photo, profilePhoto(profile), profileName(profile));
+  });
 
-  setImageSource(photo, profilePhoto(profile), profileName(profile));
-  setTextContent(initialsNode, profileInitials(profile));
-  setTextContent(nameNode, profileName(profile));
-  setTextContent(roleNode, profileRole(profile));
+  document.querySelectorAll<HTMLElement>('[data-crm-native-profile-initials]').forEach((initialsNode) => {
+    setTextContent(initialsNode, profileInitials(profile));
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-crm-native-profile-name]').forEach((nameNode) => {
+    setTextContent(nameNode, profileName(profile));
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-crm-native-profile-role]').forEach((roleNode) => {
+    setTextContent(roleNode, profileRole(profile));
+  });
 }
 
 function closeSidebar(): void {
