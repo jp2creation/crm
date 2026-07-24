@@ -74,6 +74,7 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final String CRM_URL = "https://crm.jp2.fr/?mobile_app=1";
+    private static final String UPDATE_MANIFEST_API_URL = "https://api.github.com/repos/jp2creation/crm/contents/mobile/releases/martin-sols-update.json?ref=main";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/jp2creation/crm/main/mobile/releases/martin-sols-update.json";
     private static final String APK_MIME_TYPE = "application/vnd.android.package-archive";
     private static final String APP_SETTINGS_OVERRIDE_ASSET = "app-settings-override.js";
@@ -1123,15 +1124,29 @@ public class MainActivity extends Activity {
     }
 
     private AppUpdate fetchAppUpdate() {
+        AppUpdate apiUpdate = fetchAppUpdateFromUrl(UPDATE_MANIFEST_API_URL + "&t=" + System.currentTimeMillis(), true);
+
+        if (apiUpdate != null) {
+            return apiUpdate;
+        }
+
+        return fetchAppUpdateFromUrl(UPDATE_MANIFEST_URL + "?t=" + System.currentTimeMillis(), false);
+    }
+
+    private AppUpdate fetchAppUpdateFromUrl(String manifestUrl, boolean githubContentsResponse) {
         HttpURLConnection connection = null;
 
         try {
-            URL url = new URL(UPDATE_MANIFEST_URL + "?t=" + System.currentTimeMillis());
+            URL url = new URL(manifestUrl);
             connection = (HttpURLConnection) url.openConnection();
+            connection.setUseCaches(false);
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(5000);
             connection.setRequestMethod("GET");
-            connection.setRequestProperty("Accept", "application/json");
+            connection.setRequestProperty("Accept", githubContentsResponse ? "application/vnd.github+json" : "application/json");
+            connection.setRequestProperty("Cache-Control", "no-cache");
+            connection.setRequestProperty("Pragma", "no-cache");
+            connection.setRequestProperty("User-Agent", "Martin-Sols-Android/" + BuildConfig.VERSION_NAME);
 
             int responseCode = connection.getResponseCode();
 
@@ -1140,30 +1155,51 @@ public class MainActivity extends Activity {
             }
 
             JSONObject manifest = new JSONObject(readText(connection.getInputStream()));
-            JSONObject android = manifest.optJSONObject("android");
 
-            if (android == null) {
-                return null;
+            if (githubContentsResponse) {
+                manifest = decodeGitHubContentsManifest(manifest);
             }
 
-            int versionCode = android.optInt("versionCode", 0);
-            String versionName = android.optString("versionName", "");
-            String apkUrl = android.optString("apkUrl", "");
-            String sha256 = android.optString("sha256", "");
-            String releaseNotes = android.optString("releaseNotes", "");
-
-            if (versionCode <= 0 || apkUrl.length() == 0) {
-                return null;
-            }
-
-            return new AppUpdate(versionCode, versionName, apkUrl, sha256, releaseNotes);
-        } catch (IOException | JSONException exception) {
+            return parseAppUpdateManifest(manifest);
+        } catch (IOException | JSONException | IllegalArgumentException exception) {
             return null;
         } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
+    }
+
+    private JSONObject decodeGitHubContentsManifest(JSONObject response) throws JSONException {
+        String encodedContent = response.optString("content", "");
+
+        if (encodedContent.length() == 0) {
+            throw new JSONException("Missing GitHub contents payload");
+        }
+
+        String decodedContent = new String(Base64.decode(encodedContent, Base64.DEFAULT), StandardCharsets.UTF_8);
+
+        return new JSONObject(decodedContent);
+    }
+
+    private AppUpdate parseAppUpdateManifest(JSONObject manifest) {
+        JSONObject android = manifest.optJSONObject("android");
+
+        if (android == null) {
+            return null;
+        }
+
+        int versionCode = android.optInt("versionCode", 0);
+        String versionName = android.optString("versionName", "");
+        String apkUrl = android.optString("apkUrl", "");
+        String sha256 = android.optString("sha256", "");
+        String releaseNotes = android.optString("releaseNotes", "");
+
+        if (versionCode <= 0 || apkUrl.length() == 0) {
+            return null;
+        }
+
+        return new AppUpdate(versionCode, versionName, apkUrl, sha256, releaseNotes);
     }
 
     private void showUpdateDialog(AppUpdate update) {
@@ -1445,6 +1481,18 @@ public class MainActivity extends Activity {
 
         new AlertDialog.Builder(this)
             .setTitle("Mise a jour interrompue")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show();
+    }
+
+    private void showNativeActionFailure(String message) {
+        if (isFinishing()) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("Action impossible")
             .setMessage(message)
             .setPositiveButton("OK", null)
             .show();
@@ -1804,22 +1852,14 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public String openDeviceSecuritySettings() {
-            if (!isTrustedCrmPage()) {
-                return nativeActionResult(false, "Page CRM non autorisee.");
-            }
-
-            try {
-                boolean opened = MainActivity.this.openDeviceSecuritySettings();
-
-                return nativeActionResult(
-                    opened,
-                    opened
-                        ? "Ouverture des reglages de securite Android."
-                        : "Reglages Android indisponibles."
-                );
-            } catch (Exception exception) {
-                return nativeActionResult(false, "Reglages Android indisponibles.");
-            }
+            return runTrustedNativeAction(new Runnable() {
+                @Override
+                public void run() {
+                    if (!MainActivity.this.openDeviceSecuritySettings()) {
+                        showNativeActionFailure("Reglages Android indisponibles sur cet appareil.");
+                    }
+                }
+            }, "Ouverture des reglages de securite Android.");
         }
 
         @JavascriptInterface
