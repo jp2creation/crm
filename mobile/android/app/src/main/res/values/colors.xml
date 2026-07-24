@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#95002E</color>
+    <color name="colorPrimaryDark">#95002E</color>
+    <color name="colorAccent">#F5B212</color>
+    <color name="martin_sols_red">#95002E</color>
+    <color name="martin_sols_background">#F5F7FB</color>
+    <color name="martin_sols_navigation">#111827</color>
+</resources>

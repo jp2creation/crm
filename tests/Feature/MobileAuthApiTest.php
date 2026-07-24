@@ -108,6 +108,27 @@ class MobileAuthApiTest extends TestCase
 
         $this->flushSession();
 
+        $plainWebSessionUrl = $this->withHeader('Authorization', 'Bearer '.$token)
+            ->postJson('/api/mobile/web-session', [
+                'redirectPath' => '/dashboard/crm?mobile_app=1&mobile_embed=1',
+                'siteId' => $crmUser->sites()->first()->id,
+                'embed' => false,
+                'plain' => true,
+            ])
+            ->assertOk()
+            ->assertJsonPath('ok', true)
+            ->json('url');
+
+        $plainWebSessionPath = parse_url((string) $plainWebSessionUrl, PHP_URL_PATH);
+
+        $this->withSession(['crm_mobile_app' => true])
+            ->get($plainWebSessionPath)
+            ->assertRedirect('/?mobile_site_id='.$crmUser->sites()->first()->id);
+
+        $this->assertFalse(session()->has('crm_mobile_app'));
+
+        $this->flushSession();
+
         $this->withHeader('Authorization', 'Bearer '.$token)
             ->postJson('/api/mobile/logout')
             ->assertOk()
@@ -319,6 +340,16 @@ class MobileAuthApiTest extends TestCase
             ->assertOk()
             ->assertDontSee('crm-mobile-app', false)
             ->assertSee('"app":false', false);
+
+        $this->flushSession();
+
+        $this->actingAs($account)
+            ->withSession(['crm_mobile_app' => true])
+            ->get('/?source=pwa')
+            ->assertOk()
+            ->assertDontSee('crm-mobile-app', false)
+            ->assertSee('"app":false', false)
+            ->assertSessionMissing('crm_mobile_app');
 
         $fallbackNav = (string) file_get_contents(resource_path('frontend/crm/mobile/fallback-nav.ts'));
         $settings = (string) file_get_contents(resource_path('frontend/crm/mobile/settings.ts'));

@@ -10,12 +10,13 @@
       "martinsols.addvancesolutions.fr"
     ]
   },
+  "ios": {
+    "backgroundColor": "#f5f7fb",
+    "contentInset": "automatic"
+  },
   "plugins": {
     "App": {
       "disableBackButtonHandler": true
-    },
-    "CapacitorHttp": {
-      "enabled": true
     },
     "Keyboard": {
       "resize": "body",
@@ -24,14 +25,8 @@
     },
     "StatusBar": {
       "overlaysWebView": false,
-      "style": "LIGHT",
-      "backgroundColor": "#f4f4f5"
-    },
-    "SplashScreen": {
-      "launchShowDuration": 650,
-      "backgroundColor": "#f4f4f5",
-      "androidSplashResourceName": "splash",
-      "showSpinner": false
+      "style": "DARK",
+      "backgroundColor": "#95002e"
     }
   }
 }

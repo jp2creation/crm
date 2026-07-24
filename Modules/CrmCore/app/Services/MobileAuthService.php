@@ -173,20 +173,26 @@ class MobileAuthService
             'redirectPath' => ['nullable', 'string', 'max:2048'],
             'siteId' => ['nullable', 'integer'],
             'embed' => ['nullable', 'boolean'],
+            'plain' => ['nullable', 'boolean'],
         ]);
 
         $token = Str::random(56);
         $mobileToken = method_exists($user, 'currentAccessToken') ? $user->currentAccessToken() : null;
+
+        $embed = (bool) ($data['embed'] ?? true);
+        $plain = (bool) ($data['plain'] ?? false);
 
         Cache::put($this->webSessionCacheKey($token), [
             'user_id' => (int) $user->id,
             'mobile_token_id' => $mobileToken && method_exists($mobileToken, 'getKey')
                 ? (int) $mobileToken->getKey()
                 : null,
+            'mobile_app' => ! $plain && ! $embed,
             'redirect_path' => $this->safeMobileRedirectPath(
                 (string) ($data['redirectPath'] ?? '/'),
                 isset($data['siteId']) ? (int) $data['siteId'] : null,
-                (bool) ($data['embed'] ?? true),
+                $embed,
+                $plain,
             ),
         ], now()->addSeconds(90));
 
@@ -214,7 +220,12 @@ class MobileAuthService
 
         if ($mobileTokenId > 0) {
             $request->session()->put('crm_mobile_token_id', $mobileTokenId);
-            $request->session()->put('crm_mobile_app', true);
+
+            if (($payload['mobile_app'] ?? false) === true) {
+                $request->session()->put('crm_mobile_app', true);
+            } else {
+                $request->session()->forget('crm_mobile_app');
+            }
         }
 
         return (string) ($payload['redirect_path'] ?? '/');
@@ -384,7 +395,7 @@ class MobileAuthService
             ->all();
     }
 
-    private function safeMobileRedirectPath(string $value, ?int $siteId, bool $embed = true): string
+    private function safeMobileRedirectPath(string $value, ?int $siteId, bool $embed = true, bool $plain = false): string
     {
         $path = trim($value);
 
@@ -409,11 +420,15 @@ class MobileAuthService
             parse_str((string) $parts['query'], $query);
         }
 
-        if ($embed) {
-            $query['mobile_embed'] = '1';
+        if (! $plain) {
+            if ($embed) {
+                $query['mobile_embed'] = '1';
+            } else {
+                $query['mobile_app'] = '1';
+                unset($query['mobile_embed']);
+            }
         } else {
-            $query['mobile_app'] = '1';
-            unset($query['mobile_embed']);
+            unset($query['mobile_app'], $query['mobile_embed']);
         }
 
         if ($siteId && $siteId > 0) {

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "appName": "Martin Sols",
+  "android": {
+    "versionCode": 38,
+    "versionName": "1.36",
+    "required": false,
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.36/Martin_Sols_1.36.apk",
+    "sha256": "bde68c82b80bfa48f279affad06cdb1c2b97171ea0c763da36bbf0723e315a1d",
+    "releaseNotes": "Version stable de reference avant activation des mises a jour integrees."
+  },
+  "ios": {
+    "version": "1.0.0",
+    "buildNumber": 1,
+    "installUrl": "",
+    "distribution": "app-store-or-testflight",
+    "releaseNotes": "iOS doit passer par App Store, TestFlight, MDM ou distribution entreprise."
+  }
+}

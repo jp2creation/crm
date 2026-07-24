@@ -1,5 +1,11 @@
 @php
-  $isCrmMobileApp = session('crm_mobile_app') || request()->boolean('mobile_app');
+  $isRegularPwa = request()->query('source') === 'pwa';
+
+  if ($isRegularPwa) {
+      session()->forget('crm_mobile_app');
+  }
+
+  $isCrmMobileApp = ! $isRegularPwa && (session('crm_mobile_app') || request()->boolean('mobile_app'));
   $crmMobileEmbed = request()->boolean('mobile_embed');
   $crmBodyClass = trim(($crmMobileEmbed ? 'crm-mobile-embed ' : '').($isCrmMobileApp ? 'crm-mobile-app' : ''));
   $crmShellConfig = [

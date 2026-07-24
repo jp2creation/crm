@@ -9,23 +9,12 @@ function mobileMediaQuery(): MediaQueryList | null {
   return typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 767.98px)') : null;
 }
 
-function isStandaloneDisplay(): boolean {
-  const standaloneQuery =
-    typeof window.matchMedia === 'function' ? window.matchMedia('(display-mode: standalone)') : null;
-
-  return Boolean(
-    mobileMediaQuery()?.matches ||
-    standaloneQuery?.matches ||
-    (navigator as Navigator & { standalone?: boolean }).standalone,
-  );
-}
-
 function shouldUseFallbackNavigation(): boolean {
-  return Boolean(
-    document.body.classList.contains('crm-mobile-app') ||
-    document.body.classList.contains('crm-mobile-embed') ||
-    isStandaloneDisplay(),
-  );
+  if (document.body.classList.contains('crm-mobile-app')) {
+    return false;
+  }
+
+  return document.body.classList.contains('crm-mobile-embed');
 }
 
 function logoUrl(): string {
@@ -225,7 +214,7 @@ function ensureFallback(): void {
     [
       `<header id="${fallbackId}" class="crm-mobile-fallback-header">`,
       `<button class="crm-mobile-fallback-menu-button" type="button" data-crm-mobile-fallback-open aria-label="Menu CRM">${menuIcon()}</button>`,
-      '<a class="crm-mobile-fallback-brand" href="/?mobile_app=1">',
+      '<a class="crm-mobile-fallback-brand" href="/">',
       `<img src="${esc(logoUrl())}" alt="Martin Sols">`,
       '</a>',
       '<span style="width:42px;height:42px" aria-hidden="true"></span>',
