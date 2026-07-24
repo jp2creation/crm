@@ -12,6 +12,7 @@ use App\Models\CrmVehicle;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Modules\CrmCore\Services\CrmFeatureFlagService;
+use Modules\CrmCore\Services\CrmImageStorage;
 
 final class CrmReferenceCache
 {
@@ -375,11 +376,16 @@ final class CrmReferenceCache
             'email' => trim((string) $user->email) ?: trim((string) ($user->account->email ?? '')),
             'phone' => trim((string) $user->phone),
             'role' => $user->role,
-            'photoUrl' => trim((string) $user->photo_url) ?: '/assets/logo/logomark.png',
+            'photoUrl' => self::profilePhotoUrl($user->photo_url),
             'siteIds' => $siteIds,
             'siteNames' => $user->sites->pluck('name')->map(fn ($name): string => (string) $name)->values()->all(),
             'defaultSiteId' => $defaultSite ? (int) $defaultSite->id : ($siteIds[0] ?? null),
         ];
+    }
+
+    private static function profilePhotoUrl(?string $photoUrl): string
+    {
+        return app(CrmImageStorage::class)->normalizePublicUrl($photoUrl) ?: '/assets/logo/logomark.png';
     }
 
     private static function time5(?string $value, string $default): string

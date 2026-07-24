@@ -78,6 +78,20 @@ class CrmTeamsApiTest extends TestCase
             ]);
     }
 
+    public function test_team_members_return_normalized_profile_photo_urls(): void
+    {
+        [$account, $crmUser, $palissy] = $this->createCrmContext();
+
+        $crmUser->forceFill([
+            'photo_url' => '/storage/assets/uploads/profiles/avatar.webp',
+        ])->save();
+
+        $this->actingAs($account)
+            ->getJson('/api/equipes?action=bootstrap&siteId='.$palissy->id)
+            ->assertOk()
+            ->assertJsonPath('members.0.photoUrl', '/uploads/assets/uploads/profiles/avatar.webp');
+    }
+
     public function test_user_without_team_access_is_rejected(): void
     {
         $account = User::factory()->create();
