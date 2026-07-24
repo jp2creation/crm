@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 54,
-    "versionName": "1.52",
+    "versionCode": 55,
+    "versionName": "1.53",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.52/Martin_Sols_1.52.apk",
-    "sha256": "d7eabbdefe6c6ca3af8f68e74e26aa0db349b9d45b332235c430cc7d670b27fb",
-    "releaseNotes": "Version 1.52 stable : correction du bridge Parametres de l app. Les actions n appellent plus WebView.getUrl depuis le thread JavaScript, ce qui debloque code app, securite, mises a jour et actions natives."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.53/Martin_Sols_1.53.apk",
+    "sha256": "9780b8017821ce5fb2dbb7779deeb5b30fd816beacb6693d616612e6936254a9",
+    "releaseNotes": "Version 1.53 stable : correction complete des Parametres de l app. La recherche de mise a jour lit l API GitHub fraiche avant le cache Raw, et les actions Android des reglages securite/code passent toutes par le thread UI natif."
   },
   "ios": {
     "version": "1.0.0",
