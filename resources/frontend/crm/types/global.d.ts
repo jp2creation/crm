@@ -27,7 +27,14 @@ declare global {
     MartinSolsCrmLogout?: () => void;
     MartinSolsUi?: MartinSolsUi;
     MartinSolsMobileApp?: {
+      checkForUpdates?: () => void;
+      openSettings?: () => void;
       requestLocation: () => void;
+    };
+    MartinSolsNativeApp?: {
+      checkForUpdates?: () => void;
+      getVersionCode?: () => string;
+      getVersionName?: () => string;
     };
     __martinSolsCrmFetchCsrf?: boolean;
     __martinSolsCrmDeadLegacyLinksInstalled?: boolean;

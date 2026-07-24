@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -203,6 +204,7 @@ public class MainActivity extends Activity {
         view.setOverScrollMode(View.OVER_SCROLL_NEVER);
         view.setWebViewClient(new CrmWebViewClient());
         view.setWebChromeClient(new WebChromeClient());
+        view.addJavascriptInterface(new MartinSolsNativeAppBridge(), "MartinSolsNativeApp");
         view.setVerticalScrollBarEnabled(false);
         view.setHorizontalScrollBarEnabled(false);
 
@@ -324,18 +326,27 @@ public class MainActivity extends Activity {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                checkForAppUpdate();
+                checkForAppUpdate(false);
             }
         }, UPDATE_CHECK_DELAY_MS);
     }
 
-    private void checkForAppUpdate() {
+    private void checkForAppUpdate(boolean notifyWhenCurrent) {
         new Thread(new Runnable() {
             @Override
             public void run() {
                 AppUpdate update = fetchAppUpdate();
 
                 if (update == null || update.versionCode <= BuildConfig.VERSION_CODE) {
+                    if (notifyWhenCurrent) {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                showNoUpdateDialog();
+                            }
+                        });
+                    }
+
                     return;
                 }
 
@@ -347,6 +358,29 @@ public class MainActivity extends Activity {
                 });
             }
         }).start();
+    }
+
+    private void showNoUpdateDialog() {
+        if (isFinishing()) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("Application a jour")
+            .setMessage("Aucune nouvelle version de Martin Sols n'est disponible pour le moment.")
+            .setPositiveButton("OK", null)
+            .show();
+    }
+
+    private boolean isTrustedCrmPage() {
+        if (webView == null || webView.getUrl() == null) {
+            return false;
+        }
+
+        Uri uri = Uri.parse(webView.getUrl());
+        String host = uri.getHost();
+
+        return "crm.jp2.fr".equalsIgnoreCase(host);
     }
 
     private AppUpdate fetchAppUpdate() {
@@ -962,6 +996,32 @@ public class MainActivity extends Activity {
             }
 
             setMeasuredDimension(desiredWidth, desiredHeight);
+        }
+    }
+
+    private final class MartinSolsNativeAppBridge {
+        @JavascriptInterface
+        public String getVersionName() {
+            return BuildConfig.VERSION_NAME;
+        }
+
+        @JavascriptInterface
+        public String getVersionCode() {
+            return String.valueOf(BuildConfig.VERSION_CODE);
+        }
+
+        @JavascriptInterface
+        public void checkForUpdates() {
+            if (!isTrustedCrmPage()) {
+                return;
+            }
+
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    checkForAppUpdate(true);
+                }
+            });
         }
     }
 

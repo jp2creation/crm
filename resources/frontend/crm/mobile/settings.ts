@@ -10,7 +10,14 @@ type MobileSettings = {
   locationEnabled: boolean;
 };
 
+type NativeAppBridge = {
+  checkForUpdates?: () => void;
+  getVersionCode?: () => string;
+  getVersionName?: () => string;
+};
+
 const storageKey = 'martin-sols.crm.mobile-app.settings';
+let settingsInstalled = false;
 
 function readSettings(): MobileSettings {
   try {
@@ -39,21 +46,41 @@ function dispatchLocation(settings: MobileSettings, lastLocation: MobileLocation
   );
 }
 
-function mountSettingsMarkup(): void {
-  if (!document.body.classList.contains('crm-mobile-app')) {
-    return;
+function isMobileApp(): boolean {
+  return window.MartinSolsCrmConfig?.mobile.app === true || document.body.classList.contains('crm-mobile-app');
+}
+
+function nativeBridge(): NativeAppBridge | undefined {
+  return window.MartinSolsNativeApp;
+}
+
+function appVersionLabel(): string {
+  try {
+    const versionName = nativeBridge()?.getVersionName?.() || '';
+    const versionCode = nativeBridge()?.getVersionCode?.() || '';
+
+    if (versionName && versionCode) {
+      return `${versionName} (${versionCode})`;
+    }
+
+    return versionName || 'App mobile';
+  } catch {
+    return 'App mobile';
+  }
+}
+
+function mountSettingsMarkup(): boolean {
+  if (!isMobileApp()) {
+    return false;
   }
 
   if (document.querySelector('[data-crm-mobile-settings]')) {
-    return;
+    return true;
   }
 
   const wrapper = document.createElement('div');
 
   wrapper.innerHTML = `
-    <button class="crm-mobile-app-settings-trigger" type="button" data-crm-mobile-settings-toggle aria-label="Paramètres de l'app">
-      <span></span><span></span><span></span>
-    </button>
     <div class="crm-mobile-app-settings" data-crm-mobile-settings hidden>
       <button class="crm-mobile-app-settings-backdrop" type="button" data-crm-mobile-settings-close aria-label="Fermer"></button>
       <section class="crm-mobile-app-settings-panel" role="dialog" aria-modal="true" aria-label="Paramètres de l'app">
@@ -89,12 +116,20 @@ function mountSettingsMarkup(): void {
           </div>
           <div>
             <span>Version</span>
-            <strong>App mobile</strong>
+            <strong data-crm-mobile-app-version>App mobile</strong>
           </div>
           <div>
             <span>WebView</span>
             <strong data-crm-mobile-platform>Android</strong>
           </div>
+        </div>
+
+        <div class="crm-mobile-app-settings-section">
+          <div class="crm-mobile-app-settings-section-head">
+            <span>Mises à jour</span>
+            <strong data-crm-mobile-update-status>Contrôle automatique actif</strong>
+          </div>
+          <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-check-update>Rechercher une mise à jour</button>
         </div>
 
         <p class="crm-mobile-app-settings-error" data-crm-mobile-settings-error></p>
@@ -108,23 +143,29 @@ function mountSettingsMarkup(): void {
   `;
 
   document.body.append(...Array.from(wrapper.childNodes));
+
+  return true;
 }
 
 export function installMobileAppSettings(): void {
-  mountSettingsMarkup();
+  if (!mountSettingsMarkup()) {
+    return;
+  }
 
   const modal = document.querySelector<HTMLElement>('[data-crm-mobile-settings]');
-  const toggle = document.querySelector<HTMLButtonElement>('[data-crm-mobile-settings-toggle]');
   const closeButtons = document.querySelectorAll<HTMLButtonElement>('[data-crm-mobile-settings-close]');
   const locationEnabled = document.querySelector<HTMLInputElement>('[data-crm-mobile-location-enabled]');
   const locationAccuracy = document.querySelector<HTMLInputElement>('[data-crm-mobile-location-accuracy]');
   const networkStatus = document.querySelector<HTMLElement>('[data-crm-mobile-network-status]');
   const locationStatus = document.querySelector<HTMLElement>('[data-crm-mobile-location-status]');
   const platformStatus = document.querySelector<HTMLElement>('[data-crm-mobile-platform]');
+  const appVersion = document.querySelector<HTMLElement>('[data-crm-mobile-app-version]');
+  const updateStatus = document.querySelector<HTMLElement>('[data-crm-mobile-update-status]');
   const errorBox = document.querySelector<HTMLElement>('[data-crm-mobile-settings-error]');
   const testLocation = document.querySelector<HTMLButtonElement>('[data-crm-mobile-test-location]');
+  const checkUpdate = document.querySelector<HTMLButtonElement>('[data-crm-mobile-check-update]');
 
-  if (!modal || !toggle || !locationEnabled || !locationAccuracy) {
+  if (!modal || !locationEnabled || !locationAccuracy) {
     return;
   }
 
@@ -177,6 +218,10 @@ export function installMobileAppSettings(): void {
       platformStatus.textContent = navigator.userAgent;
     }
 
+    if (appVersion) {
+      appVersion.textContent = appVersionLabel();
+    }
+
     if (testLocation) {
       testLocation.disabled = locationLoading || !settings.locationEnabled;
     }
@@ -219,15 +264,33 @@ export function installMobileAppSettings(): void {
     );
   };
 
-  toggle.addEventListener('click', () => {
+  const openSettings = () => {
     modal.hidden = false;
+    showError('');
     renderSettings();
-  });
+  };
+
+  const closeSettings = () => {
+    modal.hidden = true;
+  };
+
+  const requestUpdateCheck = () => {
+    showError('');
+
+    if (!nativeBridge()?.checkForUpdates) {
+      showError('Recherche de mise à jour disponible uniquement dans l’app installée.');
+      return;
+    }
+
+    if (updateStatus) {
+      updateStatus.textContent = 'Recherche lancée...';
+    }
+
+    nativeBridge()?.checkForUpdates?.();
+  };
 
   closeButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      modal.hidden = true;
-    });
+    button.addEventListener('click', closeSettings);
   });
 
   locationEnabled.addEventListener('change', () => {
@@ -253,9 +316,35 @@ export function installMobileAppSettings(): void {
   });
 
   testLocation?.addEventListener('click', requestLocation);
+  checkUpdate?.addEventListener('click', requestUpdateCheck);
 
   window.addEventListener('online', renderSettings);
   window.addEventListener('offline', renderSettings);
+
+  if (!settingsInstalled) {
+    settingsInstalled = true;
+
+    document.addEventListener(
+      'click',
+      (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+
+        if (!target?.closest('[data-crm-mobile-settings-toggle]')) {
+          return;
+        }
+
+        event.preventDefault();
+        openSettings();
+      },
+      true,
+    );
+  }
+
+  window.MartinSolsMobileApp = {
+    checkForUpdates: requestUpdateCheck,
+    openSettings,
+    requestLocation,
+  };
 
   renderSettings();
 }

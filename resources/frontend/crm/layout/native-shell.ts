@@ -332,6 +332,23 @@ function profilePhoto(profile?: CrmProfile): string {
   return normalizePhotoUrl(profile?.photoUrl) || '/assets/logo/logomark.png';
 }
 
+function isMobileApp(): boolean {
+  return window.MartinSolsCrmConfig?.mobile.app === true || document.body.classList.contains('crm-mobile-app');
+}
+
+function mobileAppSettingsMenuItemHtml(): string {
+  if (!isMobileApp()) {
+    return '';
+  }
+
+  return [
+    '<button class="crm-native-user-menu-item" type="button" data-crm-mobile-settings-toggle role="menuitem">',
+    `<span class="crm-native-user-menu-icon">${iconForKey('settings')}</span>`,
+    '<span><strong>Paramètres de l’app</strong><small>Mises à jour et options mobile</small></span>',
+    '</button>',
+  ].join('');
+}
+
 function setTextContent(node: HTMLElement | null, value: string): void {
   if (node && node.textContent !== value) {
     node.textContent = value;
@@ -410,6 +427,7 @@ function headerHtml(profile?: CrmProfile): string {
     `<span class="crm-native-user-menu-icon">${iconForKey('profile')}</span>`,
     '<span><strong>Paramètres</strong><small>Compte utilisateur</small></span>',
     '</a>',
+    mobileAppSettingsMenuItemHtml(),
     '<button class="crm-native-user-menu-item crm-native-user-menu-danger" type="button" data-crm-native-logout role="menuitem">',
     `<span class="crm-native-user-menu-icon">${iconForKey('logout')}</span>`,
     '<span><strong>Se déconnecter</strong><small>Quitter le CRM</small></span>',
@@ -582,7 +600,7 @@ function setUserMenuOpen(open: boolean): void {
 function toggleUserMenu(): void {
   const menu = document.querySelector<HTMLElement>('[data-crm-native-user-menu]');
 
-  setUserMenuOpen(!menu || menu.hidden);
+  setUserMenuOpen(!menu || Boolean(menu.hidden));
 }
 
 function installShellApi(): void {
@@ -621,6 +639,11 @@ function installEvents(): void {
       if (userMenuToggle) {
         event.preventDefault();
         toggleUserMenu();
+        return;
+      }
+
+      if (target?.closest('[data-crm-mobile-settings-toggle]')) {
+        setUserMenuOpen(false);
         return;
       }
 
