@@ -16,7 +16,10 @@ class ExampleTest extends TestCase
     public function test_login_page_loads(): void
     {
         $this->get('/login')
-            ->assertOk();
+            ->assertOk()
+            ->assertSee('Connexion équipe')
+            ->assertSee('Sécurité anti-robot')
+            ->assertDontSee('Connexion CRM');
     }
 
     public function test_login_page_can_remember_the_user_email_without_storing_the_password(): void

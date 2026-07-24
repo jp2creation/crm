@@ -27,6 +27,7 @@ use Illuminate\Support\ViewErrorBag;
 use Illuminate\Testing\TestResponse;
 use Modules\CrmCore\Services\CrmActivityLogger;
 use Modules\CrmCore\Support\CrmReferenceCache;
+use Modules\CrmCore\Support\LoginCaptcha;
 use Spatie\Permission\Models\Role;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -124,6 +125,48 @@ class CrmSecurityTest extends TestCase
         ])
             ->assertRedirect('/')
             ->assertCookie($guard->getRecallerName());
+    }
+
+    public function test_login_rejects_an_invalid_captcha_answer(): void
+    {
+        RateLimiter::clear('captcha@example.test|127.0.0.1');
+
+        User::factory()->create([
+            'email' => 'captcha@example.test',
+        ]);
+
+        $this->postLoginWithCsrf([
+            'email' => 'captcha@example.test',
+            'password' => 'password',
+            'captcha_answer' => '99',
+        ], [
+            LoginCaptcha::SESSION_KEY => LoginCaptcha::makeChallenge(4, 4),
+        ])
+            ->assertRedirect('/login')
+            ->assertSessionHasErrors('captcha_answer');
+
+        $this->assertGuest();
+    }
+
+    public function test_login_accepts_a_valid_captcha_answer(): void
+    {
+        RateLimiter::clear('captcha-valid@example.test|127.0.0.1');
+
+        $user = User::factory()->create([
+            'email' => 'captcha-valid@example.test',
+        ]);
+
+        $this->postLoginWithCsrf([
+            'email' => $user->email,
+            'password' => 'password',
+            'captcha_answer' => '8',
+        ], [
+            LoginCaptcha::SESSION_KEY => LoginCaptcha::makeChallenge(4, 4),
+        ])
+            ->assertRedirect('/');
+
+        $this->assertAuthenticatedAs($user);
+        $this->assertFalse(session()->has(LoginCaptcha::SESSION_KEY));
     }
 
     public function test_login_does_not_keep_mobile_embed_for_the_regular_pwa(): void
@@ -764,6 +807,11 @@ class CrmSecurityTest extends TestCase
     private function postLoginWithCsrf(array $payload, array $session = [], string $from = '/login'): TestResponse
     {
         $token = 'crm-login-csrf-token';
+
+        if (! array_key_exists('captcha_answer', $payload)) {
+            $payload['captcha_answer'] = '12';
+            $session[LoginCaptcha::SESSION_KEY] = LoginCaptcha::makeChallenge(5, 7);
+        }
 
         return $this->from($from)
             ->withSession(['_token' => $token, ...$session])

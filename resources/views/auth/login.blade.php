@@ -104,7 +104,8 @@
       }
 
       input[type="email"],
-      input[type="password"] {
+      input[type="password"],
+      input[type="number"] {
         width: 100%;
         min-height: 52px;
         padding: 0 14px;
@@ -115,6 +116,16 @@
         font: inherit;
         font-size: 1rem;
         font-weight: 650;
+      }
+
+      input[type="number"] {
+        appearance: textfield;
+      }
+
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        margin: 0;
+        appearance: none;
       }
 
       input:focus {
@@ -137,6 +148,29 @@
         height: 20px;
         margin: 0;
         accent-color: var(--primary);
+      }
+
+      .captcha {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 128px;
+        gap: 12px;
+        align-items: end;
+        padding: 14px;
+        border: 1px solid rgba(165, 0, 52, 0.16);
+        border-radius: 12px;
+        background: rgba(165, 0, 52, 0.045);
+      }
+
+      .captcha p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+
+      .captcha strong {
+        color: var(--primary);
+        font-weight: 900;
       }
 
       .error {
@@ -201,8 +235,13 @@
         }
 
         input[type="email"],
-        input[type="password"] {
+        input[type="password"],
+        input[type="number"] {
           min-height: 48px;
+        }
+
+        .captcha {
+          grid-template-columns: 1fr;
         }
 
         button {
@@ -233,11 +272,11 @@
       })()
     </script>
     <main>
-      <section class="login-card" aria-label="Connexion Martin Sols CRM">
+      <section class="login-card" aria-label="Connexion équipe Martin Sols">
         <div class="brand">
           <img src="{{ asset('martin-sols-logo.png') }}" alt="Martin Sols" />
           <div>
-            <h1>Connexion CRM</h1>
+            <h1>Connexion équipe</h1>
           </div>
         </div>
 
@@ -272,6 +311,22 @@
               name="password"
               type="password"
               autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <div class="captcha">
+            <div>
+              <label for="captcha_answer">Sécurité anti-robot</label>
+              <p>Combien font <strong>{{ $loginCaptcha['question'] ?? '' }}</strong> ?</p>
+            </div>
+            <input
+              id="captcha_answer"
+              name="captcha_answer"
+              type="number"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              autocomplete="off"
               required
             />
           </div>

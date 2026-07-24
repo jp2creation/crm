@@ -12,23 +12,26 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Modules\CrmCore\Http\Requests\LoginRequest;
+use Modules\CrmCore\Support\LoginCaptcha;
 
 class AuthController extends Controller
 {
-    public function show(): View
+    public function show(Request $request): View
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'loginCaptcha' => LoginCaptcha::ensure($request),
+        ]);
     }
 
     public function login(LoginRequest $request): RedirectResponse
     {
-        $credentials = $request->validated();
-        unset($credentials['remember']);
+        $credentials = $request->safe()->only(['email', 'password']);
 
         $throttleKey = $this->throttleKey($request);
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
+            LoginCaptcha::regenerate($request);
 
             throw ValidationException::withMessages([
                 'email' => "Trop de tentatives. Reessayez dans {$seconds} secondes.",
@@ -37,6 +40,7 @@ class AuthController extends Controller
 
         if (! Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey, 60);
+            LoginCaptcha::regenerate($request);
 
             throw ValidationException::withMessages([
                 'email' => 'Identifiants invalides.',
@@ -44,6 +48,7 @@ class AuthController extends Controller
         }
 
         RateLimiter::clear($throttleKey);
+        LoginCaptcha::forget($request);
         $request->session()->regenerate();
         $this->stripMobileEmbedFromIntendedUrl($request);
 
