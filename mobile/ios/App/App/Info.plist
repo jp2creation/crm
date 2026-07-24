@@ -26,6 +26,8 @@
 	<true/>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.business</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Martin Sols utilise votre position uniquement quand vous activez la localisation dans les parametres de l'app.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIStatusBarStyle</key>

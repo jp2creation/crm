@@ -307,7 +307,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileDoesNotExist(base_path('mobile/android/app/src/main/res/xml/config.xml'));
         $this->assertFileDoesNotExist(base_path('mobile/android/app/src/main/res/xml/file_paths.xml'));
         $this->assertStringContainsString("const openingAnimationUrl = new URL('./assets/opening-animation.gif', import.meta.url).href", $mobileApp);
-        $this->assertStringContainsString("const defaultCrmUrl = 'https://crm.jp2.fr/?mobile_app=1'", $mobileApp);
+        $this->assertStringContainsString("const defaultCrmUrl = 'https://crm.jp2.fr/?mobile_app=1&source=ios_app'", $mobileApp);
         $this->assertStringContainsString('function normalizeCrmUrl(value: string): string', $mobileApp);
         $this->assertStringContainsString("url.searchParams.set('mobile_app', '1')", $mobileApp);
         $this->assertStringContainsString('const openingAnimationDurationMs = 5500', $mobileApp);
@@ -391,8 +391,10 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('Sécurité de l’app', $mobileSettings);
         $this->assertStringContainsString('Empreinte', $mobileSettings);
         $this->assertStringContainsString('Visage', $mobileSettings);
-        $this->assertStringContainsString('Code Android', $mobileSettings);
-        $this->assertStringContainsString('Paramétrer la sécurité Android', $mobileSettings);
+        $this->assertStringContainsString('Code appareil', $mobileSettings);
+        $this->assertStringContainsString('Paramétrer la sécurité de l’appareil', $mobileSettings);
+        $this->assertStringContainsString('Ouvrir les réglages iOS', $mobileSettings);
+        $this->assertStringContainsString('Ouvrir la sécurité Android', $mobileSettings);
         $this->assertStringContainsString('Code app Martin Sols', $mobileSettings);
         $this->assertStringContainsString('Localisation terrain', $mobileSettings);
         $this->assertStringContainsString('Informations', $mobileSettings);
