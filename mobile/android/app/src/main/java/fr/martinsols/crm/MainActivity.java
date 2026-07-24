@@ -1,26 +1,35 @@
 package fr.martinsols.crm;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.app.KeyguardManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
+import android.hardware.biometrics.BiometricPrompt;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -29,6 +38,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.CookieManager;
+import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -44,8 +54,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.Executor;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,9 +71,16 @@ public class MainActivity extends Activity {
     private static final String CRM_URL = "https://crm.jp2.fr/?mobile_app=1";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/jp2creation/crm/main/mobile/releases/martin-sols-update.json";
     private static final String APK_MIME_TYPE = "application/vnd.android.package-archive";
+    private static final String MOBILE_AUTH_PREFS = "martin_sols_mobile_auth";
+    private static final String MOBILE_AUTH_KEY_ALIAS = "martin_sols_mobile_session";
+    private static final String MOBILE_AUTH_SESSION_CIPHER = "session_cipher";
+    private static final String MOBILE_AUTH_SESSION_IV = "session_iv";
+    private static final String MOBILE_AUTH_CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
     private static final long SPLASH_DURATION_MS = 5500L;
     private static final long UPDATE_CHECK_DELAY_MS = 1500L;
     private static final long UPDATE_PROGRESS_INTERVAL_MS = 450L;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 2101;
+    private static final int DEVICE_CREDENTIAL_REQUEST_CODE = 2102;
     private static final int SPLASH_VIDEO_RESOURCE = R.raw.intro;
     private static final int SPLASH_VIDEO_WIDTH = 720;
     private static final int SPLASH_VIDEO_HEIGHT = 1280;
@@ -69,6 +94,12 @@ public class MainActivity extends Activity {
     private static final int SPLASH_BACKGROUND = Color.rgb(255, 250, 247);
 
     private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Executor mainExecutor = new Executor() {
+        @Override
+        public void execute(Runnable command) {
+            handler.post(command);
+        }
+    };
     private FrameLayout rootView;
     private WebView webView;
     private FrameLayout splashLayer;
@@ -83,6 +114,10 @@ public class MainActivity extends Activity {
     private TextView updateProgressPercent;
     private long updateDownloadId = -1L;
     private String pendingUpdateSha256 = "";
+    private GeolocationPermissions.Callback pendingGeolocationCallback;
+    private String pendingGeolocationOrigin = "";
+    private String pendingDeviceCredentialRequestId = "";
+    private CancellationSignal biometricCancellationSignal;
     private boolean updateCheckStarted;
     private boolean updateInstallStarted;
 
@@ -160,6 +195,43 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode != DEVICE_CREDENTIAL_REQUEST_CODE) {
+            return;
+        }
+
+        String requestId = pendingDeviceCredentialRequestId;
+        pendingDeviceCredentialRequestId = "";
+
+        if (resultCode == RESULT_OK) {
+            deliverSavedMobileSession(requestId);
+            return;
+        }
+
+        dispatchNativeAuthResult(requestId, false, null, "Authentification annulee.");
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
+            return;
+        }
+
+        GeolocationPermissions.Callback callback = pendingGeolocationCallback;
+        String origin = pendingGeolocationOrigin;
+        pendingGeolocationCallback = null;
+        pendingGeolocationOrigin = "";
+
+        if (callback != null && origin.length() > 0) {
+            callback.invoke(origin, hasLocationPermission(), false);
+        }
+    }
+
+    @Override
     public void onBackPressed() {
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
@@ -173,6 +245,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         handler.removeCallbacks(hideSplash);
         handler.removeCallbacks(updateDownloadProgress);
+        cancelBiometricPrompt();
         unregisterUpdateDownloadReceiver();
         dismissUpdateProgressDialog();
         releaseSplashPlayer();
@@ -203,7 +276,7 @@ public class MainActivity extends Activity {
         view.setBackgroundColor(MARTIN_SOLS_BACKGROUND);
         view.setOverScrollMode(View.OVER_SCROLL_NEVER);
         view.setWebViewClient(new CrmWebViewClient());
-        view.setWebChromeClient(new WebChromeClient());
+        view.setWebChromeClient(new CrmWebChromeClient());
         view.addJavascriptInterface(new MartinSolsNativeAppBridge(), "MartinSolsNativeApp");
         view.setVerticalScrollBarEnabled(false);
         view.setHorizontalScrollBarEnabled(false);
@@ -212,7 +285,7 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setGeolocationEnabled(false);
+        settings.setGeolocationEnabled(true);
         settings.setJavaScriptCanOpenWindowsAutomatically(true);
         settings.setMediaPlaybackRequiresUserGesture(false);
 
@@ -315,6 +388,7 @@ public class MainActivity extends Activity {
         }
 
         scheduleUpdateCheck();
+        requestInitialLocationPermission();
     }
 
     private void scheduleUpdateCheck() {
@@ -379,8 +453,359 @@ public class MainActivity extends Activity {
 
         Uri uri = Uri.parse(webView.getUrl());
         String host = uri.getHost();
+        String scheme = uri.getScheme();
 
-        return "crm.jp2.fr".equalsIgnoreCase(host);
+        return "https".equalsIgnoreCase(scheme) && "crm.jp2.fr".equalsIgnoreCase(host);
+    }
+
+    private static boolean isTrustedCrmOrigin(String origin) {
+        if (origin == null || origin.length() == 0) {
+            return false;
+        }
+
+        Uri uri = Uri.parse(origin);
+        String host = uri.getHost();
+        String scheme = uri.getScheme();
+
+        return "https".equalsIgnoreCase(scheme) && "crm.jp2.fr".equalsIgnoreCase(host);
+    }
+
+    private void requestInitialLocationPermission() {
+        if (hasLocationPermission() || Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return;
+        }
+
+        requestPermissions(new String[] {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        }, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    private boolean hasLocationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+
+        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void handleGeolocationPermissionPrompt(String origin, GeolocationPermissions.Callback callback) {
+        if (!isTrustedCrmOrigin(origin)) {
+            callback.invoke(origin, false, false);
+
+            return;
+        }
+
+        if (hasLocationPermission()) {
+            callback.invoke(origin, true, false);
+
+            return;
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            callback.invoke(origin, true, false);
+
+            return;
+        }
+
+        pendingGeolocationCallback = callback;
+        pendingGeolocationOrigin = origin;
+        requestPermissions(new String[] {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+        }, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    private SharedPreferences mobileAuthPreferences() {
+        return getSharedPreferences(MOBILE_AUTH_PREFS, Context.MODE_PRIVATE);
+    }
+
+    private boolean hasSavedMobileSession() {
+        SharedPreferences preferences = mobileAuthPreferences();
+
+        return preferences.contains(MOBILE_AUTH_SESSION_CIPHER) && preferences.contains(MOBILE_AUTH_SESSION_IV);
+    }
+
+    private String mobileAuthStatusJson() {
+        JSONObject status = new JSONObject();
+
+        try {
+            boolean deviceSecure = isDeviceSecure();
+
+            status.put("ok", true);
+            status.put("available", deviceSecure);
+            status.put("configured", deviceSecure);
+            status.put("hasSession", hasSavedMobileSession());
+            status.put("label", Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                ? "Empreinte, visage ou code"
+                : "Code de l'appareil");
+
+            if (!deviceSecure) {
+                status.put("message", "Configure un code, une empreinte ou Face Unlock dans Android.");
+            }
+        } catch (JSONException exception) {
+            return "{\"ok\":false}";
+        }
+
+        return status.toString();
+    }
+
+    private boolean isDeviceSecure() {
+        KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+
+        if (keyguardManager == null) {
+            return false;
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return keyguardManager.isDeviceSecure();
+        }
+
+        return keyguardManager.isKeyguardSecure();
+    }
+
+    private String saveMobileSessionPayload(String payload) {
+        if (!isTrustedCrmPage()) {
+            return "{\"ok\":false,\"error\":\"Page CRM non autorisee.\"}";
+        }
+
+        if (!isDeviceSecure()) {
+            return "{\"ok\":false,\"error\":\"Configure un code, une empreinte ou Face Unlock dans Android.\"}";
+        }
+
+        try {
+            JSONObject session = new JSONObject(payload);
+
+            if (session.optString("token", "").length() == 0 || session.optString("refreshToken", "").length() == 0) {
+                return "{\"ok\":false,\"error\":\"Session mobile incomplete.\"}";
+            }
+
+            byte[] plainText = session.toString().getBytes(StandardCharsets.UTF_8);
+            Cipher cipher = Cipher.getInstance(MOBILE_AUTH_CIPHER_TRANSFORMATION);
+            cipher.init(Cipher.ENCRYPT_MODE, mobileSessionSecretKey());
+
+            byte[] encrypted = cipher.doFinal(plainText);
+            byte[] iv = cipher.getIV();
+
+            mobileAuthPreferences()
+                .edit()
+                .putString(MOBILE_AUTH_SESSION_CIPHER, Base64.encodeToString(encrypted, Base64.NO_WRAP))
+                .putString(MOBILE_AUTH_SESSION_IV, Base64.encodeToString(iv, Base64.NO_WRAP))
+                .apply();
+
+            return "{\"ok\":true}";
+        } catch (Exception exception) {
+            clearSavedMobileSession();
+
+            return "{\"ok\":false,\"error\":\"Connexion rapide indisponible sur cet appareil.\"}";
+        }
+    }
+
+    private SecretKey mobileSessionSecretKey() throws GeneralSecurityException, IOException {
+        KeyStore keyStore = KeyStore.getInstance("AndroidKeyStore");
+        keyStore.load(null);
+
+        if (keyStore.containsAlias(MOBILE_AUTH_KEY_ALIAS)) {
+            return (SecretKey) keyStore.getKey(MOBILE_AUTH_KEY_ALIAS, null);
+        }
+
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+        KeyGenParameterSpec keySpec = new KeyGenParameterSpec.Builder(
+            MOBILE_AUTH_KEY_ALIAS,
+            KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT
+        )
+            .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+            .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+            .setRandomizedEncryptionRequired(true)
+            .build();
+
+        keyGenerator.init(keySpec);
+
+        return keyGenerator.generateKey();
+    }
+
+    private String decryptedMobileSessionPayload() throws GeneralSecurityException, IOException {
+        SharedPreferences preferences = mobileAuthPreferences();
+        String encryptedPayload = preferences.getString(MOBILE_AUTH_SESSION_CIPHER, "");
+        String encodedIv = preferences.getString(MOBILE_AUTH_SESSION_IV, "");
+
+        if (encryptedPayload == null || encryptedPayload.length() == 0 || encodedIv == null || encodedIv.length() == 0) {
+            throw new GeneralSecurityException("Missing mobile session");
+        }
+
+        byte[] encrypted = Base64.decode(encryptedPayload, Base64.NO_WRAP);
+        byte[] iv = Base64.decode(encodedIv, Base64.NO_WRAP);
+        Cipher cipher = Cipher.getInstance(MOBILE_AUTH_CIPHER_TRANSFORMATION);
+        cipher.init(Cipher.DECRYPT_MODE, mobileSessionSecretKey(), new GCMParameterSpec(128, iv));
+
+        return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
+    }
+
+    private void clearSavedMobileSession() {
+        mobileAuthPreferences()
+            .edit()
+            .remove(MOBILE_AUTH_SESSION_CIPHER)
+            .remove(MOBILE_AUTH_SESSION_IV)
+            .apply();
+    }
+
+    private void authenticateSavedMobileSession(String requestId) {
+        if (!isTrustedCrmPage()) {
+            dispatchNativeAuthResult(requestId, false, null, "Page CRM non autorisee.");
+
+            return;
+        }
+
+        if (!hasSavedMobileSession()) {
+            dispatchNativeAuthResult(requestId, false, null, "Aucune connexion rapide n'est enregistree.");
+
+            return;
+        }
+
+        if (!isDeviceSecure()) {
+            dispatchNativeAuthResult(requestId, false, null, "Configure un code, une empreinte ou Face Unlock dans Android.");
+
+            return;
+        }
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    showBiometricPrompt(requestId);
+                    return;
+                }
+
+                showDeviceCredentialPrompt(requestId);
+            }
+        });
+    }
+
+    private void showBiometricPrompt(String requestId) {
+        cancelBiometricPrompt();
+
+        BiometricPrompt.Builder builder = new BiometricPrompt.Builder(this)
+            .setTitle("Connexion Martin Sols")
+            .setSubtitle("Confirme ton identite")
+            .setDescription("Utilise l'empreinte, le visage ou le code configure sur ce telephone.");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            builder.setDeviceCredentialAllowed(true);
+        } else {
+            builder.setNegativeButton("Annuler", mainExecutor, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dispatchNativeAuthResult(requestId, false, null, "Authentification annulee.");
+                }
+            });
+        }
+
+        biometricCancellationSignal = new CancellationSignal();
+
+        builder.build().authenticate(biometricCancellationSignal, mainExecutor, new BiometricPrompt.AuthenticationCallback() {
+            @Override
+            public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result) {
+                biometricCancellationSignal = null;
+                deliverSavedMobileSession(requestId);
+            }
+
+            @Override
+            public void onAuthenticationError(int errorCode, CharSequence errorString) {
+                biometricCancellationSignal = null;
+
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q && isDeviceSecure()) {
+                    showDeviceCredentialPrompt(requestId);
+                    return;
+                }
+
+                dispatchNativeAuthResult(requestId, false, null, errorString == null
+                    ? "Authentification impossible."
+                    : errorString.toString());
+            }
+
+            @Override
+            public void onAuthenticationFailed() {
+            }
+        });
+    }
+
+    private void showDeviceCredentialPrompt(String requestId) {
+        KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+
+        if (keyguardManager == null) {
+            dispatchNativeAuthResult(requestId, false, null, "Authentification appareil indisponible.");
+
+            return;
+        }
+
+        Intent intent = keyguardManager.createConfirmDeviceCredentialIntent(
+            "Connexion Martin Sols",
+            "Confirme ton identite pour ouvrir le CRM."
+        );
+
+        if (intent == null) {
+            dispatchNativeAuthResult(requestId, false, null, "Configure un code sur ce telephone.");
+
+            return;
+        }
+
+        pendingDeviceCredentialRequestId = requestId;
+        startActivityForResult(intent, DEVICE_CREDENTIAL_REQUEST_CODE);
+    }
+
+    private void cancelBiometricPrompt() {
+        if (biometricCancellationSignal == null || biometricCancellationSignal.isCanceled()) {
+            return;
+        }
+
+        biometricCancellationSignal.cancel();
+        biometricCancellationSignal = null;
+    }
+
+    private void deliverSavedMobileSession(String requestId) {
+        try {
+            String payload = decryptedMobileSessionPayload();
+            new JSONObject(payload);
+            dispatchNativeAuthResult(requestId, true, payload, "");
+        } catch (Exception exception) {
+            clearSavedMobileSession();
+            dispatchNativeAuthResult(requestId, false, null, "Connexion rapide expiree. Reconnecte-toi une fois.");
+        }
+    }
+
+    private void dispatchNativeAuthResult(String requestId, boolean ok, String sessionPayload, String error) {
+        if (webView == null) {
+            return;
+        }
+
+        JSONObject detail = new JSONObject();
+
+        try {
+            detail.put("requestId", requestId == null ? "" : requestId);
+            detail.put("ok", ok);
+
+            if (ok && sessionPayload != null) {
+                detail.put("session", new JSONObject(sessionPayload));
+            }
+
+            if (!ok) {
+                detail.put("error", error == null || error.length() == 0 ? "Authentification impossible." : error);
+            }
+        } catch (JSONException exception) {
+            return;
+        }
+
+        String script = "window.dispatchEvent(new CustomEvent('martin-sols:native-auth-result',{detail:" + detail + "}));";
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (webView != null) {
+                    webView.evaluateJavascript(script, null);
+                }
+            }
+        });
     }
 
     private AppUpdate fetchAppUpdate() {
@@ -948,6 +1373,13 @@ public class MainActivity extends Activity {
         view.destroy();
     }
 
+    private final class CrmWebChromeClient extends WebChromeClient {
+        @Override
+        public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+            handleGeolocationPermissionPrompt(origin, callback);
+        }
+    }
+
     private static final class CrmWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -1022,6 +1454,34 @@ public class MainActivity extends Activity {
                     checkForAppUpdate(true);
                 }
             });
+        }
+
+        @JavascriptInterface
+        public String getMobileAuthStatus() {
+            if (!isTrustedCrmPage()) {
+                return "{\"ok\":false,\"available\":false,\"configured\":false,\"hasSession\":false}";
+            }
+
+            return mobileAuthStatusJson();
+        }
+
+        @JavascriptInterface
+        public String saveMobileSession(String payload) {
+            return saveMobileSessionPayload(payload == null ? "" : payload);
+        }
+
+        @JavascriptInterface
+        public void authenticateSavedMobileSession(String requestId) {
+            MainActivity.this.authenticateSavedMobileSession(requestId == null ? "" : requestId);
+        }
+
+        @JavascriptInterface
+        public void clearMobileSession() {
+            if (!isTrustedCrmPage()) {
+                return;
+            }
+
+            clearSavedMobileSession();
         }
     }
 

@@ -22,6 +22,7 @@ class ExampleTest extends TestCase
             ->assertSee('Martin.Sols.pkg')
             ->assertSee('Application Mac')
             ->assertSee('Mac détecté')
+            ->assertSee('Connexion rapide')
             ->assertDontSee('Connexion équipe')
             ->assertDontSee('Sécurité anti-robot')
             ->assertDontSee('Connexion CRM');
@@ -39,6 +40,12 @@ class ExampleTest extends TestCase
         $this->assertStringContainsString('autocomplete="username"', $html);
         $this->assertStringContainsString('autocomplete="current-password"', $html);
         $this->assertStringContainsString('data-login-email', $html);
+        $this->assertStringContainsString('data-login-password', $html);
+        $this->assertStringContainsString('data-native-login', $html);
+        $this->assertStringContainsString('/api/mobile/token', $html);
+        $this->assertStringContainsString('/api/mobile/web-session', $html);
+        $this->assertStringContainsString('saveMobileSession', $html);
+        $this->assertStringContainsString('authenticateSavedMobileSession', $html);
         $this->assertStringContainsString('data-login-remember checked', $html);
         $this->assertStringContainsString('martin-sols:login:remembered-email', $html);
         $this->assertStringContainsString('window.localStorage.setItem(storageKey, normalizedEmail)', $html);
@@ -46,6 +53,7 @@ class ExampleTest extends TestCase
         $this->assertStringContainsString('Rester connect', $html);
         $this->assertStringNotContainsString('connectÃ', $html);
         $this->assertStringNotContainsString('localStorage.setItem(storageKey, password', $html);
+        $this->assertStringNotContainsString('localStorage.setItem(storageKey, currentPassword', $html);
     }
 
     public function test_authenticated_user_can_refresh_legacy_crm_dashboard_route(): void

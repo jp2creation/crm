@@ -32,9 +32,13 @@ declare global {
       requestLocation: () => void;
     };
     MartinSolsNativeApp?: {
+      authenticateSavedMobileSession?: (requestId: string) => void;
+      clearMobileSession?: () => void;
       checkForUpdates?: () => void;
+      getMobileAuthStatus?: () => string;
       getVersionCode?: () => string;
       getVersionName?: () => string;
+      saveMobileSession?: (payload: string) => string;
     };
     __martinSolsCrmFetchCsrf?: boolean;
     __martinSolsCrmDeadLegacyLinksInstalled?: boolean;

@@ -271,6 +271,65 @@
         white-space: nowrap;
       }
 
+      .native-login {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(220, 226, 234, 0.95);
+        border-radius: 12px;
+        background: #f8fafc;
+      }
+
+      .native-login[hidden] {
+        display: none;
+      }
+
+      .native-login__button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        box-shadow: 0 10px 22px rgba(16, 32, 51, 0.08);
+      }
+
+      .native-login__button:hover {
+        background: #fff;
+        border-color: rgba(165, 0, 52, 0.38);
+        color: var(--primary);
+      }
+
+      .native-login__button[disabled],
+      button[disabled] {
+        cursor: progress;
+        opacity: 0.72;
+      }
+
+      .native-login__help,
+      .native-login__error {
+        margin: 0;
+        font-size: 0.78rem;
+        font-weight: 750;
+        line-height: 1.35;
+      }
+
+      .native-login__help {
+        color: var(--muted);
+      }
+
+      .native-login__error {
+        display: none;
+        color: #991b1b;
+      }
+
+      .native-login__error.is-visible {
+        display: block;
+      }
+
       form {
         display: grid;
         gap: 17px;
@@ -469,6 +528,7 @@
               name="password"
               type="password"
               autocomplete="current-password"
+              data-login-password
               required
             />
           </div>
@@ -480,6 +540,14 @@
           </label>
 
           <button type="submit">Se connecter</button>
+
+          <section class="native-login" data-native-login hidden aria-label="Connexion rapide Martin Sols">
+            <button class="native-login__button" type="button" data-native-login-button>
+              Connexion rapide
+            </button>
+            <p class="native-login__help" data-native-login-help>Empreinte, visage ou code de l’appareil</p>
+            <p class="native-login__error" data-native-login-error></p>
+          </section>
         </form>
 
         <section
@@ -549,6 +617,242 @@
             // Do not block login if localStorage is unavailable.
           }
         });
+      })();
+    </script>
+    <script>
+      (() => {
+        const nativeApp = window.MartinSolsNativeApp;
+        const form = document.querySelector('[data-login-form]');
+        const email = document.querySelector('[data-login-email]');
+        const password = document.querySelector('[data-login-password]');
+        const quickLogin = document.querySelector('[data-native-login]');
+        const quickButton = document.querySelector('[data-native-login-button]');
+        const quickHelp = document.querySelector('[data-native-login-help]');
+        const quickError = document.querySelector('[data-native-login-error]');
+        const submitButton = form?.querySelector('button[type="submit"]');
+
+        if (!nativeApp || !form || !email || !password || !quickLogin || !quickButton || !submitButton) {
+          return;
+        }
+
+        const status = readNativeStatus();
+
+        if (status.available && status.hasSession) {
+          quickLogin.hidden = false;
+        } else if (status.available && quickHelp) {
+          quickHelp.textContent = 'La connexion rapide sera active après votre première connexion.';
+        }
+
+        form.addEventListener('submit', (event) => {
+          if (form.dataset.nativeLoginFallback === '1') {
+            return;
+          }
+
+          const normalizedEmail = email.value.trim();
+          const currentPassword = password.value;
+
+          if (!normalizedEmail || !currentPassword) {
+            return;
+          }
+
+          event.preventDefault();
+          void loginWithPassword(normalizedEmail, currentPassword);
+        });
+
+        quickButton.addEventListener('click', () => {
+          void loginWithSavedSession();
+        });
+
+        async function loginWithPassword(normalizedEmail, currentPassword) {
+          setBusy(true, 'Connexion...');
+          setNativeError('');
+
+          try {
+            const session = await issueMobileToken(normalizedEmail, currentPassword);
+            saveNativeSession(session);
+            await openWebSession(session);
+          } catch (error) {
+            setBusy(false);
+            form.dataset.nativeLoginFallback = '1';
+            HTMLFormElement.prototype.submit.call(form);
+          }
+        }
+
+        async function loginWithSavedSession() {
+          setBusy(true, 'Déverrouillage...');
+          setNativeError('');
+
+          try {
+            const session = await authenticateNativeSession();
+            await openWebSession(session);
+          } catch (error) {
+            setNativeError(error instanceof Error ? error.message : 'Connexion rapide impossible.');
+            setBusy(false);
+          }
+        }
+
+        async function issueMobileToken(normalizedEmail, currentPassword) {
+          const response = await fetch('/api/mobile/token', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: normalizedEmail,
+              password: currentPassword,
+              device_name: nativeDeviceName(),
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || payload.ok !== true || !payload.token || !payload.refreshToken) {
+            throw new Error(payload.error || 'Identifiants invalides.');
+          }
+
+          return payload;
+        }
+
+        async function openWebSession(session) {
+          try {
+            const webSession = await createWebSession(session.token);
+            window.location.replace(webSession.url);
+          } catch (error) {
+            if (!session.refreshToken) {
+              throw error;
+            }
+
+            const refreshed = await refreshMobileToken(session.refreshToken);
+            saveNativeSession(refreshed);
+            const webSession = await createWebSession(refreshed.token);
+            window.location.replace(webSession.url);
+          }
+        }
+
+        async function refreshMobileToken(refreshToken) {
+          const response = await fetch('/api/mobile/refresh', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              refreshToken,
+              device_name: nativeDeviceName(),
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || payload.ok !== true || !payload.token || !payload.refreshToken) {
+            nativeApp.clearMobileSession?.();
+            throw new Error('Connexion rapide expirée. Reconnectez-vous une fois avec le mot de passe.');
+          }
+
+          return payload;
+        }
+
+        async function createWebSession(token) {
+          const response = await fetch('/api/mobile/web-session', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              redirectPath: '/',
+              embed: false,
+              plain: false,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok || payload.ok !== true || !payload.url) {
+            throw new Error(payload.error || 'Session CRM impossible.');
+          }
+
+          return payload;
+        }
+
+        function authenticateNativeSession() {
+          return new Promise((resolve, reject) => {
+            const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            const timeout = window.setTimeout(() => {
+              window.removeEventListener('martin-sols:native-auth-result', onResult);
+              reject(new Error('Authentification trop longue. Réessayez.'));
+            }, 45000);
+
+            function onResult(event) {
+              const detail = event.detail || {};
+
+              if (detail.requestId !== requestId) {
+                return;
+              }
+
+              window.clearTimeout(timeout);
+              window.removeEventListener('martin-sols:native-auth-result', onResult);
+
+              if (detail.ok === true && detail.session) {
+                resolve(detail.session);
+                return;
+              }
+
+              reject(new Error(detail.error || 'Authentification annulée.'));
+            }
+
+            window.addEventListener('martin-sols:native-auth-result', onResult);
+            nativeApp.authenticateSavedMobileSession?.(requestId);
+          });
+        }
+
+        function readNativeStatus() {
+          try {
+            return JSON.parse(nativeApp.getMobileAuthStatus?.() || '{}');
+          } catch (error) {
+            return {};
+          }
+        }
+
+        function saveNativeSession(session) {
+          try {
+            const result = JSON.parse(nativeApp.saveMobileSession?.(JSON.stringify(session)) || '{}');
+
+            if (result.ok === true) {
+              quickLogin.hidden = false;
+            }
+          } catch (error) {
+            // Connexion web OK même si Android ne peut pas conserver la session rapide.
+          }
+        }
+
+        function nativeDeviceName() {
+          const version = nativeApp.getVersionName?.() || 'app';
+
+          return `Martin Sols Android ${version}`;
+        }
+
+        function setBusy(isBusy, label) {
+          submitButton.disabled = isBusy;
+          quickButton.disabled = isBusy;
+
+          if (label) {
+            quickButton.textContent = label;
+          } else {
+            quickButton.textContent = 'Connexion rapide';
+          }
+        }
+
+        function setNativeError(message) {
+          if (!quickError) {
+            return;
+          }
+
+          quickError.textContent = message || '';
+          quickError.classList.toggle('is-visible', Boolean(message));
+        }
       })();
     </script>
     <script>
