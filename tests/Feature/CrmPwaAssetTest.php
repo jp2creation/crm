@@ -164,11 +164,15 @@ class CrmPwaAssetTest extends TestCase
         $publicScript = (string) file_get_contents(public_path('modules/crm-core/crm-active-site.js'));
 
         $this->assertSame($sourceScript, $publicScript);
-        $this->assertStringContainsString("'.crm-active-site-select:disabled{cursor:wait;opacity:.72}'", $publicScript);
+        $this->assertStringContainsString("'.crm-active-site-trigger:disabled{cursor:wait;opacity:.72}'", $publicScript);
         $this->assertStringContainsString('!state.sites.length && !state.loading', $publicScript);
-        $this->assertStringContainsString("select.innerHTML = '<option value=\"\">Chargement...</option>'", $publicScript);
-        $this->assertStringContainsString('select.disabled = true', $publicScript);
-        $this->assertStringContainsString('select.disabled = false', $publicScript);
+        $this->assertStringContainsString('data-crm-active-site-toggle', $publicScript);
+        $this->assertStringContainsString('data-crm-active-site-menu', $publicScript);
+        $this->assertStringContainsString('data-crm-active-site-option', $publicScript);
+        $this->assertStringContainsString("current.textContent = state.loading ? 'Chargement...' : 'Aucun site'", $publicScript);
+        $this->assertStringContainsString('button.disabled = true', $publicScript);
+        $this->assertStringContainsString('button.disabled = false', $publicScript);
+        $this->assertStringContainsString('setMenuOpen(host, false)', $publicScript);
         $this->assertStringContainsString('window.setInterval(function ()', $publicScript);
         $this->assertStringContainsString('attempts >= 40', $publicScript);
         $this->assertStringNotContainsString('new MutationObserver', $publicScript);

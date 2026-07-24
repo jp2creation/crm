@@ -595,7 +595,7 @@ html.crm-ui-module-ready .crm-native-content > * {
     max-width: 6.9rem !important;
   }
 
-  .crm-native-header-actions .crm-active-site-select {
+  .crm-native-header-actions .crm-active-site-trigger {
     max-width: 6.9rem !important;
     padding-inline: 0.62rem 1.35rem !important;
   }
@@ -611,7 +611,7 @@ html.crm-ui-module-ready .crm-native-content > * {
   }
 
   .crm-native-header-actions .crm-active-site-switcher,
-  .crm-native-header-actions .crm-active-site-select {
+  .crm-native-header-actions .crm-active-site-trigger {
     max-width: 6.1rem !important;
   }
 }
