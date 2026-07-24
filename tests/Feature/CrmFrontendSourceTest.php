@@ -297,8 +297,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('CapacitorHttp', $mobileApp);
         $this->assertStringContainsString("document.documentElement.classList.add('crm-native-handoff')", $mobileApp);
         $this->assertStringContainsString("app.innerHTML = ''", $mobileApp);
-        $this->assertStringContainsString('versionCode 42', $androidBuild);
-        $this->assertStringContainsString('versionName "1.40"', $androidBuild);
+        $this->assertStringContainsString('versionCode 43', $androidBuild);
+        $this->assertStringContainsString('versionName "1.41"', $androidBuild);
         $this->assertStringContainsString('buildConfig = true', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PATH', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PASSWORD', $androidBuild);
@@ -403,8 +403,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertFileExists($androidIconDir.'/ic_launcher_foreground.png');
         $this->assertSame([192, 192], array_slice(getimagesize($androidIconDir.'/ic_launcher.png') ?: [], 0, 2));
         $this->assertSame([432, 432], array_slice(getimagesize($androidIconDir.'/ic_launcher_foreground.png') ?: [], 0, 2));
-        $this->assertSame('639a6ae36f524a291359f05d700d91ce0323d40023597d5f10c72c1437bbebde', hash_file('sha256', $androidIconDir.'/ic_launcher.png'));
-        $this->assertSame('8830257da17dd283f1958f8017f728b92df29b4a911316bb1205970d9872a39e', hash_file('sha256', $androidIconDir.'/ic_launcher_foreground.png'));
+        $this->assertSame('145fc5afca1f21d05079c63d0d5a2a437afef3082233692132c6b894639a8b7c', hash_file('sha256', $androidIconDir.'/ic_launcher.png'));
+        $this->assertSame('e84672a772df22cb6e804fafb32374ebe764fe56f6a5e60f8d6b945267e24dd3', hash_file('sha256', $androidIconDir.'/ic_launcher_foreground.png'));
     }
 
     public function test_deployment_archive_includes_vite_build_output(): void
