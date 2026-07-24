@@ -42,7 +42,12 @@ class CrmModuleListUiAssetTest extends TestCase
         $this->assertStringContainsString('function renderMemberCard', $public);
         $this->assertStringContainsString('class="teams-person-card"', $public);
         $this->assertStringContainsString('.teams-table-wrap{display:none}', $public);
+        $this->assertStringContainsString('container-name:teams-card', $public);
+        $this->assertStringContainsString('@container teams-card (max-width:58rem)', $public);
+        $this->assertStringContainsString('grid-template-columns:repeat(auto-fit,minmax(min(100%,8.75rem),1fr))', $public);
+        $this->assertStringContainsString('.teams-mobile-list{display:none;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))}', $public);
         $this->assertStringNotContainsString('.teams-table{min-width:54rem}', $public);
+        $this->assertStringNotContainsString('.teams-sites{display:flex;gap:.55rem;overflow:auto', $public);
         $this->assertStringNotContainsString('.layout-container.layout-page > :not(#${rootId}){display:none!important}', $public);
     }
 }
