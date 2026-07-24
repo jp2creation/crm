@@ -86,61 +86,64 @@ function mountSettingsMarkup(): boolean {
 
   wrapper.innerHTML = `
     <div class="crm-mobile-app-settings" data-crm-mobile-settings hidden>
-      <button class="crm-mobile-app-settings-backdrop" type="button" data-crm-mobile-settings-close aria-label="Fermer"></button>
       <section class="crm-mobile-app-settings-panel" role="dialog" aria-modal="true" aria-label="Paramètres de l'app">
-        <div class="crm-mobile-app-settings-header">
+        <header class="crm-mobile-app-settings-header">
+          <button class="crm-mobile-app-settings-back" type="button" data-crm-mobile-settings-close aria-label="Fermer les paramètres de l'app">
+            <span aria-hidden="true">&larr;</span>
+          </button>
           <div>
-            <p>Application</p>
-            <h2>Paramètres</h2>
+            <p>Application mobile</p>
+            <h2>Paramètres de l’app</h2>
           </div>
-          <button class="crm-mobile-app-settings-close" type="button" data-crm-mobile-settings-close aria-label="Fermer">&times;</button>
-        </div>
+        </header>
 
-        <div class="crm-mobile-app-settings-switches">
-          <label class="crm-mobile-app-settings-switch">
-            <span>Localisation</span>
-            <input data-crm-mobile-location-enabled type="checkbox">
-            <i aria-hidden="true"></i>
-          </label>
-          <label class="crm-mobile-app-settings-switch">
-            <span>Haute précision</span>
-            <input data-crm-mobile-location-accuracy type="checkbox">
-            <i aria-hidden="true"></i>
-          </label>
-        </div>
+        <div class="crm-mobile-app-settings-content">
+          <div class="crm-mobile-app-settings-switches" aria-label="Préférences">
+            <label class="crm-mobile-app-settings-switch">
+              <span>Localisation</span>
+              <input data-crm-mobile-location-enabled type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+            <label class="crm-mobile-app-settings-switch">
+              <span>Haute précision</span>
+              <input data-crm-mobile-location-accuracy type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+          </div>
 
-        <div class="crm-mobile-app-settings-status">
-          <div>
-            <span>Réseau</span>
-            <strong data-crm-mobile-network-status>En ligne</strong>
+          <div class="crm-mobile-app-settings-status">
+            <div>
+              <span>Réseau</span>
+              <strong data-crm-mobile-network-status>En ligne</strong>
+            </div>
+            <div>
+              <span>Localisation</span>
+              <strong data-crm-mobile-location-status>Désactivée</strong>
+            </div>
+            <div>
+              <span>Version</span>
+              <strong data-crm-mobile-app-version>App mobile</strong>
+            </div>
+            <div>
+              <span>WebView</span>
+              <strong data-crm-mobile-platform>Android</strong>
+            </div>
           </div>
-          <div>
-            <span>Localisation</span>
-            <strong data-crm-mobile-location-status>Désactivée</strong>
-          </div>
-          <div>
-            <span>Version</span>
-            <strong data-crm-mobile-app-version>App mobile</strong>
-          </div>
-          <div>
-            <span>WebView</span>
-            <strong data-crm-mobile-platform>Android</strong>
-          </div>
-        </div>
 
-        <div class="crm-mobile-app-settings-section">
-          <div class="crm-mobile-app-settings-section-head">
-            <span>Mises à jour</span>
-            <strong data-crm-mobile-update-status>Contrôle automatique actif</strong>
+          <div class="crm-mobile-app-settings-section">
+            <div class="crm-mobile-app-settings-section-head">
+              <span>Mises à jour</span>
+              <strong data-crm-mobile-update-status>Contrôle automatique actif</strong>
+            </div>
+            <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-check-update>Rechercher une mise à jour</button>
           </div>
-          <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-check-update>Rechercher une mise à jour</button>
-        </div>
 
-        <p class="crm-mobile-app-settings-error" data-crm-mobile-settings-error></p>
+          <p class="crm-mobile-app-settings-error" data-crm-mobile-settings-error></p>
 
-        <div class="crm-mobile-app-settings-actions">
-          <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-test-location>Tester localisation</button>
-          <button class="crm-mobile-app-settings-primary" type="button" data-crm-mobile-settings-close>Fermer</button>
+          <div class="crm-mobile-app-settings-actions">
+            <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-test-location>Tester localisation</button>
+            <button class="crm-mobile-app-settings-primary" type="button" data-crm-mobile-settings-close>Fermer</button>
+          </div>
         </div>
       </section>
     </div>
@@ -270,12 +273,14 @@ export function installMobileAppSettings(): void {
 
   const openSettings = () => {
     modal.hidden = false;
+    document.body.classList.add('crm-mobile-app-settings-open');
     showError('');
     renderSettings();
   };
 
   const closeSettings = () => {
     modal.hidden = true;
+    document.body.classList.remove('crm-mobile-app-settings-open');
   };
 
   const requestUpdateCheck = () => {
@@ -321,6 +326,15 @@ export function installMobileAppSettings(): void {
 
   testLocation?.addEventListener('click', requestLocation);
   checkUpdate?.addEventListener('click', requestUpdateCheck);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || modal.hidden) {
+      return;
+    }
+
+    event.preventDefault();
+    closeSettings();
+  });
 
   window.addEventListener('online', renderSettings);
   window.addEventListener('offline', renderSettings);

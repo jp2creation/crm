@@ -351,10 +351,13 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('StatusBar.setOverlaysWebView', $mobileApp);
         $this->assertStringNotContainsString('startup-copy', $mobileApp);
         $this->assertStringContainsString('data-crm-mobile-check-update', $mobileSettings);
+        $this->assertStringContainsString('crm-mobile-app-settings-content', $mobileSettings);
+        $this->assertStringContainsString('Paramètres de l’app', $mobileSettings);
         $this->assertStringContainsString('window.MartinSolsNativeApp', $mobileSettings);
         $this->assertStringContainsString('Boolean(window.MartinSolsNativeApp)', $mobileSettings);
         $this->assertStringContainsString('checkForUpdates: requestUpdateCheck', $mobileSettings);
         $this->assertStringNotContainsString('crm-mobile-app-settings-trigger', $mobileSettings);
+        $this->assertStringNotContainsString('crm-mobile-app-settings-backdrop', $mobileSettings);
         $this->assertStringNotContainsString('.startup-copy', $mobileStyles);
         $this->assertStringNotContainsString('auth-settings-button', $mobileStyles);
         $this->assertStringNotContainsString('crm-app-settings-button', $mobileStyles);
@@ -362,7 +365,14 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('.startup-intro-media', $mobileStyles);
         $this->assertStringContainsString('html.crm-native-handoff #app', $mobileStyles);
         $this->assertStringContainsString('.crm-mobile-app-settings-section', $shellCss);
+        $this->assertStringContainsString('body.crm-mobile-app-settings-open', $shellCss);
+        $this->assertStringContainsString('.crm-mobile-app-settings-content', $shellCss);
+        $this->assertStringContainsString('min-height: 100dvh;', $shellCss);
         $this->assertStringNotContainsString('.crm-mobile-app-settings-trigger', $shellCss);
+        $this->assertStringNotContainsString('.crm-mobile-app-settings-backdrop', $shellCss);
+        $this->assertStringNotContainsString('place-items: end center;', $shellCss);
+        $this->assertStringNotContainsString('width: min(100%, 430px);', $shellCss);
+        $this->assertStringNotContainsString('max-height: min(86dvh, 620px);', $shellCss);
         $this->assertStringContainsString('"overlaysWebView": false', $capacitorConfig);
         $this->assertStringContainsString('"style": "DARK"', $capacitorConfig);
         $this->assertStringContainsString('"backgroundColor": "#95002e"', $capacitorConfig);
