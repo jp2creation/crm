@@ -15,15 +15,18 @@ class ExampleTest extends TestCase
 
     public function test_login_page_loads(): void
     {
-        $this->get('/login')
+        $response = $this->get('/login')
             ->assertOk()
             ->assertSee('Installer Martin Sols')
             ->assertSee('APK Android')
+            ->assertSee('Martin.Sols.pkg')
             ->assertSee('Application Mac')
             ->assertSee('Mac détecté')
             ->assertDontSee('Connexion équipe')
             ->assertDontSee('Sécurité anti-robot')
             ->assertDontSee('Connexion CRM');
+
+        $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
     }
 
     public function test_login_page_can_remember_the_user_email_without_storing_the_password(): void

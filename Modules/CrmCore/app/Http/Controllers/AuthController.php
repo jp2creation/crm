@@ -6,20 +6,24 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
 use Modules\CrmCore\Http\Requests\LoginRequest;
 
 class AuthController extends Controller
 {
-    public function show(Request $request): View
+    public function show(Request $request): Response
     {
-        return view('auth.login', [
+        return response()->view('auth.login', [
             'loginInstallLinks' => $this->loginInstallLinks(),
             'loginIsMobileApp' => $request->boolean('mobile_app') || $request->boolean('mobile_embed'),
+        ], 200, [
+            'Cache-Control' => 'no-cache, no-store, max-age=0, must-revalidate',
+            'Expires' => 'Fri, 01 Jan 1990 00:00:00 GMT',
+            'Pragma' => 'no-cache',
         ]);
     }
 
