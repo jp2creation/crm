@@ -129,6 +129,7 @@ public class MainActivity extends Activity {
     private String pendingGeolocationOrigin = "";
     private String pendingDeviceCredentialRequestId = "";
     private CancellationSignal biometricCancellationSignal;
+    private volatile boolean trustedCrmPageActive;
     private boolean updateCheckStarted;
     private boolean updateInstallStarted;
 
@@ -458,15 +459,7 @@ public class MainActivity extends Activity {
     }
 
     private boolean isTrustedCrmPage() {
-        if (webView == null || webView.getUrl() == null) {
-            return false;
-        }
-
-        Uri uri = Uri.parse(webView.getUrl());
-        String host = uri.getHost();
-        String scheme = uri.getScheme();
-
-        return "https".equalsIgnoreCase(scheme) && "crm.jp2.fr".equalsIgnoreCase(host);
+        return trustedCrmPageActive;
     }
 
     private static boolean isTrustedCrmOrigin(String origin) {
@@ -479,6 +472,10 @@ public class MainActivity extends Activity {
         String scheme = uri.getScheme();
 
         return "https".equalsIgnoreCase(scheme) && "crm.jp2.fr".equalsIgnoreCase(host);
+    }
+
+    private void updateTrustedCrmPage(String url) {
+        trustedCrmPageActive = isTrustedCrmOrigin(url);
     }
 
     private void requestInitialLocationPermission() {
@@ -1718,6 +1715,7 @@ public class MainActivity extends Activity {
 
         @Override
         public void onPageFinished(WebView view, String url) {
+            updateTrustedCrmPage(url);
             injectAppSettingsOverride(view);
         }
 

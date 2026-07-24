@@ -215,6 +215,10 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('BiometricPrompt.Builder', $mainActivity);
         $this->assertStringContainsString('KeyguardManager', $mainActivity);
         $this->assertStringContainsString('MOBILE_AUTH_KEY_ALIAS', $mainActivity);
+        $this->assertStringContainsString('private volatile boolean trustedCrmPageActive;', $mainActivity);
+        $this->assertStringContainsString('private void updateTrustedCrmPage(String url)', $mainActivity);
+        $this->assertStringContainsString('trustedCrmPageActive = isTrustedCrmOrigin(url);', $mainActivity);
+        $this->assertStringContainsString('return trustedCrmPageActive;', $mainActivity);
         $this->assertStringContainsString('saveMobileSessionPayload', $mainActivity);
         $this->assertStringContainsString('authenticateSavedMobileSession', $mainActivity);
         $this->assertStringContainsString('getMobileAuthStatus', $mainActivity);
@@ -290,6 +294,7 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringContainsString('private void injectAppSettingsOverride(WebView targetWebView)', $mainActivity);
         $this->assertStringContainsString('targetWebView.evaluateJavascript(readText(getAssets().open(APP_SETTINGS_OVERRIDE_ASSET)), null)', $mainActivity);
         $this->assertStringContainsString('public void onPageFinished(WebView view, String url)', $mainActivity);
+        $this->assertStringContainsString('updateTrustedCrmPage(url);', $mainActivity);
         $this->assertStringContainsString('injectAppSettingsOverride(view);', $mainActivity);
         $this->assertStringContainsString('window.MartinSolsAndroidSettingsOverride', $androidSettingsOverride);
         $this->assertStringContainsString('data-crm-mobile-settings-toggle', $androidSettingsOverride);
@@ -357,8 +362,8 @@ class CrmFrontendSourceTest extends TestCase
         $this->assertStringNotContainsString('CapacitorHttp', $mobileApp);
         $this->assertStringContainsString("document.documentElement.classList.add('crm-native-handoff')", $mobileApp);
         $this->assertStringContainsString("app.innerHTML = ''", $mobileApp);
-        $this->assertStringContainsString('versionCode 53', $androidBuild);
-        $this->assertStringContainsString('versionName "1.51"', $androidBuild);
+        $this->assertStringContainsString('versionCode 54', $androidBuild);
+        $this->assertStringContainsString('versionName "1.52"', $androidBuild);
         $this->assertStringContainsString('buildConfig = true', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PATH', $androidBuild);
         $this->assertStringContainsString('MARTIN_SOLS_ANDROID_KEYSTORE_PASSWORD', $androidBuild);
