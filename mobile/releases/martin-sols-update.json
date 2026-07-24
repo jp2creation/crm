@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "appName": "Martin Sols",
   "android": {
-    "versionCode": 45,
-    "versionName": "1.43",
+    "versionCode": 46,
+    "versionName": "1.44",
     "required": false,
-    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.43/Martin_Sols_1.43.apk",
-    "sha256": "3ff42a5a09f8c34d972bb0e9c3cb80188da5c069acc8588026cf506df279a989",
-    "releaseNotes": "Ajout des Parametres de l app dans le menu utilisateur avec acces aux mises a jour et aux futurs reglages."
+    "apkUrl": "https://github.com/jp2creation/crm/releases/download/martin-sols-android-v1.44/Martin_Sols_1.44.apk",
+    "sha256": "dc07ff1d274510459fc40c15dd9b51b0e8108864a0c3586e60040902ab9ff6b6",
+    "releaseNotes": "Correction de l entree Parametres de l app : la WebView native charge le CRM en mode application mobile."
   },
   "ios": {
     "version": "1.0.0",
