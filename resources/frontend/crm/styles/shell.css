@@ -1112,6 +1112,12 @@ body.crm-mobile-app-settings-open {
   text-align: right;
 }
 
+.crm-mobile-app-settings-button-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 .crm-mobile-app-settings-error {
   display: none;
   margin: 0;

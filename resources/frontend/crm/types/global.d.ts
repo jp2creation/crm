@@ -33,12 +33,15 @@ declare global {
     };
     MartinSolsNativeApp?: {
       authenticateSavedMobileSession?: (requestId: string) => void;
+      clearAppCode?: () => void;
       clearMobileSession?: () => void;
       checkForUpdates?: () => void;
       getMobileAuthStatus?: () => string;
       getVersionCode?: () => string;
       getVersionName?: () => string;
+      openDeviceSecuritySettings?: () => void;
       saveMobileSession?: (payload: string) => string;
+      setAppCode?: () => void;
     };
     __martinSolsCrmFetchCsrf?: boolean;
     __martinSolsCrmDeadLegacyLinksInstalled?: boolean;

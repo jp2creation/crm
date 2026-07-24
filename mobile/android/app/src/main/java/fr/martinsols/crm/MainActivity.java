@@ -29,6 +29,7 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.text.InputType;
 import android.util.Base64;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -46,6 +47,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -59,11 +61,14 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.Executor;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -75,7 +80,12 @@ public class MainActivity extends Activity {
     private static final String MOBILE_AUTH_KEY_ALIAS = "martin_sols_mobile_session";
     private static final String MOBILE_AUTH_SESSION_CIPHER = "session_cipher";
     private static final String MOBILE_AUTH_SESSION_IV = "session_iv";
+    private static final String MOBILE_AUTH_APP_CODE_HASH = "app_code_hash";
+    private static final String MOBILE_AUTH_APP_CODE_SALT = "app_code_salt";
     private static final String MOBILE_AUTH_CIPHER_TRANSFORMATION = "AES/GCM/NoPadding";
+    private static final int APP_CODE_HASH_ITERATIONS = 120000;
+    private static final int APP_CODE_HASH_BITS = 256;
+    private static final int APP_CODE_SALT_BYTES = 16;
     private static final long SPLASH_DURATION_MS = 5500L;
     private static final long UPDATE_CHECK_DELAY_MS = 1500L;
     private static final long UPDATE_PROGRESS_INTERVAL_MS = 450L;
@@ -532,23 +542,43 @@ public class MainActivity extends Activity {
 
         try {
             boolean deviceSecure = isDeviceSecure();
+            boolean appCodeConfigured = isAppCodeConfigured();
+            boolean protectedSessionAvailable = deviceSecure || appCodeConfigured;
 
             status.put("ok", true);
-            status.put("available", deviceSecure);
-            status.put("configured", deviceSecure);
+            status.put("available", protectedSessionAvailable);
+            status.put("configured", protectedSessionAvailable);
+            status.put("deviceSecure", deviceSecure);
+            status.put("appCodeConfigured", appCodeConfigured);
             status.put("hasSession", hasSavedMobileSession());
-            status.put("label", Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
-                ? "Empreinte, visage ou code"
-                : "Code de l'appareil");
+            status.put("label", mobileAuthProtectionLabel(deviceSecure, appCodeConfigured));
 
-            if (!deviceSecure) {
-                status.put("message", "Configure un code, une empreinte ou Face Unlock dans Android.");
+            if (!protectedSessionAvailable) {
+                status.put("message", "Configure un code app ou le verrouillage Android.");
             }
         } catch (JSONException exception) {
             return "{\"ok\":false}";
         }
 
         return status.toString();
+    }
+
+    private String mobileAuthProtectionLabel(boolean deviceSecure, boolean appCodeConfigured) {
+        if (deviceSecure && appCodeConfigured) {
+            return "Empreinte, visage, code appareil ou code app";
+        }
+
+        if (deviceSecure) {
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+                ? "Empreinte, visage ou code appareil"
+                : "Code de l'appareil";
+        }
+
+        if (appCodeConfigured) {
+            return "Code app";
+        }
+
+        return "Non configuree";
     }
 
     private boolean isDeviceSecure() {
@@ -565,13 +595,23 @@ public class MainActivity extends Activity {
         return keyguardManager.isKeyguardSecure();
     }
 
+    private boolean isAppCodeConfigured() {
+        SharedPreferences preferences = mobileAuthPreferences();
+
+        return preferences.contains(MOBILE_AUTH_APP_CODE_HASH) && preferences.contains(MOBILE_AUTH_APP_CODE_SALT);
+    }
+
+    private boolean canProtectMobileSession() {
+        return isDeviceSecure() || isAppCodeConfigured();
+    }
+
     private String saveMobileSessionPayload(String payload) {
         if (!isTrustedCrmPage()) {
             return "{\"ok\":false,\"error\":\"Page CRM non autorisee.\"}";
         }
 
-        if (!isDeviceSecure()) {
-            return "{\"ok\":false,\"error\":\"Configure un code, une empreinte ou Face Unlock dans Android.\"}";
+        if (!canProtectMobileSession()) {
+            return "{\"ok\":false,\"error\":\"Configure un code app ou le verrouillage Android.\"}";
         }
 
         try {
@@ -650,6 +690,234 @@ public class MainActivity extends Activity {
             .apply();
     }
 
+    private void openDeviceSecuritySettings() {
+        try {
+            startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS));
+        } catch (ActivityNotFoundException exception) {
+            startActivity(new Intent(Settings.ACTION_SETTINGS));
+        }
+    }
+
+    private void showSetAppCodeDialog() {
+        if (isFinishing()) {
+            return;
+        }
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(24), dp(12), dp(24), 0);
+
+        TextView help = new TextView(this);
+        help.setText("Choisis un code de 4 a 8 chiffres. Il servira a proteger la connexion rapide si le telephone n'a pas de verrouillage Android.");
+        help.setTextColor(Color.rgb(100, 116, 139));
+        help.setTextSize(14);
+        layout.addView(help, new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        EditText codeInput = appCodeInput("Code app");
+        LinearLayout.LayoutParams codeParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        codeParams.setMargins(0, dp(14), 0, 0);
+        layout.addView(codeInput, codeParams);
+
+        EditText confirmInput = appCodeInput("Confirmer le code");
+        LinearLayout.LayoutParams confirmParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        confirmParams.setMargins(0, dp(10), 0, 0);
+        layout.addView(confirmInput, confirmParams);
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Code de l'app")
+            .setView(layout)
+            .setPositiveButton("Enregistrer", null)
+            .setNegativeButton("Annuler", null)
+            .create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface shownDialog) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View clickedView) {
+                        String code = normalizeAppCode(codeInput.getText().toString());
+                        String confirmation = normalizeAppCode(confirmInput.getText().toString());
+
+                        if (!isValidAppCode(code)) {
+                            codeInput.setError("4 a 8 chiffres");
+
+                            return;
+                        }
+
+                        if (!code.equals(confirmation)) {
+                            confirmInput.setError("Les codes ne correspondent pas");
+
+                            return;
+                        }
+
+                        if (storeAppCode(code)) {
+                            dialog.dismiss();
+                            dispatchNativeAuthStatusChanged();
+                            return;
+                        }
+
+                        codeInput.setError("Code impossible a enregistrer");
+                    }
+                });
+            }
+        });
+
+        dialog.show();
+    }
+
+    private void showAppCodePrompt(String requestId) {
+        if (isFinishing()) {
+            dispatchNativeAuthResult(requestId, false, null, "Authentification impossible.");
+
+            return;
+        }
+
+        EditText codeInput = appCodeInput("Code app");
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(24), dp(10), dp(24), 0);
+        layout.addView(codeInput, new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Connexion Martin Sols")
+            .setMessage("Entre le code de l'app pour ouvrir le CRM.")
+            .setView(layout)
+            .setPositiveButton("Valider", null)
+            .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int which) {
+                    dispatchNativeAuthResult(requestId, false, null, "Authentification annulee.");
+                }
+            })
+            .create();
+
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface shownDialog) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View clickedView) {
+                        String code = normalizeAppCode(codeInput.getText().toString());
+
+                        if (verifyAppCode(code)) {
+                            dialog.dismiss();
+                            deliverSavedMobileSession(requestId);
+                            return;
+                        }
+
+                        codeInput.setError("Code incorrect");
+                    }
+                });
+            }
+        });
+
+        dialog.show();
+    }
+
+    private EditText appCodeInput(String hint) {
+        EditText input = new EditText(this);
+        input.setHint(hint);
+        input.setSingleLine(true);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+
+        return input;
+    }
+
+    private boolean storeAppCode(String code) {
+        try {
+            byte[] salt = new byte[APP_CODE_SALT_BYTES];
+            new SecureRandom().nextBytes(salt);
+            byte[] hash = deriveAppCodeHash(code, salt);
+
+            mobileAuthPreferences()
+                .edit()
+                .putString(MOBILE_AUTH_APP_CODE_SALT, Base64.encodeToString(salt, Base64.NO_WRAP))
+                .putString(MOBILE_AUTH_APP_CODE_HASH, Base64.encodeToString(hash, Base64.NO_WRAP))
+                .apply();
+
+            return true;
+        } catch (GeneralSecurityException exception) {
+            return false;
+        }
+    }
+
+    private boolean verifyAppCode(String code) {
+        if (!isValidAppCode(code)) {
+            return false;
+        }
+
+        SharedPreferences preferences = mobileAuthPreferences();
+        String encodedSalt = preferences.getString(MOBILE_AUTH_APP_CODE_SALT, "");
+        String encodedHash = preferences.getString(MOBILE_AUTH_APP_CODE_HASH, "");
+
+        if (encodedSalt == null || encodedSalt.length() == 0 || encodedHash == null || encodedHash.length() == 0) {
+            return false;
+        }
+
+        try {
+            byte[] salt = Base64.decode(encodedSalt, Base64.NO_WRAP);
+            byte[] expectedHash = Base64.decode(encodedHash, Base64.NO_WRAP);
+            byte[] actualHash = deriveAppCodeHash(code, salt);
+
+            return MessageDigest.isEqual(expectedHash, actualHash);
+        } catch (IllegalArgumentException | GeneralSecurityException exception) {
+            return false;
+        }
+    }
+
+    private byte[] deriveAppCodeHash(String code, byte[] salt) throws GeneralSecurityException {
+        PBEKeySpec keySpec = new PBEKeySpec(code.toCharArray(), salt, APP_CODE_HASH_ITERATIONS, APP_CODE_HASH_BITS);
+
+        try {
+            return appCodeSecretKeyFactory().generateSecret(keySpec).getEncoded();
+        } finally {
+            keySpec.clearPassword();
+        }
+    }
+
+    private SecretKeyFactory appCodeSecretKeyFactory() throws GeneralSecurityException {
+        try {
+            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        } catch (NoSuchAlgorithmException exception) {
+            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        }
+    }
+
+    private void clearAppCode() {
+        mobileAuthPreferences()
+            .edit()
+            .remove(MOBILE_AUTH_APP_CODE_HASH)
+            .remove(MOBILE_AUTH_APP_CODE_SALT)
+            .apply();
+
+        if (!isDeviceSecure()) {
+            clearSavedMobileSession();
+        }
+
+        dispatchNativeAuthStatusChanged();
+    }
+
+    private static String normalizeAppCode(String code) {
+        return code == null ? "" : code.trim();
+    }
+
+    private static boolean isValidAppCode(String code) {
+        return code != null && code.matches("[0-9]{4,8}");
+    }
+
     private void authenticateSavedMobileSession(String requestId) {
         if (!isTrustedCrmPage()) {
             dispatchNativeAuthResult(requestId, false, null, "Page CRM non autorisee.");
@@ -663,8 +931,8 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (!isDeviceSecure()) {
-            dispatchNativeAuthResult(requestId, false, null, "Configure un code, une empreinte ou Face Unlock dans Android.");
+        if (!canProtectMobileSession()) {
+            dispatchNativeAuthResult(requestId, false, null, "Configure un code app ou le verrouillage Android.");
 
             return;
         }
@@ -672,8 +940,13 @@ public class MainActivity extends Activity {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                if (isDeviceSecure() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     showBiometricPrompt(requestId);
+                    return;
+                }
+
+                if (isAppCodeConfigured()) {
+                    showAppCodePrompt(requestId);
                     return;
                 }
 
@@ -797,6 +1070,23 @@ public class MainActivity extends Activity {
         }
 
         String script = "window.dispatchEvent(new CustomEvent('martin-sols:native-auth-result',{detail:" + detail + "}));";
+
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (webView != null) {
+                    webView.evaluateJavascript(script, null);
+                }
+            }
+        });
+    }
+
+    private void dispatchNativeAuthStatusChanged() {
+        if (webView == null) {
+            return;
+        }
+
+        String script = "window.dispatchEvent(new CustomEvent('martin-sols:native-auth-status-changed',{detail:" + mobileAuthStatusJson() + "}));";
 
         handler.post(new Runnable() {
             @Override
@@ -1482,6 +1772,44 @@ public class MainActivity extends Activity {
             }
 
             clearSavedMobileSession();
+            dispatchNativeAuthStatusChanged();
+        }
+
+        @JavascriptInterface
+        public void openDeviceSecuritySettings() {
+            if (!isTrustedCrmPage()) {
+                return;
+            }
+
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    MainActivity.this.openDeviceSecuritySettings();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void setAppCode() {
+            if (!isTrustedCrmPage()) {
+                return;
+            }
+
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    showSetAppCodeDialog();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void clearAppCode() {
+            if (!isTrustedCrmPage()) {
+                return;
+            }
+
+            MainActivity.this.clearAppCode();
         }
     }
 

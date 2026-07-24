@@ -11,8 +11,10 @@ type MobileSettings = {
 };
 
 type MobileAuthStatus = {
+  appCodeConfigured?: boolean;
   available?: boolean;
   configured?: boolean;
+  deviceSecure?: boolean;
   hasSession?: boolean;
   label?: string;
   message?: string;
@@ -22,11 +24,14 @@ type MobileAuthStatus = {
 type NativeAppBridge = {
   clearMobileSession?: () => void;
   authenticateSavedMobileSession?: (requestId: string) => void;
+  clearAppCode?: () => void;
   checkForUpdates?: () => void;
   getMobileAuthStatus?: () => string;
   getVersionCode?: () => string;
   getVersionName?: () => string;
+  openDeviceSecuritySettings?: () => void;
   saveMobileSession?: (payload: string) => string;
+  setAppCode?: () => void;
 };
 
 const storageKey = 'martin-sols.crm.mobile-app.settings';
@@ -97,15 +102,27 @@ function mobileAuthStatus(): MobileAuthStatus {
 }
 
 function mobileAuthLabel(status: MobileAuthStatus): string {
-  if (status.hasSession) {
-    return status.label || 'Activée';
+  if (status.hasSession && status.label) {
+    return status.label;
   }
 
   if (status.available) {
-    return 'Disponible';
+    return status.label || 'Disponible';
   }
 
   return status.message || 'Non configurée';
+}
+
+function mobileAuthSessionLabel(status: MobileAuthStatus): string {
+  if (status.hasSession) {
+    return 'Active';
+  }
+
+  if (status.available) {
+    return 'À activer au prochain login';
+  }
+
+  return 'Non configurée';
 }
 
 function mountSettingsMarkup(): boolean {
@@ -167,6 +184,10 @@ function mountSettingsMarkup(): boolean {
             <span>Connexion rapide</span>
             <strong data-crm-mobile-auth-status>Non configurée</strong>
           </div>
+          <div>
+            <span>Code app</span>
+            <strong data-crm-mobile-app-code-status>Non défini</strong>
+          </div>
         </div>
 
           <div class="crm-mobile-app-settings-section">
@@ -179,10 +200,15 @@ function mountSettingsMarkup(): boolean {
 
           <div class="crm-mobile-app-settings-section">
             <div class="crm-mobile-app-settings-section-head">
-              <span>Connexion rapide</span>
-              <strong data-crm-mobile-auth-section-status>Empreinte, visage ou code</strong>
+              <span>Sécurité</span>
+              <strong data-crm-mobile-auth-section-status>Non configurée</strong>
             </div>
-            <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-clear-auth>Supprimer la connexion rapide</button>
+            <div class="crm-mobile-app-settings-button-grid">
+              <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-device-security>Empreinte / visage / code Android</button>
+              <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-set-app-code>Définir un code app</button>
+              <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-clear-app-code>Supprimer le code app</button>
+              <button class="crm-mobile-app-settings-secondary" type="button" data-crm-mobile-clear-auth>Supprimer la connexion rapide</button>
+            </div>
           </div>
 
           <p class="crm-mobile-app-settings-error" data-crm-mobile-settings-error></p>
@@ -215,12 +241,16 @@ export function installMobileAppSettings(): void {
   const platformStatus = document.querySelector<HTMLElement>('[data-crm-mobile-platform]');
   const appVersion = document.querySelector<HTMLElement>('[data-crm-mobile-app-version]');
   const authStatus = document.querySelector<HTMLElement>('[data-crm-mobile-auth-status]');
+  const appCodeStatus = document.querySelector<HTMLElement>('[data-crm-mobile-app-code-status]');
   const authSectionStatus = document.querySelector<HTMLElement>('[data-crm-mobile-auth-section-status]');
   const updateStatus = document.querySelector<HTMLElement>('[data-crm-mobile-update-status]');
   const errorBox = document.querySelector<HTMLElement>('[data-crm-mobile-settings-error]');
   const testLocation = document.querySelector<HTMLButtonElement>('[data-crm-mobile-test-location]');
   const checkUpdate = document.querySelector<HTMLButtonElement>('[data-crm-mobile-check-update]');
   const clearAuth = document.querySelector<HTMLButtonElement>('[data-crm-mobile-clear-auth]');
+  const deviceSecurity = document.querySelector<HTMLButtonElement>('[data-crm-mobile-device-security]');
+  const setAppCode = document.querySelector<HTMLButtonElement>('[data-crm-mobile-set-app-code]');
+  const clearAppCode = document.querySelector<HTMLButtonElement>('[data-crm-mobile-clear-app-code]');
 
   if (!modal || !locationEnabled || !locationAccuracy) {
     return;
@@ -285,10 +315,12 @@ export function installMobileAppSettings(): void {
       authStatus.textContent = mobileAuthLabel(currentAuthStatus);
     }
 
+    if (appCodeStatus) {
+      appCodeStatus.textContent = currentAuthStatus.appCodeConfigured ? 'Défini' : 'Non défini';
+    }
+
     if (authSectionStatus) {
-      authSectionStatus.textContent = currentAuthStatus.hasSession
-        ? 'Active'
-        : (currentAuthStatus.available ? 'À activer au prochain login' : 'Non configurée');
+      authSectionStatus.textContent = mobileAuthSessionLabel(currentAuthStatus);
     }
 
     if (testLocation) {
@@ -297,6 +329,19 @@ export function installMobileAppSettings(): void {
 
     if (clearAuth) {
       clearAuth.disabled = !currentAuthStatus.hasSession;
+    }
+
+    if (deviceSecurity) {
+      deviceSecurity.disabled = !nativeBridge()?.openDeviceSecuritySettings;
+    }
+
+    if (setAppCode) {
+      setAppCode.disabled = !nativeBridge()?.setAppCode;
+      setAppCode.textContent = currentAuthStatus.appCodeConfigured ? 'Modifier le code app' : 'Définir un code app';
+    }
+
+    if (clearAppCode) {
+      clearAppCode.disabled = !currentAuthStatus.appCodeConfigured || !nativeBridge()?.clearAppCode;
     }
   };
 
@@ -392,6 +437,17 @@ export function installMobileAppSettings(): void {
 
   testLocation?.addEventListener('click', requestLocation);
   checkUpdate?.addEventListener('click', requestUpdateCheck);
+  deviceSecurity?.addEventListener('click', () => {
+    nativeBridge()?.openDeviceSecuritySettings?.();
+  });
+  setAppCode?.addEventListener('click', () => {
+    nativeBridge()?.setAppCode?.();
+  });
+  clearAppCode?.addEventListener('click', () => {
+    nativeBridge()?.clearAppCode?.();
+    showError('');
+    renderSettings();
+  });
   clearAuth?.addEventListener('click', () => {
     nativeBridge()?.clearMobileSession?.();
     showError('');
@@ -409,6 +465,7 @@ export function installMobileAppSettings(): void {
 
   window.addEventListener('online', renderSettings);
   window.addEventListener('offline', renderSettings);
+  window.addEventListener('martin-sols:native-auth-status-changed', renderSettings);
 
   if (!settingsInstalled) {
     settingsInstalled = true;
