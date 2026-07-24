@@ -76,6 +76,7 @@ public class MainActivity extends Activity {
     private static final String CRM_URL = "https://crm.jp2.fr/?mobile_app=1";
     private static final String UPDATE_MANIFEST_URL = "https://raw.githubusercontent.com/jp2creation/crm/main/mobile/releases/martin-sols-update.json";
     private static final String APK_MIME_TYPE = "application/vnd.android.package-archive";
+    private static final String APP_SETTINGS_OVERRIDE_ASSET = "app-settings-override.js";
     private static final String MOBILE_AUTH_PREFS = "martin_sols_mobile_auth";
     private static final String MOBILE_AUTH_KEY_ALIAS = "martin_sols_mobile_session";
     private static final String MOBILE_AUTH_SESSION_CIPHER = "session_cipher";
@@ -489,6 +490,18 @@ public class MainActivity extends Activity {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
         }, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+    private void injectAppSettingsOverride(WebView targetWebView) {
+        if (targetWebView == null || targetWebView.getUrl() == null || !isTrustedCrmOrigin(targetWebView.getUrl())) {
+            return;
+        }
+
+        try {
+            targetWebView.evaluateJavascript(readText(getAssets().open(APP_SETTINGS_OVERRIDE_ASSET)), null);
+        } catch (IOException exception) {
+            return;
+        }
     }
 
     private boolean hasLocationPermission() {
@@ -1670,7 +1683,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static final class CrmWebViewClient extends WebViewClient {
+    private final class CrmWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             if (isWebUrl(request.getUrl())) {
@@ -1687,6 +1700,11 @@ public class MainActivity extends Activity {
             }
 
             return true;
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            injectAppSettingsOverride(view);
         }
 
         private static boolean isWebUrl(Uri uri) {
