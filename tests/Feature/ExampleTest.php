@@ -19,6 +19,8 @@ class ExampleTest extends TestCase
             ->assertOk()
             ->assertSee('Installer Martin Sols')
             ->assertSee('APK Android')
+            ->assertSee('Application Mac')
+            ->assertSee('Mac détecté')
             ->assertDontSee('Connexion équipe')
             ->assertDontSee('Sécurité anti-robot')
             ->assertDontSee('Connexion CRM');

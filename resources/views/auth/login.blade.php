@@ -585,10 +585,12 @@
 
         const userAgent = window.navigator.userAgent || '';
         const platform = window.navigator.platform || '';
+        const userAgentDataPlatform = window.navigator.userAgentData?.platform || '';
+        const platformSignature = `${userAgent} ${platform} ${userAgentDataPlatform}`.toLowerCase();
         const isAndroid = /Android/i.test(userAgent);
         const isIos = /iPhone|iPad|iPod/i.test(userAgent)
           || (platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
-        const isMacos = /Macintosh|Mac OS X/i.test(userAgent) && !isIos;
+        const isMacos = !isIos && !isAndroid && /\b(macintosh|mac os x|macintel|macos|mac)\b/i.test(platformSignature);
         const androidUrl = card.dataset.androidUrl || '';
         const iosUrl = card.dataset.iosUrl || '';
         const macosUrl = card.dataset.macosUrl || '';
@@ -650,17 +652,21 @@
           return;
         }
 
-        if (isMacos && macosUrl) {
+        if (isMacos) {
           configure('macos', {
-            href: macosUrl,
-            download: true,
+            href: macosUrl || '#',
+            download: Boolean(macosUrl),
             icon: icons.apple,
             mark: icons.apple,
-            small: 'Télécharger',
+            small: macosUrl ? 'Télécharger' : 'Bientôt',
             label: 'macOS',
             title: 'Application Mac',
-            text: 'Paquet hors App Store',
+            text: macosUrl ? 'Paquet hors App Store' : 'Mac détecté',
             help: '',
+            onClick: macosUrl ? null : (event) => {
+              event.preventDefault();
+              help.textContent = 'Le téléchargement Mac sera proposé ici dès que le paquet sera publié.';
+            },
           });
 
           return;
