@@ -75,14 +75,26 @@
     return String(value || '').slice(11, 16);
   }
 
-  function scrollPlanningIntoView() {
+  function scrollToReservationTarget(resolveTarget, block = 'start') {
     window.requestAnimationFrame(() => {
-      const target =
-        document.querySelector(`#${rootId} [data-resa-calendar]`) ||
-        document.querySelector(`#${rootId} [data-resa-planning]`);
+      window.requestAnimationFrame(() => {
+        const target = resolveTarget();
 
-      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target?.scrollIntoView({ behavior: 'smooth', block });
+      });
     });
+  }
+
+  function scrollPlanningIntoView() {
+    scrollToReservationTarget(
+      () =>
+        document.querySelector(`#${rootId} [data-resa-planning]`) ||
+        document.querySelector(`#${rootId} [data-resa-calendar]`),
+    );
+  }
+
+  function scrollSelectionIntoView() {
+    scrollToReservationTarget(() => document.querySelector(`#${rootId} [data-resa-selection]`), 'end');
   }
 
   function activeSiteId() {
@@ -455,7 +467,7 @@
     const complete = state.selection.startAt && state.selection.endAt;
 
     return `
-      <section class="resa-selection-panel">
+      <section class="resa-selection-panel" data-resa-selection>
         <span>Créneau prêt</span>
         <strong>${esc(timeLabel(state.selection.startAt))}${complete ? ` → ${esc(timeLabel(state.selection.endAt))}` : ''}</strong>
         <p class="resa-card-subtitle">${complete ? 'Valide pour ouvrir la fiche de réservation.' : "Clique sur l'heure de fin."}</p>
@@ -598,6 +610,7 @@
         state.view = 'day';
         state.selection = null;
         render();
+        scrollPlanningIntoView();
       });
     });
 
@@ -662,6 +675,7 @@
 
     state.selection.endAt = endAt;
     render();
+    scrollSelectionIntoView();
   }
 
   function openReservation(id) {

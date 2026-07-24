@@ -36,8 +36,9 @@ class CrmModuleListUiAssetTest extends TestCase
         $this->assertSame($source, $public);
         $this->assertStringContainsString('class="teams-table-wrap"', $public);
         $this->assertStringContainsString('<table class="teams-table">', $public);
-        $this->assertStringContainsString('<th>Rôle</th>', $public);
-        $this->assertStringContainsString('class="teams-role-pill"', $public);
+        $this->assertStringNotContainsString('<th>Rôle</th>', $public);
+        $this->assertStringNotContainsString('class="teams-role-pill"', $public);
+        $this->assertStringNotContainsString('Compte CRM', $public);
         $this->assertStringContainsString('class="teams-mobile-list"', $public);
         $this->assertStringContainsString('function renderMemberCard', $public);
         $this->assertStringContainsString('class="teams-person-card"', $public);
@@ -46,6 +47,7 @@ class CrmModuleListUiAssetTest extends TestCase
         $this->assertStringContainsString('@container teams-card (max-width:58rem)', $public);
         $this->assertStringContainsString('grid-template-columns:repeat(auto-fit,minmax(min(100%,8.75rem),1fr))', $public);
         $this->assertStringContainsString('.teams-mobile-list{display:none;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))}', $public);
+        $this->assertStringContainsString('.teams-table{width:100%;min-width:50rem;', $public);
         $this->assertStringNotContainsString('.teams-table{min-width:54rem}', $public);
         $this->assertStringNotContainsString('.teams-sites{display:flex;gap:.55rem;overflow:auto', $public);
         $this->assertStringNotContainsString('.layout-container.layout-page > :not(#${rootId}){display:none!important}', $public);

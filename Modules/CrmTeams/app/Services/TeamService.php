@@ -4,6 +4,8 @@ namespace Modules\CrmTeams\Services;
 
 use App\Models\CrmUser;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Modules\CrmCore\Services\CrmAccessService;
 use Modules\CrmCore\Support\CrmReferenceCache;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -48,7 +50,7 @@ class TeamService
             'user' => $this->actorRow($actor, $siteIds, $selectedSiteId),
             'selectedSiteId' => $selectedSiteId,
             'sites' => $this->siteRows($siteIds),
-            'members' => $this->memberRows($selectedSiteId),
+            'members' => $this->memberRows($actor, $selectedSiteId),
         ];
     }
 
@@ -105,9 +107,9 @@ class TeamService
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function memberRows(int $siteId): array
+    private function memberRows(CrmUser $actor, int $siteId): array
     {
-        return collect(CrmReferenceCache::activeUserRows())
+        $members = collect(CrmReferenceCache::activeUserRows())
             ->filter(fn (array $member): bool => in_array($siteId, $member['siteIds'], true))
             ->sortBy(fn (array $member): string => sprintf(
                 '%s|%s|%s',
@@ -115,19 +117,31 @@ class TeamService
                 $member['lastName'] ?: $member['name'],
                 $member['name'],
             ))
-            ->map(fn (array $member): array => $this->memberRow($member))
+            ->values();
+
+        $canViewPresence = $this->canViewPresence($actor);
+        $presenceByMemberId = $canViewPresence
+            ? $this->presenceByMemberId($members->pluck('id')->map(fn ($id): int => (int) $id)->all())
+            : [];
+
+        return $members
+            ->map(fn (array $member): array => $this->memberRow(
+                $member,
+                $canViewPresence ? ($presenceByMemberId[(int) $member['id']] ?? ['isOnline' => false, 'lastSeenAt' => null]) : null,
+            ))
             ->values()
             ->all();
     }
 
     /**
      * @param  array{id: int, name: string, firstName: string, lastName: string, email: string, phone: string, role: string, photoUrl: string, siteIds: array<int, int>, siteNames: array<int, string>, defaultSiteId: int|null}  $member
+     * @param  array{isOnline: bool, lastSeenAt: string|null}|null  $presence
      */
-    private function memberRow(array $member): array
+    private function memberRow(array $member, ?array $presence = null): array
     {
         [$firstName, $lastName] = $this->splitName($member['name'], $member['firstName'], $member['lastName']);
 
-        return [
+        $row = [
             'id' => $member['id'],
             'name' => trim($firstName.' '.$lastName) ?: $member['name'],
             'firstName' => $firstName,
@@ -139,6 +153,73 @@ class TeamService
             'siteIds' => $member['siteIds'],
             'siteNames' => $member['siteNames'],
         ];
+
+        if ($presence !== null) {
+            $row['presence'] = [
+                'isOnline' => $presence['isOnline'],
+                'label' => $presence['isOnline'] ? 'En ligne' : 'Hors ligne',
+                'lastSeenAt' => $presence['lastSeenAt'],
+            ];
+        }
+
+        return $row;
+    }
+
+    /**
+     * @param  array<int, int>  $memberIds
+     * @return array<int, array{isOnline: bool, lastSeenAt: string|null}>
+     */
+    private function presenceByMemberId(array $memberIds): array
+    {
+        if ($memberIds === []) {
+            return [];
+        }
+
+        $table = (string) config('session.table', 'sessions');
+        if (! Schema::hasTable($table)) {
+            return [];
+        }
+
+        $accountIdsByMemberId = CrmUser::query()
+            ->whereIn('id', $memberIds)
+            ->whereNotNull('user_id')
+            ->pluck('user_id', 'id')
+            ->map(fn ($accountId): int => (int) $accountId)
+            ->all();
+
+        if ($accountIdsByMemberId === []) {
+            return [];
+        }
+
+        $minimumActivity = now()->subMinutes((int) config('session.lifetime', 120))->timestamp;
+        $onlineActivity = now()->subMinutes(5)->timestamp;
+
+        $lastActivityByAccountId = DB::table($table)
+            ->select('user_id', DB::raw('MAX(last_activity) as last_activity'))
+            ->whereIn('user_id', array_values($accountIdsByMemberId))
+            ->where('last_activity', '>=', $minimumActivity)
+            ->groupBy('user_id')
+            ->pluck('last_activity', 'user_id')
+            ->map(fn ($lastActivity): int => (int) $lastActivity)
+            ->all();
+
+        return collect($accountIdsByMemberId)
+            ->mapWithKeys(function (int $accountId, int $memberId) use ($lastActivityByAccountId, $onlineActivity): array {
+                $lastActivity = (int) ($lastActivityByAccountId[$accountId] ?? 0);
+
+                return [
+                    $memberId => [
+                        'isOnline' => $lastActivity >= $onlineActivity,
+                        'lastSeenAt' => $lastActivity > 0 ? date('c', $lastActivity) : null,
+                    ],
+                ];
+            })
+            ->all();
+    }
+
+    private function canViewPresence(CrmUser $actor): bool
+    {
+        return $actor->role === 'admin';
     }
 
     /**
@@ -177,6 +258,7 @@ class TeamService
             'role' => $actor->role,
             'siteIds' => $siteIds,
             'selectedSiteId' => $selectedSiteId,
+            'canViewPresence' => $this->canViewPresence($actor),
         ];
     }
 

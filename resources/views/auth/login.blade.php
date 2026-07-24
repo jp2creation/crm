@@ -51,6 +51,8 @@
 
       main {
         width: min(100%, 460px);
+        display: grid;
+        gap: 14px;
       }
 
       .login-card {
@@ -81,10 +83,11 @@
       .app-install {
         display: grid;
         gap: 8px;
-        padding: 9px;
-        border: 1px solid rgba(220, 226, 234, 0.95);
-        border-radius: 12px;
-        background: #f8fafc;
+        justify-items: center;
+        padding: 0 4px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
       }
 
       .app-install[hidden] {
@@ -94,32 +97,24 @@
       .app-install__head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
         gap: 10px;
+        width: 100%;
       }
 
-      .app-install__copy {
-        display: inline-flex;
+      .app-install__actions {
+        display: flex;
+        flex-wrap: wrap;
         align-items: center;
-        gap: 9px;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
         min-width: 0;
       }
 
-      .app-install__mark {
-        display: grid;
-        place-items: center;
-        width: 34px;
-        height: 34px;
-        flex: 0 0 auto;
-        border-radius: 10px;
-        background: rgba(165, 0, 52, 0.08);
-        color: var(--primary);
-      }
-
-      .app-install__mark svg,
       .app-install__badge svg {
-        width: 18px;
-        height: 18px;
+        width: 24px;
+        height: 24px;
         fill: none;
         stroke: currentColor;
         stroke-linecap: round;
@@ -136,33 +131,10 @@
         stroke: none;
       }
 
-      .app-install__mark > span,
       .app-install__badge span:first-child > span {
-        font-size: 1.12rem;
+        font-size: 1.44rem;
         font-weight: 900;
         line-height: 1;
-      }
-
-      .app-install__title {
-        display: block;
-        color: var(--ink);
-        font-size: 0.89rem;
-        font-weight: 900;
-        line-height: 1.2;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .app-install__text {
-        display: block;
-        color: var(--muted);
-        font-size: 0.76rem;
-        font-weight: 700;
-        line-height: 1.25;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
       }
 
       .app-install__help {
@@ -180,61 +152,69 @@
       .app-install__badge {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        gap: 7px;
-        min-height: 38px;
-        padding: 7px 11px;
-        border: 1px solid var(--install-border, rgba(16, 32, 51, 0.14));
-        border-radius: 999px;
-        background: var(--install-bg, #fff);
-        color: var(--install-color, var(--ink));
+        justify-content: flex-start;
+        gap: 10px;
+        min-width: 158px;
+        min-height: 48px;
+        padding: 6px 12px;
+        border: 1px solid var(--install-border, #0b0f14);
+        border-radius: 10px;
+        background: var(--install-bg, #05070a);
+        color: var(--install-color, #fff);
         text-decoration: none;
-        box-shadow: 0 10px 24px var(--install-shadow, rgba(16, 32, 51, 0.1));
+        box-shadow: 0 12px 24px var(--install-shadow, rgba(0, 0, 0, 0.16));
+        transition:
+          transform 0.16s ease,
+          box-shadow 0.16s ease,
+          border-color 0.16s ease;
       }
 
-      .app-install.is-android {
-        border-color: rgba(66, 133, 244, 0.22);
-        background: #fff;
-        --install-bg: #fff;
-        --install-border: #dadce0;
-        --install-color: #3c4043;
-        --install-shadow: rgba(60, 64, 67, 0.12);
+      .app-install__badge[hidden] {
+        display: none;
       }
 
-      .app-install.is-android .app-install__mark {
-        background: #fff;
-        color: #3c4043;
-        box-shadow: inset 0 0 0 1px #dadce0;
+      .app-install__badge.is-android {
+        --install-bg: #0b0f14;
+        --install-border: #0b0f14;
+        --install-color: #fff;
+        --install-shadow: rgba(11, 15, 20, 0.18);
       }
 
-      .app-install.is-ios,
-      .app-install.is-macos {
-        border-color: rgba(0, 0, 0, 0.18);
+      .app-install__badge.is-webapk {
+        --install-bg: #0b0f14;
+        --install-border: #0b0f14;
+        --install-color: #fff;
+        --install-shadow: rgba(11, 15, 20, 0.18);
+      }
+
+      .app-install__badge.is-iphone,
+      .app-install__badge.is-ipad,
+      .app-install__badge.is-macos {
         --install-bg: #000;
         --install-border: #000;
         --install-color: #fff;
         --install-shadow: rgba(0, 0, 0, 0.14);
       }
 
-      .app-install.is-ios .app-install__mark,
-      .app-install.is-macos .app-install__mark {
-        background: #000;
-        color: #fff;
+      .app-install__badge.is-web {
+        --install-bg: #0b0f14;
+        --install-border: #0b0f14;
+        --install-color: #fff;
+        --install-shadow: rgba(11, 15, 20, 0.18);
+      }
+
+      .app-install.is-android {
+        background: transparent;
+      }
+
+      .app-install.is-iphone,
+      .app-install.is-ipad,
+      .app-install.is-macos {
+        background: transparent;
       }
 
       .app-install.is-web {
-        border-color: rgba(66, 133, 244, 0.26);
-        background: linear-gradient(135deg, rgba(66, 133, 244, 0.06), rgba(251, 188, 5, 0.08));
-        --install-bg: #fff;
-        --install-border: #dadce0;
-        --install-color: #3c4043;
-        --install-shadow: rgba(60, 64, 67, 0.12);
-      }
-
-      .app-install.is-web .app-install__mark {
-        background: #fff;
-        color: #3c4043;
-        box-shadow: inset 0 0 0 1px #dadce0;
+        background: transparent;
       }
 
       .app-install__badge:focus {
@@ -242,32 +222,43 @@
         outline-offset: 2px;
       }
 
+      .app-install__badge:hover {
+        border-color: #1d2633;
+        box-shadow: 0 16px 28px var(--install-shadow, rgba(0, 0, 0, 0.18));
+        transform: translateY(-1px);
+      }
+
       .app-install__badge span:first-child {
         display: grid;
         place-items: center;
-        width: 18px;
-        height: 18px;
+        width: 27px;
+        height: 27px;
         flex: 0 0 auto;
       }
 
       .app-install__badge > span:last-child {
         display: grid;
-        gap: 1px;
+        gap: 2px;
+        justify-items: start;
+        min-width: 0;
+        text-align: left;
       }
 
       .app-install__badge small {
         color: currentColor;
-        font-size: 0.62rem;
-        font-weight: 750;
+        font-size: 0.56rem;
+        font-weight: 800;
+        letter-spacing: 0;
         line-height: 1;
-        opacity: 0.76;
+        opacity: 0.82;
       }
 
       .app-install__badge strong {
         color: currentColor;
-        font-size: 0.82rem;
+        font-size: 1.02rem;
         font-weight: 950;
         line-height: 1;
+        letter-spacing: 0;
         white-space: nowrap;
       }
 
@@ -449,11 +440,11 @@
         }
 
         .app-install {
-          padding: 8px;
+          padding: 0;
         }
 
         .app-install__badge {
-          min-width: 116px;
+          min-width: 148px;
         }
 
         button {
@@ -471,7 +462,7 @@
         }
 
         .app-install__head {
-          display: grid;
+          display: flex;
         }
 
         .app-install__badge {
@@ -549,34 +540,36 @@
             <p class="native-login__error" data-native-login-error></p>
           </section>
         </form>
+      </section>
 
-        <section
-          class="app-install"
-          data-login-app-install
-          data-android-url="{{ $loginInstallLinks['androidApkUrl'] ?? '' }}"
-          data-ios-url="{{ $loginInstallLinks['iosInstallUrl'] ?? '' }}"
-          data-macos-url="{{ $loginInstallLinks['macosPkgUrl'] ?? '' }}"
-          aria-label="Installer l'application Martin Sols"
-          hidden
-        >
-          <div class="app-install__head">
-            <div class="app-install__copy">
-              <span class="app-install__mark" data-login-app-mark aria-hidden="true"></span>
-              <span>
-                <strong class="app-install__title" data-login-app-title>Installer Martin Sols</strong>
-                <small class="app-install__text" data-login-app-text>Accès direct au CRM</small>
-              </span>
-            </div>
+      <section
+        class="app-install"
+        data-login-app-install
+        data-android-url="{{ $loginInstallLinks['androidApkUrl'] ?? '' }}"
+        data-ios-url="{{ $loginInstallLinks['iosInstallUrl'] ?? '' }}"
+        data-macos-url="{{ $loginInstallLinks['macosPkgUrl'] ?? '' }}"
+        aria-label="Installer l'application Martin Sols"
+        hidden
+      >
+        <div class="app-install__head">
+          <div class="app-install__actions">
             <a class="app-install__badge" href="#" data-login-app-button rel="noopener">
               <span data-login-app-icon aria-hidden="true"></span>
               <span>
                 <small data-login-app-small>Installer</small>
-                <strong data-login-app-label>App</strong>
+                <strong data-login-app-label>Web APK</strong>
+              </span>
+            </a>
+            <a class="app-install__badge" href="#" data-login-webview-button rel="noopener" hidden>
+              <span data-login-webview-icon aria-hidden="true"></span>
+              <span>
+                <small data-login-webview-small>Télécharger</small>
+                <strong data-login-webview-label>Android</strong>
               </span>
             </a>
           </div>
-          <p class="app-install__help" data-login-app-help></p>
-        </section>
+        </div>
+        <p class="app-install__help" data-login-app-help></p>
       </section>
     </main>
     @include('partials.pwa-scripts')
@@ -864,13 +857,14 @@
         }
 
         const button = card.querySelector('[data-login-app-button]');
-        const title = card.querySelector('[data-login-app-title]');
-        const text = card.querySelector('[data-login-app-text]');
+        const webviewButton = card.querySelector('[data-login-webview-button]');
         const help = card.querySelector('[data-login-app-help]');
         const small = card.querySelector('[data-login-app-small]');
         const label = card.querySelector('[data-login-app-label]');
         const icon = card.querySelector('[data-login-app-icon]');
-        const mark = card.querySelector('[data-login-app-mark]');
+        const webviewSmall = card.querySelector('[data-login-webview-small]');
+        const webviewLabel = card.querySelector('[data-login-webview-label]');
+        const webviewIcon = card.querySelector('[data-login-webview-icon]');
         const params = new URLSearchParams(window.location.search);
 
         const isStandalone = window.matchMedia?.('(display-mode: standalone)').matches === true
@@ -881,7 +875,19 @@
           || Boolean(window.MartinSolsNativeApp)
           || window.Capacitor?.isNativePlatform?.() === true;
 
-        if (isStandalone || isNativeApp || !button || !title || !text || !help || !small || !label || !icon || !mark) {
+        if (
+          isStandalone
+          || isNativeApp
+          || !button
+          || !webviewButton
+          || !help
+          || !small
+          || !label
+          || !icon
+          || !webviewSmall
+          || !webviewLabel
+          || !webviewIcon
+        ) {
           card.remove();
 
           return;
@@ -892,8 +898,10 @@
         const userAgentDataPlatform = window.navigator.userAgentData?.platform || '';
         const platformSignature = `${userAgent} ${platform} ${userAgentDataPlatform}`.toLowerCase();
         const isAndroid = /Android/i.test(userAgent);
-        const isIos = /iPhone|iPad|iPod/i.test(userAgent)
+        const isIpad = /iPad/i.test(userAgent)
           || (platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+        const isIphone = /iPhone|iPod/i.test(userAgent);
+        const isIos = isIphone || isIpad;
         const isMacos = !isIos && !isAndroid && /\b(macintosh|mac os x|macintel|macos|mac)\b/i.test(platformSignature);
         const androidUrl = card.dataset.androidUrl || '';
         const iosUrl = card.dataset.iosUrl || '';
@@ -905,47 +913,79 @@
           download: '<svg viewBox="0 0 24 24"><path d="M12 3v11"></path><path d="m7.5 9.5 4.5 4.5 4.5-4.5"></path><path d="M5 18.5h14"></path></svg>',
         };
 
+        const setupButton = (target, kind, textTargets, options) => {
+          target.className = `app-install__badge is-${kind}`;
+          target.href = options.href || '#';
+          target.toggleAttribute('download', options.download === true);
+          textTargets.small.textContent = options.small;
+          textTargets.label.textContent = options.label;
+          textTargets.icon.innerHTML = options.icon;
+          target.onclick = options.onClick || null;
+          target.hidden = false;
+        };
+
+        const hideWebviewButton = () => {
+          webviewButton.hidden = true;
+          webviewButton.onclick = null;
+          webviewButton.removeAttribute('download');
+        };
+
+        const installPwa = (event) => {
+          event.preventDefault();
+
+          if (window.MartinSolsPwa?.install) {
+            window.MartinSolsPwa.install();
+            return;
+          }
+
+          help.textContent = 'Dans Chrome ou Edge : menu du navigateur, puis Installer l’application.';
+        };
+
         const configure = (kind, options) => {
           card.className = `app-install is-${kind}`;
-          button.className = `app-install__badge is-${kind}`;
-          button.href = options.href || '#';
-          button.toggleAttribute('download', options.download === true);
-          title.textContent = options.title;
-          text.textContent = options.text;
+          setupButton(button, kind, { small, label, icon }, options);
+          hideWebviewButton();
           help.textContent = options.help;
-          small.textContent = options.small;
-          label.textContent = options.label;
-          icon.innerHTML = options.icon;
-          mark.innerHTML = options.mark || options.icon;
-          button.onclick = options.onClick || null;
           card.hidden = false;
         };
 
         if (isAndroid && androidUrl) {
-          configure('android', {
+          card.className = 'app-install is-android';
+          setupButton(button, 'webapk', { small, label, icon }, {
+            href: '#',
+            icon: icons.chrome,
+            small: 'Installer',
+            label: 'Web APK',
+            help: '',
+            onClick: installPwa,
+          });
+          setupButton(webviewButton, 'android', {
+            small: webviewSmall,
+            label: webviewLabel,
+            icon: webviewIcon,
+          }, {
             href: androidUrl,
             download: true,
             icon: icons.google,
-            mark: icons.google,
             small: 'Télécharger',
-            label: 'APK Android',
-            title: 'Application Android',
-            text: 'APK hors Play Store',
+            label: 'Android',
             help: '',
           });
+          help.textContent = '';
+          card.hidden = false;
 
           return;
         }
 
         if (isIos) {
-          configure('ios', {
+          const iosKind = isIpad ? 'ipad' : 'iphone';
+          const iosLabel = isIpad ? 'iPad' : 'iPhone';
+
+          configure(iosKind, {
             href: iosUrl || '#',
             icon: icons.apple,
-            mark: icons.apple,
-            small: iosUrl ? 'Installer via' : 'Ajouter',
-            label: iosUrl ? 'iPhone' : 'iPhone',
-            title: 'Sur iPhone',
-            text: 'Ajout écran d’accueil',
+            small: iosUrl ? 'Installer via' : 'Ajouter sur',
+            label: iosLabel,
             help: '',
             onClick: iosUrl ? null : (event) => {
               event.preventDefault();
@@ -961,11 +1001,8 @@
             href: macosUrl || '#',
             download: Boolean(macosUrl),
             icon: icons.apple,
-            mark: icons.apple,
             small: macosUrl ? 'Télécharger' : 'Bientôt',
             label: 'macOS',
-            title: 'Application Mac',
-            text: macosUrl ? 'Paquet hors App Store' : 'Mac détecté',
             help: '',
             onClick: macosUrl ? null : (event) => {
               event.preventDefault();
@@ -979,22 +1016,10 @@
         configure('web', {
           href: '#',
           icon: icons.chrome,
-          mark: icons.chrome,
           small: 'Installer',
-          label: 'PWA',
-          title: 'Application web',
-          text: 'Chrome / Edge',
+          label: 'Web APK',
           help: '',
-          onClick: (event) => {
-            event.preventDefault();
-
-            if (window.MartinSolsPwa?.install) {
-              window.MartinSolsPwa.install();
-              return;
-            }
-
-            help.textContent = 'Dans Chrome ou Edge : menu du navigateur, puis Installer l’application.';
-          },
+          onClick: installPwa,
         });
       })();
     </script>

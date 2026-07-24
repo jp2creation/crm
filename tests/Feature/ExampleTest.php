@@ -17,16 +17,39 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/login')
             ->assertOk()
-            ->assertSee('Installer Martin Sols')
-            ->assertSee('APK Android')
+            ->assertSee('Web APK')
+            ->assertSee('Android')
+            ->assertSee('iPhone')
+            ->assertSee('iPad')
             ->assertSee('Martin.Sols.pkg')
-            ->assertSee('Application Mac')
-            ->assertSee('Mac détecté')
             ->assertSee('Connexion rapide')
+            ->assertDontSee('Application Android')
+            ->assertDontSee('Application Mac')
+            ->assertDontSee('Application web')
             ->assertDontSee('Connexion équipe')
             ->assertDontSee('Sécurité anti-robot')
             ->assertDontSee('Connexion CRM');
 
+        $html = (string) $response->getContent();
+        $previousLibxmlState = libxml_use_internal_errors(true);
+        $document = new \DOMDocument;
+        $document->loadHTML($html);
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousLibxmlState);
+
+        $appInstall = (new \DOMXPath($document))->query('//*[@data-login-app-install]')->item(0);
+
+        $this->assertNotNull($appInstall);
+        $this->assertSame('main', strtolower($appInstall->parentNode?->nodeName ?? ''));
+        $this->assertStringContainsString('background: transparent;', $html);
+        $this->assertStringContainsString('border: 0;', $html);
+        $this->assertStringContainsString('min-width: 158px;', $html);
+        $this->assertStringContainsString('min-height: 48px;', $html);
+        $this->assertStringContainsString('border-radius: 10px;', $html);
+        $this->assertStringContainsString('const isIpad', $html);
+        $this->assertStringContainsString("label: 'Web APK'", $html);
+        $this->assertStringContainsString("label: 'Android'", $html);
+        $this->assertStringContainsString('Ajouter sur', $html);
         $this->assertStringContainsString('no-store', (string) $response->headers->get('Cache-Control'));
     }
 
