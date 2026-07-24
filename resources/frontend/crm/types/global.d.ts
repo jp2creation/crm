@@ -19,6 +19,11 @@ declare global {
       logoUrl?: string;
     };
     MartinSolsCrmConfig?: CrmShellConfig;
+    MartinSolsCrmShell?: {
+      closeUserMenu: () => void;
+      openUserMenu: () => void;
+      toggleUserMenu: () => void;
+    };
     MartinSolsCrmLogout?: () => void;
     MartinSolsUi?: MartinSolsUi;
     MartinSolsMobileApp?: {

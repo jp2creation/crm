@@ -585,6 +585,14 @@ function toggleUserMenu(): void {
   setUserMenuOpen(!menu || menu.hidden);
 }
 
+function installShellApi(): void {
+  window.MartinSolsCrmShell = {
+    closeUserMenu: () => setUserMenuOpen(false),
+    openUserMenu: () => setUserMenuOpen(true),
+    toggleUserMenu,
+  };
+}
+
 function installEvents(): void {
   if (installed) {
     return;
@@ -687,6 +695,7 @@ function installEvents(): void {
 }
 
 export function installNativeCrmShell(): void {
+  installShellApi();
   installEvents();
   renderNativeShell();
 

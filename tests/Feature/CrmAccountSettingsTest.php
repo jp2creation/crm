@@ -130,6 +130,11 @@ class CrmAccountSettingsTest extends TestCase
         $this->assertStringContainsString("iconForKey('profile')", $shell);
         $this->assertStringContainsString("iconForKey('logout')", $shell);
         $this->assertStringContainsString('setUserMenuOpen(false)', $shell);
+        $this->assertStringContainsString('window.MartinSolsCrmShell', $shell);
+        $this->assertStringContainsString('openUserMenu: () => setUserMenuOpen(true)', $shell);
+        $this->assertStringContainsString('restoreNativeUserMenuClick(target)', $source);
+        $this->assertStringContainsString("target?.closest?.('[data-crm-native-user-menu-toggle]')", $source);
+        $this->assertStringContainsString('window.MartinSolsCrmShell?.openUserMenu', $source);
         $this->assertStringContainsString("target?.closest('[data-crm-native-user-wrap]')", $source);
         $this->assertStringNotContainsString('data-crm-native-profile-initials', $source);
         $this->assertStringNotContainsString('data-crm-native-profile-initials', $shell);
