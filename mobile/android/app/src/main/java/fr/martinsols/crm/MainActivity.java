@@ -3,12 +3,14 @@ package fr.martinsols.crm;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
@@ -33,6 +35,9 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,9 +54,11 @@ public class MainActivity extends Activity {
     private static final String APK_MIME_TYPE = "application/vnd.android.package-archive";
     private static final long SPLASH_DURATION_MS = 5500L;
     private static final long UPDATE_CHECK_DELAY_MS = 1500L;
+    private static final long UPDATE_PROGRESS_INTERVAL_MS = 450L;
     private static final int SPLASH_VIDEO_RESOURCE = R.raw.intro;
     private static final int SPLASH_VIDEO_WIDTH = 720;
     private static final int SPLASH_VIDEO_HEIGHT = 1280;
+    private static final int UPDATE_PROGRESS_MAX = 100;
     private static final float INTRO_VIDEO_WIDTH_FRACTION = 0.62f;
     private static final float INTRO_VIDEO_HEIGHT_FRACTION = 0.62f;
     private static final int INTRO_VIDEO_MAX_WIDTH_DP = 260;
@@ -69,14 +76,26 @@ public class MainActivity extends Activity {
     private MediaPlayer splashPlayer;
     private AppUpdate pendingInstallPermissionUpdate;
     private BroadcastReceiver updateDownloadReceiver;
+    private AlertDialog updateProgressDialog;
+    private ProgressBar updateProgressBar;
+    private TextView updateProgressMessage;
+    private TextView updateProgressPercent;
     private long updateDownloadId = -1L;
     private String pendingUpdateSha256 = "";
     private boolean updateCheckStarted;
+    private boolean updateInstallStarted;
 
     private final Runnable hideSplash = new Runnable() {
         @Override
         public void run() {
             hideSplashView();
+        }
+    };
+
+    private final Runnable updateDownloadProgress = new Runnable() {
+        @Override
+        public void run() {
+            pollUpdateDownloadProgress();
         }
     };
 
@@ -114,10 +133,15 @@ public class MainActivity extends Activity {
             webView.onResume();
         }
 
-        if (pendingInstallPermissionUpdate != null && canRequestPackageInstalls()) {
-            AppUpdate update = pendingInstallPermissionUpdate;
-            pendingInstallPermissionUpdate = null;
-            startUpdateDownload(update);
+        if (pendingInstallPermissionUpdate != null) {
+            if (canRequestPackageInstalls()) {
+                AppUpdate update = pendingInstallPermissionUpdate;
+                pendingInstallPermissionUpdate = null;
+                startUpdateDownload(update);
+            } else if (!isFinishing()) {
+                pendingInstallPermissionUpdate = null;
+                showUpdateFailure("Autorisation non accordee : Android bloque l'installation de la mise a jour.");
+            }
         }
     }
 
@@ -147,7 +171,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         handler.removeCallbacks(hideSplash);
+        handler.removeCallbacks(updateDownloadProgress);
         unregisterUpdateDownloadReceiver();
+        dismissUpdateProgressDialog();
         releaseSplashPlayer();
         releaseSplashSurface();
         splashView = null;
@@ -388,16 +414,19 @@ public class MainActivity extends Activity {
                     startUpdateDownload(update);
                 }
             })
-            .setNegativeButton("Plus tard", null)
+            .setNegativeButton("Plus tard", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    pendingInstallPermissionUpdate = null;
+                }
+            })
             .show();
     }
 
     private void startUpdateDownload(AppUpdate update) {
         if (!canRequestPackageInstalls()) {
             pendingInstallPermissionUpdate = update;
-            Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
-            intent.setData(Uri.parse("package:" + getPackageName()));
-            startActivity(intent);
+            showInstallPermissionDialog(update);
 
             return;
         }
@@ -405,10 +434,14 @@ public class MainActivity extends Activity {
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         if (downloadManager == null) {
+            showUpdateFailure("Android ne peut pas lancer le telechargement.");
+
             return;
         }
 
+        cancelActiveUpdateDownload(false);
         pendingUpdateSha256 = update.sha256;
+        updateInstallStarted = false;
         String versionLabel = update.versionName.length() > 0 ? update.versionName : String.valueOf(update.versionCode);
         String fileName = "Martin_Sols_" + versionLabel + ".apk";
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(update.apkUrl));
@@ -422,10 +455,49 @@ public class MainActivity extends Activity {
 
         updateDownloadId = downloadManager.enqueue(request);
         registerUpdateDownloadReceiver();
+        showUpdateProgressDialog(update);
+        handler.removeCallbacks(updateDownloadProgress);
+        handler.post(updateDownloadProgress);
     }
 
     private boolean canRequestPackageInstalls() {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.O || getPackageManager().canRequestPackageInstalls();
+    }
+
+    private void showInstallPermissionDialog(AppUpdate update) {
+        if (isFinishing()) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("Autorisation Android requise")
+            .setMessage("Pour installer la mise a jour, autorise Martin Sols a installer des apps inconnues. Reviens ensuite dans l'app : le telechargement demarrera automatiquement.")
+            .setPositiveButton("Ouvrir les reglages", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    openInstallPermissionSettings(update);
+                }
+            })
+            .setNegativeButton("Plus tard", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    pendingInstallPermissionUpdate = null;
+                }
+            })
+            .show();
+    }
+
+    private void openInstallPermissionSettings(AppUpdate update) {
+        pendingInstallPermissionUpdate = update;
+
+        try {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivity(intent);
+        } catch (ActivityNotFoundException exception) {
+            Intent fallbackIntent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
+            startActivity(fallbackIntent);
+        }
     }
 
     private void registerUpdateDownloadReceiver() {
@@ -462,24 +534,227 @@ public class MainActivity extends Activity {
         updateDownloadReceiver = null;
     }
 
+    private void showUpdateProgressDialog(AppUpdate update) {
+        if (isFinishing()) {
+            return;
+        }
+
+        dismissUpdateProgressDialog();
+
+        String versionLabel = update.versionName.length() > 0 ? update.versionName : String.valueOf(update.versionCode);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(dp(24), dp(12), dp(24), 0);
+
+        updateProgressMessage = new TextView(this);
+        updateProgressMessage.setText("Preparation du telechargement de la version " + versionLabel + "...");
+        updateProgressMessage.setTextColor(Color.rgb(31, 53, 79));
+        updateProgressMessage.setTextSize(15);
+        layout.addView(updateProgressMessage, new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        updateProgressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        updateProgressBar.setMax(UPDATE_PROGRESS_MAX);
+        updateProgressBar.setIndeterminate(true);
+        LinearLayout.LayoutParams progressParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        progressParams.setMargins(0, dp(16), 0, dp(8));
+        layout.addView(updateProgressBar, progressParams);
+
+        updateProgressPercent = new TextView(this);
+        updateProgressPercent.setText("En attente");
+        updateProgressPercent.setTextColor(Color.rgb(100, 116, 139));
+        updateProgressPercent.setTextSize(13);
+        updateProgressPercent.setGravity(Gravity.RIGHT);
+        layout.addView(updateProgressPercent, new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
+
+        updateProgressDialog = new AlertDialog.Builder(this)
+            .setTitle("Mise a jour Martin Sols")
+            .setView(layout)
+            .setNegativeButton("Annuler", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    cancelActiveUpdateDownload(true);
+                }
+            })
+            .create();
+        updateProgressDialog.setCanceledOnTouchOutside(false);
+        updateProgressDialog.show();
+    }
+
+    private void pollUpdateDownloadProgress() {
+        if (updateDownloadId < 0 || updateInstallStarted) {
+            return;
+        }
+
+        DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+        if (downloadManager == null) {
+            showUpdateFailure("Android ne peut pas lire la progression du telechargement.");
+
+            return;
+        }
+
+        DownloadManager.Query query = new DownloadManager.Query();
+        query.setFilterById(updateDownloadId);
+
+        try (Cursor cursor = downloadManager.query(query)) {
+            if (cursor == null || !cursor.moveToFirst()) {
+                showUpdateFailure("Telechargement introuvable.");
+
+                return;
+            }
+
+            int status = intColumn(cursor, DownloadManager.COLUMN_STATUS);
+            int reason = intColumn(cursor, DownloadManager.COLUMN_REASON);
+            long downloadedBytes = longColumn(cursor, DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR);
+            long totalBytes = longColumn(cursor, DownloadManager.COLUMN_TOTAL_SIZE_BYTES);
+            int progress = progressPercent(downloadedBytes, totalBytes);
+
+            if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                updateProgressUi("Telechargement termine. Verification du fichier...", UPDATE_PROGRESS_MAX, false);
+                installDownloadedUpdate();
+
+                return;
+            }
+
+            if (status == DownloadManager.STATUS_FAILED) {
+                showUpdateFailure("Telechargement impossible. Code Android : " + reason + ".");
+
+                return;
+            }
+
+            if (status == DownloadManager.STATUS_PAUSED) {
+                updateProgressUi("Telechargement en pause. Android reprendra automatiquement. Code : " + reason + ".", progress, totalBytes <= 0);
+            } else if (status == DownloadManager.STATUS_PENDING) {
+                updateProgressUi("Demarrage du telechargement...", progress, true);
+            } else {
+                updateProgressUi("Telechargement en cours...", progress, totalBytes <= 0);
+            }
+
+            handler.postDelayed(updateDownloadProgress, UPDATE_PROGRESS_INTERVAL_MS);
+        } catch (RuntimeException exception) {
+            showUpdateFailure("Android ne peut pas suivre le telechargement.");
+        }
+    }
+
+    private void updateProgressUi(String message, int progress, boolean indeterminate) {
+        if (updateProgressMessage != null) {
+            updateProgressMessage.setText(message);
+        }
+
+        if (updateProgressBar != null) {
+            updateProgressBar.setIndeterminate(indeterminate);
+            updateProgressBar.setProgress(Math.max(0, Math.min(UPDATE_PROGRESS_MAX, progress)));
+        }
+
+        if (updateProgressPercent != null) {
+            updateProgressPercent.setText(indeterminate ? "En cours..." : progress + " %");
+        }
+    }
+
+    private void showUpdateFailure(String message) {
+        handler.removeCallbacks(updateDownloadProgress);
+        unregisterUpdateDownloadReceiver();
+        cancelActiveUpdateDownload(false);
+        dismissUpdateProgressDialog();
+
+        if (isFinishing()) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+            .setTitle("Mise a jour interrompue")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show();
+    }
+
+    private void cancelActiveUpdateDownload(boolean showMessage) {
+        handler.removeCallbacks(updateDownloadProgress);
+
+        if (updateDownloadId >= 0) {
+            DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+
+            if (downloadManager != null) {
+                downloadManager.remove(updateDownloadId);
+            }
+        }
+
+        updateDownloadId = -1L;
+        pendingUpdateSha256 = "";
+        updateInstallStarted = false;
+
+        if (showMessage && !isFinishing()) {
+            dismissUpdateProgressDialog();
+            new AlertDialog.Builder(this)
+                .setTitle("Mise a jour annulee")
+                .setMessage("Le telechargement a ete annule.")
+                .setPositiveButton("OK", null)
+                .show();
+        }
+    }
+
+    private void dismissUpdateProgressDialog() {
+        if (updateProgressDialog != null) {
+            updateProgressDialog.dismiss();
+            updateProgressDialog = null;
+        }
+
+        updateProgressBar = null;
+        updateProgressMessage = null;
+        updateProgressPercent = null;
+    }
+
     private void installDownloadedUpdate() {
+        if (updateInstallStarted) {
+            return;
+        }
+
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         if (downloadManager == null || updateDownloadId < 0) {
+            showUpdateFailure("Android ne trouve pas le fichier telecharge.");
+
             return;
         }
 
         Uri apkUri = downloadManager.getUriForDownloadedFile(updateDownloadId);
 
         if (apkUri == null || !isDownloadedUpdateValid(apkUri)) {
+            showUpdateFailure("Controle de securite impossible : le fichier telecharge ne correspond pas a la version attendue.");
+
             return;
         }
+
+        updateInstallStarted = true;
+        handler.removeCallbacks(updateDownloadProgress);
+        unregisterUpdateDownloadReceiver();
+        updateProgressUi("Ouverture de l'installateur Android...", UPDATE_PROGRESS_MAX, false);
 
         Intent installIntent = new Intent(Intent.ACTION_VIEW);
         installIntent.setDataAndType(apkUri, APK_MIME_TYPE);
         installIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(installIntent);
+
+        try {
+            startActivity(installIntent);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    dismissUpdateProgressDialog();
+                }
+            }, 1200L);
+        } catch (ActivityNotFoundException exception) {
+            showUpdateFailure("Android n'a pas pu ouvrir l'installateur.");
+        }
     }
 
     private boolean isDownloadedUpdateValid(Uri apkUri) {
@@ -530,6 +805,38 @@ public class MainActivity extends Activity {
 
             return output.toString("UTF-8");
         }
+    }
+
+    private static int progressPercent(long downloadedBytes, long totalBytes) {
+        if (downloadedBytes <= 0 || totalBytes <= 0) {
+            return 0;
+        }
+
+        return Math.min(99, Math.round((downloadedBytes * 100f) / totalBytes));
+    }
+
+    private static int intColumn(Cursor cursor, String columnName) {
+        int columnIndex = cursor.getColumnIndex(columnName);
+
+        if (columnIndex < 0) {
+            return 0;
+        }
+
+        return cursor.getInt(columnIndex);
+    }
+
+    private static long longColumn(Cursor cursor, String columnName) {
+        int columnIndex = cursor.getColumnIndex(columnName);
+
+        if (columnIndex < 0) {
+            return 0L;
+        }
+
+        return cursor.getLong(columnIndex);
+    }
+
+    private int dp(int value) {
+        return Math.round(value * getResources().getDisplayMetrics().density);
     }
 
     private void prepareSplashPlayer(SurfaceTexture surfaceTexture) {
